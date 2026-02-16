@@ -14,7 +14,7 @@ export default function HomePage() {
               <h2 className="text-2xl md:text-3xl font-light mb-8 text-gray-200">Your Words Get the Showing.</h2>
               <p className="text-lg text-gray-300 mb-10 leading-relaxed">A listing description isn't "extra" — it's the copy that follows your property everywhere: MLS, Zillow, Realtor.com, Facebook, email blasts, and your agent website.</p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/upload" className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg text-center">Submit Your Listing</Link>
+                <Link href="/rate-my-listing" className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg text-center">Rate My Listing</Link>
                 <Link href="/get-why-copy-matters" className="border-2 border-[#c9a227] hover:bg-[#c9a227]/10 text-white px-8 py-4 rounded-lg font-semibold text-lg text-center">Why Copy Matters</Link>
               </div>
             </div>
@@ -44,22 +44,22 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             <div className="text-center">
               <div className="text-5xl mb-4">📝</div>
-              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-3">Upload Your Listing</h3>
-              <p className="text-gray-600">Paste your current description (or rough notes) into our simple form. We handle the rest.</p>
+              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-3">Paste Your Listing</h3>
+              <p className="text-gray-600">Submit your listing description and get instant analysis.</p>
             </div>
             <div className="text-center">
               <div className="text-5xl mb-4">✨</div>
-              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-3">We Polish & Rewrite</h3>
-              <p className="text-gray-600">Our copywriters craft buyer-focused, MLS-ready descriptions that highlight what makes your property special.</p>
+              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-3">AI Analysis & Rewrite</h3>
+              <p className="text-gray-600">Get your grade, polished rewrite, and full report instantly.</p>
             </div>
             <div className="text-center">
               <div className="text-5xl mb-4">📧</div>
-              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-3">Delivered in 24 Hours</h3>
-              <p className="text-gray-600">Get plain text and formatted versions. Paste directly into your MLS, Zillow, or marketing materials.</p>
+              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-3">Delivered Instantly</h3>
+              <p className="text-gray-600">Report sent to your email immediately. Paste-ready copy included.</p>
             </div>
           </div>
           <div className="text-center">
-            <Link href="/upload" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Submit Your Listing Now</Link>
+            <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Try Rate My Listing Now</Link>
           </div>
         </div>
       </section>
@@ -68,17 +68,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-[#1a2b4a] mb-6 text-center">See How It Works</h2>
           <div className="rounded-xl overflow-hidden shadow-2xl border border-gray-200">
-            <iframe 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-              allowFullScreen 
-              frameBorder="0" 
-              height="450" 
-              loading="lazy" 
-              src="https://www.youtube.com/embed/9X_XMIAsjBo?rel=0" 
-              title="GetReadyToPost - Step Up Your Listing Game in 2026" 
-              width="100%"
-              className="w-full aspect-video"
-            ></iframe>
+            <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen className="w-full aspect-video" frameBorder="0" height="450" loading="lazy" src="https://www.youtube.com/embed/9X_XMIAsjBo?rel=0" title="GetReadyToPost - Step Up Your Listing Game in 2026" width="100%"></iframe>
           </div>
         </div>
       </section>
@@ -93,53 +83,34 @@ export default function HomePage() {
 
       <section className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-4xl font-bold text-[#1a2b4a] mb-6 text-center">Why Real Estate Agents Choose GetReadyToPost</h2>
-          <p className="text-xl text-gray-600 text-center mb-12 max-w-3xl mx-auto">We specialize in MLS listing copywriting — it's all we do. That focus means better results for your listings.</p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <div className="bg-[#faf8f5] p-6 rounded-xl border border-gray-200 text-center">
-              <p className="text-3xl font-bold text-[#c9a227] mb-2">24hr</p>
-              <p className="text-gray-600">Standard Turnaround</p>
-            </div>
-            <div className="bg-[#faf8f5] p-6 rounded-xl border border-gray-200 text-center">
-              <p className="text-3xl font-bold text-[#c9a227] mb-2">$79</p>
-              <p className="text-gray-600">Starting Price</p>
-            </div>
-            <div className="bg-[#faf8f5] p-6 rounded-xl border border-gray-200 text-center">
-              <p className="text-3xl font-bold text-[#c9a227] mb-2">1 Free</p>
-              <p className="text-gray-600">Revision Included</p>
-            </div>
-            <div className="bg-[#faf8f5] p-6 rounded-xl border border-gray-200 text-center">
-              <p className="text-3xl font-bold text-[#c9a227] mb-2">100%</p>
-              <p className="text-gray-600">MLS Compliant</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 bg-[#faf8f5]">
-        <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-4xl font-bold text-[#1a2b4a] mb-12 text-center">Listing Description Add-Ons</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-white p-8 rounded-xl border border-gray-200">
-              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-2">Editor Notes</h3>
-              <p className="text-gray-600 mb-4">Get detailed feedback on your original listing — what works, what doesn't, and why.</p>
-              <p className="text-[#c9a227] font-semibold">$29</p>
-            </div>
-            <div className="bg-white p-8 rounded-xl border border-gray-200">
-              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-2">Headline Pack</h3>
-              <p className="text-gray-600 mb-4">Get 5 alternative headlines optimized for MLS, Zillow, and social media.</p>
-              <p className="text-[#c9a227] font-semibold">$19</p>
-            </div>
-            <div className="bg-white p-8 rounded-xl border border-gray-200">
-              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-2">Caption Pack</h3>
-              <p className="text-gray-600 mb-4">Get 5 captions for social media posts (Instagram, Facebook, email).</p>
-              <p className="text-[#c9a227] font-semibold">$29</p>
-            </div>
-            <div className="bg-white p-8 rounded-xl border border-gray-200">
-              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-2">View Full Pricing</h3>
-              <p className="text-gray-600 mb-4">See all pricing tiers, turnaround times, and add-on options.</p>
-              <Link href="/pricing" className="text-[#c9a227] font-semibold hover:underline">Go to Pricing →</Link>
-            </div>
+          <h2 className="text-4xl font-bold text-[#1a2b4a] mb-6 text-center">Simple, Instant Pricing</h2>
+          <p className="text-xl text-gray-600 text-center mb-12 max-w-3xl mx-auto">One flat rate. Any listing length. Instant results.</p>
+          <div className="max-w-md mx-auto bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] rounded-2xl p-8 text-white text-center shadow-2xl">
+            <p className="text-6xl font-bold text-[#c9a227] mb-4">$19.99</p>
+            <p className="text-2xl mb-6">Per Listing Analysis</p>
+            <ul className="text-left space-y-3 mb-8">
+              <li className="flex items-start gap-2">
+                <span className="text-[#c9a227]">✓</span>
+                <span>Instant AI-powered grade (6 categories)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#c9a227]">✓</span>
+                <span>Professional rewrite (MLS-ready)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#c9a227]">✓</span>
+                <span>Full report with recommendations</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#c9a227]">✓</span>
+                <span>Safe Paste & Pretty versions</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#c9a227]">✓</span>
+                <span>Delivered instantly to your email</span>
+              </li>
+            </ul>
+            <Link href="/rate-my-listing" className="block bg-[#c9a227] hover:bg-[#e8c547] text-white py-4 rounded-lg font-bold text-lg transition">Get Started Now</Link>
           </div>
         </div>
       </section>
@@ -150,7 +121,7 @@ export default function HomePage() {
           <p className="text-[#c9a227] font-semibold mb-12">— Perry Real Estate College</p>
           <h2 className="text-4xl font-bold mb-6">Ready to Write Better MLS Listings?</h2>
           <p className="text-xl text-gray-200 mb-8">Join agents and brokers who are selling faster with polished, buyer-focused descriptions.</p>
-          <Link href="/upload" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Submit Your First Listing</Link>
+          <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Try Rate My Listing</Link>
         </div>
       </section>
     </main>
