@@ -216,7 +216,7 @@ export default function ResultsContent() {
               </div>
 
               <div className="bg-gradient-to-br from-emerald-900/60 to-green-900/40 backdrop-blur-md rounded-2xl p-8 border-2 border-emerald-500/40 shadow-2xl mb-10 relative">
-                <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg font-black text-xl shadow-lg">
+                <div className="absolute top-4 right-4 bg-red-500 text-white px-5 py-2 rounded-lg font-black text-2xl shadow-2xl">
                   A+
                 </div>
                 <div className="flex items-center justify-between mb-4">
