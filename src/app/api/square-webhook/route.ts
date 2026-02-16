@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { gradeAndRewriteListing } from '@/lib/openai';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -17,27 +17,36 @@ export async function POST(req: NextRequest) {
       const payment = body.data.object.payment;
       console.log('💳 Payment completed:', payment.id);
       
-      const note = payment.note || '';
-      console.log('📝 Payment note:', note);
+      const buyerEmail = payment.buyer_email_address;
+      console.log('📧 Buyer email:', buyerEmail);
       
-      if (!note.startsWith('GRTP_')) {
-        console.error('❌ Invalid note format:', note);
-        return NextResponse.json({ error: 'Invalid payment note format', note }, { status: 400 });
+      if (!buyerEmail) {
+        console.error('❌ No buyer email in payment');
+        return NextResponse.json({ error: 'No buyer email' }, { status: 400 });
       }
       
-      const submissionId = note.replace('GRTP_', '');
-      console.log('🔍 Looking up submission:', submissionId);
+      // Find the most recent pending submission for this email
+      const submissionsRef = collection(db, 'submissions');
+      const q = query(
+        submissionsRef,
+        where('email', '==', buyerEmail),
+        where('status', '==', 'pending_payment')
+      );
       
-      const submissionRef = doc(db, 'submissions', submissionId);
-      const submissionSnap = await getDoc(submissionRef);
+      console.log('🔍 Searching for submission with email:', buyerEmail);
+      const querySnapshot = await getDocs(q);
       
-      if (!submissionSnap.exists()) {
-        console.error('❌ Submission not found:', submissionId);
-        return NextResponse.json({ error: 'Submission not found', submissionId }, { status: 404 });
+      if (querySnapshot.empty) {
+        console.error('❌ No pending submission found for:', buyerEmail);
+        return NextResponse.json({ error: 'No pending submission found' }, { status: 404 });
       }
       
-      const submission = submissionSnap.data();
-      console.log('✅ Submission found:', submission.email);
+      // Get the most recent submission (in case there are multiple)
+      const submissions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      submissions.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const submission = submissions[0];
+      
+      console.log('✅ Submission found:', submission.id);
       
       const { email, listingText } = submission;
 
@@ -46,7 +55,7 @@ export async function POST(req: NextRequest) {
       console.log('✅ OpenAI analysis complete:', analysis.overall);
 
       console.log('💾 Updating Firebase...');
-      await updateDoc(submissionRef, {
+      await updateDoc(doc(db, 'submissions', submission.id), {
         analysis,
         paymentId: payment.id,
         amount: payment.amount_money.amount / 100,
@@ -73,7 +82,7 @@ export async function POST(req: NextRequest) {
           <p><strong>Amount:</strong> $${payment.amount_money.amount / 100}</p>
           <p><strong>Payment ID:</strong> ${payment.id}</p>
           <p><strong>Grade:</strong> ${analysis.overall}</p>
-          <p><strong>Firestore ID:</strong> ${submissionId}</p>
+          <p><strong>Firestore ID:</strong> ${submission.id}</p>
           <hr>
           <h3>Listing Submitted:</h3>
           <p>${listingText.substring(0, 200)}...</p>
