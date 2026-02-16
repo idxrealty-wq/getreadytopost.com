@@ -59,6 +59,16 @@ export default function AgentsPage() {
         </div>
       </section>
 
+      <section className="py-20 bg-[#1a2b4a]">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">Why Your Listing Description Matters</h2>
+          <div className="aspect-video rounded-xl overflow-hidden shadow-2xl">
+            <iframe className="w-full h-full" src="https://www.youtube.com/embed/YOUR_VIDEO_ID_HERE" title="Why Your Listing Description Matters" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+          </div>
+          <p className="text-gray-400 text-center mt-4 text-sm">Watch: How a polished listing description helps sell homes faster</p>
+        </div>
+      </section>
+
       <section className="py-20 bg-[#faf8f5]">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-4xl font-bold text-[#1a2b4a] mb-16 text-center">Why Agents Choose GetReadyToPost</h2>
