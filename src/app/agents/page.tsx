@@ -87,6 +87,38 @@ export default function AgentsPage() {
         </div>
       </section>
 
+      <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-[#1a2b4a] mb-6 text-center">Frequently Asked Questions</h2>
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-semibold text-[#1a2b4a] mb-2">What do I need to submit?</h3>
+              <p className="text-gray-600">Your name, email, property address, and current listing description (or rough notes).</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-semibold text-[#1a2b4a] mb-2">How fast will I get my listing back?</h3>
+              <p className="text-gray-600">Standard is 24 hours, Rush is same day (order by 12 PM ET), Immediate is within 3 hours.</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-semibold text-[#1a2b4a] mb-2">Is the copy MLS-compliant?</h3>
+              <p className="text-gray-600">Yes! Every listing is checked for Fair Housing compliance and MLS guidelines.</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-semibold text-[#1a2b4a] mb-2">What if I don't like the rewrite?</h3>
+              <p className="text-gray-600">Every order includes 1 free revision. Just reply with your feedback within 24 hours.</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-semibold text-[#1a2b4a] mb-2">Can you match my voice or brokerage style?</h3>
+              <p className="text-gray-600">Absolutely! Just include style notes or examples when you submit.</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-semibold text-[#1a2b4a] mb-2">Do you write for luxury properties?</h3>
+              <p className="text-gray-600">Yes! We handle all property types: residential, luxury, commercial, vacant land, and more.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="py-20 bg-gradient-to-r from-[#1a2b4a] to-[#2d4a7c] text-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-xl italic text-gray-300 mb-4">"You're not just selling a house—you're selling a home and the experience of living in it."</p>
