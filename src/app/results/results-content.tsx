@@ -216,7 +216,9 @@ export default function ResultsContent() {
               </div>
 
               <div className="bg-gradient-to-br from-emerald-900/60 to-green-900/40 backdrop-blur-md rounded-2xl p-8 border-2 border-emerald-500/40 shadow-2xl mb-10 relative">
-                <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg font-black text-xl shadow-lg">A+</div>
+                <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg font-black text-xl shadow-lg">
+                  A+
+                </div>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold text-white">✨ Your Professional Rewrite</h2>
                   <button 
@@ -226,15 +228,6 @@ export default function ResultsContent() {
                     {copied ? '✓ Copied!' : '📋 Copy'}
                   </button>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                  <p className="text-white text-lg leading-relaxed">{submission.analysis.rewrite}</p>
-                </div>
-                <div className="mt-4 flex items-center gap-2 flex-wrap">
-                  <span className="bg-emerald-600/40 text-emerald-200 text-xs font-semibold px-3 py-1 rounded-full">MLS-Ready</span>
-                  <span className="bg-emerald-600/40 text-emerald-200 text-xs font-semibold px-3 py-1 rounded-full">Fair Housing Compliant</span>
-                  <span className="bg-emerald-600/40 text-emerald-200 text-xs font-semibold px-3 py-1 rounded-full">SEO Optimized</span>
-                </div>
-              </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
                   <p className="text-white text-lg leading-relaxed">{submission.analysis.rewrite}</p>
                 </div>
