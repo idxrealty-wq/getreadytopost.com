@@ -5,42 +5,20 @@ import Link from 'next/link';
 export default function RateMyListingPage() {
   const [email, setEmail] = useState('');
   const [listing, setListing] = useState('');
-  const [step, setStep] = useState<'input' | 'payment' | 'processing' | 'success' | 'error'>('input');
-  const [errorMsg, setErrorMsg] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
   
   const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
 
-  const handleAnalyze = async () => {
-    setStep('processing');
-    setErrorMsg('');
-
-    try {
-      const response = await fetch('/api/submit-listing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, listingText: listing }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Analysis failed');
-      }
-
-      setStep('success');
-    } catch (error: any) {
-      setStep('error');
-      setErrorMsg(error.message);
-    }
-  };
-
-  const handlePayAndAnalyze = () => {
-    // Save listing data to localStorage so we can retrieve after payment
-    localStorage.setItem('rml_email', email);
-    localStorage.setItem('rml_listing', listing);
-    // Open Square payment link
-    window.open('https://square.link/u/22tY4Rla', '_blank');
-    // Show processing step
-    setStep('payment');
+  const handleSubmit = () => {
+    // Save to localStorage so webhook can retrieve it
+    const submissionId = Date.now().toString();
+    localStorage.setItem(`rml_${submissionId}`, JSON.stringify({ email, listing }));
+    
+    // Open Square payment with submission ID in note
+    window.open(`https://square.link/u/22tY4Rla?note=${submissionId}`, '_blank');
+    
+    // Show success message
+    setShowSuccess(true);
   };
 
   return (
@@ -58,49 +36,25 @@ export default function RateMyListingPage() {
           </div>
         </section>
 
-        {step === 'success' ? (
-          <div className="bg-green-50 border-2 border-green-500 rounded-2xl p-8 text-center">
-            <div className="text-6xl mb-4">✅</div>
-            <h2 className="text-2xl font-bold text-green-800 mb-2">Report Sent!</h2>
-            <p className="text-green-700 mb-4">Check your email for your full listing analysis, grade, and rewrite.</p>
-            <button onClick={() => { setStep('input'); setEmail(''); setListing(''); }} className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-6 py-3 rounded-lg font-semibold">
-              Analyze Another Listing
-            </button>
-          </div>
-        ) : step === 'payment' ? (
+        {showSuccess ? (
           <div className="bg-white rounded-2xl p-8 shadow-2xl text-center">
-            <div className="text-5xl mb-4">💳</div>
+            <div className="text-6xl mb-4">💳</div>
             <h2 className="text-2xl font-bold text-[#1a2b4a] mb-4">Complete Your Payment</h2>
-            <p className="text-gray-600 mb-6">A new window opened for secure payment via Square. After you complete the payment, click the button below.</p>
+            <p className="text-gray-600 mb-6">A payment window opened. After you complete payment, your report will be generated automatically and emailed to <strong>{email}</strong> within 1-2 minutes.</p>
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
+              <p className="text-sm text-blue-800"><strong>What happens next:</strong></p>
+              <ol className="text-left text-sm text-blue-700 mt-3 space-y-2">
+                <li>1. Complete payment in the Square window</li>
+                <li>2. You'll receive a confirmation email immediately</li>
+                <li>3. Your listing analysis will be generated (30-60 seconds)</li>
+                <li>4. Full report with grade + rewrite arrives in your inbox</li>
+              </ol>
+            </div>
             <button 
-              onClick={handleAnalyze}
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold text-lg transition mb-4"
+              onClick={() => { setShowSuccess(false); setEmail(''); setListing(''); }}
+              className="text-gray-500 hover:text-gray-700 text-sm font-semibold"
             >
-              ✅ I've Completed Payment — Run My Analysis
-            </button>
-            <button 
-              onClick={() => setStep('input')}
-              className="text-gray-500 hover:text-gray-700 text-sm"
-            >
-              ← Go back
-            </button>
-          </div>
-        ) : step === 'processing' ? (
-          <div className="bg-white rounded-2xl p-8 shadow-2xl text-center">
-            <div className="text-5xl mb-4 animate-spin">⏳</div>
-            <h2 className="text-2xl font-bold text-[#1a2b4a] mb-4">Analyzing Your Listing...</h2>
-            <p className="text-gray-600">Grading, rewriting, and building your report. This takes about 15-30 seconds.</p>
-          </div>
-        ) : step === 'error' ? (
-          <div className="bg-white rounded-2xl p-8 shadow-2xl text-center">
-            <div className="text-5xl mb-4">❌</div>
-            <h2 className="text-2xl font-bold text-red-700 mb-4">Something Went Wrong</h2>
-            <p className="text-gray-600 mb-4">{errorMsg}</p>
-            <button 
-              onClick={() => setStep('input')}
-              className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-6 py-3 rounded-lg font-semibold"
-            >
-              Try Again
+              ← Submit Another Listing
             </button>
           </div>
         ) : (
@@ -116,6 +70,7 @@ export default function RateMyListingPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">Your report will be sent here</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Listing Description *</label>
@@ -131,7 +86,7 @@ export default function RateMyListingPage() {
               </div>
 
               <button 
-                onClick={handlePayAndAnalyze}
+                onClick={handleSubmit}
                 className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50"
                 disabled={!email || !listing}
               >
@@ -139,7 +94,7 @@ export default function RateMyListingPage() {
               </button>
 
               <p className="text-xs text-gray-500 text-center">
-                Secure payment via Square. Report delivered instantly to your email.
+                Secure payment via Square. Report delivered automatically to your email.
               </p>
             </div>
           </div>
