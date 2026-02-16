@@ -3,27 +3,10 @@ import Link from 'next/link';
 export default function HomePage() {
   return (
     <main>
-      {/* HEADER */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3">
-              <span className="text-xl font-bold text-[#1a2b4a]">GetReadyToPost</span>
-            </Link>
-            <nav className="hidden md:flex items-center gap-5">
-              <Link href="/rate-my-listing" className="text-red-500 hover:text-red-600 font-semibold text-sm">🔥 Rate My Listing</Link>
-              <Link href="/agents" className="text-[#1a2b4a] hover:text-[#c9a227] font-medium text-sm">Agents</Link>
-              <Link href="/brokers" className="text-[#1a2b4a] hover:text-[#c9a227] font-medium text-sm">Brokers</Link>
-              <Link href="/pricing" className="text-[#1a2b4a] hover:text-[#c9a227] font-medium text-sm">Pricing</Link>
-              <Link href="/faq" className="text-[#1a2b4a] hover:text-[#c9a227] font-medium text-sm">FAQ</Link>
-              <Link href="/upload-new" className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-5 py-2.5 rounded-lg font-semibold text-sm">Submit Listing</Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* HERO */}
       <section className="relative min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] text-white overflow-hidden flex items-center pt-20">
+        <div className="absolute inset-0 opacity-20">
+          <img alt="Agent at desk" className="w-full h-full object-cover" loading="lazy" src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=800&fit=crop" />
+        </div>
         <div className="relative z-10 max-w-5xl mx-auto px-6 py-20 w-full">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
@@ -44,7 +27,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* TESTIMONIAL */}
       <section className="py-12 bg-[#1a2b4a]">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-xl md:text-2xl italic text-white mb-4">"A real estate listing description tells a home's story and provides the buyer with insight about what it's like to live there."</p>
@@ -52,7 +34,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* PROCESS */}
       <section className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -83,7 +64,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* STATS */}
+      <section className="py-16 bg-[#faf8f5]">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-[#1a2b4a] mb-6 text-center">See How It Works</h2>
+          <div className="rounded-xl overflow-hidden shadow-2xl border border-gray-200">
+            <iframe 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allowFullScreen 
+              frameBorder="0" 
+              height="450" 
+              loading="lazy" 
+              src="https://www.youtube.com/embed/9X_XMIAsjBo?rel=0" 
+              title="GetReadyToPost - Step Up Your Listing Game in 2026" 
+              width="100%"
+              className="w-full aspect-video"
+            ></iframe>
+          </div>
+        </div>
+      </section>
+
       <section className="py-12 bg-white border-y border-gray-200">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-4xl md:text-5xl font-bold text-[#1a2b4a] mb-4">87%</p>
@@ -92,7 +91,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* WHY CHOOSE US */}
       <section className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-4xl font-bold text-[#1a2b4a] mb-6 text-center">Why Real Estate Agents Choose GetReadyToPost</h2>
@@ -118,7 +116,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ADD-ONS */}
       <section className="py-20 bg-[#faf8f5]">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-4xl font-bold text-[#1a2b4a] mb-12 text-center">Listing Description Add-Ons</h2>
@@ -147,7 +144,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FINAL CTA */}
       <section className="py-20 bg-gradient-to-r from-[#1a2b4a] to-[#2d4a7c] text-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-xl italic text-gray-300 mb-6">"You're not just selling a house—you're selling a home and the experience of living in it."</p>
@@ -157,52 +153,6 @@ export default function HomePage() {
           <Link href="/upload" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Submit Your First Listing</Link>
         </div>
       </section>
-
-      {/* FOOTER */}
-      <footer className="bg-[#1a2b4a] text-white py-16">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-12">
-            <div>
-              <Link href="/" className="flex items-center gap-3 mb-4">
-                <span className="text-xl font-bold">GetReadyToPost</span>
-              </Link>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Professional MLS listing copywriting that helps real estate professionals sell faster.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-[#c9a227] mb-4">Services</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li><Link href="/agents" className="hover:text-white">For Agents</Link></li>
-                <li><Link href="/brokers" className="hover:text-white">For Brokers</Link></li>
-                <li><Link href="/pricing" className="hover:text-white">Pricing</Link></li>
-                <li><Link href="/upload" className="hover:text-white">Submit Listing</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-[#c9a227] mb-4">Resources</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li><Link href="/faq" className="hover:text-white">FAQ</Link></li>
-                <li><Link href="/examples" className="hover:text-white">Examples</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-[#c9a227] mb-4">Legal</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li><Link href="/privacy" className="hover:text-white">Privacy</Link></li>
-                <li><Link href="/terms" className="hover:text-white">Terms</Link></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400 text-sm">
-            <p>&copy; 2026 GetReadyToPost. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }
