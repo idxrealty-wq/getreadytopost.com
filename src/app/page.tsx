@@ -31,8 +31,8 @@ export default function HomePage() {
               <h2 className="text-2xl md:text-3xl font-light mb-8 text-gray-200">Your Words Get the Showing.</h2>
               <p className="text-lg text-gray-300 mb-10 leading-relaxed">A listing description isn't "extra" — it's the copy that follows your property everywhere: MLS, Zillow, Realtor.com, Facebook, email blasts, and your agent website.</p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/upload" className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg text-center">Submit Your Listing</Link>
-                <Link href="/why-copy-matters" className="border-2 border-[#c9a227] hover:bg-[#c9a227]/10 text-white px-8 py-4 rounded-lg font-semibold text-lg text-center">Why Copy Matters</Link>
+                <Link href="/upload-new" className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg text-center">Submit Your Listing</Link>
+                <Link href="/get-why-copy-matters" className="border-2 border-[#c9a227] hover:bg-[#c9a227]/10 text-white px-8 py-4 rounded-lg font-semibold text-lg text-center">Why Copy Matters</Link>
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-8 text-center">
@@ -78,7 +78,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="text-center">
-            <Link href="/upload" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Submit Your Listing Now</Link>
+            <Link href="/upload-new" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Submit Your Listing Now</Link>
           </div>
         </div>
       </section>
@@ -154,7 +154,7 @@ export default function HomePage() {
           <p className="text-[#c9a227] font-semibold mb-12">— Perry Real Estate College</p>
           <h2 className="text-4xl font-bold mb-6">Ready to Write Better MLS Listings?</h2>
           <p className="text-xl text-gray-200 mb-8">Join agents and brokers who are selling faster with polished, buyer-focused descriptions.</p>
-          <Link href="/upload" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Submit Your First Listing</Link>
+          <Link href="/upload-new" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Submit Your First Listing</Link>
         </div>
       </section>
 
@@ -177,7 +177,7 @@ export default function HomePage() {
                 <li><Link href="/agents" className="hover:text-white">For Agents</Link></li>
                 <li><Link href="/brokers" className="hover:text-white">For Brokers</Link></li>
                 <li><Link href="/pricing" className="hover:text-white">Pricing</Link></li>
-                <li><Link href="/upload" className="hover:text-white">Submit Listing</Link></li>
+                <li><Link href="/upload-new" className="hover:text-white">Submit Listing</Link></li>
               </ul>
             </div>
 
