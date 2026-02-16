@@ -3,163 +3,111 @@ import Link from 'next/link';
 export default function PricingPage() {
   return (
     <main>
-      <section className="bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] text-white py-20 pt-32">
+      <section className="bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] text-white py-16 pt-32">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Simple, Transparent Pricing</h1>
-          <p className="text-xl text-gray-300 mb-8">Pay per listing. No subscriptions. No hidden fees.</p>
+          <p className="text-xl text-gray-300">One flat rate. Any listing length. Instant results.</p>
         </div>
       </section>
 
-      <section className="py-6 bg-[#faf8f5] border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-gray-600 text-sm"><span className="font-semibold text-[#1a2b4a]">Trusted by agents across Florida</span> — Professional MLS copy that sells homes faster</p>
-        </div>
-      </section>
-
-      <section className="py-16 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-2xl font-bold text-[#1a2b4a] mb-6">Listing Rewrites</h2>
-          
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-[#1a2b4a] text-white">
-                  <th className="px-4 py-4 text-left font-semibold rounded-tl-lg">Word Count</th>
-                  <th className="px-4 py-4 text-center font-semibold">Standard<br/><span className="text-sm font-normal text-gray-300">24 hrs</span></th>
-                  <th className="px-4 py-4 text-center font-semibold">Rush<br/><span className="text-sm font-normal text-gray-300">Same day*</span></th>
-                  <th className="px-4 py-4 text-center font-semibold rounded-tr-lg bg-[#c9a227]">Immediate<br/><span className="text-sm font-normal">3 hrs</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-5 font-medium">0-400 words</td>
-                  <td className="px-4 py-5 text-center"><span className="text-2xl font-bold">$79</span></td>
-                  <td className="px-4 py-5 text-center"><span className="text-2xl font-bold">$129</span></td>
-                  <td className="px-4 py-5 text-center bg-amber-50"><span className="text-2xl font-bold text-[#c9a227]">$179</span></td>
-                </tr>
-                <tr className="border-b border-gray-200 bg-[#faf8f5]">
-                  <td className="px-4 py-5 font-medium">401-800 words</td>
-                  <td className="px-4 py-5 text-center"><span className="text-2xl font-bold">$129</span></td>
-                  <td className="px-4 py-5 text-center"><span className="text-2xl font-bold">$179</span></td>
-                  <td className="px-4 py-5 text-center bg-amber-50"><span className="text-2xl font-bold text-[#c9a227]">$229</span></td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-4 py-5 font-medium">801-1200 words</td>
-                  <td className="px-4 py-5 text-center"><span className="text-2xl font-bold">$179</span></td>
-                  <td className="px-4 py-5 text-center"><span className="text-2xl font-bold">$229</span></td>
-                  <td className="px-4 py-5 text-center bg-amber-50"><span className="text-2xl font-bold text-[#c9a227]">$279</span></td>
-                </tr>
-              </tbody>
-            </table>
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="max-w-lg mx-auto bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] rounded-2xl p-10 text-white text-center shadow-2xl mb-12">
+            <div className="bg-[#c9a227] text-white text-sm font-bold px-4 py-1 rounded-full inline-block mb-6">INSTANT DELIVERY</div>
+            <p className="text-7xl font-bold text-[#c9a227] mb-4">$19.99</p>
+            <p className="text-2xl mb-8">Per Listing Analysis</p>
+            <ul className="text-left space-y-4 mb-10">
+              <li className="flex items-start gap-3">
+                <span className="text-[#c9a227] text-xl">✓</span>
+                <span className="text-lg">Instant AI-powered analysis & grade</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-[#c9a227] text-xl">✓</span>
+                <span className="text-lg">Professional MLS-ready rewrite</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-[#c9a227] text-xl">✓</span>
+                <span className="text-lg">Full report with visual scoring</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-[#c9a227] text-xl">✓</span>
+                <span className="text-lg">Safe Paste & Pretty versions included</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-[#c9a227] text-xl">✓</span>
+                <span className="text-lg">Delivered instantly to your email</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-[#c9a227] text-xl">✓</span>
+                <span className="text-lg">Works for ANY word count</span>
+              </li>
+            </ul>
+            <Link href="/rate-my-listing" className="block bg-[#c9a227] hover:bg-[#e8c547] text-white py-4 rounded-xl font-bold text-xl transition">Get Started Now</Link>
           </div>
 
-          <div className="md:hidden space-y-4">
-            <div className="bg-[#faf8f5] rounded-xl p-5">
-              <h3 className="font-bold text-[#1a2b4a] mb-4">0-400 words</h3>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <p className="text-xs text-gray-500">Standard</p>
-                  <p className="text-lg font-bold text-[#1a2b4a]">$79</p>
-                  <p className="text-xs text-gray-400">24 hrs</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Rush</p>
-                  <p className="text-lg font-bold text-[#1a2b4a]">$129</p>
-                  <p className="text-xs text-gray-400">Same day*</p>
-                </div>
-                <div className="bg-amber-100 rounded-lg py-1">
-                  <p className="text-xs text-[#c9a227]">Immediate</p>
-                  <p className="text-lg font-bold text-[#c9a227]">$179</p>
-                  <p className="text-xs text-gray-400">3 hrs</p>
-                </div>
+          <div className="bg-[#faf8f5] rounded-xl p-8 mb-12">
+            <h2 className="text-2xl font-bold text-[#1a2b4a] mb-6 text-center">How It Works</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#c9a227] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">1</div>
+                <h3 className="font-bold text-[#1a2b4a] mb-2">Submit Your Listing</h3>
+                <p className="text-gray-600 text-sm">Paste your current listing description into the Rate My Listing tool</p>
               </div>
-            </div>
-            <div className="bg-[#faf8f5] rounded-xl p-5">
-              <h3 className="font-bold text-[#1a2b4a] mb-4">401-800 words</h3>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <p className="text-xs text-gray-500">Standard</p>
-                  <p className="text-lg font-bold text-[#1a2b4a]">$129</p>
-                  <p className="text-xs text-gray-400">24 hrs</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Rush</p>
-                  <p className="text-lg font-bold text-[#1a2b4a]">$179</p>
-                  <p className="text-xs text-gray-400">Same day*</p>
-                </div>
-                <div className="bg-amber-100 rounded-lg py-1">
-                  <p className="text-xs text-[#c9a227]">Immediate</p>
-                  <p className="text-lg font-bold text-[#c9a227]">$229</p>
-                  <p className="text-xs text-gray-400">3 hrs</p>
-                </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#c9a227] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">2</div>
+                <h3 className="font-bold text-[#1a2b4a] mb-2">Pay $19.99</h3>
+                <p className="text-gray-600 text-sm">One-time payment. Secure checkout. No subscriptions.</p>
               </div>
-            </div>
-            <div className="bg-[#faf8f5] rounded-xl p-5">
-              <h3 className="font-bold text-[#1a2b4a] mb-4">801-1200 words</h3>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <p className="text-xs text-gray-500">Standard</p>
-                  <p className="text-lg font-bold text-[#1a2b4a]">$179</p>
-                  <p className="text-xs text-gray-400">24 hrs</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Rush</p>
-                  <p className="text-lg font-bold text-[#1a2b4a]">$229</p>
-                  <p className="text-xs text-gray-400">Same day*</p>
-                </div>
-                <div className="bg-amber-100 rounded-lg py-1">
-                  <p className="text-xs text-[#c9a227]">Immediate</p>
-                  <p className="text-lg font-bold text-[#c9a227]">$279</p>
-                  <p className="text-xs text-gray-400">3 hrs</p>
-                </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#c9a227] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">3</div>
+                <h3 className="font-bold text-[#1a2b4a] mb-2">Get Your Report</h3>
+                <p className="text-gray-600 text-sm">Instant email delivery with grade, rewrite, and recommendations</p>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 grid md:grid-cols-2 gap-4">
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-sm text-amber-800"><strong>*Rush:</strong> Request + payment by 12 PM ET for same-day.</p>
-            </div>
-            <div className="p-4 bg-[#c9a227]/10 border border-[#c9a227]/30 rounded-lg">
-              <p className="text-sm text-[#1a2b4a]"><strong>Immediate:</strong> Front of the queue, guaranteed.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 bg-[#faf8f5]">
-        <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-4xl font-bold text-[#1a2b4a] mb-12 text-center">Listing Description Add-Ons</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-white p-8 rounded-xl border border-gray-200">
-              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-2">Editor Notes</h3>
-              <p className="text-gray-600 mb-4">Get detailed feedback on your original listing — what works, what doesn't, and why.</p>
-              <p className="text-[#c9a227] font-semibold">$29</p>
-            </div>
-            <div className="bg-white p-8 rounded-xl border border-gray-200">
-              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-2">Headline Pack</h3>
-              <p className="text-gray-600 mb-4">Get 5 alternative headlines optimized for MLS, Zillow, and social media.</p>
-              <p className="text-[#c9a227] font-semibold">$19</p>
-            </div>
-            <div className="bg-white p-8 rounded-xl border border-gray-200">
-              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-2">Caption Pack</h3>
-              <p className="text-gray-600 mb-4">Get 5 captions for social media posts (Instagram, Facebook, email).</p>
-              <p className="text-[#c9a227] font-semibold">$29</p>
-            </div>
-            <div className="bg-white p-8 rounded-xl border border-gray-200">
-              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-2">View Full Pricing</h3>
-              <p className="text-gray-600 mb-4">See all pricing tiers, turnaround times, and add-on options.</p>
-              <Link href="/pricing" className="text-[#c9a227] font-semibold hover:underline">Go to Pricing →</Link>
+          <div className="bg-white border-2 border-[#c9a227] rounded-xl p-8">
+            <h2 className="text-2xl font-bold text-[#1a2b4a] mb-4 text-center">Why One Flat Rate?</h2>
+            <p className="text-gray-600 text-center mb-6 max-w-2xl mx-auto">We believe great listing copy should be accessible to every agent, regardless of listing length. Whether you have 50 words or 500, you get the same quality analysis and rewrite.</p>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="flex items-start gap-3">
+                <span className="text-[#c9a227] text-2xl">💰</span>
+                <div>
+                  <h3 className="font-bold text-[#1a2b4a] mb-1">No Hidden Fees</h3>
+                  <p className="text-gray-600 text-sm">What you see is what you pay. No surprises.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-[#c9a227] text-2xl">⚡</span>
+                <div>
+                  <h3 className="font-bold text-[#1a2b4a] mb-1">Instant Results</h3>
+                  <p className="text-gray-600 text-sm">No waiting. Your report arrives in seconds.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-[#c9a227] text-2xl">🎯</span>
+                <div>
+                  <h3 className="font-bold text-[#1a2b4a] mb-1">Fair for Everyone</h3>
+                  <p className="text-gray-600 text-sm">Same price whether you're listing a condo or an estate.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-[#c9a227] text-2xl">🚀</span>
+                <div>
+                  <h3 className="font-bold text-[#1a2b4a] mb-1">Fully Automated</h3>
+                  <p className="text-gray-600 text-sm">AI-powered system delivers professional results instantly.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-20 bg-gradient-to-r from-[#1a2b4a] to-[#2d4a7c] text-white">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Get Started?</h2>
-          <p className="text-xl text-gray-200 mb-8">Upload your listing and get professional copy back in 24 hours or less.</p>
-          <Link href="/upload" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Submit Your Listing</Link>
+      <section className="py-16 bg-[#1a2b4a] text-white text-center">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl font-bold mb-4">Ready to Upgrade Your Listings?</h2>
+          <p className="text-gray-300 mb-8">Get instant analysis and professional rewrites for just $19.99</p>
+          <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Try Rate My Listing</Link>
         </div>
       </section>
     </main>
