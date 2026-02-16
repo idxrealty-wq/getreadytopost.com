@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   
   try {
     const body = await req.json();
-    console.log('📦 Webhook body:', JSON.stringify(body, null, 2));
+    console.log('📦 Webhook type:', body.type);
     
     if (body.type === 'payment.updated' && body.data?.object?.payment?.status === 'COMPLETED') {
       const payment = body.data.object.payment;
@@ -25,7 +25,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'No buyer email' }, { status: 400 });
       }
       
-      // Find the most recent pending submission for this email
       const submissionsRef = collection(db, 'submissions');
       const q = query(
         submissionsRef,
@@ -41,21 +40,28 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'No pending submission found' }, { status: 404 });
       }
       
-      // Get the most recent submission (in case there are multiple)
-      const submissions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      submissions.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      const submission = submissions[0];
+      let latestDoc = querySnapshot.docs[0];
+      let latestData = latestDoc.data();
       
-      console.log('✅ Submission found:', submission.id);
+      for (const d of querySnapshot.docs) {
+        const data = d.data();
+        if (data.createdAt > latestData.createdAt) {
+          latestDoc = d;
+          latestData = data;
+        }
+      }
       
-      const { email, listingText } = submission;
+      console.log('✅ Submission found:', latestDoc.id);
+      
+      const email = latestData.email as string;
+      const listingText = latestData.listingText as string;
 
       console.log('🤖 Calling OpenAI...');
       const analysis = await gradeAndRewriteListing(listingText);
       console.log('✅ OpenAI analysis complete:', analysis.overall);
 
       console.log('💾 Updating Firebase...');
-      await updateDoc(doc(db, 'submissions', submission.id), {
+      await updateDoc(doc(db, 'submissions', latestDoc.id), {
         analysis,
         paymentId: payment.id,
         amount: payment.amount_money.amount / 100,
@@ -82,7 +88,7 @@ export async function POST(req: NextRequest) {
           <p><strong>Amount:</strong> $${payment.amount_money.amount / 100}</p>
           <p><strong>Payment ID:</strong> ${payment.id}</p>
           <p><strong>Grade:</strong> ${analysis.overall}</p>
-          <p><strong>Firestore ID:</strong> ${submission.id}</p>
+          <p><strong>Firestore ID:</strong> ${latestDoc.id}</p>
           <hr>
           <h3>Listing Submitted:</h3>
           <p>${listingText.substring(0, 200)}...</p>
