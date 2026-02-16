@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { onAuthStateChanged, User, logOut } from '@/lib/auth';
+import { auth, logOut, User } from '@/lib/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -25,7 +26,7 @@ export default function VaultPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged((currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
         router.push('/rate-my-listing');
