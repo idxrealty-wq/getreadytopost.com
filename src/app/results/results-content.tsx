@@ -4,7 +4,8 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { onAuthStateChanged, User } from '@/lib/auth';
+import { auth, User } from '@/lib/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import AuthModal from '@/components/auth-modal';
 
 interface Analysis {
@@ -68,7 +69,7 @@ export default function ResultsContent() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged((currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
     return () => unsubscribe();
@@ -135,7 +136,7 @@ export default function ResultsContent() {
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
         <div className="text-center text-white">
           <h1 className="text-2xl font-bold mb-4">No submission found</h1>
-          <Link href="/rate-my-listing" className="text-[#c9a227] hover:underline">← Go to Rate My Listing</Link>
+          <Link href="/rate-my-listing" className="text-[#c9a227] hover:underline">Go to Rate My Listing</Link>
         </div>
       </main>
     );
@@ -253,14 +254,14 @@ export default function ResultsContent() {
                   href="/rate-my-listing"
                   className="inline-block bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-xl"
                 >
-                  🔥 Analyze Another Listing
+                  Analyze Another Listing
                 </Link>
                 {user && (
                   <Link 
                     href="/vault"
                     className="inline-block ml-4 bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-xl"
                   >
-                    📂 My Agent Vault
+                    My Agent Vault
                   </Link>
                 )}
                 <p className="text-gray-400 text-sm mt-4">A copy of this report was also sent to your email</p>
