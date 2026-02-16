@@ -1,72 +1,188 @@
+"use client";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function AgentVaultPage() {
+  const router = useRouter();
+  const [file, setFile] = useState<File | null>(null);
+  const [email, setEmail] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const uploadedFile = e.dataTransfer.files[0];
+      if (isValidFile(uploadedFile)) {
+        setFile(uploadedFile);
+      } else {
+        alert('Please upload a PDF, Word document, or text file');
+      }
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const uploadedFile = e.target.files[0];
+      if (isValidFile(uploadedFile)) {
+        setFile(uploadedFile);
+      } else {
+        alert('Please upload a PDF, Word document, or text file');
+      }
+    }
+  };
+
+  const isValidFile = (file: File) => {
+    const validTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+      'text/plain'
+    ];
+    return validTypes.includes(file.type);
+  };
+
+  const handleSubmit = async () => {
+    if (!file || !email) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('email', email);
+
+    try {
+      const response = await fetch('/api/upload-listing', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.submissionId) {
+        // Redirect to results page
+        router.push(`/results?id=${data.submissionId}`);
+      } else {
+        alert(data.error || 'Upload failed. Please try again.');
+      }
+    } catch (error) {
+      alert('Upload failed. Please try again.');
+      console.error(error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
-    <main>
-      <section className="bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] text-white py-16 pt-32">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <span className="bg-[#c9a227] text-white text-sm font-bold px-4 py-1 rounded-full mb-4 inline-block">COMING SOON</span>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Agent Vault</h1>
-          <p className="text-xl text-gray-300">Your library of templates, scripts, and listing tools — all in one place</p>
-        </div>
-      </section>
-
-      <section className="py-16 bg-white">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-[#faf8f5] rounded-xl p-6 text-center">
-              <div className="w-16 h-16 bg-[#c9a227]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-[#c9a227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-[#1a2b4a] mb-2">Listing Templates</h3>
-              <p className="text-gray-600">Pre-written descriptions for every property type</p>
-            </div>
-
-            <div className="bg-[#faf8f5] rounded-xl p-6 text-center">
-              <div className="w-16 h-16 bg-[#c9a227]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-[#c9a227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-[#1a2b4a] mb-2">Scripts & Dialogues</h3>
-              <p className="text-gray-600">Phone scripts, email templates, objection handlers</p>
-            </div>
-
-            <div className="bg-[#faf8f5] rounded-xl p-6 text-center">
-              <div className="w-16 h-16 bg-[#c9a227]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-[#c9a227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-[#1a2b4a] mb-2">Quick Tools</h3>
-              <p className="text-gray-600">Calculators, checklists, and workflow shortcuts</p>
-            </div>
+    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a]">
+      <div className="max-w-3xl mx-auto px-6 py-10">
+        
+        <section className="py-8 text-center text-white mb-8">
+          <div className="inline-block bg-[#c9a227] text-white text-sm font-bold px-4 py-2 rounded-full mb-4">🏢 Agent Workspace</div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">Upload Listing Document</h1>
+          <p className="text-gray-300 mb-4">Upload a PDF, Word doc, or text file for instant analysis</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 inline-block">
+            <p className="text-4xl font-bold text-[#c9a227] mb-1">$19.99</p>
+            <p className="text-sm text-gray-300">Per listing analysis</p>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="py-16 bg-[#faf8f5]">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-[#1a2b4a] mb-4">Stay Tuned</h2>
-          <p className="text-gray-600 mb-8">We're building a comprehensive resource library for real estate professionals. Sign up to be notified when it launches.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-            <input type="email" placeholder="Your email" className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" />
-            <button className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-6 py-3 rounded-xl font-semibold whitespace-nowrap">Notify Me</button>
+        <div className="bg-white rounded-2xl p-8 shadow-2xl">
+          
+          {/* Email Input */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Your Email *</label>
+            <input 
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="agent@realestate.com"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">Report will be sent here</p>
           </div>
-        </div>
-      </section>
 
-      <section className="py-12 bg-white">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-gray-600 mb-4">In the meantime, check out our listing services:</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/upload" className="bg-[#1a2b4a] hover:bg-[#2d4a7c] text-white px-6 py-3 rounded-lg font-semibold">Submit a Listing</Link>
-            <Link href="/pricing" className="border-2 border-[#1a2b4a] text-[#1a2b4a] hover:bg-[#1a2b4a] hover:text-white px-6 py-3 rounded-lg font-semibold">View Pricing</Link>
+          {/* File Upload Area */}
+          <div
+            className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition ${
+              dragActive ? 'border-[#c9a227] bg-[#c9a227]/5' : 'border-gray-300 bg-gray-50'
+            }`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <input
+              type="file"
+              id="file-upload"
+              className="hidden"
+              accept=".pdf,.doc,.docx,.txt"
+              onChange={handleFileChange}
+            />
+
+            {!file ? (
+              <>
+                <div className="text-6xl mb-4">📄</div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                  Drag & drop your listing file here
+                </h3>
+                <p className="text-gray-600 mb-4">or</p>
+                <label
+                  htmlFor="file-upload"
+                  className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-lg font-semibold cursor-pointer transition"
+                >
+                  Browse Files
+                </label>
+                <p className="text-xs text-gray-500 mt-4">Supports PDF, Word (.doc, .docx), and Text files</p>
+              </>
+            ) : (
+              <>
+                <div className="text-6xl mb-4">✅</div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">{file.name}</h3>
+                <p className="text-gray-600 mb-4">{(file.size / 1024).toFixed(2)} KB</p>
+                <button
+                  onClick={() => setFile(null)}
+                  className="text-red-500 hover:text-red-700 font-semibold text-sm"
+                >
+                  Remove file
+                </button>
+              </>
+            )}
           </div>
+
+          {/* Submit Button */}
+          <button
+            onClick={handleSubmit}
+            disabled={!file || !email || uploading}
+            className="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {uploading ? 'Processing...' : '🔥 Analyze My Listing - $19.99'}
+          </button>
+
+          <p className="text-xs text-gray-500 text-center mt-4">
+            Secure payment via Square. Results appear instantly.
+          </p>
         </div>
-      </section>
+
+        <div className="text-center mt-8">
+          <Link href="/" className="text-white/70 hover:text-white font-semibold">← Back to Home</Link>
+        </div>
+
+      </div>
     </main>
   );
 }
