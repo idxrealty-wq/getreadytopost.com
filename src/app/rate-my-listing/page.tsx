@@ -27,10 +27,7 @@ export default function RateMyListingPage() {
 
   async function initializeSquare() {
     try {
-      const payments = window.Square.payments(
-        process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID || 'sq0idp-oOrvgolD7-O8UGUNWEw4qQ',
-        process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID || ''
-      );
+      const payments = window.Square.payments('sq0idp-oOrvgolD7-O8UGUNWEw4qQ');
       const cardInstance = await payments.card();
       await cardInstance.attach('#card-container');
       setCard(cardInstance);
@@ -82,7 +79,7 @@ export default function RateMyListingPage() {
   return (
     <>
       <Script
-        src="https://sandbox.web.squarecdn.com/v1/square.js"
+        src="https://web.squarecdn.com/v1/square.js"
         onLoad={() => setSquareLoaded(true)}
       />
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a]">
@@ -140,11 +137,11 @@ export default function RateMyListingPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Payment Information *</label>
-                    <div id="card-container" className="border-2 border-gray-200 rounded-xl p-4"></div>
+                    <div id="card-container" className="border-2 border-gray-200 rounded-xl p-4 min-h-[60px]"></div>
                   </div>
 
                   {errorMsg && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
                       {errorMsg}
                     </div>
                   )}
