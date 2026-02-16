@@ -166,8 +166,11 @@ export default function HomePage() {
               <Link href="/" className="flex items-center gap-3 mb-4">
                 <span className="text-xl font-bold">GetReadyToPost</span>
               </Link>
-              <p className="text-gray-400 text-sm leading-relaxed">Professional MLS listing copywriting that helps real estate professionals sell faster.</p>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Professional MLS listing copywriting that helps real estate professionals sell faster.
+              </p>
             </div>
+
             <div>
               <h4 className="font-semibold text-[#c9a227] mb-4">Services</h4>
               <ul className="space-y-3 text-gray-400">
@@ -177,6 +180,7 @@ export default function HomePage() {
                 <li><Link href="/upload" className="hover:text-white">Submit Listing</Link></li>
               </ul>
             </div>
+
             <div>
               <h4 className="font-semibold text-[#c9a227] mb-4">Resources</h4>
               <ul className="space-y-3 text-gray-400">
@@ -184,6 +188,7 @@ export default function HomePage() {
                 <li><Link href="/examples" className="hover:text-white">Examples</Link></li>
               </ul>
             </div>
+
             <div>
               <h4 className="font-semibold text-[#c9a227] mb-4">Legal</h4>
               <ul className="space-y-3 text-gray-400">
@@ -192,6 +197,7 @@ export default function HomePage() {
               </ul>
             </div>
           </div>
+
           <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400 text-sm">
             <p>&copy; 2026 GetReadyToPost. All rights reserved.</p>
           </div>
