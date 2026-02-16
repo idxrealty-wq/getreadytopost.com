@@ -3,15 +3,20 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+interface UploadedFile {
+  file: File;
+  submissionId?: string;
+  status: 'pending' | 'uploading' | 'ready' | 'error';
+  preview?: string;
+  wordCount?: number;
+  error?: string;
+}
+
 export default function AgentVaultPage() {
   const router = useRouter();
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<UploadedFile[]>([]);
   const [email, setEmail] = useState('');
-  const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [submissionId, setSubmissionId] = useState('');
-  const [preview, setPreview] = useState('');
-  const [wordCount, setWordCount] = useState(0);
   const [step, setStep] = useState<'upload' | 'payment'>('upload');
 
   const handleDrag = (e: React.DragEvent) => {
@@ -28,25 +33,26 @@ export default function AgentVaultPage() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const uploadedFile = e.dataTransfer.files[0];
-      if (isValidFile(uploadedFile)) {
-        setFile(uploadedFile);
-      } else {
-        alert('Please upload a PDF, Word document, or text file');
-      }
+    
+    if (e.dataTransfer.files) {
+      const newFiles = Array.from(e.dataTransfer.files).filter(isValidFile);
+      addFiles(newFiles);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const uploadedFile = e.target.files[0];
-      if (isValidFile(uploadedFile)) {
-        setFile(uploadedFile);
-      } else {
-        alert('Please upload a PDF, Word document, or text file');
-      }
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files).filter(isValidFile);
+      addFiles(newFiles);
     }
+  };
+
+  const addFiles = (newFiles: File[]) => {
+    const uploadedFiles: UploadedFile[] = newFiles.map(file => ({
+      file,
+      status: 'pending'
+    }));
+    setFiles(prev => [...prev, ...uploadedFiles]);
   };
 
   const isValidFile = (file: File) => {
@@ -59,54 +65,73 @@ export default function AgentVaultPage() {
     return validTypes.includes(file.type);
   };
 
-  const handleUpload = async () => {
-    if (!file || !email) return;
-    setUploading(true);
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('email', email);
+  const handleUploadAll = async () => {
+    if (!email || files.length === 0) return;
 
-    try {
-      const response = await fetch('/api/upload-listing', {
-        method: 'POST',
-        body: formData,
-      });
+    // Upload all files
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].status !== 'pending') continue;
 
-      const data = await response.json();
+      setFiles(prev => prev.map((f, idx) => 
+        idx === i ? { ...f, status: 'uploading' } : f
+      ));
 
-      if (response.ok && data.submissionId) {
-        setSubmissionId(data.submissionId);
-        setPreview(data.preview);
-        setWordCount(data.wordCount);
-        setStep('payment');
-      } else {
-        alert(data.error || 'Upload failed. Please try again.');
+      const formData = new FormData();
+      formData.append('file', files[i].file);
+      formData.append('email', email);
+
+      try {
+        const response = await fetch('/api/upload-listing', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.submissionId) {
+          setFiles(prev => prev.map((f, idx) => 
+            idx === i ? { 
+              ...f, 
+              status: 'ready',
+              submissionId: data.submissionId,
+              preview: data.preview,
+              wordCount: data.wordCount
+            } : f
+          ));
+        } else {
+          setFiles(prev => prev.map((f, idx) => 
+            idx === i ? { ...f, status: 'error', error: data.error } : f
+          ));
+        }
+      } catch (error) {
+        setFiles(prev => prev.map((f, idx) => 
+          idx === i ? { ...f, status: 'error', error: 'Upload failed' } : f
+        ));
       }
-    } catch (error) {
-      alert('Upload failed. Please try again.');
-      console.error(error);
-    } finally {
-      setUploading(false);
     }
+
+    setStep('payment');
   };
 
   const handlePaymentClick = () => {
     window.open('https://square.link/u/22tY4Rla', '_blank');
   };
 
-  const handleViewResults = () => {
-    router.push(`/results?id=${submissionId}`);
-  };
+  const readyFiles = files.filter(f => f.status === 'ready');
+  const totalCost = readyFiles.length * 19.99;
 
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a]">
-      <div className="max-w-3xl mx-auto px-6 py-10">
+      <div className="max-w-4xl mx-auto px-6 py-10">
         
         <section className="py-8 text-center text-white mb-8">
           <div className="inline-block bg-[#c9a227] text-white text-sm font-bold px-4 py-2 rounded-full mb-4">🏢 Agent Workspace</div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Upload Listing Document</h1>
-          <p className="text-gray-300 mb-4">Upload a PDF, Word doc, or text file for instant analysis</p>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">Batch Upload Listings</h1>
+          <p className="text-gray-300 mb-4">Upload multiple PDFs, Word docs, or text files at once</p>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 inline-block">
             <p className="text-4xl font-bold text-[#c9a227] mb-1">$19.99</p>
             <p className="text-sm text-gray-300">Per listing analysis</p>
@@ -115,49 +140,48 @@ export default function AgentVaultPage() {
 
         {step === 'payment' ? (
           <div className="bg-white rounded-2xl p-8 shadow-2xl">
-            {/* File Preview */}
-            <div className="bg-gray-50 rounded-xl p-4 mb-6">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">📄</span>
-                <div>
-                  <p className="font-bold text-gray-800">{file?.name}</p>
-                  <p className="text-sm text-gray-500">{wordCount} words extracted</p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Ready to Analyze {readyFiles.length} Listing{readyFiles.length !== 1 ? 's' : ''}</h2>
+            
+            {/* Files Preview */}
+            <div className="space-y-3 mb-6 max-h-96 overflow-y-auto">
+              {readyFiles.map((uploadedFile, i) => (
+                <div key={i} className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">📄</span>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-800">{uploadedFile.file.name}</p>
+                      <p className="text-sm text-gray-500">{uploadedFile.wordCount} words</p>
+                    </div>
+                    <Link 
+                      href={`/results?id=${uploadedFile.submissionId}`}
+                      className="text-[#c9a227] hover:underline text-sm font-semibold"
+                    >
+                      View →
+                    </Link>
+                  </div>
                 </div>
-              </div>
-              <p className="text-sm text-gray-600 italic mt-2">"{preview}"</p>
+              ))}
             </div>
 
             {/* Payment Steps */}
-            <div className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-xl">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 rounded-full bg-[#c9a227] text-white flex items-center justify-center font-bold">1</div>
-                  <h3 className="font-bold text-gray-800">Pay $19.99 via Square</h3>
-                </div>
-                <button 
-                  onClick={handlePaymentClick}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
-                >
-                  Open Square Payment
-                </button>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-xl">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 rounded-full bg-gray-300 text-white flex items-center justify-center font-bold">2</div>
-                  <h3 className="font-bold text-gray-800">View Your Results</h3>
-                </div>
-                <p className="text-sm text-gray-600 mb-3">After completing payment, click below to see your instant analysis</p>
-                <button 
-                  onClick={handleViewResults}
-                  className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-semibold transition"
-                >
-                  ✨ View My Results
-                </button>
-              </div>
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
+              <h3 className="font-bold text-blue-900 mb-2">Total: ${totalCost.toFixed(2)}</h3>
+              <p className="text-sm text-blue-700 mb-4">{readyFiles.length} listing{readyFiles.length !== 1 ? 's' : ''} × $19.99 each</p>
+              <button 
+                onClick={handlePaymentClick}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition mb-3"
+              >
+                Pay ${totalCost.toFixed(2)} via Square
+              </button>
+              <p className="text-xs text-blue-600 text-center">After payment, click "View" next to each listing to see results</p>
             </div>
 
-            <p className="text-xs text-gray-500 text-center mt-4">Results appear instantly after payment is processed (usually 30-60 seconds)</p>
+            <button
+              onClick={() => { setStep('upload'); setFiles([]); }}
+              className="text-gray-500 hover:text-gray-700 text-sm font-semibold"
+            >
+              ← Upload More Files
+            </button>
           </div>
         ) : (
           <div className="bg-white rounded-2xl p-8 shadow-2xl">
@@ -173,7 +197,6 @@ export default function AgentVaultPage() {
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">Report will be sent here</p>
             </div>
 
             {/* File Upload Area */}
@@ -192,45 +215,71 @@ export default function AgentVaultPage() {
                 className="hidden"
                 accept=".pdf,.doc,.docx,.txt"
                 onChange={handleFileChange}
+                multiple
               />
 
-              {!file ? (
-                <>
-                  <div className="text-6xl mb-4">📄</div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">
-                    Drag & drop your listing file here
-                  </h3>
-                  <p className="text-gray-600 mb-4">or</p>
-                  <label
-                    htmlFor="file-upload"
-                    className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-lg font-semibold cursor-pointer transition"
-                  >
-                    Browse Files
-                  </label>
-                  <p className="text-xs text-gray-500 mt-4">Supports PDF, Word (.doc, .docx), and Text files</p>
-                </>
-              ) : (
-                <>
-                  <div className="text-6xl mb-4">✅</div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{file.name}</h3>
-                  <p className="text-gray-600 mb-4">{(file.size / 1024).toFixed(2)} KB</p>
-                  <button
-                    onClick={() => setFile(null)}
-                    className="text-red-500 hover:text-red-700 font-semibold text-sm"
-                  >
-                    Remove file
-                  </button>
-                </>
-              )}
+              <div className="text-6xl mb-4">📄</div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                Drag & drop multiple files here
+              </h3>
+              <p className="text-gray-600 mb-4">or</p>
+              <label
+                htmlFor="file-upload"
+                className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-lg font-semibold cursor-pointer transition"
+              >
+                Browse Files
+              </label>
+              <p className="text-xs text-gray-500 mt-4">Supports PDF, Word (.doc, .docx), and Text files • Upload multiple at once</p>
             </div>
+
+            {/* Files List */}
+            {files.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-bold text-gray-800 mb-3">{files.length} File{files.length !== 1 ? 's' : ''} Selected</h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {files.map((uploadedFile, i) => (
+                    <div key={i} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                      <div className="flex items-center gap-3 flex-1">
+                        <span className="text-xl">
+                          {uploadedFile.status === 'uploading' && '⏳'}
+                          {uploadedFile.status === 'ready' && '✅'}
+                          {uploadedFile.status === 'error' && '❌'}
+                          {uploadedFile.status === 'pending' && '📄'}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-800 truncate">{uploadedFile.file.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {uploadedFile.status === 'uploading' && 'Extracting text...'}
+                            {uploadedFile.status === 'ready' && `${uploadedFile.wordCount} words`}
+                            {uploadedFile.status === 'error' && uploadedFile.error}
+                            {uploadedFile.status === 'pending' && `${(uploadedFile.file.size / 1024).toFixed(2)} KB`}
+                          </p>
+                        </div>
+                      </div>
+                      {uploadedFile.status === 'pending' && (
+                        <button
+                          onClick={() => removeFile(i)}
+                          className="text-red-500 hover:text-red-700 text-sm font-semibold"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Submit Button */}
             <button
-              onClick={handleUpload}
-              disabled={!file || !email || uploading}
+              onClick={handleUploadAll}
+              disabled={!email || files.length === 0 || files.some(f => f.status === 'uploading')}
               className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {uploading ? '📤 Extracting text...' : '🔥 Upload & Continue to Payment'}
+              {files.some(f => f.status === 'uploading') 
+                ? '📤 Processing files...' 
+                : `🔥 Upload ${files.length} File${files.length !== 1 ? 's' : ''} & Continue`
+              }
             </button>
           </div>
         )}
