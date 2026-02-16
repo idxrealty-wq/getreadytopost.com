@@ -38,8 +38,7 @@ export default function RateMyListingPage() {
 
   const handlePaymentClick = () => {
     window.open('https://square.link/u/22tY4Rla', '_blank');
-    // Redirect to results page immediately
-    router.push(`/results?id=\${submissionId}`);
+    router.push(`/results?id=${submissionId}`);
   };
 
   return (
@@ -52,10 +51,7 @@ export default function RateMyListingPage() {
             <p className="text-gray-300 mb-4">Grade → Rewrite → Report. All in one place.</p>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 inline-block">
               <p className="text-4xl font-bold text-[#c9a227] mb-1">$19.99</p>
-              <p className="text-sm text-gray-300">Instant AI-powered analysis
-
-cat >> src/app/rate-my-listing/page.tsx << 'EOF'
-</p>
+              <p className="text-sm text-gray-300">Instant AI-powered analysis</p>
             </div>
           </div>
         </section>
