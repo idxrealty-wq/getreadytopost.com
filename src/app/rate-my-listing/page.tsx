@@ -38,6 +38,9 @@ export default function RateMyListingPage() {
 
   const handlePaymentClick = () => {
     window.open('https://square.link/u/22tY4Rla', '_blank');
+  };
+
+  const handleViewResults = () => {
     router.push(`/results?id=${submissionId}`);
   };
 
@@ -60,14 +63,38 @@ export default function RateMyListingPage() {
           <div className="bg-white rounded-2xl p-8 shadow-2xl text-center">
             <div className="text-6xl mb-4">💳</div>
             <h2 className="text-2xl font-bold text-[#1a2b4a] mb-4">Complete Your Payment</h2>
-            <p className="text-gray-600 mb-6">Click below to pay $19.99 via Square. After payment, you'll see your results instantly!</p>
-            <button 
-              onClick={handlePaymentClick}
-              className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition mb-4"
-            >
-              Pay $19.99 & See My Results
-            </button>
-            <p className="text-xs text-gray-500">Secure payment via Square. Results appear instantly after payment.</p>
+            <p className="text-gray-600 mb-6">Complete these 2 steps:</p>
+            
+            <div className="space-y-4 mb-6">
+              <div className="bg-gray-50 p-4 rounded-xl text-left">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-[#c9a227] text-white flex items-center justify-center font-bold">1</div>
+                  <h3 className="font-bold text-gray-800">Pay $19.99 via Square</h3>
+                </div>
+                <button 
+                  onClick={handlePaymentClick}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
+                >
+                  Open Square Payment
+                </button>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-xl text-left">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-gray-300 text-white flex items-center justify-center font-bold">2</div>
+                  <h3 className="font-bold text-gray-800">View Your Results</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">After completing payment, click below to see your instant analysis</p>
+                <button 
+                  onClick={handleViewResults}
+                  className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-semibold transition"
+                >
+                  ✨ View My Results
+                </button>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-500">Your results will appear instantly after payment is processed (usually 30-60 seconds)</p>
           </div>
         ) : (
           <div className="bg-white rounded-2xl p-6 shadow-2xl mb-6">
