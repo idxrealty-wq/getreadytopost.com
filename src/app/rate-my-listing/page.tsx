@@ -1,24 +1,36 @@
 "use client";
 import { useState } from 'react';
 import Link from 'next/link';
+import { db } from '@/lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 export default function RateMyListingPage() {
   const [email, setEmail] = useState('');
   const [listing, setListing] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
   
   const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
 
-  const handleSubmit = () => {
-    // Save to localStorage so webhook can retrieve it
-    const submissionId = Date.now().toString();
-    localStorage.setItem(`rml_${submissionId}`, JSON.stringify({ email, listing }));
-    
-    // Open Square payment with submission ID in note
-    window.open(`https://square.link/u/22tY4Rla?note=${submissionId}`, '_blank');
-    
-    // Show success message
-    setShowSuccess(true);
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const docRef = await addDoc(collection(db, 'submissions'), {
+        email,
+        listingText: listing,
+        wordCount,
+        status: 'pending_payment',
+        createdAt: new Date().toISOString(),
+      });
+
+      window.open(`https://square.link/u/22tY4Rla?note=GRTP_${docRef.id}`, '_blank');
+      setShowSuccess(true);
+    } catch (error) {
+      alert('Error saving submission. Please try again.');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -88,9 +100,9 @@ export default function RateMyListingPage() {
               <button 
                 onClick={handleSubmit}
                 className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50"
-                disabled={!email || !listing}
+                disabled={!email || !listing || loading}
               >
-                🔥 Pay $19.99 & Get My Report
+                {loading ? 'Saving...' : '🔥 Pay $19.99 & Get My Report'}
               </button>
 
               <p className="text-xs text-gray-500 text-center">
