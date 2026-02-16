@@ -16,7 +16,7 @@ export default function HomePage() {
               <Link href="/brokers" className="text-[#1a2b4a] hover:text-[#c9a227] font-medium text-sm">Brokers</Link>
               <Link href="/pricing" className="text-[#1a2b4a] hover:text-[#c9a227] font-medium text-sm">Pricing</Link>
               <Link href="/faq" className="text-[#1a2b4a] hover:text-[#c9a227] font-medium text-sm">FAQ</Link>
-              <Link href="/upload" className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-5 py-2.5 rounded-lg font-semibold text-sm">Submit Listing</Link>
+              <Link href="/upload-new" className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-5 py-2.5 rounded-lg font-semibold text-sm">Submit Listing</Link>
             </nav>
           </div>
         </div>
