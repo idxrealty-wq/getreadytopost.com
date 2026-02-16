@@ -7,31 +7,45 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
+  console.log('🔔 Webhook received');
+  
   try {
     const body = await req.json();
+    console.log('📦 Webhook body:', JSON.stringify(body, null, 2));
     
     if (body.type === 'payment.updated' && body.data?.object?.payment?.status === 'COMPLETED') {
       const payment = body.data.object.payment;
+      console.log('💳 Payment completed:', payment.id);
+      
       const note = payment.note || '';
+      console.log('📝 Payment note:', note);
       
       if (!note.startsWith('GRTP_')) {
-        return NextResponse.json({ error: 'Invalid payment note format' }, { status: 400 });
+        console.error('❌ Invalid note format:', note);
+        return NextResponse.json({ error: 'Invalid payment note format', note }, { status: 400 });
       }
       
       const submissionId = note.replace('GRTP_', '');
+      console.log('🔍 Looking up submission:', submissionId);
       
       const submissionRef = doc(db, 'submissions', submissionId);
       const submissionSnap = await getDoc(submissionRef);
       
       if (!submissionSnap.exists()) {
-        return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
+        console.error('❌ Submission not found:', submissionId);
+        return NextResponse.json({ error: 'Submission not found', submissionId }, { status: 404 });
       }
       
       const submission = submissionSnap.data();
+      console.log('✅ Submission found:', submission.email);
+      
       const { email, listingText } = submission;
 
+      console.log('🤖 Calling OpenAI...');
       const analysis = await gradeAndRewriteListing(listingText);
+      console.log('✅ OpenAI analysis complete:', analysis.overall);
 
+      console.log('💾 Updating Firebase...');
       await updateDoc(submissionRef, {
         analysis,
         paymentId: payment.id,
@@ -40,6 +54,7 @@ export async function POST(req: NextRequest) {
         completedAt: new Date().toISOString(),
       });
 
+      console.log('📧 Sending report email to:', email);
       await resend.emails.send({
         from: 'GetReadyToPost <onboarding@resend.dev>',
         to: email,
@@ -47,6 +62,7 @@ export async function POST(req: NextRequest) {
         html: generateReportEmail(analysis, email),
       });
 
+      console.log('📧 Sending notification to Christopher');
       await resend.emails.send({
         from: 'GetReadyToPost <onboarding@resend.dev>',
         to: 'idxrealty@gmail.com',
@@ -64,13 +80,15 @@ export async function POST(req: NextRequest) {
         `,
       });
 
+      console.log('✅ Webhook processing complete');
       return NextResponse.json({ success: true });
     }
 
+    console.log('ℹ️ Event type not processed:', body.type);
     return NextResponse.json({ received: true });
   } catch (error: any) {
-    console.error('Webhook error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('❌ Webhook error:', error);
+    return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
   }
 }
 
