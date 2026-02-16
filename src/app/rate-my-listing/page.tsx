@@ -1,13 +1,16 @@
 "use client";
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
 export default function RateMyListingPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [listing, setListing] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [submissionId, setSubmissionId] = useState('');
   const [loading, setLoading] = useState(false);
   
   const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
@@ -23,14 +26,20 @@ export default function RateMyListingPage() {
         createdAt: new Date().toISOString(),
       });
 
-      window.open(`https://square.link/u/22tY4Rla?note=GRTP_${docRef.id}`, '_blank');
-      setShowSuccess(true);
+      setSubmissionId(docRef.id);
+      setShowPayment(true);
     } catch (error) {
       alert('Error saving submission. Please try again.');
       console.error(error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePaymentClick = () => {
+    window.open('https://square.link/u/22tY4Rla', '_blank');
+    // Redirect to results page immediately
+    router.push(`/results?id=\${submissionId}`);
   };
 
   return (
@@ -43,31 +52,26 @@ export default function RateMyListingPage() {
             <p className="text-gray-300 mb-4">Grade → Rewrite → Report. All in one place.</p>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 inline-block">
               <p className="text-4xl font-bold text-[#c9a227] mb-1">$19.99</p>
-              <p className="text-sm text-gray-300">Instant AI-powered analysis</p>
+              <p className="text-sm text-gray-300">Instant AI-powered analysis
+
+cat >> src/app/rate-my-listing/page.tsx << 'EOF'
+</p>
             </div>
           </div>
         </section>
 
-        {showSuccess ? (
+        {showPayment ? (
           <div className="bg-white rounded-2xl p-8 shadow-2xl text-center">
             <div className="text-6xl mb-4">💳</div>
             <h2 className="text-2xl font-bold text-[#1a2b4a] mb-4">Complete Your Payment</h2>
-            <p className="text-gray-600 mb-6">A payment window opened. After you complete payment, your report will be generated automatically and emailed to <strong>{email}</strong> within 1-2 minutes.</p>
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
-              <p className="text-sm text-blue-800"><strong>What happens next:</strong></p>
-              <ol className="text-left text-sm text-blue-700 mt-3 space-y-2">
-                <li>1. Complete payment in the Square window</li>
-                <li>2. You'll receive a confirmation email immediately</li>
-                <li>3. Your listing analysis will be generated (30-60 seconds)</li>
-                <li>4. Full report with grade + rewrite arrives in your inbox</li>
-              </ol>
-            </div>
+            <p className="text-gray-600 mb-6">Click below to pay $19.99 via Square. After payment, you'll see your results instantly!</p>
             <button 
-              onClick={() => { setShowSuccess(false); setEmail(''); setListing(''); }}
-              className="text-gray-500 hover:text-gray-700 text-sm font-semibold"
+              onClick={handlePaymentClick}
+              className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition mb-4"
             >
-              ← Submit Another Listing
+              Pay $19.99 & See My Results
             </button>
+            <p className="text-xs text-gray-500">Secure payment via Square. Results appear instantly after payment.</p>
           </div>
         ) : (
           <div className="bg-white rounded-2xl p-6 shadow-2xl mb-6">
@@ -102,11 +106,11 @@ export default function RateMyListingPage() {
                 className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50"
                 disabled={!email || !listing || loading}
               >
-                {loading ? 'Saving...' : '🔥 Pay $19.99 & Get My Report'}
+                {loading ? 'Saving...' : '🔥 Continue to Payment'}
               </button>
 
               <p className="text-xs text-gray-500 text-center">
-                Secure payment via Square. Report delivered automatically to your email.
+                Secure payment via Square. See results instantly.
               </p>
             </div>
           </div>
