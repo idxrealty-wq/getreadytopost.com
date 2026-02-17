@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import AuthModal from '@/components/auth-modal';
+import AuthModal from '@/components/AuthModal';
 import Tab1PropertyBasics from './tabs/tab1';
 import Tab2Neighborhood from './tabs/tab2';
 import Tab3Listing from './tabs/tab3';
