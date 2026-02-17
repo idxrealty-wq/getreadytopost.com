@@ -55,7 +55,7 @@ export default function WorkspacePage() {
                 className="w-full h-96 rounded-xl"
                 style={{ border: 0 }}
                 loading="lazy"
-                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(address)}`}
+                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(address)}&maptype=satellite`}
               />
             </div>
 
@@ -76,7 +76,7 @@ export default function WorkspacePage() {
                     className="w-full h-64 rounded-lg"
                     style={{ border: 0 }}
                     loading="lazy"
-                    src={`https://www.google.com/maps/embed/v1/search?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${cat.query}+near+${encodeURIComponent(address)}`}
+                    src={`https://www.google.com/maps/embed/v1/search?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${cat.query}+near+${encodeURIComponent(address)}&maptype=satellite`}
                   />
                 </div>
               ))}
