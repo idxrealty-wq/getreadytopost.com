@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { signUpWithEmail, signInWithEmail, signInWithGoogle } from '@/lib/auth';
+import { createUserProfile } from '@/lib/profile';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -12,6 +13,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   const [mode, setMode] = useState<'signin' | 'signup'>('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [company, setCompany] = useState('');
+  const [designations, setDesignations] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -23,10 +27,28 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setLoading(true);
 
     try {
-      const result = mode === 'signup' 
-        ? await signUpWithEmail(email, password)
-        : await signInWithEmail(email, password);
-      onSuccess(result.user);
+      if (mode === 'signup') {
+        const result = await signUpWithEmail(email, password);
+        if (result.success && result.user) {
+          await createUserProfile(
+            result.user.uid,
+            email,
+            fullName,
+            company,
+            designations
+          );
+          onSuccess(result.user);
+        } else {
+          setError(result.error || 'Failed to create account');
+        }
+      } else {
+        const result = await signInWithEmail(email, password);
+        if (result.success && result.user) {
+          onSuccess(result.user);
+        } else {
+          setError(result.error || 'Invalid email or password');
+        }
+      }
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
         setError('Email already registered. Try signing in.');
@@ -35,7 +57,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
       } else if (err.code === 'auth/weak-password') {
         setError('Password must be at least 6 characters.');
       } else {
-        setError(err.message);
+        setError(err.message || 'Something went wrong');
       }
     } finally {
       setLoading(false);
@@ -47,7 +69,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setLoading(true);
     try {
       const result = await signInWithGoogle();
-      onSuccess(result.user);
+      if (result.success && result.user) {
+        onSuccess(result.user);
+      } else {
+        setError(result.error || 'Failed to sign in with Google');
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -56,17 +82,17 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm overflow-y-auto py-8">
+      <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl relative my-auto">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">✕</button>
-        
+
         <div className="text-center mb-6">
           <div className="text-4xl mb-2">🏢</div>
           <h2 className="text-2xl font-bold text-[#1a2b4a]">
-            {mode === 'signup' ? 'Create Your Agent Vault' : 'Sign In to Agent Vault'}
+            {mode === 'signup' ? 'Create Your GetReadyToPost Account' : 'Sign In to GetReadyToPost'}
           </h2>
           <p className="text-gray-500 text-sm mt-1">
-            {mode === 'signup' ? 'Save and manage all your listing analyses' : 'Access your saved listings'}
+            {mode === 'signup' ? 'Save listings, build reports, and access your Agent Vault' : 'Access your saved listings and workspace'}
           </p>
         </div>
 
@@ -86,11 +112,38 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         </div>
 
         <form onSubmit={handleEmailAuth} className="space-y-3">
+          {mode === 'signup' && (
+            <>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Full Name *"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                required
+              />
+              <input
+                type="text"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder="Company / Brokerage *"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                required
+              />
+              <input
+                type="text"
+                value={designations}
+                onChange={(e) => setDesignations(e.target.value)}
+                placeholder="Designations (e.g., Realtor, ABR, GRI)"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+              />
+            </>
+          )}
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email address"
+            placeholder="Email address *"
             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
             required
           />
@@ -98,11 +151,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password (min 6 characters)"
+            placeholder="Password (min 6 characters) *"
             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
             required
           />
-          
+
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
           <button
