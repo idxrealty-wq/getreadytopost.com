@@ -109,7 +109,7 @@ export default function WorkspacePage() {
                 className="w-full h-96 rounded-xl"
                 style={{ border: 0 }}
                 loading="lazy"
-                src={`https://www.google.com/maps/embed/v1/place?key=${mapKey}&q=${encodeURIComponent(address)}&zoom=17&maptype=satellitezoom=17zoom=17`}
+                src={`https://www.google.com/maps/embed/v1/place?key=${mapKey}&q=${encodeURIComponent(address)}&zoom=17`}
               />
             </div>
 
@@ -130,7 +130,7 @@ export default function WorkspacePage() {
                     className="w-full h-64 rounded-lg"
                     style={{ border: 0 }}
                     loading="lazy"
-                    src={`https://www.google.com/maps/embed/v1/search?key=${mapKey}&q=${cat.query}+near+${encodeURIComponent(address)}&zoom=14&maptype=satellitezoom=14zoom=14`}
+                    src={`https://www.google.com/maps/embed/v1/search?key=${mapKey}&q=${cat.query}+near+${encodeURIComponent(address)}&zoom=14`}
                   />
                   {nearby && nearby[cat.key] && nearby[cat.key].length > 0 && (
                     <div className="mt-3 space-y-2">
