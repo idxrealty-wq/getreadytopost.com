@@ -25,7 +25,7 @@ export default function WorkspacePage() {
           <p className="text-gray-300 text-lg">Build data-rich listings with real neighborhood insights</p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 mb-8">
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 mb-8 sticky top-20 z-30">
           <label className="block text-white font-semibold mb-3 text-lg">Property Address</label>
           <div className="flex gap-3">
             <input
