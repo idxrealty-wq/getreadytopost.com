@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import AuthModal from "./AuthModal";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -112,29 +113,7 @@ export default function Header() {
         )}
       </header>
 
-      {/* Auth Modal */}
-      {showAuthModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-6">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-4">Sign In to GetReadyToPost</h2>
-            <p className="text-gray-600 mb-6">Create a free account or sign in to save your listings and access all features.</p>
-            <div className="space-y-3">
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition">
-                Sign In with Google
-              </button>
-              <button className="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-xl font-bold transition">
-                Sign In with Email
-              </button>
-            </div>
-            <button
-              onClick={() => setShowAuthModal(false)}
-              className="w-full mt-4 text-gray-600 hover:text-gray-800 font-bold"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
     </>
   );
 }
