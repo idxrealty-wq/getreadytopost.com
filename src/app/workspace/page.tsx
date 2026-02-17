@@ -42,8 +42,17 @@ export default function WorkspacePage() {
   ];
 
   return (
-    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a]">
-      <div className="max-w-7xl mx-auto px-6 py-10">
+    <main className="pt-20 min-h-screen relative">
+      <div className="fixed inset-0 z-0">
+        <img
+          src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/421a46ef-b52d-44e1-b33d-bf1d1492c0cd/image.png?w=1200&h=896"
+          alt="Background"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-[#1a2b4a]/85"></div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">🏠 Agent Workspace</h1>
           <p className="text-gray-300 text-lg">Your complete pre-listing command center</p>
