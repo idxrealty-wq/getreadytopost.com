@@ -12,6 +12,17 @@ const DOCUMENT_SLOTS = [
   { id: 'inspection', label: 'Inspection Report', required: false },
 ];
 
+const PHOTO_CATEGORIES = [
+  { id: 'exterior', label: 'Exterior Photos' },
+  { id: 'interior', label: 'Interior Photos' },
+  { id: 'aerial', label: 'Aerial/Drone Photos' },
+  { id: 'kitchen', label: 'Kitchen' },
+  { id: 'bathrooms', label: 'Bathrooms' },
+  { id: 'bedrooms', label: 'Bedrooms' },
+  { id: 'outdoor', label: 'Outdoor/Yard' },
+  { id: 'other', label: 'Other' },
+];
+
 const CHECKLIST_ITEMS = [
   { id: 'photos_exterior', label: 'Exterior Photos Taken', category: 'Photos & Media' },
   { id: 'photos_interior', label: 'Interior Photos Taken', category: 'Photos & Media' },
@@ -31,14 +42,39 @@ const CHECKLIST_ITEMS = [
 ];
 
 export default function Tab4Checklist({ checklistState, setChecklistState, notes, setNotes, onNext }: any) {
-  const [uploads, setUploads] = useState<Record<string, File | null>>({});
+  const [uploads, setUploads] = useState<Record<string, { file: File; date: string } | null>>({});
+  const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
 
   const toggleChecklist = (id: string) => {
     setChecklistState((prev: any) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const handleFileUpload = (docId: string, file: File | null) => {
-    setUploads((prev) => ({ ...prev, [docId]: file }));
+    if (file) {
+      setUploads((prev) => ({ ...prev, [docId]: { file, date: new Date().toLocaleString() } }));
+    } else {
+      setUploads((prev) => ({ ...prev, [docId]: null }));
+    }
+  };
+
+  const handlePhotoUpload = (categoryId: string, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const newPhotos = Array.from(files).map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      date: new Date().toLocaleString(),
+    }));
+    setPhotos((prev) => ({
+      ...prev,
+      [categoryId]: [...(prev[categoryId] || []), ...newPhotos],
+    }));
+  };
+
+  const removePhoto = (categoryId: string, index: number) => {
+    setPhotos((prev) => ({
+      ...prev,
+      [categoryId]: prev[categoryId].filter((_, i) => i !== index),
+    }));
   };
 
   const groupedChecklist = CHECKLIST_ITEMS.reduce((acc: any, item) => {
@@ -52,6 +88,7 @@ export default function Tab4Checklist({ checklistState, setChecklistState, notes
   const uploadedCount = Object.values(uploads).filter(Boolean).length;
   const requiredDocs = DOCUMENT_SLOTS.filter((d) => d.required).length;
   const uploadedRequired = DOCUMENT_SLOTS.filter((d) => d.required && uploads[d.id]).length;
+  const totalPhotos = Object.values(photos).reduce((sum, arr) => sum + arr.length, 0);
 
   return (
     <div className="space-y-6">
@@ -73,13 +110,51 @@ export default function Tab4Checklist({ checklistState, setChecklistState, notes
                 className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#c9a227] file:text-white hover:file:bg-[#b8911f] file:cursor-pointer"
               />
               {uploads[doc.id] && (
-                <p className="text-xs text-gray-400 mt-2">📎 {uploads[doc.id]?.name}</p>
+                <div className="mt-2 text-xs text-gray-400">
+                  <p>📎 {uploads[doc.id]?.file.name}</p>
+                  <p className="text-gray-500">Uploaded: {uploads[doc.id]?.date}</p>
+                </div>
               )}
             </div>
           ))}
         </div>
         <div className="mt-4 text-sm text-gray-300">
           📊 Uploaded: {uploadedRequired}/{requiredDocs} required, {uploadedCount}/{DOCUMENT_SLOTS.length} total
+        </div>
+      </div>
+
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+        <h2 className="text-2xl font-bold text-white mb-4">📸 Property Photos</h2>
+        <p className="text-gray-300 mb-6">Upload photos organized by category. Total photos: {totalPhotos}</p>
+        <div className="space-y-6">
+          {PHOTO_CATEGORIES.map((cat) => (
+            <div key={cat.id} className="bg-white/5 rounded-xl p-4 border border-white/20">
+              <h3 className="text-white font-bold mb-3">{cat.label}</h3>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => handlePhotoUpload(cat.id, e.target.files)}
+                className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer mb-3"
+              />
+              {photos[cat.id] && photos[cat.id].length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {photos[cat.id].map((photo, i) => (
+                    <div key={i} className="relative group">
+                      <img src={photo.preview} alt={cat.label} className="w-full h-32 object-cover rounded-lg" />
+                      <button
+                        onClick={() => removePhoto(cat.id, i)}
+                        className="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition"
+                      >
+                        ×
+                      </button>
+                      <p className="text-xs text-gray-400 mt-1">{photo.date}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
