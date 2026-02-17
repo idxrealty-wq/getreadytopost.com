@@ -1,129 +1,175 @@
+"use client";
+
 export default function AIAdvantagePage() {
   return (
-    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a]">
-      <div className="max-w-5xl mx-auto px-6 py-16">
-        
+    <main className="pt-20 min-h-screen relative">
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/2eb8104a-01a9-429b-9fa0-44467da55a8d/image.png?w=1200&h=896"
+          alt="Background"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-[#1a2b4a]/85"></div>
+      </div>
+
+      <div className="relative z-10 max-w-6xl mx-auto px-6 py-16">
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-white mb-4">Not Your Average AI</h1>
-          <p className="text-2xl text-gray-300">Why GetReadyToPost AI writes listings that <span className="text-[#c9a227] font-bold">actually sell</span></p>
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+            🤖 Why Our AI Is Different
+          </h1>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            Not all AI is created equal. Here's why GetReadyToPost delivers A+ listings every time — and ChatGPT doesn't.
+          </p>
         </div>
 
-        <div className="bg-red-900/20 border-2 border-red-500/40 rounded-2xl p-8 mb-12">
-          <h2 className="text-3xl font-bold text-white mb-4">The ChatGPT Problem</h2>
-          <div className="space-y-3 text-gray-300 text-lg">
-            <p>You have tried ChatGPT. You know what happens:</p>
-            <ul className="list-disc list-inside space-y-2 ml-4">
-              <li><strong className="text-red-400">Generic fluff:</strong> Charming home in a desirable neighborhood...</li>
-              <li><strong className="text-red-400">No specifics:</strong> Does not mention actual schools parks or amenities nearby</li>
-              <li><strong className="text-red-400">Fair Housing violations:</strong> Says things like perfect for families or quiet street</li>
-              <li><strong className="text-red-400">Wrong length:</strong> Too short or too long for MLS best practices</li>
-              <li><strong className="text-red-400">No SEO:</strong> Misses the keywords buyers are searching for</li>
-              <li><strong className="text-red-400">Boring tone:</strong> Reads like Wikipedia not a sales pitch</li>
-            </ul>
-            <p className="text-xl font-bold text-red-300 mt-6">Result: Listings that do not convert. Days on market pile up.</p>
-          </div>
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 md:p-12 border border-white/20 mb-12">
+          <h2 className="text-3xl font-bold text-white mb-6">The Problem with Generic AI</h2>
+          <p className="text-gray-300 text-lg mb-4">
+            ChatGPT is amazing for general writing. But real estate listings? That's a different game.
+          </p>
+          <p className="text-gray-300 text-lg mb-4">
+            Generic AI doesn't know MLS rules. It doesn't understand Fair Housing laws. It can't pull real neighborhood data. And it definitely doesn't know what converts browsers into buyers.
+          </p>
+          <p className="text-gray-300 text-lg">
+            That's where GetReadyToPost comes in.
+          </p>
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-900/40 to-green-900/30 border-2 border-emerald-500/40 rounded-2xl p-8 mb-12">
-          <h2 className="text-3xl font-bold text-white mb-4">The GetReadyToPost Difference</h2>
-          <p className="text-gray-300 text-lg mb-6">Our AI is not generic ChatGPT. It is a <strong className="text-emerald-400">real estate-specific engine</strong> built on MLS best practices, NAR compliance, and Fair Housing law.</p>
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 md:p-12 border border-white/20 mb-12">
+          <h2 className="text-3xl font-bold text-white mb-8">What Makes Our AI Special</h2>
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white/5 rounded-xl p-6 border border-white/20">
-              <div className="text-4xl mb-3">📊</div>
-              <h3 className="text-xl font-bold text-white mb-2">MLS Best Practices</h3>
-              <p className="text-gray-300">140 to 160 words. Action-driven. Buyer psychology. NAR compliance. Every listing hits the sweet spot.</p>
+            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div className="text-4xl mb-3">🏠</div>
+              <h3 className="text-xl font-bold text-white mb-2">Real Estate Training</h3>
+              <p className="text-gray-300">
+                Our AI is trained on thousands of A+ listings, MLS guidelines, NAR best practices, and Fair Housing compliance rules.
+              </p>
             </div>
-            <div className="bg-white/5 rounded-xl p-6 border border-white/20">
-              <div className="text-4xl mb-3">🏛️</div>
-              <h3 className="text-xl font-bold text-white mb-2">Fair Housing Safe</h3>
-              <p className="text-gray-300">Zero violations. No protected class language. No subjective neighborhood descriptions. Legally bulletproof.</p>
-            </div>
-            <div className="bg-white/5 rounded-xl p-6 border border-white/20">
+            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
               <div className="text-4xl mb-3">📍</div>
               <h3 className="text-xl font-bold text-white mb-2">Real Neighborhood Data</h3>
-              <p className="text-gray-300">Mentions actual schools, parks, restaurants BY NAME with distances. Not near shopping but 0.5 miles from Publix.</p>
+              <p className="text-gray-300">
+                We pull live data from Google Maps — actual schools, parks, restaurants, golf courses — with real distances. No generic fluff.
+              </p>
             </div>
-            <div className="bg-white/5 rounded-xl p-6 border border-white/20">
+            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div className="text-4xl mb-3">⚖️</div>
+              <h3 className="text-xl font-bold text-white mb-2">MLS & Fair Housing Safe</h3>
+              <p className="text-gray-300">
+                Every listing follows Fair Housing laws and MLS compliance rules. No risky language, no violations, no rejections.
+              </p>
+            </div>
+            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
               <div className="text-4xl mb-3">🔍</div>
               <h3 className="text-xl font-bold text-white mb-2">SEO Optimized</h3>
-              <p className="text-gray-300">Includes the keywords buyers search: updated kitchen, open floor plan, lake access, top-rated schools.</p>
+              <p className="text-gray-300">
+                140–160 words, keyword-rich, structured for search engines. Your listings get found by the right buyers.
+              </p>
             </div>
-            <div className="bg-white/5 rounded-xl p-6 border border-white/20">
-              <div className="text-4xl mb-3">🎯</div>
+            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div className="text-4xl mb-3">💰</div>
               <h3 className="text-xl font-bold text-white mb-2">Conversion-Focused</h3>
-              <p className="text-gray-300">Vivid sensory language. Urgency. Strong calls to action. Designed to get showings booked, not just views.</p>
+              <p className="text-gray-300">
+                Written to sell. Emotional hooks, benefit-driven language, buyer psychology — not just feature lists.
+              </p>
             </div>
-            <div className="bg-white/5 rounded-xl p-6 border border-white/20">
-              <div className="text-4xl mb-3">⚡</div>
-              <h3 className="text-xl font-bold text-white mb-2">Instant A+ Quality</h3>
-              <p className="text-gray-300">Every listing gets the A+ badge. No C-grade output. No rewrites needed. Copy, paste, publish.</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 mb-12">
-          <h2 className="text-3xl font-bold text-white mb-6 text-center">How Our AI Works</h2>
-          <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="bg-[#c9a227] text-white font-bold text-xl w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">1</div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2">You Enter Property Details</h3>
-                <p className="text-gray-300">Address, beds, baths, sqft, price, year built, lot size, features. The basics every agent already knows.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="bg-[#c9a227] text-white font-bold text-xl w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">2</div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2">We Pull Real Neighborhood Data</h3>
-                <p className="text-gray-300">Google Maps and Places API: nearby schools, grocery stores, parks, golf courses, restaurants, hospitals with names, distances, and ratings.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="bg-[#c9a227] text-white font-bold text-xl w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">3</div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2">AI Writes the Listing</h3>
-                <p className="text-gray-300">Our real estate-trained GPT-4 model combines property details, neighborhood data, MLS best practices, Fair Housing compliance, SEO keywords, and buyer psychology.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="bg-[#c9a227] text-white font-bold text-xl w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">4</div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2">You Get an A+ Listing in 10 Seconds</h3>
-                <p className="text-gray-300">Professional, specific, compliant, SEO-optimized, conversion-focused. Copy to clipboard. Paste into MLS. Done.</p>
-              </div>
+            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+              <div className="text-4xl mb-3">✅</div>
+              <h3 className="text-xl font-bold text-white mb-2">Always A+ Quality</h3>
+              <p className="text-gray-300">
+                Every listing is graded in 6 categories before delivery. If it's not A+, we rewrite it until it is.
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 mb-12 overflow-x-auto">
-          <h2 className="text-3xl font-bold text-white mb-6 text-center">Side-by-Side Comparison</h2>
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-white/20">
-                <th className="py-3 px-4 text-gray-400 font-bold">Feature</th>
-                <th className="py-3 px-4 text-red-400 font-bold">Generic ChatGPT</th>
-                <th className="py-3 px-4 text-emerald-400 font-bold">GetReadyToPost AI</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-300">
-              <tr className="border-b border-white/10"><td className="py-3 px-4 font-bold">Real Estate Training</td><td className="py-3 px-4">General purpose</td><td className="py-3 px-4">MLS + NAR + Fair Housing</td></tr>
-              <tr className="border-b border-white/10"><td className="py-3 px-4 font-bold">Neighborhood Data</td><td className="py-3 px-4">Generic</td><td className="py-3 px-4">Real places with distances</td></tr>
-              <tr className="border-b border-white/10"><td className="py-3 px-4 font-bold">Fair Housing</td><td className="py-3 px-4">Risky language</td><td className="py-3 px-4">100% compliant</td></tr>
-              <tr className="border-b border-white/10"><td className="py-3 px-4 font-bold">Word Count</td><td className="py-3 px-4">Inconsistent</td><td className="py-3 px-4">Always 140-160 words</td></tr>
-              <tr className="border-b border-white/10"><td className="py-3 px-4 font-bold">SEO Keywords</td><td className="py-3 px-4">Misses buyer terms</td><td className="py-3 px-4">Optimized for search</td></tr>
-              <tr className="border-b border-white/10"><td className="py-3 px-4 font-bold">Conversion</td><td className="py-3 px-4">Informational tone</td><td className="py-3 px-4">Urgency + CTA</td></tr>
-              <tr className="border-b border-white/10"><td className="py-3 px-4 font-bold">Speed</td><td className="py-3 px-4">Manual data entry</td><td className="py-3 px-4">10 seconds automated</td></tr>
-              <tr><td className="py-3 px-4 font-bold">Price</td><td className="py-3 px-4">$20/month subscription</td><td className="py-3 px-4 font-bold text-emerald-400">$19.99 per listing</td></tr>
-            </tbody>
-          </table>
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 md:p-12 border border-white/20 mb-12">
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">ChatGPT vs GetReadyToPost</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/20">
+                  <th className="pb-4 text-gray-400 font-bold">Feature</th>
+                  <th className="pb-4 text-center text-gray-400 font-bold">ChatGPT</th>
+                  <th className="pb-4 text-center text-[#c9a227] font-bold">GetReadyToPost</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-300">
+                <tr className="border-b border-white/10">
+                  <td className="py-4">Real estate-specific training</td>
+                  <td className="py-4 text-center">❌</td>
+                  <td className="py-4 text-center text-[#c9a227]">✅</td>
+                </tr>
+                <tr className="border-b border-white/10">
+                  <td className="py-4">Live neighborhood data (schools, parks, etc.)</td>
+                  <td className="py-4 text-center">❌</td>
+                  <td className="py-4 text-center text-[#c9a227]">✅</td>
+                </tr>
+                <tr className="border-b border-white/10">
+                  <td className="py-4">MLS & Fair Housing compliance</td>
+                  <td className="py-4 text-center">❌</td>
+                  <td className="py-4 text-center text-[#c9a227]">✅</td>
+                </tr>
+                <tr className="border-b border-white/10">
+                  <td className="py-4">SEO optimization (140–160 words)</td>
+                  <td className="py-4 text-center">❌</td>
+                  <td className="py-4 text-center text-[#c9a227]">✅</td>
+                </tr>
+                <tr className="border-b border-white/10">
+                  <td className="py-4">6-category grading system</td>
+                  <td className="py-4 text-center">❌</td>
+                  <td className="py-4 text-center text-[#c9a227]">✅</td>
+                </tr>
+                <tr className="border-b border-white/10">
+                  <td className="py-4">Conversion-focused writing</td>
+                  <td className="py-4 text-center">⚠️ Generic</td>
+                  <td className="py-4 text-center text-[#c9a227]">✅ Always</td>
+                </tr>
+                <tr>
+                  <td className="py-4">Guaranteed A+ quality</td>
+                  <td className="py-4 text-center">❌</td>
+                  <td className="py-4 text-center text-[#c9a227]">✅</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 md:p-12 border border-white/20 mb-12">
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">How It Works</h2>
+          <div className="grid md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="bg-[#c9a227] text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">1</div>
+              <h3 className="text-lg font-bold text-white mb-2">Submit Your Listing</h3>
+              <p className="text-gray-300 text-sm">Paste your current listing or property details.</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-[#c9a227] text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">2</div>
+              <h3 className="text-lg font-bold text-white mb-2">AI Analyzes & Grades</h3>
+              <p className="text-gray-300 text-sm">Instant 6-category grading with detailed feedback.</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-[#c9a227] text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">3</div>
+              <h3 className="text-lg font-bold text-white mb-2">Get A+ Rewrite</h3>
+              <p className="text-gray-300 text-sm">Professional, MLS-ready description with real neighborhood data.</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-[#c9a227] text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">4</div>
+              <h3 className="text-lg font-bold text-white mb-2">Copy & Post</h3>
+              <p className="text-gray-300 text-sm">Paste into MLS and watch the showings roll in.</p>
+            </div>
+          </div>
         </div>
 
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to See Your Listings Sell Faster?</h2>
-          <p className="text-gray-300 text-lg mb-8">Try the Agent Workspace and experience real estate AI built by agents, for agents.</p>
-          <a href="/workspace" className="inline-block bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-12 py-4 rounded-xl font-bold text-lg transition shadow-2xl">Try Agent Workspace Now</a>
+          <a
+            href="/workspace"
+            className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-10 py-4 rounded-xl font-bold text-xl transition shadow-2xl"
+          >
+            Try Agent Workspace →
+          </a>
+          <p className="text-gray-400 mt-4">Build your next A+ listing in minutes</p>
         </div>
-
       </div>
     </main>
   );
