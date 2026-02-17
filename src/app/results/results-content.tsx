@@ -6,7 +6,7 @@ import { db } from '@/lib/firebase';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { auth, User } from '@/lib/auth';
 import { onAuthStateChanged } from 'firebase/auth';
-import AuthModal from '@/components/auth-modal';
+import AuthModal from '@/components/AuthModal';
 
 interface Analysis {
   overall: string;
