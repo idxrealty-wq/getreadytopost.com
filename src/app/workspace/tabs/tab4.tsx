@@ -1,59 +1,75 @@
 "use client";
-import {[30, 60, 90, 120, 180, 365]useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const DOCUMENT_SLOTS = [
-  {[30, 60, 90, 120, 180, 365]id: 'seller_disclosure', label: 'Seller Disclosure', required: true },
-  {[30, 60, 90, 120, 180, 365]id: 'listing_agreement', label: 'Listing Agreement', required: true },
-  {[30, 60, 90, 120, 180, 365]id: 'lead_paint', label: 'Lead-Based Paint Disclosure (Pre-1978)', required: false },
-  {[30, 60, 90, 120, 180, 365]id: 'hoa_docs', label: 'HOA Documents', required: false },
-  {[30, 60, 90, 120, 180, 365]id: 'survey', label: 'Property Survey', required: false },
-  {[30, 60, 90, 120, 180, 365]id: 'title_info', label: 'Title Information', required: false },
-  {[30, 60, 90, 120, 180, 365]id: 'appraisal', label: 'Appraisal', required: false },
-  {[30, 60, 90, 120, 180, 365]id: 'inspection', label: 'Inspection Report', required: false },
+  { id: 'seller_disclosure', label: 'Seller Disclosure', required: true },
+  { id: 'listing_agreement', label: 'Listing Agreement', required: true },
+  { id: 'lead_paint', label: 'Lead-Based Paint Disclosure (Pre-1978)', required: false },
+  { id: 'hoa_docs', label: 'HOA Documents', required: false },
+  { id: 'survey', label: 'Property Survey', required: false },
+  { id: 'title_info', label: 'Title Information', required: false },
+  { id: 'appraisal', label: 'Appraisal', required: false },
+  { id: 'inspection', label: 'Inspection Report', required: false },
 ];
 
 const PHOTO_CATEGORIES = [
-  {[30, 60, 90, 120, 180, 365]id: 'exterior', label: 'Exterior Photos' },
-  {[30, 60, 90, 120, 180, 365]id: 'interior', label: 'Interior Photos' },
-  {[30, 60, 90, 120, 180, 365]id: 'aerial', label: 'Aerial/Drone Photos' },
-  {[30, 60, 90, 120, 180, 365]id: 'kitchen', label: 'Kitchen' },
-  {[30, 60, 90, 120, 180, 365]id: 'bathrooms', label: 'Bathrooms' },
-  {[30, 60, 90, 120, 180, 365]id: 'bedrooms', label: 'Bedrooms' },
-  {[30, 60, 90, 120, 180, 365]id: 'outdoor', label: 'Outdoor/Yard' },
-  {[30, 60, 90, 120, 180, 365]id: 'other', label: 'Other' },
+  { id: 'exterior', label: 'Exterior Photos' },
+  { id: 'interior', label: 'Interior Photos' },
+  { id: 'aerial', label: 'Aerial/Drone Photos' },
+  { id: 'kitchen', label: 'Kitchen' },
+  { id: 'bathrooms', label: 'Bathrooms' },
+  { id: 'bedrooms', label: 'Bedrooms' },
+  { id: 'outdoor', label: 'Outdoor/Yard' },
+  { id: 'other', label: 'Other' },
 ];
 
 const CHECKLIST_ITEMS = [
-  {[30, 60, 90, 120, 180, 365]id: 'photos_exterior', label: 'Exterior Photos Taken', category: 'Photos & Media' },
-  {[30, 60, 90, 120, 180, 365]id: 'photos_interior', label: 'Interior Photos Taken', category: 'Photos & Media' },
-  {[30, 60, 90, 120, 180, 365]id: 'photos_aerial', label: 'Aerial/Drone Photos', category: 'Photos & Media' },
-  {[30, 60, 90, 120, 180, 365]id: 'virtual_tour', label: 'Virtual Tour / Video Walkthrough', category: 'Photos & Media' },
-  {[30, 60, 90, 120, 180, 365]id: 'floor_plan', label: 'Floor Plan Created', category: 'Photos & Media' },
-  {[30, 60, 90, 120, 180, 365]id: 'lockbox', label: 'Lockbox Placed', category: 'Property Prep' },
-  {[30, 60, 90, 120, 180, 365]id: 'sign_installed', label: 'Yard Sign Installed', category: 'Property Prep' },
-  {[30, 60, 90, 120, 180, 365]id: 'staging', label: 'Staging Complete', category: 'Property Prep' },
-  {[30, 60, 90, 120, 180, 365]id: 'cleaning', label: 'Deep Cleaning Done', category: 'Property Prep' },
-  {[30, 60, 90, 120, 180, 365]id: 'repairs', label: 'Pre-Listing Repairs Complete', category: 'Property Prep' },
-  {[30, 60, 90, 120, 180, 365]id: 'mls_entry', label: 'MLS Entry Complete', category: 'Marketing' },
-  {[30, 60, 90, 120, 180, 365]id: 'description_written', label: 'Listing Description Written', category: 'Marketing' },
-  {[30, 60, 90, 120, 180, 365]id: 'social_media', label: 'Social Media Posts Scheduled', category: 'Marketing' },
-  {[30, 60, 90, 120, 180, 365]id: 'email_blast', label: 'Email Blast Sent', category: 'Marketing' },
-  {[30, 60, 90, 120, 180, 365]id: 'open_house', label: 'Open House Scheduled', category: 'Marketing' },
+  { id: 'photos_exterior', label: 'Exterior Photos Taken', category: 'Photos & Media' },
+  { id: 'photos_interior', label: 'Interior Photos Taken', category: 'Photos & Media' },
+  { id: 'photos_aerial', label: 'Aerial/Drone Photos', category: 'Photos & Media' },
+  { id: 'virtual_tour', label: 'Virtual Tour / Video Walkthrough', category: 'Photos & Media' },
+  { id: 'floor_plan', label: 'Floor Plan Created', category: 'Photos & Media' },
+  { id: 'lockbox', label: 'Lockbox Placed', category: 'Property Prep' },
+  { id: 'sign_installed', label: 'Yard Sign Installed', category: 'Property Prep' },
+  { id: 'staging', label: 'Staging Complete', category: 'Property Prep' },
+  { id: 'cleaning', label: 'Deep Cleaning Done', category: 'Property Prep' },
+  { id: 'repairs', label: 'Pre-Listing Repairs Complete', category: 'Property Prep' },
+  { id: 'mls_entry', label: 'MLS Entry Complete', category: 'Marketing' },
+  { id: 'description_written', label: 'Listing Description Written', category: 'Marketing' },
+  { id: 'social_media', label: 'Social Media Posts Scheduled', category: 'Marketing' },
+  { id: 'email_blast', label: 'Email Blast Sent', category: 'Marketing' },
+  { id: 'open_house', label: 'Open House Scheduled', category: 'Marketing' },
 ];
 
-export default function Tab4Checklist({[30, 60, 90, 120, 180, 365]checklistState, setChecklistState, notes, setNotes, onNext }: any) {
-  const [uploads, setUploads] = useState<Record<string, {[30, 60, 90, 120, 180, 365]file: File; date: string } | null>>({});
-  const [photos, setPhotos] = useState<Record<string, {[30, 60, 90, 120, 180, 365]file: File; preview: string; date: string }[]>>({});
+const QUICK_DAYS = [30, 60, 90, 120, 180, 365];
+
+export default function Tab4Checklist({ checklistState, setChecklistState, notes, setNotes, onNext }: any) {
+  const [uploads, setUploads] = useState<Record<string, { file: File; date: string } | null>>({});
+  const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
+  const [daysOut, setDaysOut] = useState('120');
+  const [calculatedDate, setCalculatedDate] = useState('');
+
+  useEffect(() => {
+    const days = parseInt(daysOut);
+    if (!isNaN(days) && days > 0) {
+      const future = new Date();
+      future.setDate(future.getDate() + days);
+      const formatted = future.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      setCalculatedDate(formatted);
+    } else {
+      setCalculatedDate('');
+    }
+  }, [daysOut]);
 
   const toggleChecklist = (id: string) => {
-    setChecklistState((prev: any) => ({[30, 60, 90, 120, 180, 365]...prev, [id]: !prev[id] }));
+    setChecklistState((prev: any) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const handleFileUpload = (docId: string, file: File | null) => {
     if (file) {
-      setUploads((prev) => ({[30, 60, 90, 120, 180, 365]...prev, [docId]: { file, date: new Date().toLocaleString() } }));
+      setUploads((prev) => ({ ...prev, [docId]: { file, date: new Date().toLocaleString() } }));
     } else {
-      setUploads((prev) => ({[30, 60, 90, 120, 180, 365]...prev, [docId]: null }));
+      setUploads((prev) => ({ ...prev, [docId]: null }));
     }
   };
 
@@ -92,6 +108,37 @@ export default function Tab4Checklist({[30, 60, 90, 120, 180, 365]checklistState
 
   return (
     <div className="space-y-6">
+
+      <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/30 border-2 border-blue-500/40 rounded-2xl p-8">
+        <h2 className="text-2xl font-bold text-white mb-4">📅 Contract Day Calculator</h2>
+        <p className="text-gray-300 mb-4">Calculate future dates for contracts (e.g., 120 days from today for closing date)</p>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          <input
+            type="number"
+            value={daysOut}
+            onChange={(e) => setDaysOut(e.target.value)}
+            placeholder="120"
+            min="1"
+            className="w-32 px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none"
+          />
+          <span className="text-white font-bold">days from today =</span>
+          <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/20">
+            <span className="text-[#c9a227] font-bold text-lg">{calculatedDate || 'Enter days above'}</span>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-3 md:grid-cols-6 gap-3">
+          {QUICK_DAYS.map((days) => (
+            <button
+              key={days}
+              onClick={() => setDaysOut(days.toString())}
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-bold transition border border-white/20"
+            >
+              {days} days
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">📄 Document Upload Center</h2>
         <p className="text-gray-300 mb-6">Upload key documents for this listing. Each document gets its own labeled slot.</p>
@@ -191,7 +238,7 @@ export default function Tab4Checklist({[30, 60, 90, 120, 180, 365]checklistState
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Add any notes, reminders, or special instructions for this listing..."
-          rows={[30, 60, 90, 120, 180, 365]}
+          rows={6}
           className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none resize-none"
         />
       </div>
