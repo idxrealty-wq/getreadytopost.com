@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import FeedbackButton from "@/components/feedback-button";
+import { UserProvider } from "@/contexts/UserContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,9 +20,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Header />
-        {children}
-        <FeedbackButton />
+        <UserProvider>
+          <Header />
+          {children}
+          <FeedbackButton />
+        </UserProvider>
       </body>
     </html>
   );
