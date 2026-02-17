@@ -28,7 +28,6 @@ export default function Header() {
             GetReadyToPost
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             <Link href="/" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
               Home
@@ -72,7 +71,6 @@ export default function Header() {
             )}
           </nav>
 
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden text-gray-700 text-2xl"
@@ -81,7 +79,6 @@ export default function Header() {
           </button>
         </div>
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-gray-200">
             <nav className="flex flex-col p-6 gap-4">
@@ -130,7 +127,11 @@ export default function Header() {
         )}
       </header>
 
-      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={() => setShowAuthModal(false)}
+      />
     </>
   );
 }
