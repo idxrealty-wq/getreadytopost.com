@@ -37,8 +37,17 @@ export default function FeedbackPage() {
   };
 
   return (
-    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a]">
-      <div className="max-w-3xl mx-auto px-6 py-16">
+    <main className="pt-20 min-h-screen relative">
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/943515bf-2153-4390-9255-3cb7aea6f880/image.png?w=1200&h=896"
+          alt="Background"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-[#1a2b4a]/80"></div>
+      </div>
+
+      <div className="relative z-10 max-w-3xl mx-auto px-6 py-16">
         <h1 className="text-5xl font-bold text-white mb-4 text-center">💬 Feedback</h1>
         <p className="text-gray-300 text-xl text-center mb-12">
           We are building GetReadyToPost for agents like you. Your feedback helps us improve.
