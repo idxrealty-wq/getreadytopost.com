@@ -29,7 +29,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     try {
       if (mode === 'signup') {
         const result = await signUpWithEmail(email, password);
-        if (result.success && result.user) {
+        if (result.user) {
           await createUserProfile(
             result.user.uid,
             email,
@@ -38,15 +38,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             designations
           );
           onSuccess(result.user);
-        } else {
-          setError(result.error || 'Failed to create account');
         }
       } else {
         const result = await signInWithEmail(email, password);
-        if (result.success && result.user) {
+        if (result.user) {
           onSuccess(result.user);
-        } else {
-          setError(result.error || 'Invalid email or password');
         }
       }
     } catch (err: any) {
@@ -69,13 +65,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setLoading(true);
     try {
       const result = await signInWithGoogle();
-      if (result.success && result.user) {
+      if (result.user) {
         onSuccess(result.user);
-      } else {
-        setError(result.error || 'Failed to sign in with Google');
       }
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to sign in with Google');
     } finally {
       setLoading(false);
     }
@@ -134,7 +128,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 type="text"
                 value={designations}
                 onChange={(e) => setDesignations(e.target.value)}
-                placeholder="Designations (e.g., Realtor, ABR, GRI)"
+                placeholder="Designations (e.g., Realtor®, ABR, GRI)"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
               />
             </>
@@ -154,6 +148,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             placeholder="Password (min 6 characters) *"
             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
             required
+            minLength={6}
           />
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -169,9 +164,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
 
         <p className="text-center text-sm text-gray-500 mt-4">
           {mode === 'signup' ? (
-            <>Already have an account? <button onClick={() => setMode('signin')} className="text-[#c9a227] font-semibold">Sign In</button></>
+            <>Already have an account? <button type="button" onClick={() => setMode('signin')} className="text-[#c9a227] font-semibold">Sign In</button></>
           ) : (
-            <>Need an account? <button onClick={() => setMode('signup')} className="text-[#c9a227] font-semibold">Sign Up</button></>
+            <>Need an account? <button type="button" onClick={() => setMode('signup')} className="text-[#c9a227] font-semibold">Sign Up</button></>
           )}
         </p>
       </div>
