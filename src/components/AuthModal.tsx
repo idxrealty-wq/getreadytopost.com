@@ -1,12 +1,15 @@
 "use client";
 import { useState } from 'react';
 import { signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword } from '@/lib/auth';
+import type { User } from 'firebase/auth';
 
 interface AuthModalProps {
   onClose: () => void;
+  isOpen?: boolean;
+  onSuccess?: (user: User) => void | Promise<void>;
 }
 
-export default function AuthModal({ onClose }: AuthModalProps) {
+export default function AuthModal({ onClose, isOpen, onSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,11 +17,17 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // If isOpen is provided and false, don't render
+  if (isOpen === false) return null;
+
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError('');
     const result = await signInWithGoogle();
     if (result.success) {
+      if (onSuccess && result.user) {
+        await onSuccess(result.user);
+      }
       onClose();
     } else {
       setError(result.error || 'Failed to sign in with Google');
@@ -43,6 +52,9 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     } else if (mode === 'signup') {
       const result = await signUpWithEmail(email, password);
       if (result.success) {
+        if (onSuccess && result.user) {
+          await onSuccess(result.user);
+        }
         onClose();
       } else {
         setError(result.error || 'Failed to create account');
@@ -50,6 +62,9 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     } else {
       const result = await signInWithEmail(email, password);
       if (result.success) {
+        if (onSuccess && result.user) {
+          await onSuccess(result.user);
+        }
         onClose();
       } else {
         setError(result.error || 'Failed to sign in');
