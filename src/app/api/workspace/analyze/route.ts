@@ -117,7 +117,7 @@ export async function POST(request: Request) {
       nearbySearch(lat, lng, 'supermarket'),
       nearbySearch(lat, lng, 'hospital'),
       nearbySearch(lat, lng, 'movie_theater'),
-      nearbySearch(lat, lng, 'transit_station'),
+      nearbySearch(lat, lng, 'point_of_interest', 'golf course'),
       nearbySearch(lat, lng, 'gas_station'),
     ]);
 
@@ -139,7 +139,7 @@ export async function POST(request: Request) {
       Shopping: shoppingD,
       Medical: hospitalsD,
       Entertainment: entertainmentD,
-      Transit: transitD,
+      Golf: transitD,
       Gas: gasD,
     };
 
