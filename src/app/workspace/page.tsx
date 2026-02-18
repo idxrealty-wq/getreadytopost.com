@@ -1,7 +1,10 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { auth } from '@/lib/firebase';
+import { useSearchParams } from 'next/navigation';
+import { doc, getDoc } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import type { Listing } from '@/lib/listings';
 import Tab1PropertyBasics from './tabs/tab1';
 import Tab2Neighborhood from './tabs/tab2';
 import Tab3Listing from './tabs/tab3';
@@ -9,10 +12,14 @@ import Tab4Checklist from './tabs/tab4';
 import Tab5Save from './tabs/tab5';
 
 export default function WorkspacePage() {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
+
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  
+  const [loadingListing, setLoadingListing] = useState(false);
+
   const [activeTab, setActiveTab] = useState(1);
   const [address, setAddress] = useState('');
   const [propertyData, setPropertyData] = useState({
@@ -33,6 +40,42 @@ export default function WorkspacePage() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (editId && user && !loadingListing) {
+      loadListingForEdit(editId);
+    }
+  }, [editId, user]);
+
+  const loadListingForEdit = async (listingId: string) => {
+    setLoadingListing(true);
+    try {
+      const listingRef = doc(db, 'listings', listingId);
+      const listingSnap = await getDoc(listingRef);
+      
+      if (listingSnap.exists()) {
+        const data = listingSnap.data() as Listing;
+        if (data.userId === user?.uid) {
+          // Load all data into state
+          setAddress(data.address);
+          setPropertyData(data.propertyData);
+          setNearby(data.nearby);
+          setListing(data.aiListing);
+          setChecklistState(data.checklistState);
+          setNotes(data.notes);
+          setSaved(false); // Reset saved state so they can save again
+        } else {
+          alert('You do not have permission to edit this listing.');
+        }
+      } else {
+        alert('Listing not found.');
+      }
+    } catch (err: any) {
+      alert('Failed to load listing: ' + err.message);
+    } finally {
+      setLoadingListing(false);
+    }
+  };
+
   const tabs = [
     { num: 1, label: 'Property Basics', icon: '🏠', done: !!address && !!propertyData.taxId },
     { num: 2, label: 'Neighborhood', icon: '📍', done: !!nearby },
@@ -40,6 +83,16 @@ export default function WorkspacePage() {
     { num: 4, label: 'Documents & Checklist', icon: '✅', done: false },
     { num: 5, label: 'Save to Vault', icon: '💾', done: saved },
   ];
+
+  if (loadingListing) {
+    return (
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
+        <div className="max-w-7xl mx-auto px-6 py-20 text-center">
+          <div className="text-white text-xl">Loading listing for editing...</div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="pt-20 min-h-screen relative">
@@ -54,8 +107,12 @@ export default function WorkspacePage() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-10">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">🏠 Agent Workspace</h1>
-          <p className="text-gray-300 text-lg">Your complete pre-listing command center</p>
+          <h1 className="text-4xl font-bold text-white mb-2">
+            {editId ? '✏️ Edit Listing' : '🏠 Agent Workspace'}
+          </h1>
+          <p className="text-gray-300 text-lg">
+            {editId ? 'Update your listing details' : 'Your complete pre-listing command center'}
+          </p>
         </div>
 
         {!authLoading && !user && (
@@ -106,7 +163,7 @@ export default function WorkspacePage() {
         {activeTab === 2 && <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />}
         {activeTab === 3 && <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />}
         {activeTab === 4 && <Tab4Checklist checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} onNext={() => setActiveTab(5)} />}
-        {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} />}
+        {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} />}
       </div>
 
       {showAuthModal && (

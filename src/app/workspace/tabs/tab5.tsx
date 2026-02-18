@@ -1,8 +1,10 @@
 "use client";
 import { useState } from 'react';
 import { saveListing } from '@/lib/listings';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
-export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user }: any) {
+export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user, editId }: any) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -20,15 +22,30 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
     setError('');
     
     try {
-      await saveListing(
-        user.uid,
-        address,
-        propertyData,
-        nearby,
-        listing,
-        checklistState,
-        notes
-      );
+      if (editId) {
+        // Update existing listing
+        const listingRef = doc(db, 'listings', editId);
+        await updateDoc(listingRef, {
+          address,
+          propertyData,
+          nearby,
+          aiListing: listing,
+          checklistState,
+          notes,
+          updatedAt: new Date().toISOString(),
+        });
+      } else {
+        // Create new listing
+        await saveListing(
+          user.uid,
+          address,
+          propertyData,
+          nearby,
+          listing,
+          checklistState,
+          notes
+        );
+      }
       setSaved(true);
     } catch (err: any) {
       setError(err.message || 'Failed to save listing.');
@@ -44,7 +61,7 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
   return (
     <div className="space-y-6">
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-6">💾 Save to Agent Vault</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">💾 {editId ? 'Update Listing' : 'Save to Agent Vault'}</h2>
         <p className="text-gray-300 mb-8">Review your listing package before saving:</p>
 
         <div className="space-y-4">
@@ -109,21 +126,29 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
             disabled={!address || !user || saving}
             className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-12 py-4 rounded-xl font-bold text-lg transition shadow-2xl disabled:opacity-50"
           >
-            {saving ? '💾 Saving...' : '💾 Save Complete Package to Vault'}
+            {saving ? '💾 Saving...' : editId ? '💾 Update Listing' : '💾 Save Complete Package to Vault'}
           </button>
         </div>
       ) : (
         <div className="bg-gradient-to-br from-emerald-900/60 to-green-900/40 backdrop-blur-md rounded-2xl p-8 border-2 border-emerald-500/40 text-center">
           <div className="text-6xl mb-4">🎉</div>
-          <h3 className="text-2xl font-bold text-white mb-2">Saved to Agent Vault!</h3>
-          <p className="text-gray-300 mb-4">Your complete listing package for <strong className="text-white">{address}</strong> is now in your vault.</p>
+          <h3 className="text-2xl font-bold text-white mb-2">{editId ? 'Listing Updated!' : 'Saved to Agent Vault!'}</h3>
+          <p className="text-gray-300 mb-4">Your {editId ? 'updated' : 'complete'} listing package for <strong className="text-white">{address}</strong> is now in your vault.</p>
           <p className="text-gray-400 text-sm mb-6">Access it anytime from your Agent Vault dashboard.</p>
-          <button
-            onClick={() => window.location.href = '/workspace'}
-            className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg font-bold transition"
-          >
-            Start New Listing
-          </button>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => window.location.href = '/vault'}
+              className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-2 rounded-lg font-bold transition"
+            >
+              View in Vault
+            </button>
+            <button
+              onClick={() => window.location.href = '/workspace'}
+              className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg font-bold transition"
+            >
+              Start New Listing
+            </button>
+          </div>
         </div>
       )}
     </div>
