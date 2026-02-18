@@ -1,0 +1,68 @@
+import { collection, doc, setDoc, getDocs, query, where, orderBy, Timestamp } from 'firebase/firestore';
+import { db } from './firebase';
+
+export interface Listing {
+  id: string;
+  userId: string;
+  status: 'draft' | 'completed';
+  address: string;
+  propertyData: {
+    taxId: string;
+    yearBuilt: string;
+    beds: string;
+    baths: string;
+    sqft: string;
+    lotSize: string;
+    price: string;
+    features: string;
+    dateAdded: string;
+  };
+  nearby: any;
+  aiListing: string;
+  checklistState: Record<string, boolean>;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const saveListing = async (
+  userId: string,
+  address: string,
+  propertyData: any,
+  nearby: any,
+  aiListing: string,
+  checklistState: Record<string, boolean>,
+  notes: string
+): Promise<string> => {
+  const listingId = `listing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const listingRef = doc(db, 'listings', listingId);
+  
+  const listingData: Listing = {
+    id: listingId,
+    userId,
+    status: 'completed',
+    address,
+    propertyData,
+    nearby,
+    aiListing,
+    checklistState,
+    notes,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  await setDoc(listingRef, listingData);
+  return listingId;
+};
+
+export const getUserListings = async (userId: string): Promise<Listing[]> => {
+  const listingsRef = collection(db, 'listings');
+  const q = query(
+    listingsRef,
+    where('userId', '==', userId),
+    orderBy('updatedAt', 'desc')
+  );
+  
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => doc.data() as Listing);
+};

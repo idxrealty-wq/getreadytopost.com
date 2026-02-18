@@ -1,8 +1,40 @@
 "use client";
+import { useState } from 'react';
+import { saveListing } from '@/lib/listings';
 
-export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved }: any) {
-  const handleSave = () => {
-    setSaved(true);
+export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user }: any) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSave = async () => {
+    if (!user) {
+      setError('You must be signed in to save listings.');
+      return;
+    }
+    if (!address) {
+      setError('Address is required.');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    
+    try {
+      await saveListing(
+        user.uid,
+        address,
+        propertyData,
+        nearby,
+        listing,
+        checklistState,
+        notes
+      );
+      setSaved(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to save listing.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const completedChecklist = Object.entries(checklistState).filter(([, v]) => v).length;
@@ -64,14 +96,20 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
         </div>
       </div>
 
+      {error && (
+        <div className="bg-red-900/60 border-2 border-red-500/60 rounded-xl p-4 text-center">
+          <p className="text-red-200">{error}</p>
+        </div>
+      )}
+
       {!saved ? (
         <div className="flex justify-center">
           <button
             onClick={handleSave}
-            disabled={!address}
+            disabled={!address || !user || saving}
             className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-12 py-4 rounded-xl font-bold text-lg transition shadow-2xl disabled:opacity-50"
           >
-            💾 Save Complete Package to Vault
+            {saving ? '💾 Saving...' : '💾 Save Complete Package to Vault'}
           </button>
         </div>
       ) : (
@@ -79,7 +117,13 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
           <div className="text-6xl mb-4">🎉</div>
           <h3 className="text-2xl font-bold text-white mb-2">Saved to Agent Vault!</h3>
           <p className="text-gray-300 mb-4">Your complete listing package for <strong className="text-white">{address}</strong> is now in your vault.</p>
-          <p className="text-gray-400 text-sm">Access it anytime from your Agent Vault dashboard.</p>
+          <p className="text-gray-400 text-sm mb-6">Access it anytime from your Agent Vault dashboard.</p>
+          <button
+            onClick={() => window.location.href = '/workspace'}
+            className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg font-bold transition"
+          >
+            Start New Listing
+          </button>
         </div>
       )}
     </div>
