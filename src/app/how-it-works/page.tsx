@@ -24,8 +24,8 @@ const personas = [
     emoji: '🏢',
     title: 'Broker / Team',
     subtitle: 'Elevate your entire team\'s listing quality with consistent, compliant copy',
-    color: 'from-amber-600 to-amber-800',
-    border: 'border-amber-500/40',
+    color: 'from-amber-700 to-orange-900',
+    border: 'border-amber-400/40',
     cta: 'Explore Broker Plans',
     ctaLink: '/brokers',
     steps: [
