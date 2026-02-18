@@ -103,7 +103,7 @@ export default function Tab4Checklist({ checklistState, setChecklistState, notes
   const uploadedCount = Object.values(uploads).filter(Boolean).length;
   const requiredDocs = DOCUMENT_SLOTS.filter((d) => d.required).length;
   const uploadedRequired = DOCUMENT_SLOTS.filter((d) => d.required && uploads[d.id]).length;
-  const totalPhotos = Object.values(photos).reduce((sum, arr) => sum + arr.length, 0);
+  const totalPhotos = Object.values(photos as Record<string, any[]>).reduce((sum, arr) => sum + arr.length, 0);
 
   return (
     <div className="space-y-6">
