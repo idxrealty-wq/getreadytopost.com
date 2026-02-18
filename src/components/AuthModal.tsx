@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { signUpWithEmail, signInWithEmail, signInWithGoogle } from '@/lib/auth';
-import { createUserProfile } from '@/lib/profile';
+import { createUserProfile, getUserProfile } from '@/lib/profile';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -28,12 +28,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
 
     try {
       if (mode === 'signup') {
-        console.log('Starting signup...');
         const result = await signUpWithEmail(email, password);
-        console.log('Signup result:', result);
-        
         if (result.user) {
-          console.log('Creating profile...');
           await createUserProfile(
             result.user.uid,
             email,
@@ -41,23 +37,17 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             company,
             designations
           );
-          console.log('Profile created, calling onSuccess');
           onSuccess(result.user);
           onClose();
         }
       } else {
-        console.log('Starting signin...');
         const result = await signInWithEmail(email, password);
-        console.log('Signin result:', result);
-        
         if (result.user) {
-          console.log('Signin successful, calling onSuccess');
           onSuccess(result.user);
           onClose();
         }
       }
     } catch (err: any) {
-      console.error('Auth error:', err);
       if (err.code === 'auth/email-already-in-use') {
         setError('Email already registered. Try signing in.');
       } else if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
@@ -76,17 +66,23 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setError('');
     setLoading(true);
     try {
-      console.log('Starting Google signin...');
       const result = await signInWithGoogle();
-      console.log('Google result:', result);
-      
       if (result.user) {
-        console.log('Google signin successful');
+        // Check if profile exists, if not create one from Google data
+        const existingProfile = await getUserProfile(result.user.uid);
+        if (!existingProfile) {
+          await createUserProfile(
+            result.user.uid,
+            result.user.email || '',
+            result.user.displayName || '',
+            '',
+            ''
+          );
+        }
         onSuccess(result.user);
         onClose();
       }
     } catch (err: any) {
-      console.error('Google auth error:', err);
       setError(err.message || 'Failed to sign in with Google');
     } finally {
       setLoading(false);
