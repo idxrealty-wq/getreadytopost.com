@@ -185,7 +185,7 @@ export default function Tab4Checklist({ checklistState, setChecklistState, notes
               />
               {photos[cat.id] && photos[cat.id].length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {photos[cat.id].map((photo, i) => (
+                  {photos[cat.id].map((photo: any, i: number) => (
                     <div key={i} className="relative group">
                       <img src={photo.preview} alt={cat.label} className="w-full h-32 object-cover rounded-lg" />
                       <button
