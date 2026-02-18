@@ -2,13 +2,18 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { getUserListings, type Listing } from '@/lib/listings';
+import { doc, deleteDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function VaultPage() {
+  const router = useRouter();
   const { user, loading: authLoading } = useUser();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -29,6 +34,22 @@ export default function VaultPage() {
       setError(err.message || 'Failed to load listings');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (listingId: string, address: string) => {
+    if (!confirm(`Are you sure you want to delete the listing for ${address}? This cannot be undone.`)) {
+      return;
+    }
+    
+    setDeleting(listingId);
+    try {
+      await deleteDoc(doc(db, 'listings', listingId));
+      setListings(listings.filter(l => l.id !== listingId));
+    } catch (err: any) {
+      alert('Failed to delete listing: ' + err.message);
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -141,14 +162,24 @@ export default function VaultPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-2">
-                          <button className="bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 px-4 py-2 rounded-lg text-sm font-bold transition border border-blue-500/40">
+                          <Link
+                            href={`/listing/${listing.id}`}
+                            className="bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 px-4 py-2 rounded-lg text-sm font-bold transition border border-blue-500/40"
+                          >
                             👁️ View
-                          </button>
-                          <button className="bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 px-4 py-2 rounded-lg text-sm font-bold transition border border-amber-500/40">
+                          </Link>
+                          <Link
+                            href={`/workspace?edit=${listing.id}`}
+                            className="bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 px-4 py-2 rounded-lg text-sm font-bold transition border border-amber-500/40"
+                          >
                             ✏️ Edit
-                          </button>
-                          <button className="bg-red-600/30 hover:bg-red-600/50 text-red-300 px-4 py-2 rounded-lg text-sm font-bold transition border border-red-500/40">
-                            🗑️
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(listing.id, listing.address)}
+                            disabled={deleting === listing.id}
+                            className="bg-red-600/30 hover:bg-red-600/50 text-red-300 px-4 py-2 rounded-lg text-sm font-bold transition border border-red-500/40 disabled:opacity-50"
+                          >
+                            {deleting === listing.id ? '...' : '🗑️'}
                           </button>
                         </div>
                       </td>
