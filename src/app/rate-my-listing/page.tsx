@@ -73,12 +73,17 @@ export default function RateMyListingPage() {
 
         {/* Video Placeholder */}
         <section className="mb-10">
-          <div className="bg-black/40 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden aspect-video flex items-center justify-center">
-            <div className="text-center text-white/60">
-              <div className="text-6xl mb-3">🎬</div>
-              <p className="font-bold text-lg text-white/80">Video Coming Soon</p>
-              <p className="text-sm">Are you on the fence? Watch this first.</p>
-            </div>
+          <div className="rounded-2xl overflow-hidden border border-white/20 shadow-2xl aspect-video">
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/cbfSoBk7hfI"
+              title="Are You On The Fence? Your Listing Description Is Costing You Money"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            ></iframe>
           </div>
         </section>
 
