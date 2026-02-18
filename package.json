@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@netlify/plugin-nextjs": "^5.15.8",
     "@react-google-maps/api": "^2.20.8",
     "firebase": "^10.14.1",
     "mammoth": "^1.11.0",
