@@ -77,7 +77,7 @@ export default function RateMyListingPage() {
             <iframe
               width="100%"
               height="100%"
-              src="https://www.youtube.com/embed/cbfSoBk7hfI"
+              src="https://www.youtube.com/embed/cbfSoBk7hfI?rel=0&modestbranding=1&color=white"
               title="Are You On The Fence? Your Listing Description Is Costing You Money"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
