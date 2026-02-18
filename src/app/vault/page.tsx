@@ -142,8 +142,17 @@ export default function VaultPage() {
                   {listings.map((listing) => (
                     <tr key={listing.id} className="border-b border-white/10 hover:bg-white/5 transition">
                       <td className="px-6 py-4">
-                        <div className="text-white font-bold">{listing.address}</div>
-                        <div className="text-gray-400 text-sm">Tax ID: {listing.propertyData.taxId || 'N/A'}</div>
+                        <div className="flex items-center gap-3">
+                          {listing.photos && listing.photos.length > 0 ? (
+                            <img src={listing.photos[0].url} alt="Property" className="w-14 h-14 object-cover rounded-lg border border-white/20 flex-shrink-0" />
+                          ) : (
+                            <div className="w-14 h-14 bg-white/10 rounded-lg border border-white/20 flex items-center justify-center flex-shrink-0 text-2xl">🏠</div>
+                          )}
+                          <div>
+                            <div className="text-white font-bold">{listing.address}</div>
+                            <div className="text-gray-400 text-sm">Tax ID: {listing.propertyData.taxId || 'N/A'}</div>
+                          </div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-gray-300 text-sm">
                         {[
