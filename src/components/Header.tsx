@@ -48,6 +48,11 @@ export default function Header() {
             <Link href="/workspace" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
               Agent Workspace
             </Link>
+            {user && (
+              <Link href="/vault" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
+                Agent Vault
+              </Link>
+            )}
             <Link href="/faq" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
               FAQ
             </Link>
@@ -101,6 +106,11 @@ export default function Header() {
               <Link href="/workspace" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
                 Agent Workspace
               </Link>
+              {user && (
+                <Link href="/vault" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
+                  Agent Vault
+                </Link>
+              )}
               <Link href="/faq" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
                 FAQ
               </Link>

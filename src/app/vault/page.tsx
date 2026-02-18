@@ -1,135 +1,164 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useUser } from '@/contexts/UserContext';
+import { getUserListings, type Listing } from '@/lib/listings';
 import Link from 'next/link';
-import { auth, logOut, User } from '@/lib/auth';
-import { onAuthStateChanged } from 'firebase/auth';
-import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { useRouter } from 'next/navigation';
-
-interface SavedListing {
-  id: string;
-  tag?: string;
-  fileName?: string;
-  listingText: string;
-  analysis?: {
-    overall: string;
-  };
-  createdAt: string;
-  savedAt: string;
-}
 
 export default function VaultPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [listings, setListings] = useState<SavedListing[]>([]);
+  const { user, loading: authLoading } = useUser();
+  const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      if (!currentUser) {
-        router.push('/rate-my-listing');
-      } else {
-        loadListings(currentUser.uid);
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
+    if (!authLoading && user) {
+      loadListings();
+    } else if (!authLoading && !user) {
+      setLoading(false);
+    }
+  }, [user, authLoading]);
 
-  const loadListings = async (userId: string) => {
+  const loadListings = async () => {
+    if (!user) return;
+    setLoading(true);
+    setError('');
     try {
-      const q = query(
-        collection(db, 'submissions'),
-        where('userId', '==', userId),
-        where('savedToVault', '==', true),
-        orderBy('savedAt', 'desc')
-      );
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SavedListing));
+      const data = await getUserListings(user.uid);
       setListings(data);
-    } catch (error) {
-      console.error('Error loading listings:', error);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load listings');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSignOut = async () => {
-    await logOut();
-    router.push('/');
+  const formatDate = (isoString: string) => {
+    return new Date(isoString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
-  if (!user) return null;
-
-  return (
-    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a]">
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">📂 My Agent Vault</h1>
-            <p className="text-gray-300">{user.email}</p>
-          </div>
-          <button 
-            onClick={handleSignOut}
-            className="text-gray-300 hover:text-white text-sm font-semibold"
-          >
-            Sign Out
-          </button>
+  if (authLoading || loading) {
+    return (
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
+        <div className="max-w-7xl mx-auto px-6 py-20 text-center">
+          <div className="text-white text-xl">Loading your vault...</div>
         </div>
+      </main>
+    );
+  }
 
-        {loading ? (
-          <div className="text-center py-20">
-            <div className="w-12 h-12 border-4 border-[#c9a227] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-300">Loading your listings...</p>
-          </div>
-        ) : listings.length === 0 ? (
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-12 text-center border border-white/20">
-            <div className="text-6xl mb-4">📭</div>
-            <h2 className="text-2xl font-bold text-white mb-2">No Saved Listings Yet</h2>
-            <p className="text-gray-300 mb-6">Analyze your first listing and save it to your vault</p>
-            <Link 
-              href="/rate-my-listing"
-              className="inline-block bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-bold transition"
+  if (!user) {
+    return (
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
+        <div className="max-w-4xl mx-auto px-6 py-20 text-center">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20">
+            <div className="text-6xl mb-4">🔒</div>
+            <h1 className="text-3xl font-bold text-white mb-4">Sign In Required</h1>
+            <p className="text-gray-300 mb-8">You must be signed in to access your Agent Vault.</p>
+            <Link
+              href="/"
+              className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition"
             >
-              Analyze a Listing
+              Go to Home & Sign In
             </Link>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {listings.map(listing => (
-              <Link 
-                key={listing.id}
-                href={`/results?id=${listing.id}`}
-                className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 hover:border-[#c9a227] transition group"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-3xl">📄</span>
-                  {listing.analysis?.overall && (
-                    <span className={`text-2xl font-black px-3 py-1 rounded-lg ${
-                      listing.analysis.overall === 'A' ? 'bg-green-500' :
-                      listing.analysis.overall === 'B' ? 'bg-blue-500' :
-                      listing.analysis.overall === 'C' ? 'bg-yellow-500' : 'bg-red-500'
-                    } text-white`}>
-                      {listing.analysis.overall}
-                    </span>
-                  )}
-                </div>
-                <h3 className="text-white font-bold text-lg mb-2 group-hover:text-[#c9a227] transition">
-                  {listing.tag || listing.fileName || 'Untitled Listing'}
-                </h3>
-                <p className="text-gray-300 text-sm mb-3 line-clamp-2">
-                  {listing.listingText.substring(0, 100)}...
-                </p>
-                <p className="text-gray-400 text-xs">
-                  Saved {new Date(listing.savedAt).toLocaleDateString()}
-                </p>
-              </Link>
-            ))}
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">🗄️ Agent Vault</h1>
+            <p className="text-gray-300 text-lg">All your saved listings in one place</p>
+          </div>
+          <Link
+            href="/workspace"
+            className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition"
+          >
+            + New Listing
+          </Link>
+        </div>
+
+        {error && (
+          <div className="bg-red-900/60 border-2 border-red-500/60 rounded-xl p-4 mb-6 text-center">
+            <p className="text-red-200">{error}</p>
           </div>
         )}
 
+        {listings.length === 0 ? (
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20 text-center">
+            <div className="text-6xl mb-4">📭</div>
+            <h2 className="text-2xl font-bold text-white mb-3">No Listings Yet</h2>
+            <p className="text-gray-300 mb-6">Start building your first listing in the Agent Workspace!</p>
+            <Link
+              href="/workspace"
+              className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition"
+            >
+              Create Your First Listing
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-white/5 border-b border-white/20">
+                  <tr>
+                    <th className="text-left px-6 py-4 text-white font-bold">Address</th>
+                    <th className="text-left px-6 py-4 text-white font-bold">Details</th>
+                    <th className="text-left px-6 py-4 text-white font-bold">Status</th>
+                    <th className="text-left px-6 py-4 text-white font-bold">Date Saved</th>
+                    <th className="text-center px-6 py-4 text-white font-bold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {listings.map((listing) => (
+                    <tr key={listing.id} className="border-b border-white/10 hover:bg-white/5 transition">
+                      <td className="px-6 py-4">
+                        <div className="text-white font-bold">{listing.address}</div>
+                        <div className="text-gray-400 text-sm">Tax ID: {listing.propertyData.taxId || 'N/A'}</div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-300 text-sm">
+                        {[
+                          listing.propertyData.beds && `${listing.propertyData.beds} bed`,
+                          listing.propertyData.baths && `${listing.propertyData.baths} bath`,
+                          listing.propertyData.sqft && `${listing.propertyData.sqft} sqft`,
+                        ].filter(Boolean).join(' · ') || 'No details'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-block bg-green-600/30 text-green-300 px-3 py-1 rounded-full text-sm font-bold border border-green-500/40">
+                          ✅ {listing.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-300 text-sm">
+                        {formatDate(listing.createdAt)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <button className="bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 px-4 py-2 rounded-lg text-sm font-bold transition border border-blue-500/40">
+                            👁️ View
+                          </button>
+                          <button className="bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 px-4 py-2 rounded-lg text-sm font-bold transition border border-amber-500/40">
+                            ✏️ Edit
+                          </button>
+                          <button className="bg-red-600/30 hover:bg-red-600/50 text-red-300 px-4 py-2 rounded-lg text-sm font-bold transition border border-red-500/40">
+                            🗑️
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
