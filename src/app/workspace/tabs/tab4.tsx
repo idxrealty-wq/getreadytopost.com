@@ -86,7 +86,7 @@ export default function Tab4Checklist({ checklistState, setChecklistState, notes
   };
 
   const removePhoto = (categoryId: string, index: number) => {
-    setPhotos((prev) => ({
+    setPhotos((prev: Record<string, { file: File; preview: string; date: string }[]>) => ({
       ...prev,
       [categoryId]: prev[categoryId].filter((_, i) => i !== index),
     }));
