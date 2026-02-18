@@ -31,6 +31,8 @@ function WorkspaceContent() {
   const [checklistState, setChecklistState] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState('');
   const [saved, setSaved] = useState(false);
+  const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
+  const [existingPhotos, setExistingPhotos] = useState<Array<{ url: string; category: string; uploadedAt: string }>>([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -61,6 +63,7 @@ function WorkspaceContent() {
           setListing(data.aiListing);
           setChecklistState(data.checklistState);
           setNotes(data.notes);
+          setExistingPhotos(data.photos || []);
           setSaved(false);
         } else {
           alert('You do not have permission to edit this listing.');
@@ -161,8 +164,8 @@ function WorkspaceContent() {
         {activeTab === 1 && <Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} />}
         {activeTab === 2 && <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />}
         {activeTab === 3 && <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />}
-        {activeTab === 4 && <Tab4Checklist checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} onNext={() => setActiveTab(5)} />}
-        {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} />}
+        {activeTab === 4 && <Tab4Checklist checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} photos={photos} setPhotos={setPhotos} existingPhotos={existingPhotos} onNext={() => setActiveTab(5)} />}
+        {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} photos={photos} existingPhotos={existingPhotos} />}
       </div>
 
       {showAuthModal && (

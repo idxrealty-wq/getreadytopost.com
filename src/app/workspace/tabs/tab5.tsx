@@ -2,11 +2,36 @@
 import { useState } from 'react';
 import { saveListing } from '@/lib/listings';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/lib/firebase';
 
-export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user, editId }: any) {
+export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user, editId, photos, existingPhotos }: any) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [uploadProgress, setUploadProgress] = useState('');
+
+  const uploadPhotos = async () => {
+    const uploadedPhotos: Array<{ url: string; category: string; uploadedAt: string }> = [...(existingPhotos || [])];
+    
+    for (const [category, photoList] of Object.entries(photos)) {
+      if (Array.isArray(photoList)) {
+        for (const photo of photoList) {
+          setUploadProgress(`Uploading ${category} photos...`);
+          const filename = `listings/${user.uid}/${Date.now()}_${photo.file.name}`;
+          const storageRef = ref(storage, filename);
+          await uploadBytes(storageRef, photo.file);
+          const url = await getDownloadURL(storageRef);
+          uploadedPhotos.push({
+            url,
+            category,
+            uploadedAt: new Date().toISOString(),
+          });
+        }
+      }
+    }
+    
+    return uploadedPhotos;
+  };
 
   const handleSave = async () => {
     if (!user) {
@@ -20,10 +45,13 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
 
     setSaving(true);
     setError('');
+    setUploadProgress('');
     
     try {
+      const photoUrls = await uploadPhotos();
+      
       if (editId) {
-        // Update existing listing
+        setUploadProgress('Updating listing...');
         const listingRef = doc(db, 'listings', editId);
         await updateDoc(listingRef, {
           address,
@@ -32,10 +60,11 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
           aiListing: listing,
           checklistState,
           notes,
+          photos: photoUrls,
           updatedAt: new Date().toISOString(),
         });
       } else {
-        // Create new listing
+        setUploadProgress('Saving listing...');
         await saveListing(
           user.uid,
           address,
@@ -43,7 +72,8 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
           nearby,
           listing,
           checklistState,
-          notes
+          notes,
+          photoUrls
         );
       }
       setSaved(true);
@@ -51,12 +81,15 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
       setError(err.message || 'Failed to save listing.');
     } finally {
       setSaving(false);
+      setUploadProgress('');
     }
   };
 
   const completedChecklist = Object.entries(checklistState).filter(([, v]) => v).length;
   const totalChecklist = Object.keys(checklistState).length;
   const nearbyCount = nearby ? Object.values(nearby).filter((arr: any) => arr && arr.length > 0).length : 0;
+  const totalNewPhotos = Object.values(photos).reduce((sum: number, arr: any) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+  const totalPhotos = totalNewPhotos + (existingPhotos?.length || 0);
 
   return (
     <div className="space-y-6">
@@ -101,6 +134,12 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
             </span>
           </div>
           <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
+            <span className="text-white font-bold">📸 Photos</span>
+            <span className={totalPhotos > 0 ? 'text-green-400' : 'text-gray-400'}>
+              {totalPhotos > 0 ? `${totalPhotos} photos` : 'No photos'}
+            </span>
+          </div>
+          <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
             <span className="text-white font-bold">✅ Checklist</span>
             <span className="text-gray-300">{completedChecklist}/{totalChecklist} complete</span>
           </div>
@@ -116,6 +155,12 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
       {error && (
         <div className="bg-red-900/60 border-2 border-red-500/60 rounded-xl p-4 text-center">
           <p className="text-red-200">{error}</p>
+        </div>
+      )}
+
+      {uploadProgress && (
+        <div className="bg-blue-900/60 border-2 border-blue-500/60 rounded-xl p-4 text-center">
+          <p className="text-blue-200">{uploadProgress}</p>
         </div>
       )}
 
