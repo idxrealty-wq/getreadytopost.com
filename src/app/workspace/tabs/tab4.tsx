@@ -45,7 +45,6 @@ const QUICK_DAYS = [30, 60, 90, 120, 180, 365];
 
 export default function Tab4Checklist({ checklistState, setChecklistState, notes, setNotes, photos, setPhotos, existingPhotos, onNext }: any) {
   const [uploads, setUploads] = useState<Record<string, { file: File; date: string } | null>>({});
-  const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
   const [daysOut, setDaysOut] = useState('120');
   const [calculatedDate, setCalculatedDate] = useState('');
 
