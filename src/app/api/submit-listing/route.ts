@@ -1,100 +1,27 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
-import { gradeAndRewriteListing } from '@/lib/openai';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { Resend } from 'resend';
-
-
 
 export async function POST(req: NextRequest) {
-  const resend = new Resend(process.env.RESEND_API_KEY);
   try {
     const { email, listingText } = await req.json();
 
-    // Grade and rewrite listing with AI
-    const analysis = await gradeAndRewriteListing(listingText);
+    if (!email || !listingText) {
+      return NextResponse.json({ error: 'Email and listing text are required' }, { status: 400 });
+    }
 
-    // Store in Firebase
+    // Save submission as pending_payment - AI grading happens after payment
     const submissionRef = await addDoc(collection(db, 'submissions'), {
       email,
       listingText,
-      analysis,
+      status: 'pending_payment',
       createdAt: new Date().toISOString(),
     });
 
-    // Send report email to user
-    await resend.emails.send({
-      from: 'GetReadyToPost <onboarding@resend.dev>',
-      to: email,
-      subject: 'Your Listing Analysis is Ready! 🎉',
-      html: generateReportEmail(analysis),
-    });
-
-    // Send notification to Christopher
-    await resend.emails.send({
-      from: 'GetReadyToPost <onboarding@resend.dev>',
-      to: 'idxrealty@gmail.com',
-      subject: 'New Rate My Listing Submission',
-      html: `<p><strong>New submission from:</strong> ${email}</p><p><strong>Grade:</strong> ${analysis.overall}</p><p><strong>Firestore ID:</strong> ${submissionRef.id}</p>`,
-    });
-
-    return NextResponse.json({ success: true, analysis });
+    return NextResponse.json({ success: true, submissionId: submissionRef.id });
   } catch (error: any) {
     console.error('Submission error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-}
-
-function generateReportEmail(analysis: any) {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
-        .header { background: linear-gradient(135deg, #1a2b4a 0%, #2d4a7c 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-        .grade { font-size: 48px; font-weight: bold; color: #c9a227; margin: 10px 0; }
-        .section { background: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 8px; }
-        .category { margin: 15px 0; padding: 10px; background: white; border-left: 4px solid #c9a227; }
-        .rewrite { background: #e8f5e9; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>Your Listing Analysis</h1>
-        <div class="grade">${analysis.overall}</div>
-        <p>Overall Grade</p>
-      </div>
-
-      <div class="section">
-        <h2>Category Breakdown</h2>
-        ${Object.entries(analysis.categories).map(([key, val]: [string, any]) => `
-          <div class="category">
-            <strong>${key.charAt(0).toUpperCase() + key.slice(1)}: ${val.grade}</strong>
-            <p>${val.feedback}</p>
-          </div>
-        `).join('')}
-      </div>
-
-      <div class="rewrite">
-        <h2>✨ Professional Rewrite (MLS-Ready)</h2>
-        <p>${analysis.rewrite}</p>
-      </div>
-
-      <div class="section">
-        <h2>💡 Recommendations</h2>
-        <ul>
-          ${analysis.recommendations.map((rec: string) => `<li>${rec}</li>`).join('')}
-        </ul>
-      </div>
-
-      <div class="footer">
-        <p>© ${new Date().getFullYear()} GetReadyToPost. All rights reserved.</p>
-        <p><a href="https://getreadytopost.netlify.app">getreadytopost.netlify.app</a></p>
-      </div>
-    </body>
-    </html>
-  `;
 }
