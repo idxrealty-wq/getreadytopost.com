@@ -1,15 +1,25 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useUser } from "@/contexts/UserContext";
 import AuthModal from "./AuthModal";
+import CompleteProfileModal from "./CompleteProfileModal";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showCompleteProfile, setShowCompleteProfile] = useState(false);
   const { user, profile, loading } = useUser();
+
+  useEffect(() => {
+    // Check if user is signed in but profile is incomplete
+    if (!loading && user && profile) {
+      const isIncomplete = !profile.company || !profile.fullName;
+      setShowCompleteProfile(isIncomplete);
+    }
+  }, [user, profile, loading]);
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -41,7 +51,7 @@ export default function Header() {
             <Link href="/faq" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
               FAQ
             </Link>
-            
+
             {!loading && (
               user && profile ? (
                 <div className="flex items-center gap-4">
@@ -94,7 +104,7 @@ export default function Header() {
               <Link href="/faq" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
                 FAQ
               </Link>
-              
+
               {!loading && (
                 user && profile ? (
                   <>
@@ -132,6 +142,16 @@ export default function Header() {
         onClose={() => setShowAuthModal(false)}
         onSuccess={() => setShowAuthModal(false)}
       />
+
+      {user && profile && (
+        <CompleteProfileModal
+          isOpen={showCompleteProfile}
+          onClose={() => setShowCompleteProfile(false)}
+          userId={user.uid}
+          currentName={profile.fullName || user.displayName || ''}
+          currentEmail={profile.email}
+        />
+      )}
     </>
   );
 }
