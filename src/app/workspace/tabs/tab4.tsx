@@ -79,7 +79,7 @@ export default function Tab4Checklist({ checklistState, setChecklistState, notes
       preview: URL.createObjectURL(file),
       date: new Date().toLocaleString(),
     }));
-    setPhotos((prev) => ({
+    setPhotos((prev: Record<string, { file: File; preview: string; date: string }[]>) => ({
       ...prev,
       [categoryId]: [...(prev[categoryId] || []), ...newPhotos],
     }));
