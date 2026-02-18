@@ -149,8 +149,8 @@ export default function VaultPage() {
                             <div className="w-14 h-14 bg-white/10 rounded-lg border border-white/20 flex items-center justify-center flex-shrink-0 text-2xl">🏠</div>
                           )}
                           <div>
-                            <div className="text-white font-bold">{listing.address}</div>
-                            <div className="text-gray-400 text-sm">Tax ID: {listing.propertyData.taxId || 'N/A'}</div>
+                            <div className="text-white font-semibold text-sm">{listing.address}</div>
+                            <div className="text-gray-400 text-xs">Tax ID: {listing.propertyData.taxId || 'N/A'}</div>
                           </div>
                         </div>
                       </td>
