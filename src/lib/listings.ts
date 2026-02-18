@@ -1,4 +1,4 @@
-import { collection, doc, setDoc, getDocs, query, where, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from './firebase';
 
 export interface Listing {
@@ -21,6 +21,7 @@ export interface Listing {
   aiListing: string;
   checklistState: Record<string, boolean>;
   notes: string;
+  photos?: Array<{ url: string; category: string; uploadedAt: string }>;
   createdAt: string;
   updatedAt: string;
 }
@@ -32,7 +33,8 @@ export const saveListing = async (
   nearby: any,
   aiListing: string,
   checklistState: Record<string, boolean>,
-  notes: string
+  notes: string,
+  photos?: Array<{ url: string; category: string; uploadedAt: string }>
 ): Promise<string> => {
   const listingId = `listing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const listingRef = doc(db, 'listings', listingId);
@@ -47,6 +49,7 @@ export const saveListing = async (
     aiListing,
     checklistState,
     notes,
+    photos: photos || [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

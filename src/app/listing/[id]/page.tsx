@@ -14,6 +14,7 @@ export default function ListingViewPage() {
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   useEffect(() => {
     if (!authLoading && user && params.id) {
@@ -50,6 +51,21 @@ export default function ListingViewPage() {
   const completedChecklist = listing ? Object.entries(listing.checklistState).filter(([, v]) => v).length : 0;
   const totalChecklist = listing ? Object.keys(listing.checklistState).length : 0;
 
+  const photos = listing?.photos || [];
+  const hasPhotos = photos.length > 0;
+
+  const nextPhoto = () => {
+    if (hasPhotos) {
+      setCurrentPhotoIndex((prev) => (prev + 1) % photos.length);
+    }
+  };
+
+  const prevPhoto = () => {
+    if (hasPhotos) {
+      setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
@@ -76,6 +92,8 @@ export default function ListingViewPage() {
     );
   }
 
+  const mapEmbedUrl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBVdeO0rH0l1WrTdImMYOxnz1A9zWkJKSQ&q=${encodeURIComponent(listing.address)}`;
+
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
       <div className="max-w-6xl mx-auto px-6 py-10">
@@ -101,6 +119,77 @@ export default function ListingViewPage() {
         </div>
 
         <div className="space-y-6">
+          {/* Photo Gallery */}
+          {hasPhotos ? (
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+              <h2 className="text-2xl font-bold text-white mb-6">📸 Property Photos</h2>
+              <div className="relative">
+                <div className="aspect-video bg-black rounded-xl overflow-hidden">
+                  <img
+                    src={photos[currentPhotoIndex].url}
+                    alt={`Property photo ${currentPhotoIndex + 1}`}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                {photos.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevPhoto}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition"
+                    >
+                      ←
+                    </button>
+                    <button
+                      onClick={nextPhoto}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition"
+                    >
+                      →
+                    </button>
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm">
+                      {currentPhotoIndex + 1} / {photos.length}
+                    </div>
+                  </>
+                )}
+              </div>
+              {photos.length > 1 && (
+                <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+                  {photos.map((photo: any, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentPhotoIndex(idx)}
+                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition ${
+                        idx === currentPhotoIndex ? 'border-[#c9a227]' : 'border-white/20'
+                      }`}
+                    >
+                      <img src={photo.url} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center">
+              <div className="text-6xl mb-4">📷</div>
+              <p className="text-gray-300">No photos uploaded yet</p>
+            </div>
+          )}
+
+          {/* Map */}
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+            <h2 className="text-2xl font-bold text-white mb-6">📍 Location</h2>
+            <div className="aspect-video rounded-xl overflow-hidden">
+              <iframe
+                src={mapEmbedUrl}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          </div>
+
           {/* Property Details */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
             <h2 className="text-2xl font-bold text-white mb-6">📋 Property Details</h2>
