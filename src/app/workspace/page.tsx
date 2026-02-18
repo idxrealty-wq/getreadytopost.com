@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
@@ -11,7 +11,7 @@ import Tab3Listing from './tabs/tab3';
 import Tab4Checklist from './tabs/tab4';
 import Tab5Save from './tabs/tab5';
 
-export default function WorkspacePage() {
+function WorkspaceContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
 
@@ -55,14 +55,13 @@ export default function WorkspacePage() {
       if (listingSnap.exists()) {
         const data = listingSnap.data() as Listing;
         if (data.userId === user?.uid) {
-          // Load all data into state
           setAddress(data.address);
           setPropertyData(data.propertyData);
           setNearby(data.nearby);
           setListing(data.aiListing);
           setChecklistState(data.checklistState);
           setNotes(data.notes);
-          setSaved(false); // Reset saved state so they can save again
+          setSaved(false);
         } else {
           alert('You do not have permission to edit this listing.');
         }
@@ -189,5 +188,19 @@ export default function WorkspacePage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function WorkspacePage() {
+  return (
+    <Suspense fallback={
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
+        <div className="max-w-7xl mx-auto px-6 py-20 text-center">
+          <div className="text-white text-xl">Loading workspace...</div>
+        </div>
+      </main>
+    }>
+      <WorkspaceContent />
+    </Suspense>
   );
 }
