@@ -69,7 +69,7 @@ function WorkspaceContent() {
                 disabled={authLoading}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition disabled:opacity-50 pointer-events-auto"
               >
-                {authLoading ? "Signing in..." : "Sign In with Google"}
+                {authLoading ? "Signing in..." : "✓ Sign In with Google (LIVE)"}
               </button>
               <button
                 onClick={handleEmailSignIn}
