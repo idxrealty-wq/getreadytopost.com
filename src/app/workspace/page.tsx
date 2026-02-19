@@ -1,208 +1,173 @@
 "use client";
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { doc, getDoc } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import type { Listing } from '@/lib/listings';
-import Tab1PropertyBasics from './tabs/tab1';
-import Tab2Neighborhood from './tabs/tab2';
-import Tab3Listing from './tabs/tab3';
-import Tab4Checklist from './tabs/tab4';
-import Tab5Save from './tabs/tab5';
+
+import { useState, Suspense } from "react";
+import { signInWithGoogle, signInWithEmail } from "@/lib/auth";
+import { createUserProfile, getUserProfile } from "@/lib/profile";
+import Tab1 from "./tabs/tab1";
+import Tab2 from "./tabs/tab2";
+import Tab3 from "./tabs/tab3";
+import Tab4Checklist from "./tabs/tab4";
+import Tab5 from "./tabs/tab5";
 
 function WorkspaceContent() {
-  const searchParams = useSearchParams();
-  const editId = searchParams.get('edit');
-
-  const [user, setUser] = useState<any>(null);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [loadingListing, setLoadingListing] = useState(false);
-
-  const [activeTab, setActiveTab] = useState(1);
-  const [address, setAddress] = useState('');
-  const [propertyData, setPropertyData] = useState({
-    taxId: '', yearBuilt: '', beds: '', baths: '',
-    sqft: '', lotSize: '', price: '', features: '', dateAdded: '',
-  });
-  const [nearby, setNearby] = useState<any>(null);
-  const [listing, setListing] = useState('');
+  const [currentTab, setCurrentTab] = useState(1);
+  const [propertyData, setPropertyData] = useState<any>({});
+  const [nearbyData, setNearbyData] = useState<any>({});
+  const [listingText, setListingText] = useState("");
   const [checklistState, setChecklistState] = useState<Record<string, boolean>>({});
-  const [notes, setNotes] = useState('');
-  const [saved, setSaved] = useState(false);
-  const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
-  const [existingPhotos, setExistingPhotos] = useState<Array<{ url: string; category: string; uploadedAt: string }>>([]);
+  const [notes, setNotes] = useState("");
+  const [photos, setPhotos] = useState<Record<string, any[]>>({});
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setAuthLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (editId && user && !loadingListing) {
-      loadListingForEdit(editId);
-    }
-  }, [editId, user]);
-
-  const loadListingForEdit = async (listingId: string) => {
-    setLoadingListing(true);
+  const handleGoogleSignIn = async () => {
+    console.log("[Workspace] handleGoogleSignIn START");
+    setAuthLoading(true);
+    setAuthError("");
     try {
-      const listingRef = doc(db, 'listings', listingId);
-      const listingSnap = await getDoc(listingRef);
-      
-      if (listingSnap.exists()) {
-        const data = listingSnap.data() as Listing;
-        if (data.userId === user?.uid) {
-          setAddress(data.address);
-          setPropertyData(data.propertyData);
-          setNearby(data.nearby);
-          setListing(data.aiListing);
-          setChecklistState(data.checklistState);
-          setNotes(data.notes);
-          setExistingPhotos(data.photos || []);
-          setSaved(false);
-        } else {
-          alert('You do not have permission to edit this listing.');
+      const result = await signInWithGoogle();
+      console.log("[Workspace] Google sign-in successful", { userId: result.user?.uid });
+      if (result.user) {
+        const existingProfile = await getUserProfile(result.user.uid);
+        if (!existingProfile) {
+          await createUserProfile(
+            result.user.uid,
+            result.user.email || "",
+            result.user.displayName || "",
+            "",
+            ""
+          );
         }
-      } else {
-        alert('Listing not found.');
+        setShowAuthModal(false);
       }
     } catch (err: any) {
-      alert('Failed to load listing: ' + err.message);
+      console.error("[Workspace] Google sign-in failed", err);
+      setAuthError(err.message || "Failed to sign in with Google");
     } finally {
-      setLoadingListing(false);
+      setAuthLoading(false);
     }
   };
 
-  const tabs = [
-    { num: 1, label: 'Property Basics', icon: '🏠', done: !!address && !!propertyData.taxId },
-    { num: 2, label: 'Neighborhood', icon: '📍', done: !!nearby },
-    { num: 3, label: 'AI Listing', icon: '✨', done: !!listing },
-    { num: 4, label: 'Documents & Checklist', icon: '✅', done: false },
-    { num: 5, label: 'Save to Vault', icon: '💾', done: saved },
-  ];
-
-  if (loadingListing) {
-    return (
-      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
-        <div className="max-w-7xl mx-auto px-6 py-20 text-center">
-          <div className="text-white text-xl">Loading listing for editing...</div>
-        </div>
-      </main>
-    );
-  }
+  const handleEmailSignIn = async () => {
+    console.log("[Workspace] handleEmailSignIn - redirecting to auth modal");
+    setShowAuthModal(false);
+    // TODO: Open email sign-in form
+  };
 
   return (
-    <main className="pt-20 min-h-screen relative">
-      <div className="fixed inset-0 z-0">
-        <img
-          src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/421a46ef-b52d-44e1-b33d-bf1d1492c0cd/image.png?w=1200&h=896"
-          alt="Background"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-[#1a2b4a]/85"></div>
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-10">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
-            {editId ? '✏️ Edit Listing' : '🏠 Agent Workspace'}
-          </h1>
-          <p className="text-gray-300 text-lg">
-            {editId ? 'Update your listing details' : 'Your complete pre-listing command center'}
-          </p>
-        </div>
-
-        {!authLoading && !user && (
-          <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6 text-center">
-            <h2 className="text-2xl font-bold text-white mb-3">⚠️ Sign In Required</h2>
-            <p className="text-gray-200 text-lg mb-4">
-              You must be signed in to save your work. Without an account, all data will be lost when you leave this page.
-            </p>
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="bg-white text-red-900 px-8 py-3 rounded-xl font-bold text-lg hover:bg-gray-100 transition"
-            >
-              Sign In / Create Account
-            </button>
-          </div>
-        )}
-
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Enter property address..."
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-lg"
-          />
-        </div>
-
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          {tabs.map((tab) => (
-            <button
-              key={tab.num}
-              onClick={() => setActiveTab(tab.num)}
-              className={'flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition whitespace-nowrap ' + (
-                activeTab === tab.num
-                  ? 'bg-[#c9a227] text-white shadow-lg'
-                  : tab.done
-                  ? 'bg-green-600/30 text-green-300 border border-green-500/40'
-                  : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20'
-              )}
-            >
-              <span className="text-lg">{tab.done && activeTab !== tab.num ? '✅' : tab.icon}</span>
-              <span>{tab.num}. {tab.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {activeTab === 1 && <Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} />}
-        {activeTab === 2 && <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />}
-        {activeTab === 3 && <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />}
-        {activeTab === 4 && <Tab4Checklist checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} photos={photos} setPhotos={setPhotos} existingPhotos={existingPhotos} onNext={() => setActiveTab(5)} />}
-        {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} photos={photos} existingPhotos={existingPhotos} />}
-      </div>
-
+    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-6">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-6 pointer-events-auto">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full pointer-events-auto">
             <h2 className="text-2xl font-bold mb-4">Sign In to Save Your Work</h2>
             <p className="text-gray-600 mb-6">Create a free account or sign in to save your listings, documents, and progress.</p>
+            {authError && <p className="text-red-500 text-sm mb-4">{authError}</p>}
             <div className="space-y-3">
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition">
-                Sign In with Google
+              <button
+                onClick={handleGoogleSignIn}
+                disabled={authLoading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition disabled:opacity-50 pointer-events-auto"
+              >
+                {authLoading ? "Signing in..." : "Sign In with Google"}
               </button>
-              <button className="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-xl font-bold transition">
+              <button
+                onClick={handleEmailSignIn}
+                disabled={authLoading}
+                className="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-xl font-bold transition disabled:opacity-50 pointer-events-auto"
+              >
                 Sign In with Email
               </button>
             </div>
             <button
               onClick={() => setShowAuthModal(false)}
-              className="w-full mt-4 text-gray-600 hover:text-gray-800 font-bold"
+              className="w-full mt-4 text-gray-600 hover:text-gray-800 font-bold pointer-events-auto"
             >
               Continue Without Saving
             </button>
           </div>
         </div>
       )}
+
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">Agent Workspace</h1>
+          <p className="text-gray-300">Build, refine, and save your property listings</p>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">
+          <div className="flex border-b border-white/20">
+            {[1, 2, 3, 4, 5].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setCurrentTab(tab)}
+                className={`flex-1 px-6 py-4 font-bold transition ${
+                  currentTab === tab
+                    ? "bg-[#c9a227] text-white"
+                    : "text-gray-300 hover:bg-white/5"
+                }`}
+              >
+                {tab === 1 && "Property Basics"}
+                {tab === 2 && "Neighborhood"}
+                {tab === 3 && "AI Listing"}
+                {tab === 4 && "Documents"}
+                {tab === 5 && "Save to Vault"}
+              </button>
+            ))}
+          </div>
+
+          <div className="p-8">
+            {currentTab === 1 && (
+              <Tab1 propertyData={propertyData} setPropertyData={setPropertyData} onNext={() => setCurrentTab(2)} />
+            )}
+            {currentTab === 2 && (
+              <Tab2 nearbyData={nearbyData} setNearbyData={setNearbyData} onNext={() => setCurrentTab(3)} />
+            )}
+            {currentTab === 3 && (
+              <Tab3 propertyData={propertyData} listingText={listingText} setListingText={setListingText} onNext={() => setCurrentTab(4)} />
+            )}
+            {currentTab === 4 && (
+              <Tab4Checklist
+                checklistState={checklistState}
+                setChecklistState={setChecklistState}
+                notes={notes}
+                setNotes={setNotes}
+                photos={photos}
+                setPhotos={setPhotos}
+                existingPhotos={[]}
+                onNext={() => setCurrentTab(5)}
+                listingId="temp-listing-id"
+              />
+            )}
+            {currentTab === 5 && (
+              <Tab5
+                propertyData={propertyData}
+                nearbyData={nearbyData}
+                listingText={listingText}
+                checklistState={checklistState}
+                notes={notes}
+                photos={photos}
+                onSave={() => setShowAuthModal(true)}
+              />
+            )}
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
 
 export default function WorkspacePage() {
   return (
-    <Suspense fallback={
-      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
-        <div className="max-w-7xl mx-auto px-6 py-20 text-center">
-          <div className="text-white text-xl">Loading workspace...</div>
-        </div>
-      </main>
-    }>
+    <Suspense
+      fallback={
+        <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
+          <div className="max-w-7xl mx-auto px-6 py-20 text-center">
+            <div className="text-white text-xl">Loading workspace...</div>
+          </div>
+        </main>
+      }
+    >
       <WorkspaceContent />
     </Suspense>
   );
