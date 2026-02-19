@@ -90,7 +90,7 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
         </div>
         <div>
           <label className="block text-gray-300 text-sm font-bold mb-2">List Price</label>
-          <div className="flex items-center border border-gray-300 rounded-xl focus-within:border-[#c9a227] overflow-hidden"><span className="bg-gray-200 px-3 py-3 text-gray-700 font-bold">$</span><input style={{border: "none"}}
+          <input
             type="text"
             value={data.price}
             onChange={(e) => updateField('price', e.target.value)}
