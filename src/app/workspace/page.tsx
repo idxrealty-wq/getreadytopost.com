@@ -1,11 +1,9 @@
 "use client";
-export const dynamic = "force-dynamic";
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import AuthModal from '@/components/AuthModal';
 import type { Listing } from '@/lib/listings';
 import Tab1PropertyBasics from './tabs/tab1';
 import Tab2Neighborhood from './tabs/tab2';
@@ -164,6 +162,45 @@ function WorkspaceContent() {
         {activeTab === 2 && <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />}
         {activeTab === 3 && <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />}
         {activeTab === 4 && <Tab4Checklist checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} onNext={() => setActiveTab(5)} />}
-        {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} onSave={() => setShowAuthModal(true)} />}
+        {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} />}
       </div>
 
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-6">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+            <h2 className="text-2xl font-bold mb-4">Sign In to Save Your Work</h2>
+            <p className="text-gray-600 mb-6">Create a free account or sign in to save your listings, documents, and progress.</p>
+            <div className="space-y-3">
+              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition">
+                Sign In with Google
+              </button>
+              <button className="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-xl font-bold transition">
+                Sign In with Email
+              </button>
+            </div>
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="w-full mt-4 text-gray-600 hover:text-gray-800 font-bold"
+            >
+              Continue Without Saving
+            </button>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
+
+export default function WorkspacePage() {
+  return (
+    <Suspense fallback={
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
+        <div className="max-w-7xl mx-auto px-6 py-20 text-center">
+          <div className="text-white text-xl">Loading workspace...</div>
+        </div>
+      </main>
+    }>
+      <WorkspaceContent />
+    </Suspense>
+  );
+}
