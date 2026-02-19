@@ -94,7 +94,7 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             type="text"
             value={data.price}
             onChange={(e) => updateField('price', e.target.value)}
-            placeholder="e.g., 350,000"
+            placeholder="$ 850000"
             className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none"
           />
         </div>
