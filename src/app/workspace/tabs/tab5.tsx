@@ -5,13 +5,14 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 
-export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user, editId, photos, existingPhotos, onSave }: any) {
+export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user, editId, photos, existingPhotos }: any) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [uploadProgress, setUploadProgress] = useState('');
 
   const uploadPhotos = async () => {
     const uploadedPhotos: Array<{ url: string; category: string; uploadedAt: string }> = [...(existingPhotos || [])];
+    
     for (const [category, photoList] of Object.entries(photos)) {
       if (Array.isArray(photoList)) {
         for (const photo of photoList) {
@@ -28,16 +29,15 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
         }
       }
     }
+    
     return uploadedPhotos;
   };
 
   const handleSave = async () => {
     if (!user) {
-      console.log('[Tab5] User not signed in, triggering auth modal');
-      onSave();
+      setError('You must be signed in to save listings.');
       return;
     }
-
     if (!address) {
       setError('Address is required.');
       return;
@@ -46,9 +46,10 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
     setSaving(true);
     setError('');
     setUploadProgress('');
-
+    
     try {
       const photoUrls = await uploadPhotos();
+      
       if (editId) {
         setUploadProgress('Updating listing...');
         const listingRef = doc(db, 'listings', editId);
@@ -95,6 +96,7 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-6">💾 {editId ? 'Update Listing' : 'Save to Agent Vault'}</h2>
         <p className="text-gray-300 mb-8">Review your listing package before saving:</p>
+
         <div className="space-y-4">
           <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
             <span className="text-white font-bold">🏠 Property Address</span>
@@ -166,7 +168,7 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
         <div className="flex justify-center">
           <button
             onClick={handleSave}
-            disabled={!address || saving}
+            disabled={!address || !user || saving}
             className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-12 py-4 rounded-xl font-bold text-lg transition shadow-2xl disabled:opacity-50"
           >
             {saving ? '💾 Saving...' : editId ? '💾 Update Listing' : '💾 Save Complete Package to Vault'}
