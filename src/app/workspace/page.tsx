@@ -1,91 +1,78 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { Suspense, useState } from "react";
-import AuthModal from "@/components/AuthModal";
-import Tab1 from "./tabs/tab1";
-import Tab2 from "./tabs/tab2";
-import Tab3 from "./tabs/tab3";
-import Tab4 from "./tabs/tab4";
-import Tab5Save from "./tabs/tab5";
+import { useState } from 'react';
+import AuthModal from '@/components/AuthModal';
+import Tab1PropertyBasics from './tabs/tab1';
+import Tab2Neighborhood from './tabs/tab2';
+import Tab3Listing from './tabs/tab3';
+import Tab4Checklist from './tabs/tab4';
+import Tab5Save from './tabs/tab5';
 
 export default function WorkspacePage() {
-  const [currentTab, setCurrentTab] = useState(1);
+  const [activeTab, setActiveTab] = useState(1);
+  const [address, setAddress] = useState('');
+  const [propertyData, setPropertyData] = useState({
+    taxId: '', yearBuilt: '', beds: '', baths: '',
+    sqft: '', lotSize: '', price: '', features: '',
+  });
+  const [nearby, setNearby] = useState<any>(null);
+  const [listing, setListing] = useState('');
+  const [checklistState, setChecklistState] = useState<Record<string, boolean>>({});
+  const [notes, setNotes] = useState('');
+  const [saved, setSaved] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [address, setAddress] = useState("");
-  const [propertyData, setPropertyData] = useState({
-    taxId: "",
-    yearBuilt: "",
-    beds: "",
-    baths: "",
-    sqft: "",
-    price: "",
-  });
-  const [nearbyData, setNearbyData] = useState({});
-  const [listingText, setListingText] = useState("");
-  const [checklistState, setChecklistState] = useState({
-    "Property condition": false,
-    "Neighborhood appeal": false,
-    "Market value": false,
-    "Buyer psychology": false,
-    "Unique features": false,
-    "Call to action": false,
-  });
-  const [notes, setNotes] = useState("");
-  const [saved, setSaved] = useState(false);
-  const [photos, setPhotos] = useState({});
-  const [existingPhotos, setExistingPhotos] = useState([]);
-  const [editId, setEditId] = useState<string | null>(null);
+
+  const tabs = [
+    { num: 1, label: 'Property Basics', icon: '🏠', done: !!address && !!propertyData.taxId },
+    { num: 2, label: 'Neighborhood', icon: '📍', done: !!nearby },
+    { num: 3, label: 'AI Listing', icon: '✨', done: !!listing },
+    { num: 4, label: 'Documents & Checklist', icon: '✅', done: false },
+    { num: 5, label: 'Save to Vault', icon: '💾', done: saved },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">📊 Workspace</h1>
-          <p className="text-gray-400">Build, analyze, and save your listing packages</p>
+    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a]">
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">🏠 Agent Workspace</h1>
+          <p className="text-gray-300 text-lg">Your complete pre-listing command center</p>
         </div>
-
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-          {[1, 2, 3, 4, 5].map((tab) => (
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Enter property address..."
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-lg"
+          />
+        </div>
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          {tabs.map((tab) => (
             <button
-              key={tab}
-              onClick={() => setCurrentTab(tab)}
-              className={`px-6 py-3 rounded-lg font-semibold transition whitespace-nowrap ${
-                currentTab === tab
-                  ? "bg-blue-600 text-white"
-                  : "bg-white/10 text-gray-300 hover:bg-white/20"
+              key={tab.num}
+              onClick={() => setActiveTab(tab.num)}
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition whitespace-nowrap ${
+                activeTab === tab.num
+                  ? 'bg-[#c9a227] text-white shadow-lg'
+                  : tab.done
+                  ? 'bg-green-600/30 text-green-300 border border-green-500/40'
+                  : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20'
               }`}
             >
-              {tab === 1 && "📍 Address"}
-              {tab === 2 && "🏠 Property"}
-              {tab === 3 && "📝 Listing"}
-              {tab === 4 && "📸 Photos"}
-              {tab === 5 && "💾 Save"}
+              <span className="text-lg">{tab.done && activeTab !== tab.num ? '✅' : tab.icon}</span>
+              <span>{tab.num}. {tab.label}</span>
             </button>
           ))}
         </div>
-
-        <div className="bg-white/5 backdrop-blur-md rounded-2xl p-8 border border-white/10">
-          {currentTab === 1 && (
-            <Tab1 address={address} setAddress={setAddress} />
-          )}
-          {currentTab === 2 && (
-            <Tab2 propertyData={propertyData} setPropertyData={setPropertyData} nearbyData={nearbyData} setNearbyData={setNearbyData} />
-          )}
-          {currentTab === 3 && (
-            <Tab3 address={address} propertyData={propertyData} nearbyData={nearbyData} listingText={listingText} setListingText={setListingText} checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} />
-          )}
-          {currentTab === 4 && (
-            <Tab4 photos={photos} setPhotos={setPhotos} existingPhotos={existingPhotos} />
-          )}
-          {currentTab === 5 && (
-            <Tab5Save address={address} propertyData={propertyData} nearby={nearbyData} listing={listingText} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} photos={photos} existingPhotos={existingPhotos} onSave={() => setShowAuthModal(true)} />
-          )}
-        </div>
+        {activeTab === 1 && <Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} />}
+        {activeTab === 2 && <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />}
+        {activeTab === 3 && <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />}
+        {activeTab === 4 && <Tab4Checklist checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} onNext={() => setActiveTab(5)} />}
+        {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} onSave={() => setShowAuthModal(true)} />}
       </div>
-
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onSuccess={(user) => setUser(user)} />
-    </div>
+    </main>
   );
 }
