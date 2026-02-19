@@ -1,8 +1,5 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { storage, db } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 
 const DOCUMENT_SLOTS = [
   { id: 'seller_disclosure', label: 'Seller Disclosure', required: true },
@@ -46,18 +43,9 @@ const CHECKLIST_ITEMS = [
 
 const QUICK_DAYS = [30, 60, 90, 120, 180, 365];
 
-export default function Tab4Checklist({
-  checklistState,
-  setChecklistState,
-  notes,
-  setNotes,
-  photos,
-  setPhotos,
-  existingPhotos,
-  onNext,
-  listingId,
-}: any) {
-  const [uploads, setUploads] = useState<Record<string, { file: File; date: string; url?: string; uploading?: boolean } | null>>({});
+export default function Tab4Checklist({ checklistState, setChecklistState, notes, setNotes, onNext }: any) {
+  const [uploads, setUploads] = useState<Record<string, { file: File; date: string } | null>>({});
+  const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
   const [daysOut, setDaysOut] = useState('120');
   const [calculatedDate, setCalculatedDate] = useState('');
 
@@ -74,102 +62,32 @@ export default function Tab4Checklist({
   }, [daysOut]);
 
   const toggleChecklist = (id: string) => {
-    console.log('[Tab4] toggleChecklist', { id, newState: !checklistState[id] });
     setChecklistState((prev: any) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleFileUpload = async (docId: string, file: File | null) => {
-    console.log('[Tab4] handleFileUpload START', {
-      docId,
-      fileName: file?.name || null,
-      fileType: file?.type || null,
-      fileSize: file?.size || null,
-      timestamp: new Date().toISOString(),
-    });
-
-    if (!file) {
-      console.log('[Tab4] handleFileUpload - clearing file', { docId });
+  const handleFileUpload = (docId: string, file: File | null) => {
+    if (file) {
+      setUploads((prev) => ({ ...prev, [docId]: { file, date: new Date().toLocaleString() } }));
+    } else {
       setUploads((prev) => ({ ...prev, [docId]: null }));
-      return;
-    }
-
-    setUploads((prev) => ({
-      ...prev,
-      [docId]: { file, date: new Date().toLocaleString(), uploading: true },
-    }));
-
-    try {
-      const storagePath = `documents/${listingId || 'temp'}/${docId}/${file.name}`;
-      const storageRef = ref(storage, storagePath);
-
-      console.log('[Tab4] uploading to Firebase Storage', { storagePath });
-      await uploadBytes(storageRef, file);
-
-      const downloadURL = await getDownloadURL(storageRef);
-      console.log('[Tab4] upload successful', { docId, downloadURL });
-
-      setUploads((prev) => ({
-        ...prev,
-        [docId]: {
-          file,
-          date: new Date().toLocaleString(),
-          url: downloadURL,
-          uploading: false,
-        },
-      }));
-
-      if (listingId) {
-        const listingRef = doc(db, 'listings', listingId);
-        const docMetadata = {
-          docId,
-          label: DOCUMENT_SLOTS.find((d) => d.id === docId)?.label || docId,
-          fileName: file.name,
-          fileSize: file.size,
-          fileType: file.type,
-          downloadURL,
-          uploadedAt: new Date().toISOString(),
-          required: DOCUMENT_SLOTS.find((d) => d.id === docId)?.required || false,
-        };
-
-        console.log('[Tab4] saving to Firestore', { listingId, docMetadata });
-        await updateDoc(listingRef, {
-          documents: arrayUnion(docMetadata),
-        });
-        console.log('[Tab4] Firestore update complete', { docId });
-      }
-    } catch (error) {
-      console.error('[Tab4] upload failed', { docId, error });
-      setUploads((prev) => ({
-        ...prev,
-        [docId]: { file, date: new Date().toLocaleString(), uploading: false },
-      }));
     }
   };
 
   const handlePhotoUpload = (categoryId: string, files: FileList | null) => {
     if (!files || files.length === 0) return;
-
-    console.log('[Tab4] handlePhotoUpload', {
-      categoryId,
-      fileCount: files.length,
-      timestamp: new Date().toISOString(),
-    });
-
     const newPhotos = Array.from(files).map((file) => ({
       file,
       preview: URL.createObjectURL(file),
       date: new Date().toLocaleString(),
     }));
-
-    setPhotos((prev: Record<string, { file: File; preview: string; date: string }[]>) => ({
+    setPhotos((prev) => ({
       ...prev,
       [categoryId]: [...(prev[categoryId] || []), ...newPhotos],
     }));
   };
 
   const removePhoto = (categoryId: string, index: number) => {
-    console.log('[Tab4] removePhoto', { categoryId, index });
-    setPhotos((prev: Record<string, { file: File; preview: string; date: string }[]>) => ({
+    setPhotos((prev) => ({
       ...prev,
       [categoryId]: prev[categoryId].filter((_, i) => i !== index),
     }));
@@ -181,61 +99,67 @@ export default function Tab4Checklist({
     return acc;
   }, {});
 
-  const uploadedRequired = DOCUMENT_SLOTS.filter((d) => d.required && uploads[d.id]?.url).length;
-  const requiredDocs = DOCUMENT_SLOTS.filter((d) => d.required).length;
-  const uploadedCount = Object.values(uploads).filter((u) => u?.url).length;
-  const totalPhotos = Object.values(photos).reduce((sum: number, arr: any) => sum + arr.length, 0);
-  const completedCount = Object.values(checklistState).filter((v) => v).length;
+  const completedCount = Object.values(checklistState).filter(Boolean).length;
   const totalCount = CHECKLIST_ITEMS.length;
+  const uploadedCount = Object.values(uploads).filter(Boolean).length;
+  const requiredDocs = DOCUMENT_SLOTS.filter((d) => d.required).length;
+  const uploadedRequired = DOCUMENT_SLOTS.filter((d) => d.required && uploads[d.id]).length;
+  const totalPhotos = Object.values(photos).reduce((sum, arr) => sum + arr.length, 0);
 
   return (
-    <div className="space-y-8">
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-4">📋 Contract Day Calculator</h2>
-        <div className="flex gap-4 items-end">
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Days from Today</label>
-            <input
-              type="number"
-              value={daysOut}
-              onChange={(e) => setDaysOut(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none"
-            />
+    <div className="space-y-6">
+
+      <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/30 border-2 border-blue-500/40 rounded-2xl p-8">
+        <h2 className="text-2xl font-bold text-white mb-4">📅 Contract Day Calculator</h2>
+        <p className="text-gray-300 mb-4">Calculate future dates for contracts (e.g., 120 days from today for closing date)</p>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          <input
+            type="number"
+            value={daysOut}
+            onChange={(e) => setDaysOut(e.target.value)}
+            placeholder="120"
+            min="1"
+            className="w-32 px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none"
+          />
+          <span className="text-white font-bold">days from today =</span>
+          <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/20">
+            <span className="text-[#c9a227] font-bold text-lg">{calculatedDate || 'Enter days above'}</span>
           </div>
-          {calculatedDate && (
-            <div className="text-lg font-bold text-[#c9a227]">
-              📅 {calculatedDate}
-            </div>
-          )}
+        </div>
+        <div className="mt-4 grid grid-cols-3 md:grid-cols-6 gap-3">
+          {QUICK_DAYS.map((days) => (
+            <button
+              key={days}
+              onClick={() => setDaysOut(days.toString())}
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-bold transition border border-white/20"
+            >
+              {days} days
+            </button>
+          ))}
         </div>
       </div>
 
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">📄 Document Upload Center</h2>
-        <p className="text-gray-300 mb-6">Upload required documents for this listing</p>
-        <div className="space-y-4">
+        <p className="text-gray-300 mb-6">Upload key documents for this listing. Each document gets its own labeled slot.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {DOCUMENT_SLOTS.map((doc) => (
             <div key={doc.id} className="bg-white/5 rounded-xl p-4 border border-white/20">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-white font-semibold">
-                  {doc.label}
-                  {doc.required && <span className="text-red-400 ml-1">*</span>}
+                <label className="text-white font-bold text-sm">
+                  {doc.label} {doc.required && <span className="text-red-400">*</span>}
                 </label>
-                {uploads[doc.id]?.url && (
-                  <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">✓ Uploaded</span>
-                )}
+                {uploads[doc.id] && <span className="text-green-400 text-2xl">✅</span>}
               </div>
               <input
                 type="file"
                 onChange={(e) => handleFileUpload(doc.id, e.target.files?.[0] || null)}
-                disabled={uploads[doc.id]?.uploading}
-                className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#c9a227] file:text-white hover:file:bg-[#b8911f] file:cursor-pointer disabled:opacity-50"
+                className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#c9a227] file:text-white hover:file:bg-[#b8911f] file:cursor-pointer"
               />
               {uploads[doc.id] && (
                 <div className="mt-2 text-xs text-gray-400">
                   <p>📎 {uploads[doc.id]?.file.name}</p>
                   <p className="text-gray-500">Uploaded: {uploads[doc.id]?.date}</p>
-                  {uploads[doc.id]?.uploading && <p className="text-blue-400">⏳ Uploading...</p>}
                 </div>
               )}
             </div>
@@ -262,7 +186,7 @@ export default function Tab4Checklist({
               />
               {photos[cat.id] && photos[cat.id].length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {photos[cat.id].map((photo: any, i: number) => (
+                  {photos[cat.id].map((photo, i) => (
                     <div key={i} className="relative group">
                       <img src={photo.preview} alt={cat.label} className="w-full h-32 object-cover rounded-lg" />
                       <button
@@ -297,11 +221,7 @@ export default function Tab4Checklist({
                       onChange={() => toggleChecklist(item.id)}
                       className="w-5 h-5 accent-[#c9a227]"
                     />
-                    <span
-                      className={`text-white ${
-                        checklistState[item.id] ? "line-through opacity-60" : ""
-                      }`}
-                    >
+                    <span className={`text-white ${checklistState[item.id] ? 'line-through opacity-60' : ''}`}>
                       {item.label}
                     </span>
                   </label>
