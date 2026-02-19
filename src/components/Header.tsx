@@ -120,9 +120,6 @@ export default function Header() {
               <Link href="/how-it-works" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
                 How It Works
               </Link>
-              <Link href="/how-it-works" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-                How It Works
-              </Link>
 
               {!loading && (
                 user && profile ? (
