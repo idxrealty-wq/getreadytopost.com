@@ -1,3 +1,4 @@
+// FORCE REBUILD - timestamp: 1771628717
 import { collection, doc, setDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from './firebaseClient';
 
