@@ -1,8 +1,9 @@
 "use client";
+
 import { useState, useEffect } from 'react';
 import { storage, db } from '@/lib/firebaseClient';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const DOCUMENT_SLOTS = [
   { id: 'seller_disclosure', label: 'Seller Disclosure', required: true },
@@ -44,8 +45,6 @@ const CHECKLIST_ITEMS = [
   { id: 'open_house', label: 'Open House Scheduled', category: 'Marketing' },
 ];
 
-const QUICK_DAYS = [30, 60, 90, 120, 180, 365];
-
 export default function Tab4Checklist({
   checklistState,
   setChecklistState,
@@ -74,21 +73,11 @@ export default function Tab4Checklist({
   }, [daysOut]);
 
   const toggleChecklist = (id: string) => {
-    console.log('[Tab4] toggleChecklist', { id, newState: !checklistState[id] });
     setChecklistState((prev: any) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const handleFileUpload = async (docId: string, file: File | null) => {
-    console.log('[Tab4] handleFileUpload START', {
-      docId,
-      fileName: file?.name || null,
-      fileType: file?.type || null,
-      fileSize: file?.size || null,
-      timestamp: new Date().toISOString(),
-    });
-
     if (!file) {
-      console.log('[Tab4] handleFileUpload - clearing file', { docId });
       setUploads((prev) => ({ ...prev, [docId]: null }));
       return;
     }
@@ -102,11 +91,8 @@ export default function Tab4Checklist({
       const storagePath = `documents/${listingId || 'temp'}/${docId}/${file.name}`;
       const storageRef = ref(storage, storagePath);
 
-      console.log('[Tab4] uploading to Firebase Storage', { storagePath });
       await uploadBytes(storageRef, file);
-
       const downloadURL = await getDownloadURL(storageRef);
-      console.log('[Tab4] upload successful', { docId, downloadURL });
 
       setUploads((prev) => ({
         ...prev,
@@ -131,14 +117,10 @@ export default function Tab4Checklist({
           required: DOCUMENT_SLOTS.find((d) => d.id === docId)?.required || false,
         };
 
-        console.log('[Tab4] saving to Firestore', { listingId, docMetadata });
-        await updateDoc(listingRef, {
-          documents: arrayUnion(docMetadata),
-        });
-        console.log('[Tab4] Firestore update complete', { docId });
+        await updateDoc(listingRef, { documents: arrayUnion(docMetadata) });
       }
     } catch (error) {
-      console.error('[Tab4] upload failed', { docId, error });
+      console.error('[Tab4] document upload failed', error);
       setUploads((prev) => ({
         ...prev,
         [docId]: { file, date: new Date().toLocaleString(), uploading: false },
@@ -146,32 +128,57 @@ export default function Tab4Checklist({
     }
   };
 
-  const handlePhotoUpload = (categoryId: string, files: FileList | null) => {
+  const totalPhotos = Object.values(photos).reduce((sum: number, arr: any) => sum + arr.length, 0);
+
+  const handlePhotoUpload = async (categoryId: string, files: FileList | null) => {
     if (!files || files.length === 0) return;
 
-    console.log('[Tab4] handlePhotoUpload', {
-      categoryId,
-      fileCount: files.length,
-      timestamp: new Date().toISOString(),
-    });
+    const incoming = Array.from(files);
+    if (totalPhotos + incoming.length > 20) {
+      alert(`Max 20 photos per listing. You currently have ${totalPhotos}.`);
+      return;
+    }
 
-    const newPhotos = Array.from(files).map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-      date: new Date().toLocaleString(),
-    }));
+    for (const file of incoming) {
+      const preview = URL.createObjectURL(file);
+      setPhotos((prev: Record<string, { file: File; preview: string; date: string }[]>) => ({
+        ...prev,
+        [categoryId]: [...(prev[categoryId] || []), { file, preview, date: new Date().toLocaleString() }],
+      }));
 
-    setPhotos((prev: Record<string, { file: File; preview: string; date: string }[]>) => ({
-      ...prev,
-      [categoryId]: [...(prev[categoryId] || []), ...newPhotos],
-    }));
+      if (!listingId) continue;
+
+      try {
+        const photoId = `photo_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+        const storagePath = `photos/${listingId}/${categoryId}/${photoId}_${file.name}`;
+        const storageRef = ref(storage, storagePath);
+
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+
+        const listingRef = doc(db, 'listings', listingId);
+        await updateDoc(listingRef, {
+          photos: arrayUnion({
+            photoId,
+            categoryId,
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type,
+            downloadURL,
+            storagePath,
+            uploadedAt: new Date().toISOString(),
+          }),
+        });
+      } catch (e) {
+        console.error('[Tab4] photo persist failed', e);
+      }
+    }
   };
 
   const removePhoto = (categoryId: string, index: number) => {
-    console.log('[Tab4] removePhoto', { categoryId, index });
     setPhotos((prev: Record<string, { file: File; preview: string; date: string }[]>) => ({
       ...prev,
-      [categoryId]: prev[categoryId].filter((_, i) => i !== index),
+      [categoryId]: prev[categoryId].filter((_: any, i: number) => i !== index),
     }));
   };
 
@@ -184,7 +191,7 @@ export default function Tab4Checklist({
   const uploadedRequired = DOCUMENT_SLOTS.filter((d) => d.required && uploads[d.id]?.url).length;
   const requiredDocs = DOCUMENT_SLOTS.filter((d) => d.required).length;
   const uploadedCount = Object.values(uploads).filter((u) => u?.url).length;
-  const totalPhotos = Object.values(photos).reduce((sum: number, arr: any) => sum + arr.length, 0);
+
   const completedCount = Object.values(checklistState).filter((v) => v).length;
   const totalCount = CHECKLIST_ITEMS.length;
 
@@ -203,9 +210,7 @@ export default function Tab4Checklist({
             />
           </div>
           {calculatedDate && (
-            <div className="text-lg font-bold text-[#c9a227]">
-              📅 {calculatedDate}
-            </div>
+            <div className="text-lg font-bold text-[#c9a227]">📅 {calculatedDate}</div>
           )}
         </div>
       </div>
@@ -213,42 +218,47 @@ export default function Tab4Checklist({
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">📄 Document Upload Center</h2>
         <p className="text-gray-300 mb-6">Upload required documents for this listing</p>
+
         <div className="space-y-4">
-          {DOCUMENT_SLOTS.map((doc) => (
-            <div key={doc.id} className="bg-white/5 rounded-xl p-4 border border-white/20">
+          {DOCUMENT_SLOTS.map((docSlot) => (
+            <div key={docSlot.id} className="bg-white/5 rounded-xl p-4 border border-white/20">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-white font-semibold">
-                  {doc.label}
-                  {doc.required && <span className="text-red-400 ml-1">*</span>}
+                  {docSlot.label}
+                  {docSlot.required && <span className="text-red-400 ml-1">*</span>}
                 </label>
-                {uploads[doc.id]?.url && (
+                {uploads[docSlot.id]?.url && (
                   <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">✓ Uploaded</span>
                 )}
               </div>
+
               <input
                 type="file"
-                onChange={(e) => handleFileUpload(doc.id, e.target.files?.[0] || null)}
-                disabled={uploads[doc.id]?.uploading}
+                onChange={(e) => handleFileUpload(docSlot.id, e.target.files?.[0] || null)}
+                disabled={uploads[docSlot.id]?.uploading}
                 className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#c9a227] file:text-white hover:file:bg-[#b8911f] file:cursor-pointer disabled:opacity-50"
               />
-              {uploads[doc.id] && (
+
+              {uploads[docSlot.id] && (
                 <div className="mt-2 text-xs text-gray-400">
-                  <p>📎 {uploads[doc.id]?.file.name}</p>
-                  <p className="text-gray-500">Uploaded: {uploads[doc.id]?.date}</p>
-                  {uploads[doc.id]?.uploading && <p className="text-blue-400">⏳ Uploading...</p>}
+                  <p>📎 {uploads[docSlot.id]?.file.name}</p>
+                  <p className="text-gray-500">Uploaded: {uploads[docSlot.id]?.date}</p>
+                  {uploads[docSlot.id]?.uploading && <p className="text-blue-400">⏳ Uploading...</p>}
                 </div>
               )}
             </div>
           ))}
         </div>
+
         <div className="mt-4 text-sm text-gray-300">
-          📊 Uploaded: {uploadedRequired}/{requiredDocs} required, {uploadedCount}/{DOCUMENT_SLOTS.length} total
+          📊 Uploaded: {uploadedRequired}/{requiredDocs} required, {uploadedCount}/20 total
         </div>
       </div>
 
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">📸 Property Photos</h2>
-        <p className="text-gray-300 mb-6">Upload photos organized by category. Total photos: {totalPhotos}</p>
+        <p className="text-gray-300 mb-6">Upload photos organized by category. Total photos: {totalPhotos}/20</p>
+
         <div className="space-y-6">
           {PHOTO_CATEGORIES.map((cat) => (
             <div key={cat.id} className="bg-white/5 rounded-xl p-4 border border-white/20">
@@ -260,6 +270,7 @@ export default function Tab4Checklist({
                 onChange={(e) => handlePhotoUpload(cat.id, e.target.files)}
                 className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer mb-3"
               />
+
               {photos[cat.id] && photos[cat.id].length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {photos[cat.id].map((photo: any, i: number) => (
@@ -284,24 +295,24 @@ export default function Tab4Checklist({
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">✅ Pre-Listing Checklist</h2>
         <p className="text-gray-300 mb-6">Track your progress: {completedCount}/{totalCount} complete</p>
+
         <div className="space-y-6">
           {Object.entries(groupedChecklist).map(([category, items]: [string, any]) => (
             <div key={category}>
               <h3 className="text-lg font-bold text-[#c9a227] mb-3">{category}</h3>
               <div className="space-y-2">
                 {items.map((item: any) => (
-                  <label key={item.id} className="flex items-center gap-3 cursor-pointer bg-white/5 hover:bg-white/10 p-3 rounded-lg border border-white/20 transition">
+                  <label
+                    key={item.id}
+                    className="flex items-center gap-3 cursor-pointer bg-white/5 hover:bg-white/10 p-3 rounded-lg border border-white/20 transition"
+                  >
                     <input
                       type="checkbox"
                       checked={checklistState[item.id] || false}
                       onChange={() => toggleChecklist(item.id)}
                       className="w-5 h-5 accent-[#c9a227]"
                     />
-                    <span
-                      className={`text-white ${
-                        checklistState[item.id] ? "line-through opacity-60" : ""
-                      }`}
-                    >
+                    <span className={`text-white ${checklistState[item.id] ? 'line-through opacity-60' : ''}`}>
                       {item.label}
                     </span>
                   </label>
