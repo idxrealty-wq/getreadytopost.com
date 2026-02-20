@@ -146,7 +146,7 @@ export default function Tab4Checklist({
         [categoryId]: [...(prev[categoryId] || []), { file, preview, date: new Date().toLocaleString() }],
       }));
 
-      if (!listingId) continue;
+      if (!listingId) { console.log("No listingId, skipping Firestore persist"); continue; }
 
       try {
         const photoId = `photo_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
