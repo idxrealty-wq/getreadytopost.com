@@ -21,7 +21,7 @@ export interface Listing {
   aiListing: string;
   checklistState: Record<string, boolean>;
   notes: string;
-  photos?: Array<{ url: string; category: string; uploadedAt: string }>;  documents?: Array<{ docId: string; label: string; fileName: string; fileSize: number; fileType: string; downloadURL: string; uploadedAt: string; required: boolean }>;
+  photos?: Array<{ url: string; category: string; uploadedAt: string }>;
   documents?: Array<{ docId: string; label: string; fileName: string; fileSize: number; fileType: string; downloadURL: string; uploadedAt: string; required: boolean }>;
   createdAt: string;
   updatedAt: string;
