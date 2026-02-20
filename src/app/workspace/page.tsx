@@ -5,6 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { Listing } from '@/lib/listings';
+import AuthModal from '@/components/AuthModal';
 import Tab1PropertyBasics from './tabs/tab1';
 import Tab2Neighborhood from './tabs/tab2';
 import Tab3Listing from './tabs/tab3';
@@ -168,28 +169,7 @@ function WorkspaceContent() {
         {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} photos={photos} existingPhotos={existingPhotos} />}
       </div>
 
-      {showAuthModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-6">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-4">Sign In to Save Your Work</h2>
-            <p className="text-gray-600 mb-6">Create a free account or sign in to save your listings, documents, and progress.</p>
-            <div className="space-y-3">
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition">
-                Sign In with Google
-              </button>
-              <button className="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-xl font-bold transition">
-                Sign In with Email
-              </button>
-            </div>
-            <button
-              onClick={() => setShowAuthModal(false)}
-              className="w-full mt-4 text-gray-600 hover:text-gray-800 font-bold"
-            >
-              Continue Without Saving
-            </button>
-          </div>
-        </div>
-      )}
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onSuccess={() => setShowAuthModal(false)} />
     </main>
   );
 }
