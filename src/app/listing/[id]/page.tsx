@@ -174,6 +174,35 @@ export default function ListingViewPage() {
             </div>
           )}
 
+          {/* Documents Grid */}
+          {listing.documents && listing.documents.length > 0 ? (
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+              <h2 className="text-2xl font-bold text-white mb-6">📄 Documents</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {listing.documents.map((doc: any, idx: number) => (
+                  <a
+                    key={idx}
+                    href={doc.downloadURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-white/5 hover:bg-white/10 rounded-xl p-4 border border-white/20 transition flex flex-col items-center justify-center text-center cursor-pointer"
+                  >
+                    <div className="text-4xl mb-2">📎</div>
+                    <p className="text-white font-semibold text-sm line-clamp-2">{doc.label}</p>
+                    <p className="text-gray-400 text-xs mt-2">{doc.fileName}</p>
+                    {doc.required && <span className="text-red-400 text-xs mt-2">Required</span>}
+                    <p className="text-gray-500 text-xs mt-1">{new Date(doc.uploadedAt).toLocaleDateString()}</p>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center">
+              <div className="text-6xl mb-4">📄</div>
+              <p className="text-gray-300">No documents uploaded yet</p>
+            </div>
+          )}
+
           {/* Map */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
             <h2 className="text-2xl font-bold text-white mb-6">📍 Location</h2>
