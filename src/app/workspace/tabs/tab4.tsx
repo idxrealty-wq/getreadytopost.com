@@ -146,47 +146,23 @@ export default function Tab4Checklist({
     }
   };
 
-  const handlePhotoUpload = async (categoryId: string, files: FileList | null) => {
+  const handlePhotoUpload = (categoryId: string, files: FileList | null) => {
     if (!files || files.length === 0) return;
-    if (totalPhotos + files.length > 20) {
-      alert(`Maximum 20 photos per listing. You have ${totalPhotos}.`);
-      return;
-    }
-    console.log(`[Tab4] handlePhotoUpload`, { categoryId, fileCount: files.length });
-    for (const file of Array.from(files)) {
-      try {
-        const photoId = `photo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const storagePath = `photos/${listingId || 'temp'}/${categoryId}/${photoId}`;
-        const storageRef = ref(storage, storagePath);
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-        const preview = URL.createObjectURL(file);
-        setPhotos((prev) => ({
-          ...prev,
-          [categoryId]: [...(prev[categoryId] || []), { file, preview, date: new Date().toLocaleString() }],
-        }));
-        if (listingId) {
-          const listingRef = doc(db, 'listings', listingId);
-          const photoMetadata = {
-            photoId,
-            categoryId,
-            fileName: file.name,
-            fileSize: file.size,
-            fileType: file.type,
-            downloadURL,
-            uploadedAt: new Date().toISOString(),
-          };
-          await updateDoc(listingRef, {
-            photos: arrayUnion(photoMetadata),
-          });
-          console.log(`[Tab4] photo saved to Firestore`, { photoId });
-        }
-      } catch (error) {
-        console.error(`[Tab4] photo upload failed`, error);
-        alert(`Failed to upload photo. Please try again.`);
-      }
-    }
-  };
+
+    console.log('[Tab4] handlePhotoUpload', {
+      categoryId,
+      fileCount: files.length,
+      timestamp: new Date().toISOString(),
+    });
+
+    const newPhotos = Array.from(files).map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      date: new Date().toLocaleString(),
+    }));
+
+    setPhotos((prev: Record<string, { file: File; preview: string; date: string }[]>) => ({
+      ...prev,
       [categoryId]: [...(prev[categoryId] || []), ...newPhotos],
     }));
   };
