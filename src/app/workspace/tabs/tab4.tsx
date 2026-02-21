@@ -289,6 +289,8 @@ export default function Tab4Checklist({
               })()}
             </div>
           ))}
+        </div>
+      </div>
 
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">✅ Pre-Listing Checklist</h2>
