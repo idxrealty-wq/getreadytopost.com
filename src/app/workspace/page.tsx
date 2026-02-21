@@ -1,9 +1,8 @@
 "use client";
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { doc, getDoc } from 'firebase/firestore';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
-import { setDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { Listing } from '@/lib/listings';
 import AuthModal from '@/components/AuthModal';
@@ -16,12 +15,11 @@ import Tab5Save from './tabs/tab5';
 function WorkspaceContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
-
+  const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [loadingListing, setLoadingListing] = useState(false);
-
   const [activeTab, setActiveTab] = useState(1);
   const [address, setAddress] = useState('');
   const [propertyData, setPropertyData] = useState({
@@ -44,7 +42,6 @@ function WorkspaceContent() {
     });
     return () => unsubscribe();
   }, []);
-
 
   useEffect(() => {
     if (user && !editId && !listingId) {
@@ -74,6 +71,7 @@ function WorkspaceContent() {
       })();
     }
   }, [user, editId, listingId]);
+
   useEffect(() => {
     if (editId && user && !loadingListing) {
       loadListingForEdit(editId);
@@ -85,7 +83,6 @@ function WorkspaceContent() {
     try {
       const listingRef = doc(db, 'listings', listingId);
       const listingSnap = await getDoc(listingRef);
-      
       if (listingSnap.exists()) {
         const data = listingSnap.data() as Listing;
         if (data.userId === user?.uid) {
@@ -138,7 +135,6 @@ function WorkspaceContent() {
         />
         <div className="absolute inset-0 bg-[#1a2b4a]/85"></div>
       </div>
-
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
@@ -148,7 +144,6 @@ function WorkspaceContent() {
             {editId ? 'Update your listing details' : 'Your complete pre-listing command center'}
           </p>
         </div>
-
         {!authLoading && !user && (
           <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6 text-center">
             <h2 className="text-2xl font-bold text-white mb-3">⚠️ Sign In Required</h2>
@@ -163,7 +158,6 @@ function WorkspaceContent() {
             </button>
           </div>
         )}
-
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
           <input
             type="text"
@@ -173,7 +167,6 @@ function WorkspaceContent() {
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-lg"
           />
         </div>
-
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {tabs.map((tab) => (
             <button
@@ -192,15 +185,12 @@ function WorkspaceContent() {
             </button>
           ))}
         </div>
-
         {activeTab === 1 && <Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} />}
         {activeTab === 2 && <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />}
         {activeTab === 3 && <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />}
-        {activeTab === 4 && <Tab4Checklist
-    listingId={listingId} checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} photos={photos} setPhotos={setPhotos} existingPhotos={existingPhotos} onNext={() => setActiveTab(5)} />}
+        {activeTab === 4 && <Tab4Checklist listingId={listingId} checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} photos={photos} setPhotos={setPhotos} existingPhotos={existingPhotos} onNext={() => setActiveTab(5)} />}
         {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} photos={photos} existingPhotos={existingPhotos} />}
       </div>
-
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onSuccess={() => setShowAuthModal(false)} />
     </main>
   );
@@ -219,3 +209,4 @@ export default function WorkspacePage() {
     </Suspense>
   );
 }
+
