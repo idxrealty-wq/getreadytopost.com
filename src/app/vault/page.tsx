@@ -191,7 +191,7 @@ export default function VaultPage() {
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               {listing.photos && listing.photos.length > 0 ? (
-                                <img src={(() => { const p = listing.photos.find((p: any) => p.downloadURL || p.url); return p?.downloadURL || p?.url || ""; })()} alt="Property" className="w-14 h-14 object-cover rounded-lg border border-white/20 flex-shrink-0" />
+                                <img src={listing.photos[0].downloadURL || listing.photos[0].url || ""} alt="Property" className="w-14 h-14 object-cover rounded-lg border border-white/20 flex-shrink-0" />
                               ) : (
                                 <div className="w-14 h-14 bg-white/10 rounded-lg border border-white/20 flex items-center justify-center flex-shrink-0 text-2xl">🏠</div>
                               )}
