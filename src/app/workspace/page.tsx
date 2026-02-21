@@ -32,7 +32,7 @@ function WorkspaceContent() {
   const [notes, setNotes] = useState('');
   const [saved, setSaved] = useState(false);
   const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
-  const [existingPhotos, setExistingPhotos] = useState<Array<{ url: string; category: string; uploadedAt: string }>>([]);
+  const [existingPhotos, setExistingPhotos] = useState<Array<any>>([]);
   const [existingDocuments, setExistingDocuments] = useState<Array<any>>([]);
   const [listingId, setListingId] = useState<string | null>(null);
 
