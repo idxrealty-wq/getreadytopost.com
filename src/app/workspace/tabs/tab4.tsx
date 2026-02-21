@@ -53,6 +53,7 @@ export default function Tab4Checklist({
   const [daysOut, setDaysOut] = useState('120');
   const [calculatedDate, setCalculatedDate] = useState('');
   const [deletingDoc, setDeletingDoc] = useState<string | null>(null);
+  const [viewingDoc, setViewingDoc] = useState<string | null>(null);
 
   useEffect(() => {
     const days = parseInt(daysOut);
