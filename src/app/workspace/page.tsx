@@ -80,6 +80,7 @@ function WorkspaceContent() {
   }, [editId, user]);
 
   const loadListingForEdit = async (listingId: string) => {
+    setListingId(listingId);
     setLoadingListing(true);
     try {
       const listingRef = doc(db, 'listings', listingId);
