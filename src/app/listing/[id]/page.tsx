@@ -126,7 +126,7 @@ export default function ListingViewPage() {
               <div className="relative">
                 <div className="aspect-video bg-black rounded-xl overflow-hidden">
                   <img
-                    src={photos[currentPhotoIndex].url}
+                    src={photos[currentPhotoIndex].downloadURL || photos[currentPhotoIndex].url || ""}
                     alt={`Property photo ${currentPhotoIndex + 1}`}
                     className="w-full h-full object-contain"
                   />
@@ -161,7 +161,7 @@ export default function ListingViewPage() {
                         idx === currentPhotoIndex ? 'border-[#c9a227]' : 'border-white/20'
                       }`}
                     >
-                      <img src={photo.url} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img src={photo.downloadURL || photo.url || ""} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
                     </button>
                   ))}
                 </div>
