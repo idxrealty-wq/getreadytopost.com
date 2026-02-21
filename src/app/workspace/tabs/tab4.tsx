@@ -135,7 +135,7 @@ export default function Tab4Checklist({
 
     const incoming = Array.from(files);
     if (totalPhotos + incoming.length > 20) {
-      alert(`Max 20 photos per listing. You currently have ${totalPhotos}.`);
+      alert('Max 20 photos per listing. You currently have ' + totalPhotos + '.');
       return;
     }
 
@@ -311,7 +311,7 @@ export default function Tab4Checklist({
                       onChange={() => toggleChecklist(item.id)}
                       className="w-5 h-5 accent-[#c9a227]"
                     />
-                    <span className={`text-white ${checklistState[item.id] ? 'line-through opacity-60' : ''}`}>
+                    <span className={'text-white ' + (checklistState[item.id] ? 'line-through opacity-60' : '')}>
                       {item.label}
                     </span>
                   </label>
