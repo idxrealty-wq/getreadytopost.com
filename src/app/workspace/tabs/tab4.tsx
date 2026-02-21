@@ -58,6 +58,21 @@ export default function Tab4Checklist({
 }: any) {
   const [uploads, setUploads] = useState<Record<string, { file: File; date: string; url?: string; uploading?: boolean } | null>>({});
   const [daysOut, setDaysOut] = useState('120');
+
+  useEffect(() => {
+    if (existingDocuments && existingDocuments.length > 0) {
+      const loaded: Record<string, any> = {};
+      existingDocuments.forEach((d: any) => {
+        loaded[d.docId] = {
+          file: { name: d.fileName } as File,
+          date: d.uploadedAt ? new Date(d.uploadedAt).toLocaleString() : '',
+          url: d.downloadURL,
+          uploading: false,
+        };
+      });
+      setUploads(loaded);
+    }
+  }, [existingDocuments]);
   const [calculatedDate, setCalculatedDate] = useState('');
 
   useEffect(() => {
