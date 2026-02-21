@@ -287,8 +287,6 @@ export default function Tab4Checklist({
                   </div>
                 );
               })()}
-              </div>
-         })()}
             </div>
           ))}
 
