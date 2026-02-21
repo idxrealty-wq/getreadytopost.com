@@ -57,7 +57,7 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
   const completedChecklist = Object.entries(checklistState).filter(([, v]) => v).length;
   const totalChecklist = Object.keys(checklistState).length;
   const photoCount = Object.values(photos || {}).reduce((s: number, a: any) => s + a.length, 0) + (existingPhotos || []).length;
-  const docCount = Object.values(documents || {}).filter((d: any) => d && d.url).length;
+  const docCount = (existingDocuments || []).filter((d: any) => d && d.downloadURL).length + Object.values(documents || {}).filter((d: any) => d && d.url).length;
   const nearbyCount = nearby ? Object.values(nearby).filter((arr: any) => arr && arr.length > 0).length : 0;
 
   return (

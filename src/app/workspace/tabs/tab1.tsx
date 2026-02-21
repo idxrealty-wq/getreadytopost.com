@@ -105,7 +105,16 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             value={data.features}
             onChange={(e) => updateField('features', e.target.value)}
             placeholder="Pool, Updated Kitchen, Lake View..."
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none"
+          />
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-gray-300 text-sm font-bold mb-2">Legal Description</label>
+          <textarea
+            value={data.legalDescription || ""}
+            onChange={(e) => updateField("legalDescription", e.target.value)}
+            placeholder="e.g., LOT 4, BLOCK 12, TAVARES HEIGHTS SUBDIVISION..."
+            rows={3}
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none resize-none"
           />
         </div>
       </div>
