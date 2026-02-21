@@ -88,7 +88,7 @@ export default function Tab4Checklist({
     }));
 
     try {
-      const storagePath = `documents/${listingId || 'temp'}/${docId}/${file.name}`;
+      const storagePath = 'documents/' + (listingId || 'temp') + '/' + docId + '/' + file.name;
       const storageRef = ref(storage, storagePath);
 
       await uploadBytes(storageRef, file);
@@ -149,8 +149,8 @@ export default function Tab4Checklist({
       if (!listingId) { console.log("No listingId, skipping Firestore persist"); continue; }
 
       try {
-        const photoId = `photo_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-        const storagePath = `photos/${listingId}/${categoryId}/${photoId}_${file.name}`;
+        const photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+        const storagePath = 'photos/' + listingId + '/' + categoryId + '/' + photoId + '_' + file.name;
         const storageRef = ref(storage, storagePath);
 
         await uploadBytes(storageRef, file);
