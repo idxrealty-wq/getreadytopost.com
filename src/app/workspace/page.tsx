@@ -47,7 +47,7 @@ function WorkspaceContent() {
     if (user && !editId && !listingId) {
       (async () => {
         try {
-          const draftId = `listing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          const draftId = 'listing_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
           await setDoc(doc(db, 'listings', draftId), {
             id: draftId,
             userId: user.uid,
