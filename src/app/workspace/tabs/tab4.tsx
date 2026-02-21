@@ -80,7 +80,6 @@ export default function Tab4Checklist({
   const toggleChecklist = (id: string) => setChecklistState((prev: any) => ({ ...prev, [id]: !prev[id] }));
 
   const handleFileUpload = async (docId: string, file: File | null) => {
-    console.log("[Tab4] handleFileUpload listingId:", listingId);
     if (!file) { setUploads((prev) => ({ ...prev, [docId]: null })); return; }
     setUploads((prev) => ({ ...prev, [docId]: { file, date: new Date().toLocaleString(), uploading: true } }));
     try {
@@ -117,7 +116,6 @@ export default function Tab4Checklist({
   };
 
   const handlePhotoUpload = async (categoryId: string, files: FileList | null) => {
-    console.log("[Tab4] handlePhotoUpload listingId:", listingId);
     if (!files || files.length === 0) return;
     const incoming = Array.from(files);
     const total = Object.values(photos).reduce((s: number, a: any) => s + a.length, 0) + savedPhotos.length;
