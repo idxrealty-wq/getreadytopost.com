@@ -4,7 +4,7 @@ import { saveListing } from '@/lib/listings';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user, editId }: any) {
+export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user, editId, photos, existingPhotos, documents, existingDocuments }: any) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -56,6 +56,8 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
 
   const completedChecklist = Object.entries(checklistState).filter(([, v]) => v).length;
   const totalChecklist = Object.keys(checklistState).length;
+  const photoCount = Object.values(photos || {}).reduce((s: number, a: any) => s + a.length, 0) + (existingPhotos || []).length;
+  const docCount = Object.values(documents || {}).filter((d: any) => d && d.url).length;
   const nearbyCount = nearby ? Object.values(nearby).filter((arr: any) => arr && arr.length > 0).length : 0;
 
   return (
@@ -99,6 +101,14 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
             <span className={listing ? 'text-green-400' : 'text-gray-400'}>
               {listing ? '✅ Generated' : 'Not generated'}
             </span>
+          </div>
+          <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
+            <span className="text-white font-bold">📸 Photos</span>
+            <span className={photoCount > 0 ? "text-green-400" : "text-gray-400"}>{photoCount > 0 ? photoCount + " uploaded" : "None uploaded"}</span>
+          </div>
+          <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
+            <span className="text-white font-bold">📄 Documents</span>
+            <span className={docCount > 0 ? "text-green-400" : "text-gray-400"}>{docCount > 0 ? docCount + " uploaded" : "None uploaded"}</span>
           </div>
           <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
             <span className="text-white font-bold">✅ Checklist</span>
