@@ -23,7 +23,7 @@ function WorkspaceContent() {
   const [activeTab, setActiveTab] = useState(1);
   const [address, setAddress] = useState('');
   const [propertyData, setPropertyData] = useState({
-    taxId: '', yearBuilt: '', beds: '', baths: '',
+    taxId: '', yearBuilt: '', beds: '', baths: '', legalDescription: '',
     sqft: '', lotSize: '', price: '', features: '', dateAdded: '',
   });
   const [nearby, setNearby] = useState<any>(null);
@@ -54,7 +54,7 @@ function WorkspaceContent() {
             userId: user.uid,
             status: 'draft',
             address: '',
-            propertyData: { taxId: '', yearBuilt: '', beds: '', baths: '', sqft: '', lotSize: '', price: '', features: '', dateAdded: '' },
+            propertyData: { taxId: '', yearBuilt: '', beds: '', baths: '', sqft: '', lotSize: '', price: '', features: '', dateAdded: '', legalDescription: '' },
             nearby: null,
             aiListing: '',
             checklistState: {},
@@ -89,7 +89,7 @@ function WorkspaceContent() {
         const data = listingSnap.data() as Listing;
         if (data.userId === user?.uid) {
           setAddress(data.address);
-          setPropertyData(data.propertyData);
+          setPropertyData({ ...data.propertyData, legalDescription: (data.propertyData as any).legalDescription || '' });
           setNearby(data.nearby);
           setListing(data.aiListing);
           setChecklistState(data.checklistState);
