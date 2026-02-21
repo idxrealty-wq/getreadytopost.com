@@ -100,12 +100,13 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
         </div>
         <div className="md:col-span-2">
           <label className="block text-gray-300 text-sm font-bold mb-2">Key Features</label>
-          <input
-            type="text"
+            <textarea
             value={data.features}
-            onChange={(e) => updateField('features', e.target.value)}
+            onChange={(e) => updateField("features", e.target.value)}
             placeholder="Pool, Updated Kitchen, Lake View..."
-          />
+            rows={3}
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none resize-none"
+          ></textarea>
         </div>
         <div className="md:col-span-2">
           <label className="block text-gray-300 text-sm font-bold mb-2">Legal Description</label>
