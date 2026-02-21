@@ -275,7 +275,7 @@ export default function Tab4Checklist({
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {photos[cat.id].map((photo: any, i: number) => (
                     <div key={i} className="relative group">
-                      <img src={photo.preview} alt={cat.label} className="w-full h-32 object-cover rounded-lg" />
+                      <img src={photo.url || photo.preview} alt={cat.label} className="w-full h-32 object-cover rounded-lg" />
                       <button
                         onClick={() => removePhoto(cat.id, i)}
                         className="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition"
