@@ -271,23 +271,22 @@ export default function Tab4Checklist({
                 className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer mb-3"
               />
 
-              {photos[cat.id] && photos[cat.id].length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {photos[cat.id].map((photo: any, i: number) => (
-                    <div key={i} className="relative group">
-                      <img src={photo.url || photo.preview} alt={cat.label} className="w-full h-32 object-cover rounded-lg" />
-                      <button
-                        onClick={() => removePhoto(cat.id, i)}
-                        className="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition"
-                      >
-                        ×
-                      </button>
-                      <p className="text-xs text-gray-400 mt-1">{photo.date}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+               {(() => {
+                const localPhotos = (photos[cat.id] || []).map((p: any) => ({ ...p, src: p.url || p.preview }));
+                const savedPhotos = (existingPhotos || []).filter((p: any) => p.categoryId === cat.id).map((p: any) => ({ src: p.downloadURL, date: p.uploadedAt ? new Date(p.uploadedAt).toLocaleString() : '' }));
+                const allPhotos = [...savedPhotos, ...localPhotos];
+                if (allPhotos.length === 0) return null;
+                return (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {allPhotos.map((photo: any, i: number) => (
+                      <div key={i} className="relative group">
+                        <img src={photo.src} alt={cat.label} className="w-full h-32 object-cover rounded-lg" />
+                        <p className="text-xs text-gray-400 mt-1">{photo.date}</p>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
           ))}
         </div>
       </div>
