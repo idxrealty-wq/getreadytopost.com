@@ -67,6 +67,7 @@ function WorkspaceContent() {
             updatedAt: new Date().toISOString(),
           });
           setListingId(draftId);
+          router.replace(`/workspace?edit=${draftId}`);
         } catch (err) {
           console.error('Failed to create draft listing:', err);
         }
