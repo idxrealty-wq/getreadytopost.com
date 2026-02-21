@@ -1,4 +1,4 @@
-"use client";
+import { useState, useEffect } from 'react';
 import { useState } from 'react';
 import { saveListing } from '@/lib/listings';
 import { doc, updateDoc } from 'firebase/firestore';
