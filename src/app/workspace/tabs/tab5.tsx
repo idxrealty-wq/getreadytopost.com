@@ -4,9 +4,14 @@ import { saveListing } from '@/lib/listings';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user, editId, photos, existingPhotos, documents, existingDocuments }: any) {
+export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user, editId, photos, existingPhotos, documents, existingDocuments, saveNowNonce }: any) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!saveNowNonce) return;
+    handleSave();
+  }, [saveNowNonce]);
 
   const handleSave = async () => {
     if (!user) {
