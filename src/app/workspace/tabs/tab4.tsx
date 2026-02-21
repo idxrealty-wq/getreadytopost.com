@@ -46,7 +46,7 @@ const CHECKLIST_ITEMS = [
 
 export default function Tab4Checklist({
   checklistState, setChecklistState, notes, setNotes,
-  photos, setPhotos, existingPhotos, existingDocuments, onNext, listingId,
+  photos, setPhotos, existingPhotos, existingDocuments, setExistingDocuments, onNext, listingId,
 }: any) {
   const [uploads, setUploads] = useState<Record<string, any>>({});
   const [savedPhotos, setSavedPhotos] = useState<any[]>([]);
@@ -91,6 +91,7 @@ export default function Tab4Checklist({
       if (listingId) {
         const docMeta = { docId, label: DOCUMENT_SLOTS.find((d) => d.id === docId)?.label || docId, fileName: file.name, fileSize: file.size, fileType: file.type, downloadURL, storagePath, uploadedAt: new Date().toISOString(), required: DOCUMENT_SLOTS.find((d) => d.id === docId)?.required || false };
         await updateDoc(doc(db, 'listings', listingId), { documents: arrayUnion(docMeta) });
+        if (setExistingDocuments) setExistingDocuments((prev: any[]) => [...prev, docMeta]);
       }
     } catch (e) {
       console.error('[Tab4] upload failed', e);
