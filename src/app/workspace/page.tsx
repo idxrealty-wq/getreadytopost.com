@@ -3,6 +3,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
+import { setDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { Listing } from '@/lib/listings';
 import AuthModal from '@/components/AuthModal';
@@ -34,6 +35,7 @@ function WorkspaceContent() {
   const [saved, setSaved] = useState(false);
   const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
   const [existingPhotos, setExistingPhotos] = useState<Array<{ url: string; category: string; uploadedAt: string }>>([]);
+  const [listingId, setListingId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -43,6 +45,34 @@ function WorkspaceContent() {
     return () => unsubscribe();
   }, []);
 
+
+  useEffect(() => {
+    if (user && !editId && !listingId) {
+      (async () => {
+        try {
+          const draftId = `listing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          await setDoc(doc(db, 'listings', draftId), {
+            id: draftId,
+            userId: user.uid,
+            status: 'draft',
+            address: '',
+            propertyData: { taxId: '', yearBuilt: '', beds: '', baths: '', sqft: '', lotSize: '', price: '', features: '', dateAdded: '' },
+            nearby: null,
+            aiListing: '',
+            checklistState: {},
+            notes: '',
+            photos: [],
+            documents: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+          setListingId(draftId);
+        } catch (err) {
+          console.error('Failed to create draft listing:', err);
+        }
+      })();
+    }
+  }, [user, editId, listingId]);
   useEffect(() => {
     if (editId && user && !loadingListing) {
       loadListingForEdit(editId);
@@ -165,7 +195,8 @@ function WorkspaceContent() {
         {activeTab === 1 && <Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} />}
         {activeTab === 2 && <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />}
         {activeTab === 3 && <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />}
-        {activeTab === 4 && <Tab4Checklist checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} photos={photos} setPhotos={setPhotos} existingPhotos={existingPhotos} onNext={() => setActiveTab(5)} />}
+        {activeTab === 4 && <Tab4Checklist
+    listingId={listingId} checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} photos={photos} setPhotos={setPhotos} existingPhotos={existingPhotos} onNext={() => setActiveTab(5)} />}
         {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} photos={photos} existingPhotos={existingPhotos} />}
       </div>
 
