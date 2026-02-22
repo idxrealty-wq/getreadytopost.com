@@ -98,27 +98,25 @@ export default function OurDealsPage() {
           </button>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 items-stretch">
           {offers.map((offer, idx) => (
             <div
               key={idx}
               className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden flex flex-col hover:bg-white/15 transition"
             >
+              {/* Poster area: fixed height, contain (no cropping) */}
               {offer.image && (
-                <div className="relative w-full h-64 bg-slate-900">
-                  <Image
-                    src={offer.image}
-                    alt={offer.title}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-              )}
-
-              {offer.badge && !offer.image && (
-                <div className="bg-[#c9a227] text-white text-center py-2 font-bold text-sm">
-                  {offer.badge}
+                <div className="w-full bg-[#0f1b33] border-b border-white/10">
+                  <div className="relative h-[320px] w-full max-w-[420px] mx-auto p-4">
+                    <Image
+                      src={offer.image}
+                      alt={offer.title}
+                      fill
+                      className="object-contain"
+                      unoptimized
+                      priority={idx < 3}
+                    />
+                  </div>
                 </div>
               )}
 
@@ -126,6 +124,7 @@ export default function OurDealsPage() {
                 <h3 className="text-2xl font-bold text-white mb-2">
                   {offer.title}
                 </h3>
+
                 <div className="mb-4">
                   <span className="text-4xl font-bold text-[#c9a227]">
                     {offer.price}
@@ -134,6 +133,7 @@ export default function OurDealsPage() {
                     <span className="text-gray-300 ml-2">{offer.period}</span>
                   )}
                 </div>
+
                 <p className="text-gray-300 mb-6">{offer.description}</p>
 
                 <ul className="space-y-3 mb-8 flex-grow">
