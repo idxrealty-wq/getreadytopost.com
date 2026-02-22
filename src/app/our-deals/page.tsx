@@ -27,7 +27,7 @@ export default function OurDealsPage() {
       id: 3,
       name: 'Agent Vault Pro - Monthly',
       price: '$99',
-      image: '/offers/agent-vault-monthly.png',
+      image: '/offers/agent-vault-pro-monthly.png',
       link: 'https://square.link/u/PUNuh53u',
       description: 'Monthly workspace access',
     },
@@ -35,7 +35,7 @@ export default function OurDealsPage() {
       id: 4,
       name: 'Agent Vault Pro - 6 Months',
       price: '$495',
-      image: '/offers/agent-vault-6months.png',
+      image: '/offers/agent-vault-pro-6-month.png',
       link: 'https://square.link/u/8nf73LLz',
       description: 'Six months of workspace access',
     },
@@ -43,7 +43,7 @@ export default function OurDealsPage() {
       id: 5,
       name: 'Agent Vault Pro - Annual',
       price: '$899',
-      image: '/offers/agent-vault-annual.png',
+      image: '/offers/agent-vault-pro-annual.png',
       link: 'https://square.link/u/lgsIomQl',
       description: 'Full year of workspace access',
     },
@@ -52,61 +52,48 @@ export default function OurDealsPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] pt-32 pb-16">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-12">
+        <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Our Deals</h1>
           <p className="text-xl text-gray-300">Choose the plan that works for you</p>
         </div>
 
-        {/* Table Layout */}
-        <div className="overflow-x-auto bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/20 bg-white/5">
-                <th className="px-6 py-4 text-left text-white font-bold">Offer</th>
-                <th className="px-6 py-4 text-center text-white font-bold">Preview</th>
-                <th className="px-6 py-4 text-center text-white font-bold">Price</th>
-                <th className="px-6 py-4 text-center text-white font-bold">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {offers.map((offer, idx) => (
-                <tr key={offer.id} className={`border-b border-white/10 ${idx % 2 === 0 ? 'bg-white/2' : ''} hover:bg-white/5 transition`}>
-                  <td className="px-6 py-6">
-                    <div>
-                      <p className="text-white font-semibold text-base">{offer.name}</p>
-                      <p className="text-gray-400 text-sm mt-1">{offer.description}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-6 text-center">
-                    <div className="flex justify-center">
-                      <div className="relative w-32 h-32 bg-white/5 rounded-lg overflow-hidden border border-white/10">
-                        <Image
-                          src={offer.image}
-                          alt={offer.name}
-                          fill
-                          className="object-contain p-2"
-                          priority={idx === 0}
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-6 text-center">
-                    <p className="text-[#c9a227] font-bold text-3xl">{offer.price}</p>
-                  </td>
-                  <td className="px-6 py-6 text-center">
-                    <a
-                      href={offer.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-8 py-3 rounded-lg font-bold transition shadow-lg"
-                    >
-                      Buy Now
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Card Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          {offers.map((offer) => (
+            <div
+              key={offer.id}
+              className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden hover:border-[#c9a227]/50 transition flex flex-col"
+            >
+              {/* Image Container */}
+              <div className="relative w-full h-64 bg-white/5 border-b border-white/10">
+                <Image
+                  src={offer.image}
+                  alt={offer.name}
+                  fill
+                  className="object-contain p-4"
+                  priority
+                />
+              </div>
+
+              {/* Content Container */}
+              <div className="flex flex-col flex-grow p-6">
+                <h3 className="text-white font-bold text-lg mb-2">{offer.name}</h3>
+                <p className="text-gray-400 text-sm mb-6 flex-grow">{offer.description}</p>
+                
+                <div className="space-y-4">
+                  <p className="text-[#c9a227] font-bold text-3xl text-center">{offer.price}</p>
+                  <a
+                    href={offer.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] py-3 rounded-lg font-bold text-center transition shadow-lg"
+                  >
+                    Buy Now
+                  </a>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </main>
