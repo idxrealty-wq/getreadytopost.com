@@ -51,7 +51,7 @@ export default function OurDealsPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] pt-32 pb-16">
-      <div className="max-w-6xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Our Deals</h1>
           <p className="text-xl text-gray-300">Choose the plan that works for you</p>
@@ -61,42 +61,44 @@ export default function OurDealsPage() {
         <div className="overflow-x-auto bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/20">
+              <tr className="border-b border-white/20 bg-white/5">
                 <th className="px-6 py-4 text-left text-white font-bold">Offer</th>
-                <th className="px-6 py-4 text-center text-white font-bold">Thumbnail</th>
+                <th className="px-6 py-4 text-center text-white font-bold">Preview</th>
                 <th className="px-6 py-4 text-center text-white font-bold">Price</th>
                 <th className="px-6 py-4 text-center text-white font-bold">Action</th>
               </tr>
             </thead>
             <tbody>
-              {offers.map((offer) => (
-                <tr key={offer.id} className="border-b border-white/10 hover:bg-white/5 transition">
-                  <td className="px-6 py-4">
+              {offers.map((offer, idx) => (
+                <tr key={offer.id} className={`border-b border-white/10 ${idx % 2 === 0 ? 'bg-white/2' : ''} hover:bg-white/5 transition`}>
+                  <td className="px-6 py-6">
                     <div>
-                      <p className="text-white font-semibold text-lg">{offer.name}</p>
-                      <p className="text-gray-400 text-sm">{offer.description}</p>
+                      <p className="text-white font-semibold text-base">{offer.name}</p>
+                      <p className="text-gray-400 text-sm mt-1">{offer.description}</p>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-6 py-6 text-center">
                     <div className="flex justify-center">
-                      <Image
-                        src={offer.image}
-                        alt={offer.name}
-                        width={120}
-                        height={120}
-                        className="rounded-lg object-cover"
-                      />
+                      <div className="relative w-32 h-32 bg-white/5 rounded-lg overflow-hidden border border-white/10">
+                        <Image
+                          src={offer.image}
+                          alt={offer.name}
+                          fill
+                          className="object-contain p-2"
+                          priority={idx === 0}
+                        />
+                      </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <p className="text-[#c9a227] font-bold text-2xl">{offer.price}</p>
+                  <td className="px-6 py-6 text-center">
+                    <p className="text-[#c9a227] font-bold text-3xl">{offer.price}</p>
                   </td>
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-6 py-6 text-center">
                     <a
                       href={offer.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-6 py-2 rounded-lg font-semibold transition"
+                      className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-8 py-3 rounded-lg font-bold transition shadow-lg"
                     >
                       Buy Now
                     </a>
