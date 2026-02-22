@@ -1,8 +1,20 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Home Sellers - GetReadyToPost',
-  description: 'Get a professional grade of your listing. See what buyers see.',
+  title: 'Grade Your Home Listing Free | GetReadyToPost',
+  description: 'Get an instant AI grade of your listing across 6 categories. Professional rewrite + recommendations. MLS-compliant, Fair Housing safe.',
+  openGraph: {
+    title: 'Grade Your Home Listing Free | GetReadyToPost',
+    description: 'Get an instant AI grade of your listing across 6 categories. Professional rewrite + recommendations. MLS-compliant, Fair Housing safe.',
+    url: 'https://getreadytopost.com/home-sellers',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Grade Your Home Listing Free | GetReadyToPost',
+    description: 'Get an instant AI grade of your listing across 6 categories. Professional rewrite + recommendations. MLS-compliant, Fair Housing safe.',
+  },
+  canonical: 'https://getreadytopost.com/home-sellers',
 };
 
 export default function HomeSellersPage() {
