@@ -31,7 +31,6 @@ function WorkspaceContent() {
   const [checklistState, setChecklistState] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState('');
   const [saved, setSaved] = useState(false);
-  const [saveNowNonce, setSaveNowNonce] = useState(0);
   const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
   const [existingPhotos, setExistingPhotos] = useState<Array<any>>([]);
   const [existingDocuments, setExistingDocuments] = useState<Array<any>>([]);
@@ -170,12 +169,6 @@ function WorkspaceContent() {
             placeholder="Enter property address..."
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-lg"
           />
-        </div>
-        <div className="flex justify-between items-center mb-4">
-          <div></div>
-          <button onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/vault", "_blank"), 600); }} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition">
-            💾 View in Vault
-          </button>
         </div>
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {tabs.map((tab) => (

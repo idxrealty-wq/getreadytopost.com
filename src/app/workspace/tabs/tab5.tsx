@@ -1,37 +1,17 @@
-"use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
 import { saveListing } from '@/lib/listings';
 import { doc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 
-export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user, editId, photos, existingPhotos }: any) {
+export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user, editId, photos, existingPhotos, documents, existingDocuments, saveNowNonce }: any) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [uploadProgress, setUploadProgress] = useState('');
 
-  const uploadPhotos = async () => {
-    const uploadedPhotos: Array<{ url: string; category: string; uploadedAt: string }> = [...(existingPhotos || [])];
-    
-    for (const [category, photoList] of Object.entries(photos)) {
-      if (Array.isArray(photoList)) {
-        for (const photo of photoList) {
-          setUploadProgress(`Uploading ${category} photos...`);
-          const filename = `listings/${user.uid}/${Date.now()}_${photo.file.name}`;
-          const storageRef = ref(storage, filename);
-          await uploadBytes(storageRef, photo.file);
-          const url = await getDownloadURL(storageRef);
-          uploadedPhotos.push({
-            url,
-            category,
-            uploadedAt: new Date().toISOString(),
-          });
-        }
-      }
-    }
-    
-    return uploadedPhotos;
-  };
+  useEffect(() => {
+    if (!saveNowNonce) return;
+    handleSave();
+  }, [saveNowNonce]);
 
   const handleSave = async () => {
     if (!user) {
@@ -45,13 +25,10 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
 
     setSaving(true);
     setError('');
-    setUploadProgress('');
     
     try {
-      const photoUrls = await uploadPhotos();
-      
       if (editId) {
-        setUploadProgress('Updating listing...');
+        // Update existing listing
         const listingRef = doc(db, 'listings', editId);
         await updateDoc(listingRef, {
           address,
@@ -60,11 +37,10 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
           aiListing: listing,
           checklistState,
           notes,
-          photos: photoUrls,
           updatedAt: new Date().toISOString(),
         });
       } else {
-        setUploadProgress('Saving listing...');
+        // Create new listing
         await saveListing(
           user.uid,
           address,
@@ -72,8 +48,7 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
           nearby,
           listing,
           checklistState,
-          notes,
-          photoUrls
+          notes
         );
       }
       setSaved(true);
@@ -81,15 +56,14 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
       setError(err.message || 'Failed to save listing.');
     } finally {
       setSaving(false);
-      setUploadProgress('');
     }
   };
 
   const completedChecklist = Object.entries(checklistState).filter(([, v]) => v).length;
   const totalChecklist = Object.keys(checklistState).length;
+  const photoCount = Object.values(photos || {}).reduce((s: number, a: any) => s + a.length, 0) + (existingPhotos || []).length;
+  const docCount = (existingDocuments || []).filter((d: any) => d && d.downloadURL).length + Object.values(documents || {}).filter((d: any) => d && d.url).length;
   const nearbyCount = nearby ? Object.values(nearby).filter((arr: any) => arr && arr.length > 0).length : 0;
-  const totalNewPhotos = Object.values(photos).reduce((sum: number, arr: any) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
-  const totalPhotos = totalNewPhotos + (existingPhotos?.length || 0);
 
   return (
     <div className="space-y-6">
@@ -135,9 +109,11 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
           </div>
           <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
             <span className="text-white font-bold">📸 Photos</span>
-            <span className={totalPhotos > 0 ? 'text-green-400' : 'text-gray-400'}>
-              {totalPhotos > 0 ? `${totalPhotos} photos` : 'No photos'}
-            </span>
+            <span className={photoCount > 0 ? "text-green-400" : "text-gray-400"}>{photoCount > 0 ? photoCount + " uploaded" : "None uploaded"}</span>
+          </div>
+          <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
+            <span className="text-white font-bold">📄 Documents</span>
+            <span className={docCount > 0 ? "text-green-400" : "text-gray-400"}>{docCount > 0 ? docCount + " uploaded" : "None uploaded"}</span>
           </div>
           <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
             <span className="text-white font-bold">✅ Checklist</span>
@@ -155,12 +131,6 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
       {error && (
         <div className="bg-red-900/60 border-2 border-red-500/60 rounded-xl p-4 text-center">
           <p className="text-red-200">{error}</p>
-        </div>
-      )}
-
-      {uploadProgress && (
-        <div className="bg-blue-900/60 border-2 border-blue-500/60 rounded-xl p-4 text-center">
-          <p className="text-blue-200">{uploadProgress}</p>
         </div>
       )}
 
