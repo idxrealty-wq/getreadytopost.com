@@ -66,54 +66,46 @@ export default function OurDealsPage() {
   const offers = selectedTab === 'rewrites' ? rewriteOffers : vaultOffers;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200 py-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">
-            Our Deals
-          </h1>
-          <p className="text-xl text-slate-600">
-            Choose the plan that works for you
-          </p>
-        </div>
-      </div>
+    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a]">
+      <div className="max-w-6xl mx-auto px-6 py-16">
+        <h1 className="text-5xl font-bold text-white mb-4 text-center">
+          Our Deals
+        </h1>
+        <p className="text-gray-300 text-xl text-center mb-12">
+          Choose the plan that works for you
+        </p>
 
-      {/* Tab Navigation */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-4 mb-12 border-b border-slate-200">
+        <div className="flex gap-8 mb-12 justify-center border-b border-white/20 pb-4">
           <button
             onClick={() => setSelectedTab('rewrites')}
-            className={`pb-4 px-4 font-semibold transition ${
+            className={`font-semibold transition pb-2 ${
               selectedTab === 'rewrites'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'text-[#c9a227] border-b-2 border-[#c9a227]'
+                : 'text-gray-300 hover:text-white'
             }`}
           >
             Pay Per Rewrite
           </button>
           <button
             onClick={() => setSelectedTab('vault')}
-            className={`pb-4 px-4 font-semibold transition ${
+            className={`font-semibold transition pb-2 ${
               selectedTab === 'vault'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'text-[#c9a227] border-b-2 border-[#c9a227]'
+                : 'text-gray-300 hover:text-white'
             }`}
           >
             Agent Vault Pro
           </button>
         </div>
 
-        {/* Offers Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {offers.map((offer, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-lg shadow-md hover:shadow-lg transition border border-slate-200 overflow-hidden flex flex-col"
+              className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden flex flex-col hover:bg-white/15 transition"
             >
-              {/* Graphic Image (if available) */}
               {offer.image && (
-                <div className="relative w-full h-64 bg-slate-100">
+                <div className="relative w-full h-64 bg-slate-900">
                   <Image
                     src={offer.image}
                     alt={offer.title}
@@ -124,44 +116,40 @@ export default function OurDealsPage() {
                 </div>
               )}
 
-              {/* Badge */}
               {offer.badge && !offer.image && (
-                <div className="bg-blue-600 text-white text-center py-2 font-bold text-sm">
+                <div className="bg-[#c9a227] text-white text-center py-2 font-bold text-sm">
                   {offer.badge}
                 </div>
               )}
 
-              {/* Content */}
               <div className="p-8 flex flex-col flex-grow">
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                <h3 className="text-2xl font-bold text-white mb-2">
                   {offer.title}
                 </h3>
                 <div className="mb-4">
-                  <span className="text-4xl font-bold text-blue-600">
+                  <span className="text-4xl font-bold text-[#c9a227]">
                     {offer.price}
                   </span>
                   {offer.period && (
-                    <span className="text-slate-600 ml-2">{offer.period}</span>
+                    <span className="text-gray-300 ml-2">{offer.period}</span>
                   )}
                 </div>
-                <p className="text-slate-600 mb-6">{offer.description}</p>
+                <p className="text-gray-300 mb-6">{offer.description}</p>
 
-                {/* Features */}
                 <ul className="space-y-3 mb-8 flex-grow">
                   {offer.features.map((feature, fidx) => (
                     <li key={fidx} className="flex items-start gap-3">
-                      <span className="text-blue-600 font-bold mt-1">✓</span>
-                      <span className="text-slate-700">{feature}</span>
+                      <span className="text-[#c9a227] font-bold mt-1">✓</span>
+                      <span className="text-gray-300">{feature}</span>
                     </li>
                   ))}
                 </ul>
 
-                {/* CTA Button */}
                 <a
                   href={offer.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-center transition"
+                  className="w-full bg-[#c9a227] hover:bg-[#b8911f] text-white font-bold py-3 px-4 rounded-xl text-center transition"
                 >
                   Get Started
                 </a>
@@ -170,63 +158,61 @@ export default function OurDealsPage() {
           ))}
         </div>
 
-        {/* FAQ Section */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-12">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 mb-12">
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">
             Questions?
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <h3 className="font-bold text-slate-900 mb-2">
+              <h3 className="font-bold text-white mb-2">
                 What's included in Agent Vault Pro?
               </h3>
-              <p className="text-slate-600">
+              <p className="text-gray-300">
                 Unlimited listing rewrites, pre-listing checklists, property research tools, document storage, and more.
               </p>
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 mb-2">
+              <h3 className="font-bold text-white mb-2">
                 Can I cancel anytime?
               </h3>
-              <p className="text-slate-600">
+              <p className="text-gray-300">
                 Monthly plans can be canceled anytime. 6-month and annual plans are non-refundable but lock in the best rates.
               </p>
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 mb-2">
+              <h3 className="font-bold text-white mb-2">
                 Do I need a subscription?
               </h3>
-              <p className="text-slate-600">
+              <p className="text-gray-300">
                 No! You can pay per rewrite with our Single or 5-pack options. Agent Vault Pro is optional for unlimited access.
               </p>
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 mb-2">
+              <h3 className="font-bold text-white mb-2">
                 How fast are rewrites?
               </h3>
-              <p className="text-slate-600">
+              <p className="text-gray-300">
                 All rewrites are delivered instantly. You get MLS-ready copy, SEO optimization, and professional formatting.
               </p>
             </div>
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className="bg-blue-600 text-white rounded-lg p-8 text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">
             Ready to transform your listings?
           </h2>
-          <p className="text-lg mb-6 opacity-90">
+          <p className="text-gray-300 text-lg mb-6">
             Start with a single rewrite or unlock unlimited access with Agent Vault Pro.
           </p>
           <Link
             href="/rate-my-listing"
-            className="inline-block bg-white text-blue-600 font-bold py-3 px-8 rounded-lg hover:bg-slate-100 transition"
+            className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white font-bold py-3 px-8 rounded-xl transition"
           >
             Try Free Analysis
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
