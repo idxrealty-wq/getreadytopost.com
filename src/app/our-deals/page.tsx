@@ -11,6 +11,7 @@ export default function OurDealsPage() {
     {
       title: 'Single Rewrite',
       price: '$19.99',
+      period: null,
       description: 'One professional listing rewrite',
       features: ['MLS-ready copy', 'SEO optimization', 'Instant delivery'],
       link: 'https://square.link/u/22tY4Rla',
@@ -20,6 +21,7 @@ export default function OurDealsPage() {
     {
       title: '5 Listing Rewrite Pack',
       price: '$85',
+      period: null,
       description: 'Save $14.95 on 5 rewrites',
       features: ['MLS-ready copy', 'SEO optimization', 'Instant delivery', 'Best for teams'],
       link: 'https://square.link/u/15NaVu0p',
