@@ -13,7 +13,7 @@ export default function OurDealsPage() {
       price: '$19.99',
       image: '/offers/single-rewrite-19.99.png',
       link: 'https://square.link/u/22tY4Rla',
-      description: 'One listing analysis & rewrite',
+      description: 'Test drive professional copy. One listing, instant results. See what better looks like.',
     },
     {
       id: 2,
@@ -21,7 +21,7 @@ export default function OurDealsPage() {
       price: '$85',
       image: '/offers/5-pack-rewrite.png',
       link: 'https://square.link/u/15NaVu0p',
-      description: 'Five listing rewrites',
+      description: 'Upgrade your whole portfolio. Five rewrites at $17 each. Save $17.95 vs. single pricing.',
     },
     {
       id: 3,
@@ -29,7 +29,7 @@ export default function OurDealsPage() {
       price: '$99',
       image: '/offers/agent-vault-pro-monthly.png',
       link: 'https://square.link/u/PUNuh53u',
-      description: 'Monthly workspace access',
+      description: 'Try the full workspace risk-free. One month to grade, rewrite, and organize every listing.',
     },
     {
       id: 4,
@@ -37,7 +37,7 @@ export default function OurDealsPage() {
       price: '$495',
       image: '/offers/agent-vault-pro-6-month.png',
       link: 'https://square.link/u/8nf73LLz',
-      description: 'Six months of workspace access',
+      description: 'Serious agents go 6 months. Save $99 vs. monthly. Build a vault of polished listings.',
     },
     {
       id: 5,
@@ -45,7 +45,7 @@ export default function OurDealsPage() {
       price: '$899',
       image: '/offers/agent-vault-pro-annual.png',
       link: 'https://square.link/u/lgsIomQl',
-      description: 'Full year of workspace access',
+      description: 'The best value. Full year of workspace access. That\'s $75/month. Professional copy, every listing.',
     },
   ];
 
