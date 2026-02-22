@@ -1,216 +1,110 @@
-'use client';
-
-import { useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 
+export const metadata = {
+  title: 'Our Deals - GetReadyToPost',
+  description: 'Affordable pricing for real estate listing analysis and rewrites.',
+};
+
 export default function OurDealsPage() {
-  const [selectedTab, setSelectedTab] = useState<'rewrites' | 'vault'>('rewrites');
-
-  const rewriteOffers = [
+  const offers = [
     {
-      title: 'Single Rewrite',
+      id: 1,
+      name: 'Single Rewrite',
       price: '$19.99',
-      period: null,
-      description: 'One professional listing rewrite',
-      features: ['MLS-ready copy', 'SEO optimization', 'Instant delivery'],
+      image: '/offers/single-rewrite-19.99.png',
       link: 'https://square.link/u/22tY4Rla',
-      badge: null,
-      image: null,
+      description: 'One listing analysis & rewrite',
     },
     {
-      title: '5 Listing Rewrite Pack',
+      id: 2,
+      name: '5 Listing Rewrite Pack',
       price: '$85',
-      period: null,
-      description: 'Save $14.95 on 5 rewrites',
-      features: ['MLS-ready copy', 'SEO optimization', 'Instant delivery', 'Best for teams'],
-      link: 'https://square.link/u/15NaVu0p',
-      badge: 'BEST VALUE',
       image: '/offers/5-pack-rewrite.png',
+      link: 'https://square.link/u/15NaVu0p',
+      description: 'Five listing rewrites',
     },
-  ];
-
-  const vaultOffers = [
     {
-      title: 'Agent Vault Pro - Monthly',
+      id: 3,
+      name: 'Agent Vault Pro - Monthly',
       price: '$99',
-      period: '/month',
-      description: 'Full access to Agent Vault tools',
-      features: ['Unlimited rewrites', 'Pre-listing checklist', 'Property research', 'Document storage', 'Cancel anytime'],
+      image: '/offers/agent-vault-monthly.png',
       link: 'https://square.link/u/PUNuh53u',
-      badge: 'MOST POPULAR',
-      image: '/offers/agent-vault-pro-monthly.png',
+      description: 'Monthly workspace access',
     },
     {
-      title: 'Agent Vault Pro - 6 Months',
+      id: 4,
+      name: 'Agent Vault Pro - 6 Months',
       price: '$495',
-      period: '(6 months)',
-      description: 'Save $99 vs monthly',
-      features: ['Unlimited rewrites', 'Pre-listing checklist', 'Property research', 'Document storage', 'Lock in rate'],
+      image: '/offers/agent-vault-6months.png',
       link: 'https://square.link/u/8nf73LLz',
-      badge: 'BEST VALUE',
-      image: '/offers/agent-vault-pro-6-month.png',
+      description: 'Six months of workspace access',
     },
     {
-      title: 'Agent Vault Pro - Annual',
+      id: 5,
+      name: 'Agent Vault Pro - Annual',
       price: '$899',
-      period: '/year',
-      description: 'Best value - save $288 vs monthly',
-      features: ['Unlimited rewrites', 'Pre-listing checklist', 'Property research', 'Document storage', 'Priority support'],
+      image: '/offers/agent-vault-annual.png',
       link: 'https://square.link/u/lgsIomQl',
-      badge: 'ULTIMATE POWER',
-      image: '/offers/agent-vault-pro-annual.png',
+      description: 'Full year of workspace access',
     },
   ];
-
-  const offers = selectedTab === 'rewrites' ? rewriteOffers : vaultOffers;
 
   return (
-    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a]">
-      <div className="max-w-6xl mx-auto px-6 py-16">
-        <h1 className="text-5xl font-bold text-white mb-4 text-center">
-          Our Deals
-        </h1>
-        <p className="text-gray-300 text-xl text-center mb-12">
-          Choose the plan that works for you
-        </p>
-
-        <div className="flex gap-8 mb-12 justify-center border-b border-white/20 pb-4">
-          <button
-            onClick={() => setSelectedTab('rewrites')}
-            className={`font-semibold transition pb-2 ${
-              selectedTab === 'rewrites'
-                ? 'text-[#c9a227] border-b-2 border-[#c9a227]'
-                : 'text-gray-300 hover:text-white'
-            }`}
-          >
-            Pay Per Rewrite
-          </button>
-          <button
-            onClick={() => setSelectedTab('vault')}
-            className={`font-semibold transition pb-2 ${
-              selectedTab === 'vault'
-                ? 'text-[#c9a227] border-b-2 border-[#c9a227]'
-                : 'text-gray-300 hover:text-white'
-            }`}
-          >
-            Agent Vault Pro
-          </button>
+    <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] pt-32 pb-16">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Our Deals</h1>
+          <p className="text-xl text-gray-300">Choose the plan that works for you</p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 items-stretch">
-          {offers.map((offer, idx) => (
-            <div
-              key={idx}
-              className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden flex flex-col hover:bg-white/15 transition"
-            >
-              {/* Poster area: fixed height, contain (no cropping) */}
-              {offer.image && (
-                <div className="w-full bg-[#0f1b33] border-b border-white/10">
-                  <div className="relative h-[320px] w-full max-w-[420px] mx-auto p-4">
-                    <Image
-                      src={offer.image}
-                      alt={offer.title}
-                      fill
-                      className="object-contain"
-                      unoptimized
-                      priority={idx < 3}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="p-8 flex flex-col flex-grow">
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  {offer.title}
-                </h3>
-
-                <div className="mb-4">
-                  <span className="text-4xl font-bold text-[#c9a227]">
-                    {offer.price}
-                  </span>
-                  {offer.period && (
-                    <span className="text-gray-300 ml-2">{offer.period}</span>
-                  )}
-                </div>
-
-                <p className="text-gray-300 mb-6">{offer.description}</p>
-
-                <ul className="space-y-3 mb-8 flex-grow">
-                  {offer.features.map((feature, fidx) => (
-                    <li key={fidx} className="flex items-start gap-3">
-                      <span className="text-[#c9a227] font-bold mt-1">✓</span>
-                      <span className="text-gray-300">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <a
-                  href={offer.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full bg-[#c9a227] hover:bg-[#b8911f] text-white font-bold py-3 px-4 rounded-xl text-center transition"
-                >
-                  Get Started
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 mb-12">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">
-            Questions?
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="font-bold text-white mb-2">
-                What's included in Agent Vault Pro?
-              </h3>
-              <p className="text-gray-300">
-                Unlimited listing rewrites, pre-listing checklists, property research tools, document storage, and more.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold text-white mb-2">
-                Can I cancel anytime?
-              </h3>
-              <p className="text-gray-300">
-                Monthly plans can be canceled anytime. 6-month and annual plans are non-refundable but lock in the best rates.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold text-white mb-2">
-                Do I need a subscription?
-              </h3>
-              <p className="text-gray-300">
-                No! You can pay per rewrite with our Single or 5-pack options. Agent Vault Pro is optional for unlimited access.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold text-white mb-2">
-                How fast are rewrites?
-              </h3>
-              <p className="text-gray-300">
-                All rewrites are delivered instantly. You get MLS-ready copy, SEO optimization, and professional formatting.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to transform your listings?
-          </h2>
-          <p className="text-gray-300 text-lg mb-6">
-            Start with a single rewrite or unlock unlimited access with Agent Vault Pro.
-          </p>
-          <Link
-            href="/rate-my-listing"
-            className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white font-bold py-3 px-8 rounded-xl transition"
-          >
-            Try Free Analysis
-          </Link>
+        {/* Table Layout */}
+        <div className="overflow-x-auto bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/20">
+                <th className="px-6 py-4 text-left text-white font-bold">Offer</th>
+                <th className="px-6 py-4 text-center text-white font-bold">Thumbnail</th>
+                <th className="px-6 py-4 text-center text-white font-bold">Price</th>
+                <th className="px-6 py-4 text-center text-white font-bold">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {offers.map((offer) => (
+                <tr key={offer.id} className="border-b border-white/10 hover:bg-white/5 transition">
+                  <td className="px-6 py-4">
+                    <div>
+                      <p className="text-white font-semibold text-lg">{offer.name}</p>
+                      <p className="text-gray-400 text-sm">{offer.description}</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex justify-center">
+                      <Image
+                        src={offer.image}
+                        alt={offer.name}
+                        width={120}
+                        height={120}
+                        className="rounded-lg object-cover"
+                      />
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <p className="text-[#c9a227] font-bold text-2xl">{offer.price}</p>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <a
+                      href={offer.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-6 py-2 rounded-lg font-semibold transition"
+                    >
+                      Buy Now
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </main>
