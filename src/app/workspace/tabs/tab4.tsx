@@ -82,6 +82,7 @@ export default function Tab4Checklist({
       setCalculatedDate("");
     }
   }, [daysOut]);
+
   useEffect(() => {
     if (existingDocuments && existingDocuments.length > 0) {
       const loaded: Record<string, any> = {};
@@ -107,7 +108,6 @@ export default function Tab4Checklist({
   const toggleChecklist = (id: string) => {
     setChecklistState((prev: any) => ({ ...prev, [id]: !prev[id] }));
   };
-
   const handleFileUpload = async (docId: string, file: File | null) => {
     if (!file) {
       setUploads((prev) => ({ ...prev, [docId]: null }));
@@ -253,7 +253,8 @@ export default function Tab4Checklist({
       }
     }
   };
-   const handleDeleteSavedPhoto = async (photo: any) => {
+
+  const handleDeleteSavedPhoto = async (photo: any) => {
     if (!window.confirm("Delete this photo?")) return;
 
     try {
@@ -291,7 +292,6 @@ export default function Tab4Checklist({
       [categoryId]: prev[categoryId].filter((_: any, i: number) => i !== index),
     }));
   };
-
   const groupedChecklist = CHECKLIST_ITEMS.reduce((acc: any, item) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
@@ -484,6 +484,7 @@ export default function Tab4Checklist({
           ))}
         </div>
       </div>
+
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">
           ✅ Pre-Listing Checklist
@@ -539,53 +540,66 @@ export default function Tab4Checklist({
           className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none resize-none"
         />
       </div>
+     CHUNK 4/4 (lines 543-end)
 
-      {viewingDoc && uploads[viewingDoc]?.url && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-4xl max-h-[90vh] overflow-auto">
-            <div className="sticky top-0 bg-gray-800 border-b border-white/20 p-4 flex justify-between items-center">
-              <h3 className="text-white font-bold">
-                {uploads[viewingDoc]?.file.name}
-              </h3>
-              <button
-                onClick={() => setViewingDoc(null)}
-                className="text-gray-300 hover:text-white text-2xl"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-6">
-              {uploads[viewingDoc]?.file.type.includes("pdf") ? (
-                <iframe
-                  src={uploads[viewingDoc]?.url}
-                  className="w-full h-[600px] rounded-lg border border-white/10"
-                  title="PDF Viewer"
-                />
-              ) : uploads[viewingDoc]?.file.type.includes("image") ? (
-                <img
-                  src={uploads[viewingDoc]?.url}
-                  alt={uploads[viewingDoc]?.file.name}
-                  className="max-w-full h-auto rounded-lg border border-white/10"
-                />
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-gray-300 mb-4">
-                    Preview not available for this file type
-                  </p>
-                  <a
-                    href={uploads[viewingDoc]?.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
-                  >
-                    📥 Download File
-                  </a>
-                </div>
-              )}
+tsx
+
+      {viewingDoc && uploads[viewingDoc]?.url && (() => {
+        const url = String(uploads[viewingDoc]?.url || "");
+        const lower = url.toLowerCase();
+        const isPdf = lower.includes(".pdf");
+        const isImage = /\.(png|jpg|jpeg|webp|gif)$/i.test(lower);
+        const title =
+          uploads[viewingDoc]?.file?.name ||
+          uploads[viewingDoc]?.fileName ||
+          "Document";
+
+        return (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-4xl max-h-[90vh] overflow-auto">
+              <div className="sticky top-0 bg-gray-800 border-b border-white/20 p-4 flex justify-between items-center">
+                <h3 className="text-white font-bold">{title}</h3>
+                <button
+                  onClick={() => setViewingDoc(null)}
+                  className="text-gray-300 hover:text-white text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="p-6">
+                {isPdf ? (
+                  <iframe
+                    src={url}
+                    className="w-full h-[600px] rounded-lg border border-white/10"
+                    title="PDF Viewer"
+                  />
+                ) : isImage ? (
+                  <img
+                    src={url}
+                    alt={title}
+                    className="max-w-full h-auto rounded-lg border border-white/10"
+                  />
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-gray-300 mb-4">
+                      Preview not available for this file type
+                    </p>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
+                    >
+                      📥 Download File
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       <div className="flex justify-end">
         <button
@@ -597,4 +611,4 @@ export default function Tab4Checklist({
       </div>
     </div>
   );
-}
+} 
