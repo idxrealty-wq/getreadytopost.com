@@ -1,3 +1,5 @@
+'use client';
+
 export default function FAQPage() {
   const faqs = [
     {
@@ -55,11 +57,14 @@ export default function FAQPage() {
   ];
 
   return (
-    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a]">
-      <div className="max-w-4xl mx-auto px-6 py-16">
+    <main 
+      className="pt-32 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/faq-bg.png')" }}
+    >
+      <div className="absolute inset-0 bg-black/40" />
+      <div className="relative max-w-4xl mx-auto px-6 py-16">
         <h1 className="text-5xl font-bold text-white mb-4 text-center">Frequently Asked Questions</h1>
         <p className="text-gray-300 text-xl text-center mb-12">Everything you need to know about GetReadyToPost</p>
-
         <div className="space-y-6">
           {faqs.map((faq, i) => (
             <div key={i} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
@@ -68,7 +73,6 @@ export default function FAQPage() {
             </div>
           ))}
         </div>
-
         <div className="mt-12 text-center">
           <p className="text-gray-300 mb-4">Still have questions?</p>
           <a href="/contact-broker" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition">Contact Us</a>
