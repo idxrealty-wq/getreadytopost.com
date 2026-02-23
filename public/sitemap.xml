@@ -2,74 +2,98 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://getreadytopost.com/</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://getreadytopost.com/rate-my-listing</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://getreadytopost.com/home-sellers</loc>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://getreadytopost.com/our-deals</loc>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://getreadytopost.com/offers</loc>
+    <loc>https://getreadytopost.com/buy-credits</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://getreadytopost.com/vault</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://getreadytopost.com/agent-vault</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://getreadytopost.com/workspace</loc>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://getreadytopost.com/how-it-works</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://getreadytopost.com/faq</loc>
+    <loc>https://getreadytopost.com/how-it-works</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://getreadytopost.com/examples</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://getreadytopost.com/home-sellers</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://getreadytopost.com/pricing</loc>
-    <priority>0.8</priority>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://getreadytopost.com/contact-broker</loc>
-    <priority>0.6</priority>
+    <loc>https://getreadytopost.com/our-deals</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://getreadytopost.com/brokers</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://getreadytopost.com/agents</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://getreadytopost.com/fsbo</loc>
+    <loc>https://getreadytopost.com/contact-broker</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://getreadytopost.com/examples</loc>
+    <loc>https://getreadytopost.com/ai-advantage</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://getreadytopost.com/faq</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://getreadytopost.com/privacy</loc>
-    <priority>0.5</priority>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://getreadytopost.com/terms</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://getreadytopost.com/feedback</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
 </urlset>
