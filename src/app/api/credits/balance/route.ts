@@ -1,6 +1,6 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { NextRequest, NextResponse } from 'next/server';
+import { initializeApp, getApps } from 'firebase/app';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,7 +11,7 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 
 export async function GET(req: NextRequest) {
@@ -29,6 +29,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ balance });
   } catch (error) {
     console.error('Get balance error:', error);
-    return NextResponse.json({ error: 'Failed to fetch balance' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch balance', details: String(error) }, { status: 500 });
   }
 }
