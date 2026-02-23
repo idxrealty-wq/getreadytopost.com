@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import { useState } from "react";
 import { signOut } from "firebase/auth";
@@ -6,75 +7,85 @@ import { auth } from "@/lib/firebase";
 import { useUser } from "@/contexts/UserContext";
 import AuthModal from "./AuthModal";
 
+type NavLink = { label: string; href: string };
+type NavItemWithHref = { label: string; href: string };
+type NavItemWithDropdown = { label: string; dropdown: NavLink[] };
+type NavItem = NavItemWithHref | NavItemWithDropdown;
+
 export default function Header() {
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
   const { user, profile, loading } = useUser();
+
+  const getFirstName = () => {
+    if (!profile?.fullName) return "";
+    return profile.fullName.split(" ")[0];
+  };
+
+  const handleJoin = () => {
+    setAuthMode("signup");
+    setShowAuthModal(true);
+  };
+
+  const handleSignIn = () => {
+    setAuthMode("signin");
+    setShowAuthModal(true);
+  };
 
   const handleSignOut = async () => {
     await signOut(auth);
   };
 
-  const handleJoin = () => {
-    setAuthMode('signup');
-    setShowAuthModal(true);
+  const closeMobile = () => {
+    setMobileOpen(false);
+    setOpenDropdown(null);
   };
 
-  const handleSignIn = () => {
-    setAuthMode('signin');
-    setShowAuthModal(true);
-  };
-
-  const getFirstName = () => {
-    if (!profile?.fullName) return '';
-    return profile.fullName.split(' ')[0];
-  };
-
-  const navItems = [
-    { label: 'Home', href: '/', dropdown: null },
+  const navItems: NavItem[] = [
+    { label: "Home", href: "/" },
     {
-      label: 'Product',
-      href: null,
+      label: "Product",
       dropdown: [
-        { label: 'Why Our AI', href: '/ai-advantage' },
-        { label: 'How It Works', href: '/how-it-works' },
-        { label: 'Pricing', href: '/pricing' },
-        { label: 'Examples', href: '/examples' },
-        { label: 'SEO Optimization', href: '/seo-optimization' },
+        { label: "Why Our AI", href: "/ai-advantage" },
+        { label: "How It Works", href: "/how-it-works" },
+        { label: "Pricing", href: "/pricing" },
+        { label: "Our Deals", href: "/our-deals" },
+        { label: "Examples", href: "/examples" },
+        { label: "SEO Optimization", href: "/seo-optimization" },
       ],
     },
     {
-      label: 'For Home Sellers',
-      href: null,
+      label: "For Home Sellers",
       dropdown: [
-        { label: 'Grade My Listing', href: '/rate-my-listing' },
-        { label: 'Home Sellers', href: '/home-sellers' },
-        { label: 'See Results', href: '/results' },
-        { label: 'FSBO', href: '/fsbo' },
-        { label: 'Get Why Copy Matters', href: '/get-why-copy-matters' },
+        { label: "Home Sellers", href: "/home-sellers" },
+        { label: "Grade My Listing", href: "/rate-my-listing" },
+        { label: "FAQ", href: "/faq" },
+        { label: "FSBO", href: "/fsbo" },
+        { label: "Get Why Copy Matters", href: "/get-why-copy-matters" },
       ],
     },
     {
-      label: 'For Agents',
-      href: null,
+      label: "For Agents",
       dropdown: [
-        { label: 'Agent Vault', href: '/agent-vault' },
-        { label: 'Workspace', href: '/workspace' },
-        { label: 'Rate Listing', href: '/rate-listing' },
-        { label: 'Agents', href: '/agents' },
-        { label: 'Brokers', href: '/brokers' },
-        { label: 'Contact Broker', href: '/contact-broker' },
+        { label: "Workspace", href: "/workspace" },
+        { label: "Agent Vault", href: "/agent-vault" },
+        { label: "Rate Listing", href: "/rate-listing" },
+        { label: "Our Deals", href: "/our-deals" },
+        { label: "Brokers", href: "/brokers" },
+        { label: "Contact Broker", href: "/contact-broker" },
       ],
     },
     {
-      label: 'Resources',
-      href: null,
+      label: "Resources",
       dropdown: [
-        { label: 'FAQ', href: '/faq' },
-        { label: 'Feedback', href: '/feedback' },
-        { label: 'Privacy', href: '/privacy' },
-        { label: 'Terms', href: '/terms' },
+        { label: "FAQ", href: "/faq" },
+        { label: "Feedback", href: "/feedback" },
+        { label: "Our Deals", href: "/our-deals" },
+        { label: "Privacy", href: "/privacy" },
+        { label: "Terms", href: "/terms" },
       ],
     },
   ];
@@ -86,10 +97,12 @@ export default function Header() {
           <Link href="/" className="text-2xl font-bold text-[#1a2b4a]">
             GetReadyToPost
           </Link>
+
+          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
               <div key={item.label} className="relative group">
-                {item.href ? (
+                {"href" in item ? (
                   <Link
                     href={item.href}
                     className="text-gray-700 hover:text-[#c9a227] font-medium transition"
@@ -97,39 +110,39 @@ export default function Header() {
                     {item.label}
                   </Link>
                 ) : (
-                  <button
-                    onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}
-                    className="text-gray-700 hover:text-[#c9a227] font-medium transition flex items-center gap-2"
-                  >
-                    {item.label}
-                    <span className="text-xs">▼</span>
-                  </button>
-                )}
-                {item.dropdown && (
-                  <div className="absolute left-0 mt-0 w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 py-2 z-50">
-                    {item.dropdown.map((link) => (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        className="block px-4 py-2 text-gray-700 hover:bg-[#f5f5f5] hover:text-[#c9a227] transition"
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
-                  </div>
+                  <>
+                    <button
+                      type="button"
+                      className="text-gray-700 hover:text-[#c9a227] font-medium transition flex items-center gap-2"
+                    >
+                      {item.label}
+                      <span className="text-xs">▼</span>
+                    </button>
+                    <div className="absolute left-0 mt-2 w-60 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 py-2 z-50">
+                      {item.dropdown.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          className="block px-4 py-2 text-gray-700 hover:bg-[#f5f5f5] hover:text-[#c9a227] transition"
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             ))}
           </nav>
-          <div className="flex items-center gap-4">
-            {!loading && (
-              user && profile ? (
+
+          {/* Auth (desktop) */}
+          <div className="hidden md:flex items-center gap-4">
+            {!loading &&
+              (user && profile ? (
                 <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-gray-800">
-                      Welcome, {getFirstName()}! 👋
-                    </p>
-                  </div>
+                  <p className="text-sm font-bold text-gray-800">
+                    Welcome, {getFirstName()}! 👋
+                  </p>
                   <button
                     onClick={handleSignOut}
                     className="text-gray-700 hover:text-red-600 font-medium transition text-sm"
@@ -138,7 +151,7 @@ export default function Header() {
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-4">
+                <>
                   <button
                     onClick={handleJoin}
                     className="text-gray-700 hover:text-[#c9a227] font-medium transition"
@@ -151,20 +164,119 @@ export default function Header() {
                   >
                     Sign In
                   </button>
-                </div>
-              )
-            )}
+                </>
+              ))}
           </div>
-          <button className="md:hidden text-gray-700 text-2xl">☰</button>
+
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden text-gray-700 text-2xl"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Open menu"
+          >
+            ☰
+          </button>
         </div>
+
+        {/* Mobile menu panel */}
+        {mobileOpen && (
+          <div className="md:hidden border-t border-gray-200 bg-white">
+            <div className="px-6 py-4 space-y-2">
+              {/* Auth (mobile) */}
+              {!loading &&
+                (user && profile ? (
+                  <div className="flex items-center justify-between py-2">
+                    <div className="text-sm font-bold text-gray-800">
+                      Welcome, {getFirstName()}!
+                    </div>
+                    <button
+                      onClick={async () => {
+                        await handleSignOut();
+                        closeMobile();
+                      }}
+                      className="text-sm font-medium text-red-600"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-3 py-2">
+                    <button
+                      onClick={() => {
+                        handleJoin();
+                        closeMobile();
+                      }}
+                      className="flex-1 border border-gray-300 text-gray-800 px-4 py-2 rounded-lg font-semibold"
+                    >
+                      Join
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleSignIn();
+                        closeMobile();
+                      }}
+                      className="flex-1 bg-[#c9a227] text-white px-4 py-2 rounded-lg font-semibold"
+                    >
+                      Sign In
+                    </button>
+                  </div>
+                ))}
+
+              {/* Nav (mobile) */}
+              {navItems.map((item) => (
+                <div key={item.label} className="py-1">
+                  {"href" in item ? (
+                    <Link
+                      href={item.href}
+                      onClick={closeMobile}
+                      className="block py-2 font-medium text-gray-800"
+                    >
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenDropdown((cur) =>
+                            cur === item.label ? null : item.label
+                          )
+                        }
+                        className="w-full flex items-center justify-between py-2 font-medium text-gray-800"
+                      >
+                        {item.label}
+                        <span className="text-xs">
+                          {openDropdown === item.label ? "▲" : "▼"}
+                        </span>
+                      </button>
+                      {openDropdown === item.label && (
+                        <div className="pl-4 pb-2">
+                          {item.dropdown.map((link) => (
+                            <Link
+                              key={link.href}
+                              href={link.href}
+                              onClick={closeMobile}
+                              className="block py-2 text-gray-700"
+                            >
+                              {link.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
+
       {showAuthModal && (
         <AuthModal
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
-          onSuccess={() => {
-            setShowAuthModal(false);
-          }}
+          onSuccess={() => setShowAuthModal(false)}
         />
       )}
     </>
