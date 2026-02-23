@@ -1,7 +1,8 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useUser } from '@/contexts/UserContext';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
@@ -16,17 +17,45 @@ const gradingCategories = [
 
 export default function RateMyListingPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useUser();
   const [email, setEmail] = useState('');
   const [listing, setListing] = useState('');
   const [showPayment, setShowPayment] = useState(false);
   const [submissionId, setSubmissionId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
+  const [error, setError] = useState('');
+
   const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
 
+  useEffect(() => {
+    if (user) {
+      fetchCreditBalance();
+    }
+  }, [user]);
+
+  const fetchCreditBalance = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/credits/balance?userId=${user.uid}`);
+      const data = await res.json();
+      setCreditBalance(data.balance || 0);
+    } catch (err) {
+      console.error('Failed to fetch credit balance:', err);
+    }
+  };
+
   const handleSubmit = async () => {
+    if (!user) {
+      setError('Please sign in to submit a listing.');
+      return;
+    }
+
     setLoading(true);
+    setError('');
     try {
       const docRef = await addDoc(collection(db, 'submissions'), {
+        userId: user.uid,
         email,
         listingText: listing,
         wordCount,
@@ -36,7 +65,7 @@ export default function RateMyListingPage() {
       setSubmissionId(docRef.id);
       setShowPayment(true);
     } catch (error) {
-      alert('Error saving submission. Please try again.');
+      setError('Error saving submission. Please try again.');
       console.error(error);
     } finally {
       setLoading(false);
@@ -47,9 +76,44 @@ export default function RateMyListingPage() {
     window.open('https://square.link/u/22tY4Rla', '_blank');
   };
 
-  const handleViewResults = () => {
-    router.push(`/results?id=${submissionId}`);
+  const handleViewResults = async () => {
+    if (!user) {
+      setError('Please sign in to view results.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch('/api/credits/deduct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.uid, listingId: submissionId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Failed to deduct credit.');
+        return;
+      }
+
+      const data = await res.json();
+      setCreditBalance(data.newBalance);
+      router.push(`/results?id=${submissionId}`);
+    } catch (err) {
+      setError('Error processing credit. Please try again.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (authLoading) {
+    return (
+      <main className="pt-20 min-h-screen flex items-center justify-center">
+        <p className="text-white">Loading...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="pt-20 min-h-screen relative">
@@ -59,8 +123,18 @@ export default function RateMyListingPage() {
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-10">
+        {user && creditBalance !== null && (
+          <div className="mb-6 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 text-center">
+            <p className="text-gray-300 text-sm">Your Credit Balance</p>
+            <p className="text-3xl font-bold text-[#c9a227]">{creditBalance} Credit{creditBalance !== 1 ? 's' : ''}</p>
+            {creditBalance === 0 && (
+              <Link href="/our-deals" className="text-sm text-blue-400 hover:text-blue-300 mt-2 inline-block">
+                → Buy Credits
+              </Link>
+            )}
+          </div>
+        )}
 
-        {/* Hero */}
         <section className="py-8 text-center text-white">
           <div className="inline-block bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-full mb-4">🔥 Instant Listing Analysis</div>
           <h1 className="text-3xl md:text-5xl font-bold mb-3">Rate My Listing</h1>
@@ -71,7 +145,6 @@ export default function RateMyListingPage() {
           </div>
         </section>
 
-        {/* Video Placeholder */}
         <section className="mb-10">
           <div className="rounded-2xl overflow-hidden border border-white/20 shadow-2xl aspect-video">
             <iframe
@@ -87,7 +160,6 @@ export default function RateMyListingPage() {
           </div>
         </section>
 
-        {/* Agent Workspace Callout */}
         <section className="mb-10">
           <Link href="/workspace" className="block bg-gradient-to-r from-[#c9a227]/20 to-amber-600/10 border-2 border-[#c9a227]/40 rounded-2xl p-6 hover:border-[#c9a227]/70 transition group">
             <div className="flex items-center gap-4">
@@ -102,7 +174,6 @@ export default function RateMyListingPage() {
           </Link>
         </section>
 
-        {/* Grading Criteria */}
         <section className="mb-10">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-white mb-2">How We Grade Your Listing</h2>
@@ -126,7 +197,12 @@ export default function RateMyListingPage() {
           </div>
         </section>
 
-        {/* Form or Payment */}
+        {error && (
+          <div className="mb-6 bg-red-500/20 border border-red-400/50 rounded-xl p-4 text-red-200">
+            {error}
+          </div>
+        )}
+
         {showPayment ? (
           <div className="bg-white rounded-2xl p-8 shadow-2xl text-center">
             <div className="text-6xl mb-4">💳</div>
@@ -148,8 +224,8 @@ export default function RateMyListingPage() {
                   <h3 className="font-bold text-gray-800">View Your Results</h3>
                 </div>
                 <p className="text-sm text-gray-600 mb-3">After completing payment, click below to see your instant analysis</p>
-                <button onClick={handleViewResults} className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-semibold transition">
-                  ✨ View My Results
+                <button onClick={handleViewResults} disabled={loading} className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-semibold transition disabled:opacity-50">
+                  {loading ? 'Processing...' : '✨ View My Results'}
                 </button>
               </div>
             </div>
