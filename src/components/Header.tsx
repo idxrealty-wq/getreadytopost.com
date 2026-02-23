@@ -72,7 +72,7 @@ export default function Header() {
       dropdown: [
         { label: "Workspace", href: "/workspace" },
         { label: "Agent Vault", href: "/agent-vault" },
-        { label: "Rate Listing", href: "/rate-listing" },
+        { label: "Rate Listing", href: "/rate-my-listing" },
         { label: "Our Deals", href: "/our-deals" },
         { label: "Brokers", href: "/brokers" },
         { label: "Contact Broker", href: "/contact-broker" },
