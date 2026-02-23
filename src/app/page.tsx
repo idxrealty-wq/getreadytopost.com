@@ -14,7 +14,7 @@ export default function Home() {
           <p className="text-lg text-gray-300 mb-12 max-w-2xl mx-auto">Most listing descriptions are invisible to buyers. Ours aren't. GetReadyToPost grades your listing across six critical categories and delivers a professional rewrite optimized for MLS, Fair Housing compliance, and buyer psychology.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/rate-my-listing" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-8 py-4 rounded-lg font-bold text-lg transition shadow-lg">Rate My Listing</Link>
-            <Link href="/how-it-works" className="bg-[#c9a227] hover:bg-[#b8911f] text-white hover:bg-[#c9a227]/10 px-8 py-4 rounded-lg font-bold text-lg transition">See How It Works</Link>
+            <Link href="/how-it-works" className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-4 rounded-lg font-bold text-lg transition">See How It Works</Link>
           </div>
         </div>
       </section>
