@@ -61,15 +61,15 @@ export default function FAQPage() {
       className="pt-32 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/faq-bg.png')" }}
     >
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 bg-black/65" />
       <div className="relative max-w-4xl mx-auto px-6 py-16">
         <h1 className="text-5xl font-bold text-white mb-4 text-center">Frequently Asked Questions</h1>
         <p className="text-gray-300 text-xl text-center mb-12">Everything you need to know about GetReadyToPost</p>
         <div className="space-y-6">
           {faqs.map((faq, i) => (
-            <div key={i} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+            <div key={i} className="bg-black/45 backdrop-blur-md rounded-2xl p-6 border border-white/20">
               <h3 className="text-xl font-bold text-white mb-3">{faq.q}</h3>
-              <p className="text-gray-300 leading-relaxed">{faq.a}</p>
+              <p className="text-gray-100 leading-relaxed">{faq.a}</p>
             </div>
           ))}
         </div>
