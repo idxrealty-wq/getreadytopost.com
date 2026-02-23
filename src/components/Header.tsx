@@ -74,7 +74,7 @@ export default function Header() {
         { label: "Rate Listing", href: "/rate-my-listing" },
         { label: "Our Deals", href: "/our-deals" },
         { label: "Brokers", href: "/brokers" },
-        { label: "Contact Broker", href: "/contact-broker" },
+        { label: "Broker Contact Us", href: "/contact-broker" },
       ],
     },
     {
