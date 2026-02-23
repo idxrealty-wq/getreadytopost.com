@@ -54,7 +54,6 @@ export default function Header() {
         { label: "Pricing", href: "/pricing" },
         { label: "Our Deals", href: "/our-deals" },
         { label: "Examples", href: "/examples" },
-        { label: "SEO Optimization", href: "/seo-optimization" },
       ],
     },
     {
