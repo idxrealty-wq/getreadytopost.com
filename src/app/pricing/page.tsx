@@ -171,7 +171,7 @@ export default function PricingPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
 
-          <Link href="/home-sellers">
+          <a href="https://square.link/u/22tY4Rla" target="_blank" rel="noopener noreferrer">
 
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition cursor-pointer">
 
@@ -191,9 +191,9 @@ export default function PricingPage() {
 
             </div>
 
-          </Link>
+          </a>
 
-          <Link href="/fsbo">
+          <a href="https://square.link/u/22tY4Rla" target="_blank" rel="noopener noreferrer">
 
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition cursor-pointer">
 
@@ -213,7 +213,7 @@ export default function PricingPage() {
 
             </div>
 
-          </Link>
+          </a>
 
         </div>
 
