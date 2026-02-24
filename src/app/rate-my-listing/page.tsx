@@ -28,16 +28,22 @@ export default function RateMyListingPage() {
   const wordCount = listing.trim().split(/\s+/).filter(Boolean).length;
 
   useEffect(() => {
+    console.log("User changed:", user?.uid);
     if (user?.uid) {
       fetchCreditBalance();
     }
   }, [user?.uid]);
 
   const fetchCreditBalance = async () => {
-    if (!user?.uid) return;
+    if (!user?.uid) {
+      console.log("No user UID, skipping fetch");
+      return;
+    }
     try {
+      console.log("Fetching balance for UID:", user.uid);
       const res = await fetch(`/api/credits/balance?userId=${user.uid}`);
       const data = await res.json();
+      console.log("Balance response:", data);
       setCreditBalance(data.balance ?? 0);
     } catch (err) {
       console.error("Failed to fetch credit balance:", err);
