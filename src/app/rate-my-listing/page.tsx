@@ -43,7 +43,7 @@ export default function RateMyListingPage() {
     }
   };
 
-  const deductAndGoToResults = async (listingId: string) => {
+  const deductAndProcess = async (listingId: string) => {
     if (!user) return;
 
     const res = await fetch("/api/credits/deduct", {
@@ -59,7 +59,7 @@ export default function RateMyListingPage() {
     }
 
     setCreditBalance(data.newBalance ?? 0);
-    router.push(`/results?id=${listingId}&source=credit`);
+    router.push(`/processing?id=${listingId}`);
   };
 
   const handlePrimaryAction = async () => {
@@ -87,7 +87,7 @@ export default function RateMyListingPage() {
       });
 
       if ((creditBalance ?? 0) > 0) {
-        await deductAndGoToResults(docRef.id);
+        await deductAndProcess(docRef.id);
         return;
       }
 
