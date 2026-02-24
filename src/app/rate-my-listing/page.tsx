@@ -61,7 +61,7 @@ export default function RateMyListingPage() {
     }
 
     setCreditBalance(data.newBalance ?? 0);
-    router.push(`/results?id=${submissionId}`);
+    router.push(`/results?id=${submissionId}&source=credit`);
   };
 
   const handlePrimaryAction = async () => {
