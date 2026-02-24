@@ -43,13 +43,13 @@ export default function RateMyListingPage() {
     }
   };
 
-  const deductAndGoToResults = async (submissionId: string) => {
+  const deductAndGoToResults = async (listingId: string) => {
     if (!user) return;
 
     const res = await fetch("/api/credits/deduct", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: user.uid, listingId: submissionId }),
+      body: JSON.stringify({ userId: user.uid, listingId }),
     });
 
     const data = await res.json().catch(() => ({}));
@@ -59,7 +59,7 @@ export default function RateMyListingPage() {
     }
 
     setCreditBalance(data.newBalance ?? 0);
-    router.push(`/results?id=${submissionId}&source=credit`);
+    router.push(`/results?id=${listingId}&source=credit`);
   };
 
   const handlePrimaryAction = async () => {
