@@ -4,7 +4,8 @@ const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
 const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID;
 
 const CREDIT_PACKAGES = {
-  single: { amount: 1999, credits: 1 },
+  test: { amount: 150, credits: 1 },      // $1.50 testing
+  single: { amount: 1999, credits: 1 },   // $19.99
   '5pack': { amount: 8500, credits: 5 },
   monthly: { amount: 9900, credits: 99 },
   '6month': { amount: 49500, credits: 495 },
@@ -25,8 +26,8 @@ export async function POST(req: NextRequest) {
 
     const pkg = CREDIT_PACKAGES[packageType as keyof typeof CREDIT_PACKAGES];
 
-    const orderPayload = {
-      idempotency_key: `order-${userId}-${packageType}-${Date.now()}`,
+    const payload = {
+      idempotency_key: `pl-${userId}-${packageType}-${Date.now()}`,
       order: {
         location_id: SQUARE_LOCATION_ID,
         reference_id: userId,
@@ -38,74 +39,36 @@ export async function POST(req: NextRequest) {
           },
         ],
       },
-    };
-
-    console.log('Creating order with payload:', JSON.stringify(orderPayload, null, 2));
-
-    const orderResp = await fetch('https://connect.squareup.com/v2/orders', {
-      method: 'POST',
-      headers: {
-        'Square-Version': '2024-01-18',
-        Authorization: `Bearer ${SQUARE_ACCESS_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(orderPayload),
-    });
-
-    const orderText = await orderResp.text();
-    console.log('Orders API response status:', orderResp.status);
-    console.log('Orders API response body:', orderText);
-
-    if (!orderResp.ok) {
-      return NextResponse.json({ error: 'Failed to create order', details: orderText }, { status: orderResp.status });
-    }
-
-    const orderData = JSON.parse(orderText);
-    const orderId = orderData.order.id;
-
-    console.log('Order created successfully, ID:', orderId);
-
-    const linkPayload = {
-      idempotency_key: `link-${orderId}-${Date.now()}`,
-      order: {
-        id: orderId,
-        location_id: SQUARE_LOCATION_ID,
-      },
       checkout_options: {
         redirect_url: 'https://getreadytopost.com/our-deals?purchase=success',
       },
     };
 
-    console.log('Creating payment link with payload:', JSON.stringify(linkPayload, null, 2));
-
-    const linkResp = await fetch('https://connect.squareup.com/v2/online-checkout/payment-links', {
+    const resp = await fetch('https://connect.squareup.com/v2/online-checkout/payment-links', {
       method: 'POST',
       headers: {
         'Square-Version': '2024-01-18',
         Authorization: `Bearer ${SQUARE_ACCESS_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(linkPayload),
+      body: JSON.stringify(payload),
     });
 
-    const linkText = await linkResp.text();
-    console.log('Payment Links API response status:', linkResp.status);
-    console.log('Payment Links API response body:', linkText);
+    const text = await resp.text();
 
-    if (!linkResp.ok) {
-      return NextResponse.json({ error: 'Failed to create payment link', details: linkText }, { status: linkResp.status });
+    if (!resp.ok) {
+      return NextResponse.json({ error: 'Failed to create payment link', details: text }, { status: resp.status });
     }
 
-    const linkData = JSON.parse(linkText);
-    const checkoutUrl = linkData.payment_link?.url;
+    const data = JSON.parse(text);
+    const checkoutUrl = data.payment_link?.url;
 
     if (!checkoutUrl) {
-      return NextResponse.json({ error: 'No checkout URL in response', details: JSON.stringify(linkData) }, { status: 500 });
+      return NextResponse.json({ error: 'No checkout URL in response', details: text }, { status: 500 });
     }
 
     return NextResponse.json({ checkout_url: checkoutUrl });
   } catch (e) {
-    console.error('Create checkout error:', e);
     return NextResponse.json({ error: 'Failed to create checkout', details: String(e) }, { status: 500 });
   }
 }
