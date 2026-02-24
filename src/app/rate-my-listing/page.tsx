@@ -63,7 +63,11 @@ export default function RateMyListingPage() {
         createdAt: new Date().toISOString(),
       });
       setSubmissionId(docRef.id);
-      setShowPayment(true);
+      if ((creditBalance ?? 0) > 0) {
+        await handleViewResults();
+      } else {
+        setShowPayment(true);
+      }
     } catch (error) {
       setError('Error saving submission. Please try again.');
       console.error(error);
