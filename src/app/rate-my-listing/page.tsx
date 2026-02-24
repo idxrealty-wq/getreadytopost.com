@@ -64,7 +64,7 @@ export default function RateMyListingPage() {
       });
       setSubmissionId(docRef.id);
       if ((creditBalance ?? 0) > 0) {
-        await handleViewResults();
+        setSubmissionId(docRef.id); await handleViewResults();
       } else {
         setShowPayment(true);
       }
