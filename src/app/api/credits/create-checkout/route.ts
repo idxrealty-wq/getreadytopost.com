@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
       idempotency_key: `link-${orderId}-${Date.now()}`,
       order: {
         id: orderId,
+        location_id: SQUARE_LOCATION_ID,
       },
       checkout_options: {
         redirect_url: 'https://getreadytopost.com/our-deals?purchase=success',
