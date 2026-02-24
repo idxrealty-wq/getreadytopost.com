@@ -1,24 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebaseAdmin';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.nextUrl.searchParams.get('userId');
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get('userId');
+
     if (!userId) {
-      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+      return NextResponse.json({ error: 'userId required' }, { status: 400 });
     }
 
     const adminDb = getAdminDb();
-    const balanceDoc = await adminDb.collection('users').doc(userId).collection('credits').doc('balance').get();
+    const userRef = adminDb.collection('users').doc(userId);
+    const userDoc = await userRef.get();
 
-    if (!balanceDoc.exists) {
+    if (!userDoc.exists) {
       return NextResponse.json({ balance: 0 });
     }
 
-    const balance = balanceDoc.data()?.balance || 0;
+    const data = userDoc.data();
+    const balance = data?.credits?.balance || 0;
+
     return NextResponse.json({ balance });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get balance error:', error);
-    return NextResponse.json({ error: 'Failed to fetch balance', details: String(error) }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to fetch balance' }, { status: 500 });
   }
 }
