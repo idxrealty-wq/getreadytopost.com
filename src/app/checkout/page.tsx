@@ -58,7 +58,7 @@ function CheckoutContent() {
         return;
       }
 
-      window.location.href = data.checkoutUrl;
+      window.location.href = data.checkout_url;
     } catch (err) {
       setError(String(err));
     } finally {
