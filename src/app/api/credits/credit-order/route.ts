@@ -1,18 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, doc, setDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-const db = getFirestore(app);
+import { getAdminDb } from '@/lib/firebaseAdmin';
+import { FieldValue } from 'firebase-admin/firestore';
 
 const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
 
@@ -29,7 +17,9 @@ export async function POST(req: NextRequest) {
     });
 
     const orderText = await orderResp.text();
-    if (!orderResp.ok) return NextResponse.json({ error: 'Failed to fetch order', details: orderText }, { status: 500 });
+    if (!orderResp.ok) {
+      return NextResponse.json({ error: 'Failed to fetch order', details: orderText }, { status: 500 });
+    }
 
     const orderData = JSON.parse(orderText);
     const userId = orderData.order?.reference_id;
@@ -45,20 +35,23 @@ export async function POST(req: NextRequest) {
     if (!userId) return NextResponse.json({ error: 'No userId on order.reference_id', details: orderData }, { status: 500 });
     if (!creditsToAdd) return NextResponse.json({ error: 'Could not determine credits from order', details: orderData }, { status: 500 });
 
-    const userCreditsRef = doc(db, 'users', userId, 'credits', 'balance');
-    await setDoc(userCreditsRef, { balance: increment(creditsToAdd) }, { merge: true });
+    const adminDb = getAdminDb();
 
-    const transactionsRef = collection(db, 'users', userId, 'transactions');
-    await addDoc(transactionsRef, {
+    const userCreditsRef = adminDb.collection('users').doc(userId).collection('credits').doc('balance');
+    await userCreditsRef.set({ balance: FieldValue.increment(creditsToAdd) }, { merge: true });
+
+    const transactionsRef = adminDb.collection('users').doc(userId).collection('transactions');
+    await transactionsRef.add({
       type: 'purchase',
       creditsAdded: creditsToAdd,
       orderId,
-      timestamp: serverTimestamp(),
+      timestamp: FieldValue.serverTimestamp(),
       source: 'manual-credit-order',
     });
 
     return NextResponse.json({ success: true, userId, creditsAdded: creditsToAdd });
   } catch (e) {
+    console.error('Credit order error:', e);
     return NextResponse.json({ error: 'Failed', details: String(e) }, { status: 500 });
   }
 }
