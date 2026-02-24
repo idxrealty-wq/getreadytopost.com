@@ -28,15 +28,17 @@ export default function RateMyListingPage() {
   const wordCount = listing.trim().split(/\s+/).filter(Boolean).length;
 
   useEffect(() => {
-    if (user) fetchCreditBalance();
+    if (user?.uid) {
+      fetchCreditBalance();
+    }
   }, [user?.uid]);
 
   const fetchCreditBalance = async () => {
-    if (!user) return;
+    if (!user?.uid) return;
     try {
       const res = await fetch(`/api/credits/balance?userId=${user.uid}`);
       const data = await res.json();
-      setCreditBalance(data.balance || 0);
+      setCreditBalance(data.balance ?? 0);
     } catch (err) {
       console.error("Failed to fetch credit balance:", err);
       setCreditBalance(0);
@@ -44,7 +46,7 @@ export default function RateMyListingPage() {
   };
 
   const deductAndProcess = async (listingId: string) => {
-    if (!user) return;
+    if (!user?.uid) return;
 
     const res = await fetch("/api/credits/deduct", {
       method: "POST",
@@ -63,7 +65,7 @@ export default function RateMyListingPage() {
   };
 
   const handlePrimaryAction = async () => {
-    if (!user) {
+    if (!user?.uid) {
       setError("Please sign in to submit a listing.");
       return;
     }
@@ -144,7 +146,7 @@ export default function RateMyListingPage() {
           <div className="flex flex-col md:flex-row gap-4 mb-8">
             <button
               onClick={handlePrimaryAction}
-              disabled={loading || !user}
+              disabled={loading || !user?.uid}
               className="flex-1 bg-[#c9a227] hover:bg-[#b8911f] disabled:opacity-50 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-xl"
             >
               {loading ? "Submitting..." : creditBalance && creditBalance > 0 ? `Use 1 Credit (${creditBalance} left)` : "Buy Credits & Analyze"}
