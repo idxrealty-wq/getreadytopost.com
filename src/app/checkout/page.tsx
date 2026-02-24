@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 
-const BG_URL =
-  "https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/e2af6091-9b63-4698-8f57-f02cfe21cfc7/image.png?w=1200&h=896";
+const BG_URL = "https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/e2af6091-9b63-4698-8f57-f02cfe21cfc7/image.png?w=1200&h=896";
 
 const packages = [
   { id: 'single', name: 'Single', credits: 1, price: 19.99, description: 'One listing analysis' },
@@ -15,10 +14,15 @@ const packages = [
   { id: 'annual', name: 'Annual', credits: 899, price: 799.99, description: 'Unlimited 12 months' },
 ];
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading: authLoading } = useUser();
-  const [selectedPackage, setSelectedPackage] = useState(packages[0]);
+  
+  const pkgParam = searchParams.get('pkg');
+  const initialPkg = packages.find(p => p.id === pkgParam) || packages[0];
+  
+  const [selectedPackage, setSelectedPackage] = useState(initialPkg);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -166,5 +170,13 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">Loading...</div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }
