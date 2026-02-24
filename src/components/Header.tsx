@@ -157,7 +157,7 @@ export default function Header() {
                 <div className="flex items-center gap-4">
                   {creditBalance !== null && (
                     <Link
-                      href="/buy-credits"
+                      href="/checkout"
                       className="bg-[#c9a227]/20 hover:bg-[#c9a227]/30 text-[#c9a227] px-4 py-2 rounded-lg font-bold text-sm transition border border-[#c9a227]/40"
                     >
                       💳 Credits: {creditBalance}
@@ -176,7 +176,7 @@ export default function Header() {
               ) : (
                 <>
                   <Link
-                    href="/buy-credits"
+                    href="/checkout"
                     className="text-gray-700 hover:text-[#c9a227] font-medium transition text-sm"
                   >
                     Buy Credits
@@ -267,7 +267,7 @@ export default function Header() {
                     <>
                       {creditBalance !== null && (
                         <Link
-                          href="/buy-credits"
+                          href="/checkout"
                           onClick={closeMobile}
                           className="block bg-[#c9a227]/20 hover:bg-[#c9a227]/30 text-[#c9a227] px-4 py-2 rounded-lg font-bold text-sm transition border border-[#c9a227]/40 text-center"
                         >
@@ -290,7 +290,7 @@ export default function Header() {
                   ) : (
                     <>
                       <Link
-                        href="/buy-credits"
+                        href="/checkout"
                         onClick={closeMobile}
                         className="block text-center text-gray-700 hover:text-[#c9a227] font-medium transition py-2"
                       >
