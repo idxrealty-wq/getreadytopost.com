@@ -1,7 +1,6 @@
 "use client";
-
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useUser } from "@/contexts/UserContext";
@@ -17,8 +16,25 @@ export default function Header() {
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const { user, profile, loading } = useUser();
+
+  useEffect(() => {
+    if (user) {
+      fetchCreditBalance();
+    }
+  }, [user]);
+
+  const fetchCreditBalance = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/credits/balance?userId=${user.uid}`);
+      const data = await res.json();
+      setCreditBalance(data.balance || 0);
+    } catch (err) {
+      console.error('Failed to fetch credit balance:', err);
+    }
+  };
 
   const getFirstName = () => {
     if (!profile?.fullName) return "";
@@ -134,11 +150,19 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Auth (desktop) */}
+          {/* Auth + Credits (desktop) */}
           <div className="hidden md:flex items-center gap-4">
             {!loading &&
               (user && profile ? (
                 <div className="flex items-center gap-4">
+                  {creditBalance !== null && (
+                    <Link
+                      href="/buy-credits"
+                      className="bg-[#c9a227]/20 hover:bg-[#c9a227]/30 text-[#c9a227] px-4 py-2 rounded-lg font-bold text-sm transition border border-[#c9a227]/40"
+                    >
+                      💳 Credits: {creditBalance}
+                    </Link>
+                  )}
                   <p className="text-sm font-bold text-gray-800">
                     Welcome, {getFirstName()}! 👋
                   </p>
@@ -151,6 +175,12 @@ export default function Header() {
                 </div>
               ) : (
                 <>
+                  <Link
+                    href="/buy-credits"
+                    className="text-gray-700 hover:text-[#c9a227] font-medium transition text-sm"
+                  >
+                    Buy Credits
+                  </Link>
                   <button
                     onClick={handleJoin}
                     className="text-gray-700 hover:text-[#c9a227] font-medium transition"
@@ -179,56 +209,15 @@ export default function Header() {
 
         {/* Mobile menu panel */}
         {mobileOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
-            <div className="px-6 py-4 space-y-2">
-              {/* Auth (mobile) */}
-              {!loading &&
-                (user && profile ? (
-                  <div className="flex items-center justify-between py-2">
-                    <div className="text-sm font-bold text-gray-800">
-                      Welcome, {getFirstName()}!
-                    </div>
-                    <button
-                      onClick={async () => {
-                        await handleSignOut();
-                        closeMobile();
-                      }}
-                      className="text-sm font-medium text-red-600"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex gap-3 py-2">
-                    <button
-                      onClick={() => {
-                        handleJoin();
-                        closeMobile();
-                      }}
-                      className="flex-1 border border-gray-300 text-gray-800 px-4 py-2 rounded-lg font-semibold"
-                    >
-                      Join
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleSignIn();
-                        closeMobile();
-                      }}
-                      className="flex-1 bg-[#c9a227] text-white px-4 py-2 rounded-lg font-semibold"
-                    >
-                      Sign In
-                    </button>
-                  </div>
-                ))}
-
-              {/* Nav (mobile) */}
+          <div className="md:hidden bg-white border-t border-gray-200 max-h-96 overflow-y-auto">
+            <div className="px-6 py-4 space-y-4">
               {navItems.map((item) => (
-                <div key={item.label} className="py-1">
+                <div key={item.label}>
                   {"href" in item ? (
                     <Link
                       href={item.href}
                       onClick={closeMobile}
-                      className="block py-2 font-medium text-gray-800"
+                      className="block text-gray-700 hover:text-[#c9a227] font-medium transition py-2"
                     >
                       {item.label}
                     </Link>
@@ -237,25 +226,29 @@ export default function Header() {
                       <button
                         type="button"
                         onClick={() =>
-                          setOpenDropdown((cur) =>
-                            cur === item.label ? null : item.label
+                          setOpenDropdown(
+                            openDropdown === item.label ? null : item.label
                           )
                         }
-                        className="w-full flex items-center justify-between py-2 font-medium text-gray-800"
+                        className="w-full text-left text-gray-700 hover:text-[#c9a227] font-medium transition py-2 flex items-center justify-between"
                       >
                         {item.label}
-                        <span className="text-xs">
-                          {openDropdown === item.label ? "▲" : "▼"}
+                        <span
+                          className={`text-xs transition ${
+                            openDropdown === item.label ? "rotate-180" : ""
+                          }`}
+                        >
+                          ▼
                         </span>
                       </button>
                       {openDropdown === item.label && (
-                        <div className="pl-4 pb-2">
+                        <div className="pl-4 space-y-2 border-l border-gray-200">
                           {item.dropdown.map((link) => (
                             <Link
                               key={link.href}
                               href={link.href}
                               onClick={closeMobile}
-                              className="block py-2 text-gray-700"
+                              className="block text-gray-600 hover:text-[#c9a227] transition py-1"
                             >
                               {link.label}
                             </Link>
@@ -266,18 +259,75 @@ export default function Header() {
                   )}
                 </div>
               ))}
+
+              {/* Mobile Auth + Credits */}
+              <div className="border-t border-gray-200 pt-4 space-y-3">
+                {!loading &&
+                  (user && profile ? (
+                    <>
+                      {creditBalance !== null && (
+                        <Link
+                          href="/buy-credits"
+                          onClick={closeMobile}
+                          className="block bg-[#c9a227]/20 hover:bg-[#c9a227]/30 text-[#c9a227] px-4 py-2 rounded-lg font-bold text-sm transition border border-[#c9a227]/40 text-center"
+                        >
+                          💳 Credits: {creditBalance}
+                        </Link>
+                      )}
+                      <p className="text-sm font-bold text-gray-800">
+                        Welcome, {getFirstName()}! 👋
+                      </p>
+                      <button
+                        onClick={() => {
+                          handleSignOut();
+                          closeMobile();
+                        }}
+                        className="w-full text-gray-700 hover:text-red-600 font-medium transition text-sm py-2"
+                      >
+                        Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/buy-credits"
+                        onClick={closeMobile}
+                        className="block text-center text-gray-700 hover:text-[#c9a227] font-medium transition py-2"
+                      >
+                        Buy Credits
+                      </Link>
+                      <button
+                        onClick={() => {
+                          handleJoin();
+                          closeMobile();
+                        }}
+                        className="w-full text-gray-700 hover:text-[#c9a227] font-medium transition py-2"
+                      >
+                        Join
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleSignIn();
+                          closeMobile();
+                        }}
+                        className="w-full bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-2 rounded-lg font-bold transition"
+                      >
+                        Sign In
+                      </button>
+                    </>
+                  ))}
+              </div>
             </div>
           </div>
         )}
       </header>
 
-      {showAuthModal && (
-        <AuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          onSuccess={() => setShowAuthModal(false)}
-        />
-      )}
+      <AuthModal
+        onSuccess={() => setShowAuthModal(false)}
+        isOpen={showAuthModal}
+        
+        onClose={() => setShowAuthModal(false)}
+      />
     </>
   );
 }
