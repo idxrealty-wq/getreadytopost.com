@@ -47,7 +47,11 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    const resp = await fetch('https://connect.squareup.com/v2/online-checkout/payment-links', {
+    const baseUrl =
+      process.env.SQUARE_ENV === 'sandbox'
+        ? 'https://connect.squareupsandbox.com'
+        : 'https://connect.squareup.com';
+    const resp = await fetch(`${baseUrl}/v2/online-checkout/payment-links`, {
       method: 'POST',
       headers: {
         'Square-Version': '2024-01-18',
