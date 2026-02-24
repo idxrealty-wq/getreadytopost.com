@@ -1,6 +1,6 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, setDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { NextRequest, NextResponse } from 'next/server';
+import { initializeApp, getApps } from 'firebase/app';
+import { getFirestore, doc, setDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,16 +11,15 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 
-// Map Square payment links to credit amounts
-const PAYMENT_LINK_MAP: Record<string, { credits: number; package: string }> = {
-  '22tY4Rla': { credits: 1, package: 'single' },
-  '15NaVu0p': { credits: 5, package: '5-pack' },
-  'PUNuh53u': { credits: 99, package: 'monthly' },
-  '8nf73LLz': { credits: 495, package: '6-month' },
-  'lgsIomQl': { credits: 899, package: 'annual' },
+const CREDIT_PACKAGES: Record<string, number> = {
+  'single': 1,
+  '5pack': 5,
+  'monthly': 99,
+  '6month': 495,
+  'annual': 899,
 };
 
 export async function POST(req: NextRequest) {
@@ -28,66 +27,76 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { type, data } = body;
 
-    // Only process payment.created events
     if (type !== 'payment.created') {
       return NextResponse.json({ received: true });
     }
 
     const payment = data.object.payment;
-    const { id: transactionId, amount_money, customer_id, receipt_url } = payment;
+    const { id: transactionId, order_id } = payment;
 
-    if (!transactionId || !customer_id) {
-      return NextResponse.json({ error: 'Missing transaction or customer ID' }, { status: 400 });
-    }
-
-    // Determine credits based on amount (in cents)
-    let creditsToAdd = 0;
-    let packageType = 'unknown';
-
-    // Match by amount (in cents)
-    const amountInCents = amount_money?.amount || 0;
-    if (amountInCents === 1999) {
-      creditsToAdd = 1;
-      packageType = 'single';
-    } else if (amountInCents === 8500) {
-      creditsToAdd = 5;
-      packageType = '5-pack';
-    } else if (amountInCents === 9900) {
-      creditsToAdd = 99;
-      packageType = 'monthly';
-    } else if (amountInCents === 49500) {
-      creditsToAdd = 495;
-      packageType = '6-month';
-    } else if (amountInCents === 89900) {
-      creditsToAdd = 899;
-      packageType = 'annual';
-    }
-
-    if (creditsToAdd === 0) {
-      console.warn(`Unknown payment amount: ${amountInCents}`);
+    if (!transactionId || !order_id) {
+      console.warn('Missing transaction or order ID');
       return NextResponse.json({ received: true });
     }
 
-    // Add credits to user (use customer_id as userId)
-    const userCreditsRef = doc(db, 'users', customer_id, 'credits', 'balance');
+    // Fetch order to get reference_id (userId)
+    const orderResponse = await fetch(`https://connect.squareup.com/v2/orders/${order_id}`, {
+      headers: {
+        'Square-Version': '2024-01-18',
+        'Authorization': `Bearer ${process.env.SQUARE_ACCESS_TOKEN}`,
+      },
+    });
+
+    if (!orderResponse.ok) {
+      console.error('Failed to fetch order from Square');
+      return NextResponse.json({ received: true });
+    }
+
+    const orderData = await orderResponse.json();
+    const userId = orderData.order.reference_id;
+
+    if (!userId) {
+      console.warn('No reference_id (userId) in order');
+      return NextResponse.json({ received: true });
+    }
+
+    // Determine credits from order line items
+    let creditsToAdd = 0;
+    if (orderData.order.line_items && orderData.order.line_items.length > 0) {
+      const lineItem = orderData.order.line_items[0];
+      const itemName = lineItem.name.toLowerCase();
+      
+      for (const [packageType, credits] of Object.entries(CREDIT_PACKAGES)) {
+        if (itemName.includes(packageType)) {
+          creditsToAdd = credits;
+          break;
+        }
+      }
+    }
+
+    if (creditsToAdd === 0) {
+      console.warn('Could not determine credits from order');
+      return NextResponse.json({ received: true });
+    }
+
+    // Add credits to user
+    const userCreditsRef = doc(db, 'users', userId, 'credits', 'balance');
     await setDoc(userCreditsRef, { balance: increment(creditsToAdd) }, { merge: true });
 
     // Log transaction
-    const transactionsRef = collection(db, 'users', customer_id, 'transactions');
+    const transactionsRef = collection(db, 'users', userId, 'transactions');
     await addDoc(transactionsRef, {
       type: 'purchase',
       creditsAdded: creditsToAdd,
-      packageType,
       transactionId,
-      receiptUrl: receipt_url,
-      amount: amountInCents,
+      orderId: order_id,
       timestamp: serverTimestamp(),
     });
 
-    console.log(`Added ${creditsToAdd} credits to user ${customer_id}`);
+    console.log(`Added ${creditsToAdd} credits to user ${userId}`);
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('Square webhook error:', error);
-    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
+    console.error('Webhook error:', error);
+    return NextResponse.json({ received: true });
   }
 }
