@@ -25,11 +25,11 @@ export async function POST(req: NextRequest) {
 
     const pkg = CREDIT_PACKAGES[packageType as keyof typeof CREDIT_PACKAGES];
 
-    // Step 1: Create an Order with reference_id = userId
     const orderPayload = {
       idempotency_key: `order-${userId}-${packageType}-${Date.now()}`,
       order: {
         location_id: SQUARE_LOCATION_ID,
+        reference_id: userId,
         line_items: [
           {
             name: `${packageType} Credits`,
@@ -37,7 +37,6 @@ export async function POST(req: NextRequest) {
             base_price_money: { amount: pkg.amount, currency: 'USD' },
           },
         ],
-        reference_id: userId,
       },
     };
 
@@ -60,10 +59,11 @@ export async function POST(req: NextRequest) {
     const orderData = await orderResp.json();
     const orderId = orderData.order.id;
 
-    // Step 2: Create a Payment Link from the Order
     const linkPayload = {
       idempotency_key: `link-${orderId}-${Date.now()}`,
-      order_id: orderId,
+      order: {
+        id: orderId,
+      },
       checkout_options: {
         redirect_url: 'https://getreadytopost.com/our-deals?purchase=success',
       },
