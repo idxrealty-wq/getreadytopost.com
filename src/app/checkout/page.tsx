@@ -46,7 +46,7 @@ function CheckoutContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          packageId: selectedPackage.id,
+          packageType: selectedPackage.id,
           email,
           userId: user?.uid,
         }),
