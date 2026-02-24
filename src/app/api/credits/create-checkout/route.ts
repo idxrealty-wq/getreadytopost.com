@@ -25,37 +25,47 @@ export async function POST(req: NextRequest) {
 
     const pkg = CREDIT_PACKAGES[packageType as keyof typeof CREDIT_PACKAGES];
 
-    const resp = await fetch('https://connect.squareup.com/v2/checkout', {
+    const paymentLinkPayload = {
+      idempotency_key: `${userId}-${packageType}-${Date.now()}`,
+      quick_pay: {
+        name: `${packageType} Credits`,
+        price_money: {
+          amount: pkg.amount,
+          currency: 'USD',
+        },
+        location_id: SQUARE_LOCATION_ID,
+        description: `Purchase ${pkg.credits} credits for GetReadyToPost`,
+      },
+      checkout_options: {
+        redirect_url: 'https://getreadytopost.com/our-deals?purchase=success',
+        ask_for_shipping_address: false,
+      },
+      order_id: undefined,
+    };
+
+    const resp = await fetch('https://connect.squareup.com/v2/online-checkout/payment-links', {
       method: 'POST',
       headers: {
         'Square-Version': '2024-01-18',
         Authorization: `Bearer ${SQUARE_ACCESS_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        idempotency_key: `${userId}-${packageType}-${Date.now()}`,
-        order: {
-          location_id: SQUARE_LOCATION_ID,
-          line_items: [
-            {
-              name: `${packageType} Credits`,
-              quantity: '1',
-              base_price_money: { amount: pkg.amount, currency: 'USD' },
-            },
-          ],
-          reference_id: userId,
-        },
-        redirect_url: 'https://getreadytopost.com/our-deals?purchase=success',
-      }),
+      body: JSON.stringify(paymentLinkPayload),
     });
 
     const data = await resp.json();
+
     if (!resp.ok) {
-      console.error('Square checkout error:', data);
-      return NextResponse.json({ error: 'Failed to create checkout', details: data }, { status: 500 });
+      console.error('Square error:', data);
+      return NextResponse.json({ error: 'Failed to create payment link', details: JSON.stringify(data) }, { status: resp.status });
     }
 
-    return NextResponse.json({ checkout_url: data.checkout?.checkout_page_url });
+    const checkoutUrl = data.payment_link?.url;
+    if (!checkoutUrl) {
+      return NextResponse.json({ error: 'No checkout URL in response', details: JSON.stringify(data) }, { status: 500 });
+    }
+
+    return NextResponse.json({ checkout_url: checkoutUrl });
   } catch (e) {
     console.error('Create checkout error:', e);
     return NextResponse.json({ error: 'Failed to create checkout', details: String(e) }, { status: 500 });
