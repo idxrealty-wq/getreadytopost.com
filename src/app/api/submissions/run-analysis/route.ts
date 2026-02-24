@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     const submissionRef = adminDb.collection('submissions').doc(submissionId);
     const submissionDoc = await submissionRef.get();
 
-    if (!submissionDoc.exists()) {
+    if (!submissionDoc.exists) {
       return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
     }
 
