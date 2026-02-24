@@ -53,40 +53,14 @@ export default function OurDealsPage() {
     },
   ];
 
-  const handleBuyNow = async (offerId: number, packageType: string) => {
-    if (!user) {
-      router.push('/');
-      return;
-    }
-
-    setLoading(offerId);
-
-    try {
-      const response = await fetch('/api/credits/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.uid,
-          packageType: packageType,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.checkout_url) {
-        alert('Failed to create checkout. Please try again.');
-        setLoading(null);
-        return;
-      }
-
-      window.location.href = data.checkout_url;
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert('An error occurred. Please try again.');
-      setLoading(null);
-    }
-  };
-
+  const handleBuyNow = (packageType: string) => {
+  if (!user) {
+    router.push('/');
+    return;
+  }
+ router.push(`/checkout?pkg=${packageType}`);
+};
+    
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] pt-32 pb-16">
       <div className="max-w-7xl mx-auto px-6">
@@ -115,7 +89,7 @@ export default function OurDealsPage() {
                 <div className="space-y-4">
                   <p className="text-[#c9a227] font-bold text-3xl text-center">{offer.price}</p>
                   <button
-                    onClick={() => handleBuyNow(offer.id, offer.packageType)}
+                    onClick={() => handleBuyNow(offer.packageType)}
                     disabled={loading === offer.id}
                     className="block w-full bg-[#c9a227] hover:bg-[#e8c547] disabled:bg-gray-500 text-[#1a2b4a] py-3 rounded-lg font-bold text-center transition shadow-lg"
                   >
