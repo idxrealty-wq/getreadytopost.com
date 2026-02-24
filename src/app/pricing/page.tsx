@@ -53,7 +53,7 @@ export default function PricingPage() {
 
       image: '/offers/single-rewrite-19.99.png',
 
-      link: 'https://square.link/u/22tY4Rla',
+      link: '/checkout?pkg=single',
 
       description:
 
@@ -73,7 +73,7 @@ export default function PricingPage() {
 
       image: '/offers/5-pack-rewrite.png',
 
-      link: 'https://square.link/u/15NaVu0p',
+      link: '/checkout?pkg=5pack',
 
       description:
 
@@ -93,7 +93,7 @@ export default function PricingPage() {
 
       image: '/offers/agent-vault-pro-monthly.png',
 
-      link: 'https://square.link/u/PUNuh53u',
+      link: '/checkout?pkg=monthly',
 
       description:
 
@@ -113,7 +113,7 @@ export default function PricingPage() {
 
       image: '/offers/agent-vault-pro-6-month.png',
 
-      link: 'https://square.link/u/8nf73LLz',
+      link: '/checkout?pkg=6month',
 
       description:
 
@@ -133,7 +133,7 @@ export default function PricingPage() {
 
       image: '/offers/agent-vault-pro-annual.png',
 
-      link: 'https://square.link/u/lgsIomQl',
+      link: '/checkout?pkg=annual',
 
       description:
 
@@ -171,7 +171,7 @@ export default function PricingPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
 
-          <a href="https://square.link/u/22tY4Rla" target="_blank" rel="noopener noreferrer">
+          <a href="/checkout?pkg=single" target="_blank" rel="noopener noreferrer">
 
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition cursor-pointer">
 
@@ -193,7 +193,7 @@ export default function PricingPage() {
 
           </a>
 
-          <a href="https://square.link/u/22tY4Rla" target="_blank" rel="noopener noreferrer">
+          <a href="/checkout?pkg=single" target="_blank" rel="noopener noreferrer">
 
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition cursor-pointer">
 

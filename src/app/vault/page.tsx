@@ -130,7 +130,7 @@ export default function VaultPage() {
                 <p className="text-gray-300 text-sm mb-1">Credit Balance</p>
                 <div className="flex items-center justify-between gap-4">
                   <p className="text-3xl font-bold text-[#c9a227]">{creditBalance}</p>
-                  <Link href="/buy-credits" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-4 py-2 rounded-lg font-bold text-sm transition">
+                  <Link href="/checkout" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-4 py-2 rounded-lg font-bold text-sm transition">
                     Buy More
                   </Link>
                 </div>

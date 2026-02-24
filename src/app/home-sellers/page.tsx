@@ -96,7 +96,7 @@ export default function HomeSellersPage() {
             <p className="text-5xl font-bold text-[#c9a227] mb-6">$19.99</p>
             <p className="text-gray-300 mb-8">One-time payment. Instant results. No subscription.</p>
             <a
-              href="https://square.link/u/22tY4Rla"
+              href="/checkout?pkg=single"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-12 py-4 rounded-lg font-bold text-lg transition shadow-lg"

@@ -118,7 +118,7 @@ export default function AgentVaultPage() {
   };
 
   const handlePaymentClick = () => {
-    window.open('https://square.link/u/22tY4Rla', '_blank');
+    window.open('/checkout?pkg=single', '_blank');
   };
 
   const readyFiles = files.filter(f => f.status === 'ready');

@@ -77,7 +77,7 @@ export default function RateMyListingPage() {
   };
 
   const handlePaymentClick = () => {
-    window.open('https://square.link/u/22tY4Rla', '_blank');
+    window.open('/checkout?pkg=single', '_blank');
   };
 
   const handleViewResults = async () => {
