@@ -14,46 +14,46 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 
-const CREDIT_PACKAGES: Record<string, number> = {
-  'single': 1,
-  '5pack': 5,
-  'monthly': 99,
-  '6month': 495,
-  'annual': 899,
-};
+const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { type, data } = body;
 
+    console.log('Webhook received:', type);
+
     if (type !== 'payment.created') {
       return NextResponse.json({ received: true });
     }
 
     const payment = data.object.payment;
-    const { id: transactionId, order_id } = payment;
+    const { id: paymentId, order_id } = payment;
 
-    if (!transactionId || !order_id) {
-      console.warn('Missing transaction or order ID');
+    console.log('Payment ID:', paymentId, 'Order ID:', order_id);
+
+    if (!paymentId || !order_id) {
+      console.warn('Missing payment or order ID');
       return NextResponse.json({ received: true });
     }
 
-    // Fetch order to get reference_id (userId)
-    const orderResponse = await fetch(`https://connect.squareup.com/v2/orders/${order_id}`, {
+    // Fetch the order to get reference_id (userId)
+    const orderResp = await fetch(`https://connect.squareup.com/v2/orders/${order_id}`, {
       headers: {
         'Square-Version': '2024-01-18',
-        'Authorization': `Bearer ${process.env.SQUARE_ACCESS_TOKEN}`,
+        Authorization: `Bearer ${SQUARE_ACCESS_TOKEN}`,
       },
     });
 
-    if (!orderResponse.ok) {
+    if (!orderResp.ok) {
       console.error('Failed to fetch order from Square');
       return NextResponse.json({ received: true });
     }
 
-    const orderData = await orderResponse.json();
+    const orderData = await orderResp.json();
     const userId = orderData.order.reference_id;
+
+    console.log('User ID from order:', userId);
 
     if (!userId) {
       console.warn('No reference_id (userId) in order');
@@ -65,14 +65,17 @@ export async function POST(req: NextRequest) {
     if (orderData.order.line_items && orderData.order.line_items.length > 0) {
       const lineItem = orderData.order.line_items[0];
       const itemName = lineItem.name.toLowerCase();
-      
-      for (const [packageType, credits] of Object.entries(CREDIT_PACKAGES)) {
-        if (itemName.includes(packageType)) {
-          creditsToAdd = credits;
-          break;
-        }
-      }
+
+      // Map item names to credits
+      if (itemName.includes('test')) creditsToAdd = 1;
+      else if (itemName.includes('single')) creditsToAdd = 1;
+      else if (itemName.includes('5pack')) creditsToAdd = 5;
+      else if (itemName.includes('monthly')) creditsToAdd = 99;
+      else if (itemName.includes('6month')) creditsToAdd = 495;
+      else if (itemName.includes('annual')) creditsToAdd = 899;
     }
+
+    console.log('Credits to add:', creditsToAdd);
 
     if (creditsToAdd === 0) {
       console.warn('Could not determine credits from order');
@@ -88,12 +91,12 @@ export async function POST(req: NextRequest) {
     await addDoc(transactionsRef, {
       type: 'purchase',
       creditsAdded: creditsToAdd,
-      transactionId,
+      paymentId,
       orderId: order_id,
       timestamp: serverTimestamp(),
     });
 
-    console.log(`Added ${creditsToAdd} credits to user ${userId}`);
+    console.log(`Successfully added ${creditsToAdd} credits to user ${userId}`);
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('Webhook error:', error);
