@@ -12,7 +12,7 @@ export default function OurDealsPage() {
       name: 'Single Rewrite',
       price: '$19.99',
       image: '/offers/single-rewrite-19.99.png',
-      link: 'https://square.link/u/22tY4Rla',
+      link: '/checkout?pkg=single',
       description: 'Test drive professional copy. One listing, instant results. See what better looks like.',
     },
     {
@@ -20,7 +20,7 @@ export default function OurDealsPage() {
       name: '5 Listing Rewrite Pack',
       price: '$85',
       image: '/offers/5-pack-rewrite.png',
-      link: 'https://square.link/u/15NaVu0p',
+      link: '/checkout?pkg=5pack',
       description: 'Upgrade your whole portfolio. Five rewrites at $17 each. Save $17.95 vs. single pricing.',
     },
     {
@@ -28,7 +28,7 @@ export default function OurDealsPage() {
       name: 'Agent Vault Pro - Monthly',
       price: '$99',
       image: '/offers/agent-vault-pro-monthly.png',
-      link: 'https://square.link/u/PUNuh53u',
+      link: '/checkout?pkg=monthly',
       description: 'Try the full workspace risk-free. One month to grade, rewrite, and organize every listing.',
     },
     {
@@ -36,7 +36,7 @@ export default function OurDealsPage() {
       name: 'Agent Vault Pro - 6 Months',
       price: '$495',
       image: '/offers/agent-vault-pro-6-month.png',
-      link: 'https://square.link/u/8nf73LLz',
+      link: '/checkout?pkg=6month',
       description: 'Serious agents go 6 months. Save $99 vs. monthly. Build a vault of polished listings.',
     },
     {
@@ -44,7 +44,7 @@ export default function OurDealsPage() {
       name: 'Agent Vault Pro - Annual',
       price: '$899',
       image: '/offers/agent-vault-pro-annual.png',
-      link: 'https://square.link/u/lgsIomQl',
+      link: '/checkout?pkg=annual',
       description: 'The best value. Full year of workspace access. That\'s $75/month. Professional copy, every listing.',
     },
   ];

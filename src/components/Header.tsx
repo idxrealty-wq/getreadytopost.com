@@ -5,30 +5,105 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useUser } from "@/contexts/UserContext";
 import AuthModal from "./AuthModal";
-import CompleteProfileModal from "./CompleteProfileModal";
+
+type NavLink = { label: string; href: string };
+type NavItemWithHref = { label: string; href: string };
+type NavItemWithDropdown = { label: string; dropdown: NavLink[] };
+type NavItem = NavItemWithHref | NavItemWithDropdown;
 
 export default function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showCompleteProfile, setShowCompleteProfile] = useState(false);
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const { user, profile, loading } = useUser();
 
   useEffect(() => {
-    // Check if user is signed in but profile is incomplete
-    if (!loading && user && profile) {
-      const isIncomplete = !profile.company || !profile.fullName;
-      setShowCompleteProfile(isIncomplete);
+    if (user) {
+      fetchCreditBalance();
     }
-  }, [user, profile, loading]);
+  }, [user]);
+
+  const fetchCreditBalance = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/credits/balance?userId=${user.uid}`);
+      const data = await res.json();
+      setCreditBalance(data.balance || 0);
+    } catch (err) {
+      console.error('Failed to fetch credit balance:', err);
+    }
+  };
+
+  const getFirstName = () => {
+    if (!profile?.fullName) return "";
+    return profile.fullName.split(" ")[0];
+  };
+
+  const handleJoin = () => {
+    setAuthMode("signup");
+    setShowAuthModal(true);
+  };
+
+  const handleSignIn = () => {
+    setAuthMode("signin");
+    setShowAuthModal(true);
+  };
 
   const handleSignOut = async () => {
     await signOut(auth);
   };
 
-  const getFirstName = () => {
-    if (!profile?.fullName) return '';
-    return profile.fullName.split(' ')[0];
+  const closeMobile = () => {
+    setMobileOpen(false);
+    setOpenDropdown(null);
   };
+
+  const navItems: NavItem[] = [
+    { label: "Home", href: "/" },
+    {
+      label: "Product",
+      dropdown: [
+        { label: "Why Our AI", href: "/ai-advantage" },
+        { label: "How It Works", href: "/how-it-works" },
+        { label: "Pricing", href: "/pricing" },
+        { label: "Our Deals", href: "/our-deals" },
+        { label: "Examples", href: "/examples" },
+      ],
+    },
+    {
+      label: "For Home Sellers",
+      dropdown: [
+        { label: "Home Sellers", href: "/home-sellers" },
+        { label: "Grade My Listing", href: "/rate-my-listing" },
+        { label: "FAQ", href: "/faq" },
+        { label: "FSBO", href: "/fsbo" },
+        { label: "Get Why Copy Matters", href: "/get-why-copy-matters" },
+      ],
+    },
+    {
+      label: "For Agents",
+      dropdown: [
+        { label: "Workspace", href: "/workspace" },
+        { label: "Agent Vault", href: "/agent-vault" },
+        { label: "Rate Listing", href: "/rate-my-listing" },
+        { label: "Our Deals", href: "/our-deals" },
+        { label: "Brokers", href: "/brokers" },
+        { label: "Broker Contact Us", href: "/contact-broker" },
+      ],
+    },
+    {
+      label: "Resources",
+      dropdown: [
+        { label: "FAQ", href: "/faq" },
+        { label: "Feedback", href: "/feedback" },
+        { label: "Our Deals", href: "/our-deals" },
+        { label: "Privacy", href: "/privacy" },
+        { label: "Terms", href: "/terms" },
+      ],
+    },
+  ];
 
   return (
     <>
@@ -38,39 +113,59 @@ export default function Header() {
             GetReadyToPost
           </Link>
 
+          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-              Home
-            </Link>
-            <Link href="/ai-advantage" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-              Why Our AI
-            </Link>
-            <Link href="/workspace" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-              Agent Workspace
-            </Link>
-            {user && (
-              <Link href="/vault" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-                Agent Vault
-              </Link>
-            )}
-            <Link href="/faq" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-              FAQ
-            </Link>
-            <Link href="/how-it-works" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-              How It Works
-            </Link>
+            {navItems.map((item) => (
+              <div key={item.label} className="relative group">
+                {"href" in item ? (
+                  <Link
+                    href={item.href}
+                    className="text-gray-700 hover:text-[#c9a227] font-medium transition"
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="text-gray-700 hover:text-[#c9a227] font-medium transition flex items-center gap-2"
+                    >
+                      {item.label}
+                      <span className="text-xs">▼</span>
+                    </button>
+                    <div className="absolute left-0 mt-2 w-60 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 py-2 z-50">
+                      {item.dropdown.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          className="block px-4 py-2 text-gray-700 hover:bg-[#f5f5f5] hover:text-[#c9a227] transition"
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </nav>
 
-            {!loading && (
-              user && profile ? (
+          {/* Auth + Credits (desktop) */}
+          <div className="hidden md:flex items-center gap-4">
+            {!loading &&
+              (user && profile ? (
                 <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-gray-800">
-                      Welcome back, {getFirstName()}! 👋
-                    </p>
-                    {profile.company && (
-                      <p className="text-xs text-gray-600">{profile.company}</p>
-                    )}
-                  </div>
+                  {creditBalance !== null && (
+                    <Link
+                      href="/checkout"
+                      className="bg-[#c9a227]/20 hover:bg-[#c9a227]/30 text-[#c9a227] px-4 py-2 rounded-lg font-bold text-sm transition border border-[#c9a227]/40"
+                    >
+                      💳 Credits: {creditBalance}
+                    </Link>
+                  )}
+                  <p className="text-sm font-bold text-gray-800">
+                    Welcome, {getFirstName()}! 👋
+                  </p>
                   <button
                     onClick={handleSignOut}
                     className="text-gray-700 hover:text-red-600 font-medium transition text-sm"
@@ -79,95 +174,160 @@ export default function Header() {
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-2 rounded-lg font-bold transition"
-                >
-                  Sign In
-                </button>
-              )
-            )}
-          </nav>
+                <>
+                  <Link
+                    href="/checkout"
+                    className="text-gray-700 hover:text-[#c9a227] font-medium transition text-sm"
+                  >
+                    Buy Credits
+                  </Link>
+                  <button
+                    onClick={handleJoin}
+                    className="text-gray-700 hover:text-[#c9a227] font-medium transition"
+                  >
+                    Join
+                  </button>
+                  <button
+                    onClick={handleSignIn}
+                    className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-2 rounded-lg font-bold transition"
+                  >
+                    Sign In
+                  </button>
+                </>
+              ))}
+          </div>
 
+          {/* Mobile menu button */}
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden text-gray-700 text-2xl"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Open menu"
           >
             ☰
           </button>
         </div>
 
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200">
-            <nav className="flex flex-col p-6 gap-4">
-              <Link href="/" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-                Home
-              </Link>
-              <Link href="/ai-advantage" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-                Why Our AI
-              </Link>
-              <Link href="/workspace" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-                Agent Workspace
-              </Link>
-              {user && (
-                <Link href="/vault" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-                  Agent Vault
-                </Link>
-              )}
-              <Link href="/faq" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-                FAQ
-              </Link>
-              <Link href="/how-it-works" className="text-gray-700 hover:text-[#c9a227] font-medium transition">
-                How It Works
-              </Link>
+        {/* Mobile menu panel */}
+        {mobileOpen && (
+          <div className="md:hidden bg-white border-t border-gray-200 max-h-96 overflow-y-auto">
+            <div className="px-6 py-4 space-y-4">
+              {navItems.map((item) => (
+                <div key={item.label}>
+                  {"href" in item ? (
+                    <Link
+                      href={item.href}
+                      onClick={closeMobile}
+                      className="block text-gray-700 hover:text-[#c9a227] font-medium transition py-2"
+                    >
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenDropdown(
+                            openDropdown === item.label ? null : item.label
+                          )
+                        }
+                        className="w-full text-left text-gray-700 hover:text-[#c9a227] font-medium transition py-2 flex items-center justify-between"
+                      >
+                        {item.label}
+                        <span
+                          className={`text-xs transition ${
+                            openDropdown === item.label ? "rotate-180" : ""
+                          }`}
+                        >
+                          ▼
+                        </span>
+                      </button>
+                      {openDropdown === item.label && (
+                        <div className="pl-4 space-y-2 border-l border-gray-200">
+                          {item.dropdown.map((link) => (
+                            <Link
+                              key={link.href}
+                              href={link.href}
+                              onClick={closeMobile}
+                              className="block text-gray-600 hover:text-[#c9a227] transition py-1"
+                            >
+                              {link.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              ))}
 
-              {!loading && (
-                user && profile ? (
-                  <>
-                    <div className="border-t pt-4">
+              {/* Mobile Auth + Credits */}
+              <div className="border-t border-gray-200 pt-4 space-y-3">
+                {!loading &&
+                  (user && profile ? (
+                    <>
+                      {creditBalance !== null && (
+                        <Link
+                          href="/checkout"
+                          onClick={closeMobile}
+                          className="block bg-[#c9a227]/20 hover:bg-[#c9a227]/30 text-[#c9a227] px-4 py-2 rounded-lg font-bold text-sm transition border border-[#c9a227]/40 text-center"
+                        >
+                          💳 Credits: {creditBalance}
+                        </Link>
+                      )}
                       <p className="text-sm font-bold text-gray-800">
                         Welcome, {getFirstName()}! 👋
                       </p>
-                      {profile.company && (
-                        <p className="text-xs text-gray-600 mt-1">{profile.company}</p>
-                      )}
-                    </div>
-                    <button
-                      onClick={handleSignOut}
-                      className="text-left text-gray-700 hover:text-red-600 font-medium transition"
-                    >
-                      Sign Out
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setShowAuthModal(true)}
-                    className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-2 rounded-lg font-bold transition text-center"
-                  >
-                    Sign In
-                  </button>
-                )
-              )}
-            </nav>
+                      <button
+                        onClick={() => {
+                          handleSignOut();
+                          closeMobile();
+                        }}
+                        className="w-full text-gray-700 hover:text-red-600 font-medium transition text-sm py-2"
+                      >
+                        Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/checkout"
+                        onClick={closeMobile}
+                        className="block text-center text-gray-700 hover:text-[#c9a227] font-medium transition py-2"
+                      >
+                        Buy Credits
+                      </Link>
+                      <button
+                        onClick={() => {
+                          handleJoin();
+                          closeMobile();
+                        }}
+                        className="w-full text-gray-700 hover:text-[#c9a227] font-medium transition py-2"
+                      >
+                        Join
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleSignIn();
+                          closeMobile();
+                        }}
+                        className="w-full bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-2 rounded-lg font-bold transition"
+                      >
+                        Sign In
+                      </button>
+                    </>
+                  ))}
+              </div>
+            </div>
           </div>
         )}
       </header>
 
       <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
         onSuccess={() => setShowAuthModal(false)}
+        isOpen={showAuthModal}
+        
+        onClose={() => setShowAuthModal(false)}
       />
-
-      {user && profile && (
-        <CompleteProfileModal
-          isOpen={showCompleteProfile}
-          onClose={() => setShowCompleteProfile(false)}
-          userId={user.uid}
-          currentName={profile.fullName || user.displayName || ''}
-          currentEmail={profile.email}
-        />
-      )}
     </>
   );
 }

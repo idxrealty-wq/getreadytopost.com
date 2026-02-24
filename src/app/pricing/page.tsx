@@ -1,115 +1,327 @@
+
+import Image from 'next/image';
+
 import Link from 'next/link';
 
+export const metadata = {
+
+  title: 'Pricing | GetReadyToPost',
+
+  description:
+
+    'Simple pricing for listing analysis, professional rewrites, and Agent Vault Pro plans. Home sellers, FSBO, and agents.',
+
+  openGraph: {
+
+    title: 'Pricing | GetReadyToPost',
+
+    description:
+
+      'Simple pricing for listing analysis, professional rewrites, and Agent Vault Pro plans. Home sellers, FSBO, and agents.',
+
+    url: 'https://getreadytopost.com/pricing',
+
+    type: 'website',
+
+  },
+
+  twitter: {
+
+    card: 'summary_large_image',
+
+    title: 'Pricing | GetReadyToPost',
+
+    description:
+
+      'Simple pricing for listing analysis, professional rewrites, and Agent Vault Pro plans. Home sellers, FSBO, and agents.',
+
+  },
+
+};
+
 export default function PricingPage() {
+
+  const offers = [
+
+    {
+
+      id: 1,
+
+      name: 'Single Rewrite',
+
+      price: '$19.99',
+
+      image: '/offers/single-rewrite-19.99.png',
+
+      link: '/checkout?pkg=single',
+
+      description:
+
+        'Perfect for home sellers and FSBO listings. One listing, instant grade + rewrite + recommendations.',
+
+      badge: 'MOST POPULAR',
+
+    },
+
+    {
+
+      id: 2,
+
+      name: '5 Listing Rewrite Pack',
+
+      price: '$85',
+
+      image: '/offers/5-pack-rewrite.png',
+
+      link: '/checkout?pkg=5pack',
+
+      description:
+
+        'Best for agents with multiple active listings. Five rewrites at $17 each. Save $17.95 vs. single pricing.',
+
+      badge: 'BEST VALUE',
+
+    },
+
+    {
+
+      id: 3,
+
+      name: 'Agent Vault Pro - Monthly',
+
+      price: '$99',
+
+      image: '/offers/agent-vault-pro-monthly.png',
+
+      link: '/checkout?pkg=monthly',
+
+      description:
+
+        'Full workspace access. Grade, rewrite, and organize listings. Cancel anytime.',
+
+      badge: null,
+
+    },
+
+    {
+
+      id: 4,
+
+      name: 'Agent Vault Pro - 6 Months',
+
+      price: '$495',
+
+      image: '/offers/agent-vault-pro-6-month.png',
+
+      link: '/checkout?pkg=6month',
+
+      description:
+
+        'Save $99 vs. monthly. Build a vault of polished listings and repeatable templates.',
+
+      badge: null,
+
+    },
+
+    {
+
+      id: 5,
+
+      name: 'Agent Vault Pro - Annual',
+
+      price: '$899',
+
+      image: '/offers/agent-vault-pro-annual.png',
+
+      link: '/checkout?pkg=annual',
+
+      description:
+
+        "Best long-term value. That's $75/month for full workspace access all year.",
+
+      badge: null,
+
+    },
+
+  ];
+
   return (
-    <main>
-      <section className="bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] text-white py-16 pt-32">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Simple, Transparent Pricing</h1>
-          <p className="text-xl text-gray-300">One flat rate. Any listing length. Instant results.</p>
+
+    <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] pt-32 pb-16">
+
+      <div className="max-w-7xl mx-auto px-6">
+
+        <div className="text-center mb-10">
+
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+
+            Pricing
+
+          </h1>
+
+          <p className="text-xl text-gray-300">
+
+            One-time rewrites or full Agent Vault Pro access — choose what fits.
+
+          </p>
+
         </div>
-      </section>
 
-      <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="max-w-lg mx-auto bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] rounded-2xl p-10 text-white text-center shadow-2xl mb-12">
-            <div className="bg-[#c9a227] text-white text-sm font-bold px-4 py-1 rounded-full inline-block mb-6">INSTANT DELIVERY</div>
-            <p className="text-7xl font-bold text-[#c9a227] mb-4">$19.99</p>
-            <p className="text-2xl mb-8">Per Listing Analysis</p>
-            <ul className="text-left space-y-4 mb-10">
-              <li className="flex items-start gap-3">
-                <span className="text-[#c9a227] text-xl">✓</span>
-                <span className="text-lg">Instant AI-powered analysis & grade</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-[#c9a227] text-xl">✓</span>
-                <span className="text-lg">Professional MLS-ready rewrite</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-[#c9a227] text-xl">✓</span>
-                <span className="text-lg">Full report with visual scoring</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-[#c9a227] text-xl">✓</span>
-                <span className="text-lg">Safe Paste & Pretty versions included</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-[#c9a227] text-xl">✓</span>
-                <span className="text-lg">Delivered instantly to your email</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-[#c9a227] text-xl">✓</span>
-                <span className="text-lg">Works for ANY word count</span>
-              </li>
-            </ul>
-            <Link href="/rate-my-listing" className="block bg-[#c9a227] hover:bg-[#e8c547] text-white py-4 rounded-xl font-bold text-xl transition">Get Started Now</Link>
-          </div>
+        {/* Audience callouts with links */}
 
-          <div className="bg-[#faf8f5] rounded-xl p-8 mb-12">
-            <h2 className="text-2xl font-bold text-[#1a2b4a] mb-6 text-center">How It Works</h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-[#c9a227] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">1</div>
-                <h3 className="font-bold text-[#1a2b4a] mb-2">Submit Your Listing</h3>
-                <p className="text-gray-600 text-sm">Paste your current listing description into the Rate My Listing tool</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-[#c9a227] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">2</div>
-                <h3 className="font-bold text-[#1a2b4a] mb-2">Pay $19.99</h3>
-                <p className="text-gray-600 text-sm">One-time payment. Secure checkout. No subscriptions.</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-[#c9a227] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">3</div>
-                <h3 className="font-bold text-[#1a2b4a] mb-2">Get Your Report</h3>
-                <p className="text-gray-600 text-sm">Instant email delivery with grade, rewrite, and recommendations</p>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+
+          <a href="/checkout?pkg=single" target="_blank" rel="noopener noreferrer">
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition cursor-pointer">
+
+              <h2 className="text-2xl font-bold text-white mb-3">Home Sellers</h2>
+
+              <p className="text-gray-300">
+
+                Want to know if your listing is helping or hurting you? The{' '}
+
+                <span className="font-bold text-[#c9a227]">$19.99 Single Rewrite</span>{' '}
+
+                gives you an instant grade + a clean, MLS-ready rewrite.
+
+              </p>
+
+              <p className="text-[#c9a227] font-semibold mt-4">Learn more →</p>
+
             </div>
-          </div>
 
-          <div className="bg-white border-2 border-[#c9a227] rounded-xl p-8">
-            <h2 className="text-2xl font-bold text-[#1a2b4a] mb-4 text-center">Why One Flat Rate?</h2>
-            <p className="text-gray-600 text-center mb-6 max-w-2xl mx-auto">We believe great listing copy should be accessible to every agent, regardless of listing length. Whether you have 50 words or 500, you get the same quality analysis and rewrite.</p>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="flex items-start gap-3">
-                <span className="text-[#c9a227] text-2xl">💰</span>
-                <div>
-                  <h3 className="font-bold text-[#1a2b4a] mb-1">No Hidden Fees</h3>
-                  <p className="text-gray-600 text-sm">What you see is what you pay. No surprises.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-[#c9a227] text-2xl">⚡</span>
-                <div>
-                  <h3 className="font-bold text-[#1a2b4a] mb-1">Instant Results</h3>
-                  <p className="text-gray-600 text-sm">No waiting. Your report arrives in seconds.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-[#c9a227] text-2xl">🎯</span>
-                <div>
-                  <h3 className="font-bold text-[#1a2b4a] mb-1">Fair for Everyone</h3>
-                  <p className="text-gray-600 text-sm">Same price whether you're listing a condo or an estate.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-[#c9a227] text-2xl">🚀</span>
-                <div>
-                  <h3 className="font-bold text-[#1a2b4a] mb-1">Fully Automated</h3>
-                  <p className="text-gray-600 text-sm">AI-powered system delivers professional results instantly.</p>
-                </div>
-              </div>
+          </a>
+
+          <a href="/checkout?pkg=single" target="_blank" rel="noopener noreferrer">
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition cursor-pointer">
+
+              <h2 className="text-2xl font-bold text-white mb-3">FSBO</h2>
+
+              <p className="text-gray-300">
+
+                Selling on your own? Use the{' '}
+
+                <span className="font-bold text-[#c9a227]">$19.99 Single Rewrite</span>{' '}
+
+                to tighten your description, avoid risky language, and get more showings.
+
+              </p>
+
+              <p className="text-[#c9a227] font-semibold mt-4">Learn more →</p>
+
             </div>
-          </div>
-        </div>
-      </section>
 
-      <section className="py-16 bg-[#1a2b4a] text-white text-center">
-        <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-4">Ready to Upgrade Your Listings?</h2>
-          <p className="text-gray-300 mb-8">Get instant analysis and professional rewrites for just $19.99</p>
-          <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Try Rate My Listing</Link>
+          </a>
+
         </div>
-      </section>
+
+        {/* Offers grid */}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+
+          {offers.map((offer) => (
+
+            <div
+
+              key={offer.id}
+
+              className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden hover:border-[#c9a227]/50 transition flex flex-col"
+
+            >
+
+              <div className="relative w-full h-64 bg-white/5 border-b border-white/10">
+
+                <Image
+
+                  src={offer.image}
+
+                  alt={offer.name}
+
+                  fill
+
+                  className="object-contain p-4"
+
+                  priority
+
+                />
+
+                {offer.badge && (
+
+                  <div className="absolute top-3 left-3 bg-[#c9a227] text-[#1a2b4a] text-xs font-extrabold px-3 py-1 rounded-full shadow">
+
+                    {offer.badge}
+
+                  </div>
+
+                )}
+
+              </div>
+
+              <div className="flex flex-col flex-grow p-6">
+
+                <h3 className="text-white font-bold text-lg mb-2">{offer.name}</h3>
+
+                <p className="text-gray-300 text-sm mb-6 flex-grow">
+
+                  {offer.description}
+
+                </p>
+
+                <div className="space-y-4">
+
+                  <p className="text-[#c9a227] font-bold text-3xl text-center">
+
+                    {offer.price}
+
+                  </p>
+
+                  <a
+
+                    href={offer.link}
+
+                    target="_blank"
+
+                    rel="noopener noreferrer"
+
+                    className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] py-3 rounded-lg font-bold text-center transition shadow-lg"
+
+                  >
+
+                    Buy Now
+
+                  </a>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          ))}
+
+        </div>
+
+        {/* Note */}
+
+        <div className="max-w-3xl mx-auto mt-12 text-center">
+
+          <p className="text-gray-300">
+
+            All rewrites are designed to be MLS-friendly and Fair Housing aware.
+
+            Need broker/team pricing? Use the Contact Broker page.
+
+          </p>
+
+        </div>
+
+      </div>
+
     </main>
+
   );
+
 }
+
