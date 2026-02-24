@@ -40,6 +40,8 @@ export async function POST(req: NextRequest) {
       },
     };
 
+    console.log('Creating order with payload:', JSON.stringify(orderPayload, null, 2));
+
     const orderResp = await fetch('https://connect.squareup.com/v2/orders', {
       method: 'POST',
       headers: {
@@ -50,14 +52,18 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(orderPayload),
     });
 
+    const orderText = await orderResp.text();
+    console.log('Orders API response status:', orderResp.status);
+    console.log('Orders API response body:', orderText);
+
     if (!orderResp.ok) {
-      const error = await orderResp.text();
-      console.error('Square Orders error:', error);
-      return NextResponse.json({ error: 'Failed to create order', details: error }, { status: orderResp.status });
+      return NextResponse.json({ error: 'Failed to create order', details: orderText }, { status: orderResp.status });
     }
 
-    const orderData = await orderResp.json();
+    const orderData = JSON.parse(orderText);
     const orderId = orderData.order.id;
+
+    console.log('Order created successfully, ID:', orderId);
 
     const linkPayload = {
       idempotency_key: `link-${orderId}-${Date.now()}`,
@@ -69,6 +75,8 @@ export async function POST(req: NextRequest) {
       },
     };
 
+    console.log('Creating payment link with payload:', JSON.stringify(linkPayload, null, 2));
+
     const linkResp = await fetch('https://connect.squareup.com/v2/online-checkout/payment-links', {
       method: 'POST',
       headers: {
@@ -79,13 +87,15 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(linkPayload),
     });
 
+    const linkText = await linkResp.text();
+    console.log('Payment Links API response status:', linkResp.status);
+    console.log('Payment Links API response body:', linkText);
+
     if (!linkResp.ok) {
-      const error = await linkResp.text();
-      console.error('Square Payment Links error:', error);
-      return NextResponse.json({ error: 'Failed to create payment link', details: error }, { status: linkResp.status });
+      return NextResponse.json({ error: 'Failed to create payment link', details: linkText }, { status: linkResp.status });
     }
 
-    const linkData = await linkResp.json();
+    const linkData = JSON.parse(linkText);
     const checkoutUrl = linkData.payment_link?.url;
 
     if (!checkoutUrl) {
