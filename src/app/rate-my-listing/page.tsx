@@ -132,7 +132,7 @@ export default function RateMyListingPage() {
             <p className="text-gray-300 text-sm">Your Credit Balance</p>
             <p className="text-3xl font-bold text-[#c9a227]">{creditBalance} Credit{creditBalance !== 1 ? 's' : ''}</p>
             {creditBalance === 0 && (
-              <Link href="/our-deals" className="text-sm text-blue-400 hover:text-blue-300 mt-2 inline-block">
+              <Link href="/checkout" className="text-sm text-blue-400 hover:text-blue-300 mt-2 inline-block">
                 → Buy Credits
               </Link>
             )}
