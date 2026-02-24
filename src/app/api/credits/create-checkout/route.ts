@@ -28,12 +28,19 @@ export async function POST(req: NextRequest) {
 
     const payload = {
       idempotency_key: `pl-${userId}-${packageType}-${Date.now()}`,
-      quick_pay: {
-        name: `${packageType} Credits`,
-        price_money: {
-          amount: pkg.amount,
-          currency: 'USD',
-        },
+      order: {
+        location_id: SQUARE_LOCATION_ID,
+        reference_id: userId,
+        line_items: [
+          {
+            name: `${packageType} Credits`,
+            quantity: '1',
+            base_price_money: {
+              amount: pkg.amount,
+              currency: 'USD',
+            },
+          },
+        ],
       },
       checkout_options: {
         redirect_url: 'https://getreadytopost.com/our-deals?purchase=success',
@@ -50,21 +57,27 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(payload),
     });
 
-    const data = await resp.json();
+    const text = await resp.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return NextResponse.json({ error: 'Invalid response from Square', details: text }, { status: 500 });
+    }
 
     if (!resp.ok) {
-      console.error('Square error:', data);
-      return NextResponse.json({ error: 'Failed to create payment link', details: data }, { status: resp.status });
+      console.error('Square API error:', data);
+      return NextResponse.json({ error: 'Square API error', details: data }, { status: resp.status });
     }
 
     const checkoutUrl = data.payment_link?.url;
     if (!checkoutUrl) {
-      return NextResponse.json({ error: 'No checkout URL in response' }, { status: 500 });
+      return NextResponse.json({ error: 'No checkout URL in response', details: data }, { status: 500 });
     }
 
     return NextResponse.json({ checkout_url: checkoutUrl });
   } catch (e) {
     console.error('Checkout error:', e);
-    return NextResponse.json({ error: 'Failed to create checkout', details: String(e) }, { status: 500 });
+    return NextResponse.json({ error: 'Server error', details: String(e) }, { status: 500 });
   }
 }
