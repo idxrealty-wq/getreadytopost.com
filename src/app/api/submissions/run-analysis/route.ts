@@ -36,51 +36,60 @@ export async function POST(req: NextRequest) {
     const data = submissionDoc.data();
     const listingText = data?.listingText || '';
 
-    console.log("About to update submission to completed:", submissionId);
-    try {
-      await submissionRef.update({
-        status: "completed",
-        analysis,
-        completedAt: new Date().toISOString(),
-      });
-      console.log("Successfully updated submission to completed");
-    } catch (e) {
-      console.error("Failed to update submission status:", e);
-      throw e;
-    }
+    await submissionRef.update({ status: 'processing' });
+
+    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a real estate listing expert. Analyze the listing and return ONLY a valid JSON object with this exact structure, no markdown, no explanation:
+{
+  "overall": "A",
+  "rewrite": "Your improved listing text here",
+  "categories": {
+    "headline": { "grade": "A", "feedback": "feedback text" },
+    "length": { "grade": "B", "feedback": "feedback text" },
+    "emotion": { "grade": "A", "feedback": "feedback text" },
+    "keywords": { "grade": "B", "feedback": "feedback text" },
+    "cta": { "grade": "A", "feedback": "feedback text" },
+    "professionalism": { "grade": "A", "feedback": "feedback text" }
+  },
+  "recommendations": ["recommendation 1", "recommendation 2", "recommendation 3"]
+}`,
+          },
+          {
+            role: 'user',
+            content: `Analyze this real estate listing:\n\n${listingText}`,
+          },
+        ],
+        temperature: 0.7,
+      }),
+    });
 
     if (!openaiRes.ok) {
       const err = await openaiRes.text();
-    console.log("About to update submission to completed:", submissionId);
-    try {
-      await submissionRef.update({
-        status: "completed",
-        analysis,
-        completedAt: new Date().toISOString(),
-      });
-      console.log("Successfully updated submission to completed");
-    } catch (e) {
-      console.error("Failed to update submission status:", e);
-      throw e;
-    }
+      await submissionRef.update({ status: 'error', error: err });
+      return NextResponse.json({ error: 'OpenAI failed' }, { status: 500 });
     }
 
     const openaiData = await openaiRes.json();
     const rawContent = openaiData.choices?.[0]?.message?.content || '{}';
     const analysis = JSON.parse(rawContent);
 
-    console.log("About to update submission to completed:", submissionId);
-    try {
-      await submissionRef.update({
-        status: "completed",
-        analysis,
-        completedAt: new Date().toISOString(),
-      });
+      console.log("About to update submission to completed:", submissionId);
+    await submissionRef.update({
+      status: 'completed',
+      analysis,
+      completedAt: new Date().toISOString(),
+    });
       console.log("Successfully updated submission to completed");
-    } catch (e) {
-      console.error("Failed to update submission status:", e);
-      throw e;
-    }
 
     return NextResponse.json({ success: true, analysis });
   } catch (error: any) {
