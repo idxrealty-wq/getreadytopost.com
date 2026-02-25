@@ -1,5 +1,5 @@
 ﻿import { Suspense } from "react";
-import ResultsPaginated from "./ResultsPaginated";
+import ResultsContent from "./ResultsContent";
 
 export default function ResultsPage() {
   return (
@@ -13,7 +13,7 @@ export default function ResultsPage() {
         </main>
       }
     >
-      <ResultsPaginated />
+      <ResultsContent />
     </Suspense>
   );
 }
