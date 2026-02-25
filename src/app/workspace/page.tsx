@@ -173,7 +173,7 @@ function WorkspaceContent() {
         </div>
         <div className="flex justify-between items-center mb-4">
           <div></div>
-          <button onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/vault", "_blank"), 600); }} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition">
+          <button onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/agent-vault", "_blank"), 600); }} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition">
             💾 View in Vault
           </button>
         </div>

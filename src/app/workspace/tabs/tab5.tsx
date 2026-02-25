@@ -152,7 +152,7 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
           <p className="text-gray-400 text-sm mb-6">Access it anytime from your Agent Vault dashboard.</p>
           <div className="flex gap-3 justify-center">
             <button
-              onClick={() => window.location.href = '/vault'}
+              onClick={() => window.location.href = '/agent-vault'}
               className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-2 rounded-lg font-bold transition"
             >
               View in Vault

@@ -247,7 +247,7 @@ export default function ResultsContent() {
               ) : (
                 <div className="bg-green-500/20 border-2 border-green-500/40 rounded-xl p-4 mb-8 text-center">
                   <p className="text-green-300 font-semibold">
-                    Saved to your Agent Vault! <Link className="underline hover:text-white" href="/vault">View Vault</Link>
+                    Saved to your Agent Vault! <Link className="underline hover:text-white" href="/agent-vault">View Vault</Link>
                   </p>
                 </div>
               )}
@@ -311,7 +311,7 @@ export default function ResultsContent() {
                   Analyze Another Listing
                 </Link>
                 {user && (
-                  <Link className="inline-block ml-4 bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-xl" href="/vault">
+                  <Link className="inline-block ml-4 bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-xl" href="/agent-vault">
                     My Agent Vault
                   </Link>
                 )}
