@@ -25,6 +25,13 @@ function safeJsonParse(raw: string) {
   }
 }
 
+interface AnalysisResult {
+  overall: string;
+  rewrite: string;
+  recommendations: string[];
+  categories?: Record<string, { grade: string; feedback: string }>;
+}
+
 export async function POST(req: NextRequest) {
   initAdmin();
   const db = getFirestore();
@@ -77,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     const openaiData = await openaiRes.json();
     const rawContent = openaiData.choices?.[0]?.message?.content || "{}";
-    const analysis = safeJsonParse(rawContent);
+    const analysis = safeJsonParse(rawContent) as AnalysisResult | null;
 
     if (!analysis) {
       await submissionRef.update({
@@ -99,9 +106,13 @@ export async function POST(req: NextRequest) {
         const resend = new Resend(process.env.RESEND_API_KEY);
         const overall = String(analysis.overall || "");
         const rewrite = String(analysis.rewrite || "");
-        const recs = Array.isArray(analysis.recommendations) ? analysis.recommendations : [];
+        const recs: string[] = Array.isArray(analysis.recommendations)
+          ? analysis.recommendations.map((r) => String(r))
+          : [];
 
-        const html = `<div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;"><h2 style="color: #333;">Your GetReadyToPost Listing Report</h2><p style="font-size: 16px;"><strong>Overall Grade:</strong> <span style="font-size: 24px; color: #4CAF50; font-weight: bold;">${overall}</span></p><hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;"><h3 style="color: #333;">Professional Rewrite</h3><p style="white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 5px; color: #555;">${rewrite}</p><h3 style="color: #333;">Key Recommendations</h3><ol style="color: #555;">${recs.map((r) => `<li>${String(r)}</li>`).join("")}</ol><hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;"><p style="text-align: center;"><a href="https://getreadytopost.com/results?id=${submissionId}" style="background: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Full Report</a></p><p style="font-size: 12px; color: #999; text-align: center;">GetReadyToPost — Real Estate Listing Analysis</p></div>`;
+        const html = `<div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;"><h2 style="color: #333;">Your GetReadyToPost Listing Report</h2><p style="font-size: 16px;"><strong>Overall Grade:</strong> <span style="font-size: 24px; color: #4CAF50; font-weight: bold;">${overall}</span></p><hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;"><h3 style="color: #333;">Professional Rewrite</h3><p style="white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 5px; color: #555;">${rewrite}</p><h3 style="color: #333;">Key Recommendations</h3><ol style="color: #555;">${recs
+          .map((rec: string) => `<li>${rec}</li>`)
+          .join("")}</ol><hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;"><p style="text-align: center;"><a href="https://getreadytopost.com/results?id=${submissionId}" style="background: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Full Report</a></p><p style="font-size: 12px; color: #999; text-align: center;">GetReadyToPost — Real Estate Listing Analysis</p></div>`;
 
         await resend.emails.send({
           from: "onboarding@resend.dev",
