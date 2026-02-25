@@ -1,16 +1,18 @@
 "use client";
-import { useState } from 'react';
+
+import { useEffect, useState } from 'react';
 import { signUpWithEmail, signInWithEmail, signInWithGoogle } from '@/lib/auth';
 import { createUserProfile, getUserProfile } from '@/lib/profile';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (user: any) => void;
+  onSuccess?: (user: any) => void;
+  mode?: 'signin' | 'signup';
 }
 
-export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
-  const [mode, setMode] = useState<'signin' | 'signup'>('signup');
+export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMode }: AuthModalProps) {
+  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode || 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -19,167 +21,155 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode || 'signup');
+      setError('');
+    }
+  }, [isOpen, initialMode]);
+
   if (!isOpen) return null;
 
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('[AuthModal] handleEmailAuth START');
+  const handleAuth = async () => {
     setError('');
     setLoading(true);
     try {
+      let user: any;
+
       if (mode === 'signup') {
-        const result = await signUpWithEmail(email, password);
-        if (result.user) {
-          await createUserProfile(
-            result.user.uid,
-            email,
-            fullName,
-            company,
-            designations
-          );
-          onSuccess(result.user);
-          onClose();
-        }
+        user = await signUpWithEmail(email, password);
+        await createUserProfile(user.uid, {
+          fullName,
+          company,
+          designations,
+          email,
+        });
       } else {
-        const result = await signInWithEmail(email, password);
-        if (result.user) {
-          onSuccess(result.user);
-          onClose();
-        }
+        user = await signInWithEmail(email, password);
+        await getUserProfile(user.uid);
       }
+
+      onSuccess?.(user);
+      onClose();
     } catch (err: any) {
-      console.error('[AuthModal] handleEmailAuth ERROR', err);
-      if (err.code === 'auth/email-already-in-use') {
-        setError('Email already registered. Try signing in.');
-      } else if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        setError('Invalid email or password.');
-      } else if (err.code === 'auth/weak-password') {
-        setError('Password must be at least 6 characters.');
-      } else {
-        setError(err.message || 'Something went wrong');
-      }
+      setError(err?.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogle = async () => {
-    console.log('[AuthModal] handleGoogle CLICKED');
     setError('');
     setLoading(true);
     try {
-      console.log('[AuthModal] calling signInWithGoogle...');
-      const result = await signInWithGoogle();
-      console.log('[AuthModal] signInWithGoogle returned', { userId: result.user?.uid });
-      if (result.user) {
-        const existingProfile = await getUserProfile(result.user.uid);
-        if (!existingProfile) {
-          await createUserProfile(
-            result.user.uid,
-            result.user.email || '',
-            result.user.displayName || '',
-            '',
-            ''
-          );
-        }
-        onSuccess(result.user);
-        onClose();
-      }
+      const user: any = await signInWithGoogle();
+      // Ensure profile exists (don’t overwrite if it already does)
+      await getUserProfile(user.uid).catch(async () => {
+        await createUserProfile(user.uid, {
+          fullName: user?.displayName || '',
+          company: '',
+          designations: '',
+          email: user?.email || '',
+        });
+      });
+
+      onSuccess?.(user);
+      onClose();
     } catch (err: any) {
-      console.error('[AuthModal] handleGoogle ERROR', err);
-      setError(err.message || 'Failed to sign in with Google');
+      setError(err?.message || 'Google sign-in failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm overflow-y-auto py-8">
-      <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl relative my-auto">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">✕</button>
-        <div className="text-center mb-6">
-          <div className="text-4xl mb-2">🏢</div>
-          <h2 className="text-2xl font-bold text-[#1a2b4a]">
-            {mode === 'signup' ? 'Create Your GetReadyToPost Account' : 'Sign In to GetReadyToPost'}
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <h2 className="text-xl font-bold text-[#1a2b4a]">
+            {mode === 'signup' ? 'Create your account' : 'Sign in'}
           </h2>
-          <p className="text-gray-500 text-sm mt-1">
-            {mode === 'signup' ? 'Save listings, build reports, and access your Agent Vault' : 'Access your saved listings and workspace'}
-          </p>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-800 font-bold"
+            aria-label="Close"
+          >
+            ✕
+          </button>
         </div>
-        <button
-          onClick={handleGoogle}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-3 border-2 border-gray-200 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition mb-4 disabled:opacity-50"
-        >
-          <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-          Continue with Google
-        </button>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 h-px bg-gray-200"></div>
-          <span className="text-sm text-gray-400">or</span>
-          <div className="flex-1 h-px bg-gray-200"></div>
-        </div>
-        <form onSubmit={handleEmailAuth} className="space-y-3">
+
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-3">
           {mode === 'signup' && (
             <>
               <input
-                type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Full Name *"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                required
+                placeholder="Full name"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2"
               />
               <input
-                type="text"
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
-                placeholder="Company / Brokerage *"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                required
+                placeholder="Company (optional)"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2"
               />
               <input
-                type="text"
                 value={designations}
                 onChange={(e) => setDesignations(e.target.value)}
-                placeholder="Designations (e.g., Realtor®, ABR, GRI)"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                placeholder="Designations (optional)"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2"
               />
             </>
           )}
+
           <input
-            type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email address *"
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-            required
+            placeholder="Email"
+            type="email"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2"
           />
           <input
-            type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password (min 6 characters) *"
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-            required
-            minLength={6}
+            placeholder="Password"
+            type="password"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2"
           />
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+
           <button
-            type="submit"
+            onClick={handleAuth}
             disabled={loading}
-            className="w-full bg-[#c9a227] hover:bg-[#b8911f] text-white py-3 rounded-xl font-bold transition disabled:opacity-50"
+            className="w-full rounded-lg bg-[#c9a227] hover:bg-[#b8911f] text-white font-bold py-2 transition disabled:opacity-60"
           >
-            {loading ? 'Processing...' : mode === 'signup' ? 'Create Account' : 'Sign In'}
+            {loading ? 'Please wait…' : mode === 'signup' ? 'Create Account' : 'Sign In'}
           </button>
-        </form>
-        <p className="text-center text-sm text-gray-500 mt-4">
-          {mode === 'signup' ? (
-            <>Already have an account? <button type="button" onClick={() => setMode('signin')} className="text-[#c9a227] font-semibold">Sign In</button></>
-          ) : (
-            <>Need an account? <button type="button" onClick={() => setMode('signup')} className="text-[#c9a227] font-semibold">Sign Up</button></>
-          )}
-        </p>
+
+          <button
+            onClick={handleGoogle}
+            disabled={loading}
+            className="w-full rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-800 font-bold py-2 transition disabled:opacity-60"
+          >
+            Continue with Google
+          </button>
+
+          <p className="text-sm text-gray-600 text-center pt-2">
+            {mode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
+            <button
+              type="button"
+              onClick={() => setMode(mode === 'signup' ? 'signin' : 'signup')}
+              className="text-[#1a2b4a] font-bold hover:underline"
+            >
+              {mode === 'signup' ? 'Sign in' : 'Create one'}
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );
