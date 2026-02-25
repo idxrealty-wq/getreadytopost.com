@@ -1,293 +1,72 @@
-"use client";
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-interface UploadedFile {
-  file: File;
-  submissionId?: string;
-  status: 'pending' | 'uploading' | 'ready' | 'error';
-  preview?: string;
-  wordCount?: number;
-  error?: string;
-}
-
 export default function AgentVaultPage() {
-  const router = useRouter();
-  const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [email, setEmail] = useState('');
-  const [dragActive, setDragActive] = useState(false);
-  const [step, setStep] = useState<'upload' | 'payment'>('upload');
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files) {
-      const newFiles = Array.from(e.dataTransfer.files).filter(isValidFile);
-      addFiles(newFiles);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files).filter(isValidFile);
-      addFiles(newFiles);
-    }
-  };
-
-  const addFiles = (newFiles: File[]) => {
-    const uploadedFiles: UploadedFile[] = newFiles.map(file => ({
-      file,
-      status: 'pending'
-    }));
-    setFiles(prev => [...prev, ...uploadedFiles]);
-  };
-
-  const isValidFile = (file: File) => {
-    const validTypes = [
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/msword',
-      'text/plain'
-    ];
-    return validTypes.includes(file.type);
-  };
-
-  const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleUploadAll = async () => {
-    if (!email || files.length === 0) return;
-
-    // Upload all files
-    for (let i = 0; i < files.length; i++) {
-      if (files[i].status !== 'pending') continue;
-
-      setFiles(prev => prev.map((f, idx) => 
-        idx === i ? { ...f, status: 'uploading' } : f
-      ));
-
-      const formData = new FormData();
-      formData.append('file', files[i].file);
-      formData.append('email', email);
-
-      try {
-        const response = await fetch('/api/upload-listing', {
-          method: 'POST',
-          body: formData,
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.submissionId) {
-          setFiles(prev => prev.map((f, idx) => 
-            idx === i ? { 
-              ...f, 
-              status: 'ready',
-              submissionId: data.submissionId,
-              preview: data.preview,
-              wordCount: data.wordCount
-            } : f
-          ));
-        } else {
-          setFiles(prev => prev.map((f, idx) => 
-            idx === i ? { ...f, status: 'error', error: data.error } : f
-          ));
-        }
-      } catch (error) {
-        setFiles(prev => prev.map((f, idx) => 
-          idx === i ? { ...f, status: 'error', error: 'Upload failed' } : f
-        ));
-      }
-    }
-
-    setStep('payment');
-  };
-
-  const handlePaymentClick = () => {
-    window.open('/checkout?pkg=single', '_blank');
-  };
-
-  const readyFiles = files.filter(f => f.status === 'ready');
-  const totalCost = readyFiles.length * 19.99;
-
   return (
-    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a]">
-      <div className="max-w-4xl mx-auto px-6 py-10">
-        
-        <section className="py-8 text-center text-white mb-8">
-          <div className="inline-block bg-[#c9a227] text-white text-sm font-bold px-4 py-2 rounded-full mb-4">🏢 Agent Workspace</div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Batch Upload Listings</h1>
-          <p className="text-gray-300 mb-4">Upload multiple PDFs, Word docs, or text files at once</p>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 inline-block">
-            <p className="text-4xl font-bold text-[#c9a227] mb-1">$19.99</p>
-            <p className="text-sm text-gray-300">Per listing analysis</p>
-          </div>
-        </section>
-
-        {step === 'payment' ? (
-          <div className="bg-white rounded-2xl p-8 shadow-2xl">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Ready to Analyze {readyFiles.length} Listing{readyFiles.length !== 1 ? 's' : ''}</h2>
-            
-            {/* Files Preview */}
-            <div className="space-y-3 mb-6 max-h-96 overflow-y-auto">
-              {readyFiles.map((uploadedFile, i) => (
-                <div key={i} className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">📄</span>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-800">{uploadedFile.file.name}</p>
-                      <p className="text-sm text-gray-500">{uploadedFile.wordCount} words</p>
-                    </div>
-                    <Link 
-                      href={`/results?id=${uploadedFile.submissionId}`}
-                      className="text-[#c9a227] hover:underline text-sm font-semibold"
-                    >
-                      View →
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Payment Steps */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
-              <h3 className="font-bold text-blue-900 mb-2">Total: ${totalCost.toFixed(2)}</h3>
-              <p className="text-sm text-blue-700 mb-4">{readyFiles.length} listing{readyFiles.length !== 1 ? 's' : ''} × $19.99 each</p>
-              <button 
-                onClick={handlePaymentClick}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition mb-3"
-              >
-                Pay ${totalCost.toFixed(2)} via Square
-              </button>
-              <p className="text-xs text-blue-600 text-center">After payment, click "View" next to each listing to see results</p>
-            </div>
-
-            <button
-              onClick={() => { setStep('upload'); setFiles([]); }}
-              className="text-gray-500 hover:text-gray-700 text-sm font-semibold"
-            >
-              ← Upload More Files
-            </button>
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl p-8 shadow-2xl">
-            
-            {/* Email Input */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Your Email *</label>
-              <input 
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="agent@realestate.com"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                required
-              />
-            </div>
-
-            {/* File Upload Area */}
-            <div
-              className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition mb-6 ${
-                dragActive ? 'border-[#c9a227] bg-[#c9a227]/5' : 'border-gray-300 bg-gray-50'
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <input
-                type="file"
-                id="file-upload"
-                className="hidden"
-                accept=".pdf,.doc,.docx,.txt"
-                onChange={handleFileChange}
-                multiple
-              />
-
-              <div className="text-6xl mb-4">📄</div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                Drag & drop multiple files here
-              </h3>
-              <p className="text-gray-600 mb-4">or</p>
-              <label
-                htmlFor="file-upload"
-                className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-lg font-semibold cursor-pointer transition"
-              >
-                Browse Files
-              </label>
-              <p className="text-xs text-gray-500 mt-4">Supports PDF, Word (.doc, .docx), and Text files • Upload multiple at once</p>
-            </div>
-
-            {/* Files List */}
-            {files.length > 0 && (
-              <div className="mb-6">
-                <h3 className="font-bold text-gray-800 mb-3">{files.length} File{files.length !== 1 ? 's' : ''} Selected</h3>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {files.map((uploadedFile, i) => (
-                    <div key={i} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                      <div className="flex items-center gap-3 flex-1">
-                        <span className="text-xl">
-                          {uploadedFile.status === 'uploading' && '⏳'}
-                          {uploadedFile.status === 'ready' && '✅'}
-                          {uploadedFile.status === 'error' && '❌'}
-                          {uploadedFile.status === 'pending' && '📄'}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-800 truncate">{uploadedFile.file.name}</p>
-                          <p className="text-xs text-gray-500">
-                            {uploadedFile.status === 'uploading' && 'Extracting text...'}
-                            {uploadedFile.status === 'ready' && `${uploadedFile.wordCount} words`}
-                            {uploadedFile.status === 'error' && uploadedFile.error}
-                            {uploadedFile.status === 'pending' && `${(uploadedFile.file.size / 1024).toFixed(2)} KB`}
-                          </p>
-                        </div>
-                      </div>
-                      {uploadedFile.status === 'pending' && (
-                        <button
-                          onClick={() => removeFile(i)}
-                          className="text-red-500 hover:text-red-700 text-sm font-semibold"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <button
-              onClick={handleUploadAll}
-              disabled={!email || files.length === 0 || files.some(f => f.status === 'uploading')}
-              className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {files.some(f => f.status === 'uploading') 
-                ? '📤 Processing files...' 
-                : `🔥 Upload ${files.length} File${files.length !== 1 ? 's' : ''} & Continue`
-              }
-            </button>
-          </div>
-        )}
-
-        <div className="text-center mt-8">
-          <Link href="/" className="text-white/70 hover:text-white font-semibold">← Back to Home</Link>
+    <main>
+      <section className="bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] text-white py-16 pt-32">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <span className="bg-[#c9a227] text-white text-sm font-bold px-4 py-1 rounded-full mb-4 inline-block">COMING SOON</span>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Agent Vault</h1>
+          <p className="text-xl text-gray-300">Your library of templates, scripts, and listing tools — all in one place</p>
         </div>
-      </div>
+      </section>
+
+      <section className="py-16 bg-white">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-[#faf8f5] rounded-xl p-6 text-center">
+              <div className="w-16 h-16 bg-[#c9a227]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-[#c9a227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-[#1a2b4a] mb-2">Listing Templates</h3>
+              <p className="text-gray-600">Pre-written descriptions for every property type</p>
+            </div>
+
+            <div className="bg-[#faf8f5] rounded-xl p-6 text-center">
+              <div className="w-16 h-16 bg-[#c9a227]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-[#c9a227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-[#1a2b4a] mb-2">Scripts & Dialogues</h3>
+              <p className="text-gray-600">Phone scripts, email templates, objection handlers</p>
+            </div>
+
+            <div className="bg-[#faf8f5] rounded-xl p-6 text-center">
+              <div className="w-16 h-16 bg-[#c9a227]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-[#c9a227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-[#1a2b4a] mb-2">Quick Tools</h3>
+              <p className="text-gray-600">Calculators, checklists, and workflow shortcuts</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-[#faf8f5]">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold text-[#1a2b4a] mb-4">Stay Tuned</h2>
+          <p className="text-gray-600 mb-8">We're building a comprehensive resource library for real estate professionals. Sign up to be notified when it launches.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+            <input type="email" placeholder="Your email" className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" />
+            <button className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-6 py-3 rounded-xl font-semibold whitespace-nowrap">Notify Me</button>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 bg-white">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <p className="text-gray-600 mb-4">In the meantime, check out our listing services:</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/upload" className="bg-[#1a2b4a] hover:bg-[#2d4a7c] text-white px-6 py-3 rounded-lg font-semibold">Submit a Listing</Link>
+            <Link href="/pricing" className="border-2 border-[#1a2b4a] text-[#1a2b4a] hover:bg-[#1a2b4a] hover:text-white px-6 py-3 rounded-lg font-semibold">View Pricing</Link>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
