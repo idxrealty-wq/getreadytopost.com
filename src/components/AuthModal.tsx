@@ -38,12 +38,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
 
       if (mode === 'signup') {
         user = await signUpWithEmail(email, password);
-        await createUserProfile(user.uid, {
-          fullName,
-          company,
-          designations,
-          email,
-        });
+        await createUserProfile(user.uid, email, fullName, company, designations);
       } else {
         user = await signInWithEmail(email, password);
         await getUserProfile(user.uid);
@@ -63,14 +58,15 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     setLoading(true);
     try {
       const user: any = await signInWithGoogle();
-      // Ensure profile exists (don’t overwrite if it already does)
+      // Ensure profile exists (don't overwrite if it already does)
       await getUserProfile(user.uid).catch(async () => {
-        await createUserProfile(user.uid, {
-          fullName: user?.displayName || '',
-          company: '',
-          designations: '',
-          email: user?.email || '',
-        });
+        await createUserProfile(
+          user.uid,
+          user?.email || '',
+          user?.displayName || '',
+          '',
+          ''
+        );
       });
 
       onSuccess?.(user);
