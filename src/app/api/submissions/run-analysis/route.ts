@@ -49,7 +49,20 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: 'system',
-            content: 'You are a real estate listing expert. Analyze the listing and return ONLY a JSON object with: overallScore (0-100), rewrittenListing (string), categories (hook/features/lifestyle/compliance/flow/callToAction each with score/grade/feedback), recommendations (array of 3 strings). No markdown, no explanation.',
+            content: `You are a real estate listing expert. Analyze the listing and return ONLY a valid JSON object with this exact structure, no markdown, no explanation:
+{
+  "overall": "A",
+  "rewrite": "Your improved listing text here",
+  "categories": {
+    "headline": { "grade": "A", "feedback": "feedback text" },
+    "length": { "grade": "B", "feedback": "feedback text" },
+    "emotion": { "grade": "A", "feedback": "feedback text" },
+    "keywords": { "grade": "B", "feedback": "feedback text" },
+    "cta": { "grade": "A", "feedback": "feedback text" },
+    "professionalism": { "grade": "A", "feedback": "feedback text" }
+  },
+  "recommendations": ["recommendation 1", "recommendation 2", "recommendation 3"]
+}`,
           },
           {
             role: 'user',
