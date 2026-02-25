@@ -282,15 +282,13 @@ export default function Header() {
                   >
                     Join
                   </button>
-                  <button
-                    onClick={() => {
-                      handleSignIn();
-                      closeMobile();
-                    }}
-                    className="block w-full text-left bg-[#c9a227] hover:bg-[#b8911f] text-white font-bold py-2 px-3 rounded-lg transition"
+                  <Link
+                    href="/signin"
+                    onClick={closeMobile}
+                    className="block w-full text-center bg-[#c9a227] hover:bg-[#b8911f] text-white font-bold py-2 px-3 rounded-lg transition"
                   >
                     Sign In
-                  </button>
+                  </Link>
                 </div>
               )}
 
