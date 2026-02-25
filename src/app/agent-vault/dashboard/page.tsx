@@ -1,72 +1,249 @@
+"use client";
+import { useState, useEffect } from 'react';
+import { useUser } from '@/contexts/UserContext';
+import { getUserListings, type Listing } from '@/lib/listings';
+import { doc, deleteDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
-export default function AgentVaultPage() {
+interface Report {
+  id: string;
+  email: string;
+  listingText: string;
+  status: string;
+  analysis?: {
+    overall: string;
+    categories: Record<string, { grade: string; feedback: string }>;
+    rewrite: string;
+    recommendations: string[];
+  };
+  createdAt: string;
+}
+
+export default function VaultPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useUser();
+  const [tab, setTab] = useState<'listings' | 'reports'>('listings');
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      loadListings();
+      loadReports();
+      fetchCreditBalance();
+    } else if (!authLoading && !user) {
+      setLoading(false);
+    }
+  }, [user, authLoading]);
+
+  const fetchCreditBalance = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/credits/balance?userId=${user.uid}`);
+      const data = await res.json();
+      setCreditBalance(data.balance || 0);
+    } catch (err) {
+      console.error('Failed to fetch credit balance:', err);
+    }
+  };
+
+  const loadListings = async () => {
+    if (!user) return;
+    setLoading(true);
+    setError('');
+    try {
+      const data = await getUserListings(user.uid);
+      setListings(data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load listings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadReports = async () => {
+    if (!user) return;
+    try {
+      const reportsRef = collection(db, 'submissions');
+      const q = query(reportsRef, where('userId', '==', user.uid), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Report));
+      setReports(data);
+    } catch (err) {
+      console.error('Failed to load reports:', err);
+    }
+  };
+
+  const handleDeleteListing = async (listingId: string) => {
+    if (!user || !window.confirm('Are you sure? This cannot be undone.')) return;
+    setDeleting(listingId);
+    try {
+      const listingRef = doc(db, 'users', user.uid, 'listings', listingId);
+      await deleteDoc(listingRef);
+      setListings(listings.filter((l) => l.id !== listingId));
+    } catch (err) {
+      setError('Failed to delete listing');
+      console.error(err);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center">
+        <p className="text-white text-lg">Loading...</p>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-white mb-4">Sign in to access your vault</h1>
+          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
+            ← Back to Home
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <main>
-      <section className="bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] text-white py-16 pt-32">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <span className="bg-[#c9a227] text-white text-sm font-bold px-4 py-1 rounded-full mb-4 inline-block">COMING SOON</span>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Agent Vault</h1>
-          <p className="text-xl text-gray-300">Your library of templates, scripts, and listing tools — all in one place</p>
-        </div>
-      </section>
-
-      <section className="py-16 bg-white">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-[#faf8f5] rounded-xl p-6 text-center">
-              <div className="w-16 h-16 bg-[#c9a227]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-[#c9a227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
+    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c]">
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Agent Vault</h1>
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+            <p className="text-gray-300 flex-grow">Manage your listings and rewrite reports</p>
+            {creditBalance !== null && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 w-full md:w-auto">
+                <p className="text-gray-300 text-sm mb-1">Credit Balance</p>
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-3xl font-bold text-[#c9a227]">{creditBalance}</p>
+                  <Link href="/checkout" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-4 py-2 rounded-lg font-bold text-sm transition">
+                    Buy More
+                  </Link>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-[#1a2b4a] mb-2">Listing Templates</h3>
-              <p className="text-gray-600">Pre-written descriptions for every property type</p>
-            </div>
-
-            <div className="bg-[#faf8f5] rounded-xl p-6 text-center">
-              <div className="w-16 h-16 bg-[#c9a227]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-[#c9a227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-[#1a2b4a] mb-2">Scripts & Dialogues</h3>
-              <p className="text-gray-600">Phone scripts, email templates, objection handlers</p>
-            </div>
-
-            <div className="bg-[#faf8f5] rounded-xl p-6 text-center">
-              <div className="w-16 h-16 bg-[#c9a227]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-[#c9a227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-[#1a2b4a] mb-2">Quick Tools</h3>
-              <p className="text-gray-600">Calculators, checklists, and workflow shortcuts</p>
-            </div>
+            )}
           </div>
         </div>
-      </section>
 
-      <section className="py-16 bg-[#faf8f5]">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-[#1a2b4a] mb-4">Stay Tuned</h2>
-          <p className="text-gray-600 mb-8">We're building a comprehensive resource library for real estate professionals. Sign up to be notified when it launches.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-            <input type="email" placeholder="Your email" className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" />
-            <button className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-6 py-3 rounded-xl font-semibold whitespace-nowrap">Notify Me</button>
+        {error && (
+          <div className="mb-6 bg-red-500/20 border border-red-400/50 rounded-xl p-4 text-red-200">
+            {error}
           </div>
-        </div>
-      </section>
+        )}
 
-      <section className="py-12 bg-white">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-gray-600 mb-4">In the meantime, check out our listing services:</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/upload" className="bg-[#1a2b4a] hover:bg-[#2d4a7c] text-white px-6 py-3 rounded-lg font-semibold">Submit a Listing</Link>
-            <Link href="/pricing" className="border-2 border-[#1a2b4a] text-[#1a2b4a] hover:bg-[#1a2b4a] hover:text-white px-6 py-3 rounded-lg font-semibold">View Pricing</Link>
-          </div>
+        <div className="flex gap-4 mb-8 border-b border-white/20">
+          <button
+            onClick={() => setTab('listings')}
+            className={`px-6 py-3 font-bold transition ${
+              tab === 'listings'
+                ? 'text-[#c9a227] border-b-2 border-[#c9a227]'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Listings ({listings.length})
+          </button>
+          <button
+            onClick={() => setTab('reports')}
+            className={`px-6 py-3 font-bold transition ${
+              tab === 'reports'
+                ? 'text-[#c9a227] border-b-2 border-[#c9a227]'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Reports ({reports.length})
+          </button>
         </div>
-      </section>
+
+        {tab === 'listings' && (
+          <div>
+            {loading ? (
+              <p className="text-gray-300">Loading listings...</p>
+            ) : listings.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-400 mb-4">No listings yet</p>
+                <Link href="/workspace" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
+                  Create your first listing →
+                </Link>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {listings.map((listing) => (
+                  <div key={listing.id} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:border-[#c9a227]/50 transition">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex-grow">
+                        <h3 className="text-white font-bold text-lg mb-2">{listing.address || 'Untitled Listing'}</h3>
+                        <p className="text-gray-500 text-xs">Created: {new Date(listing.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteListing(listing.id)}
+                        disabled={deleting === listing.id}
+                        className="bg-red-500/20 hover:bg-red-500/40 text-red-300 px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50"
+                      >
+                        {deleting === listing.id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === 'reports' && (
+          <div>
+            {loading ? (
+              <p className="text-gray-300">Loading reports...</p>
+            ) : reports.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-400 mb-4">No reports yet</p>
+                <Link href="/rate-my-listing" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
+                  Rate your first listing →
+                </Link>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {reports.map((report) => (
+                  <div key={report.id} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:border-[#c9a227]/50 transition cursor-pointer" onClick={() => router.push(`/results?id=${report.id}`)}>
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex-grow">
+                        <h3 className="text-white font-bold text-lg mb-2">{report.email}</h3>
+                        <p className="text-gray-400 text-sm mb-2">{report.listingText.substring(0, 100)}...</p>
+                        <div className="flex gap-4 text-xs text-gray-500">
+                          <span>Status: <span className={report.status === 'completed' ? 'text-green-400' : 'text-amber-400'}>{report.status}</span></span>
+                          <span>Created: {new Date(report.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {report.analysis?.overall && (
+                          <p className="text-2xl font-bold text-[#c9a227]">{report.analysis.overall}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="text-center mt-12">
+          <Link href="/" className="text-white/70 hover:text-white font-semibold">
+            ← Back to Home
+          </Link>
+        </div>
+      </div>
     </main>
   );
 }
