@@ -262,9 +262,43 @@ export default function Header() {
                   )}
                 </div>
               ))}
+
+              {/* Mobile Auth - Not Logged In */}
+              {!loading && !user && (
+                <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
+                  <Link
+                    href="/checkout"
+                    onClick={closeMobile}
+                    className="block text-gray-700 hover:text-[#c9a227] font-medium transition py-2"
+                  >
+                    Buy Credits
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleJoin();
+                      closeMobile();
+                    }}
+                    className="block w-full text-left text-gray-700 hover:text-[#c9a227] font-medium transition py-2"
+                  >
+                    Join
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleSignIn();
+                      closeMobile();
+                    }}
+                    className="block w-full text-left bg-[#c9a227] hover:bg-[#b8911f] text-white font-bold py-2 px-3 rounded-lg transition"
+                  >
+                    Sign In
+                  </button>
+                </div>
+              )}
+
+              {/* Mobile Auth - Logged In */}
               {!loading && user && creditBalance !== null && (
                 <Link
                   href="/checkout"
+                  onClick={closeMobile}
                   className="block text-[#c9a227] font-bold text-sm py-2 border-t border-gray-200 mt-4 pt-4"
                 >
                   Credits: {creditBalance}
