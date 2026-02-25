@@ -108,13 +108,13 @@ export default function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-md z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-8 py-5 flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold text-[#1a2b4a]">
             GetReadyToPost
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-12">
             {navItems.map((item) => (
               <div key={item.label} className="relative group">
                 {"href" in item ? (
@@ -210,7 +210,7 @@ export default function Header() {
         {/* Mobile menu panel */}
         {mobileOpen && (
           <div className="md:hidden bg-white border-t border-gray-200 max-h-96 overflow-y-auto">
-            <div className="px-6 py-4 space-y-4">
+            <div className="px-8 py-5 space-y-4">
               {navItems.map((item) => (
                 <div key={item.label}>
                   {"href" in item ? (
