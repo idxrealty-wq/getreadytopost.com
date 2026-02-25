@@ -58,7 +58,8 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: "system",
-            content: `You are a real estate listing expert. Analyze the listing and return ONLY a valid JSON object with this exact structure, no markdown, no explanation: { "overall": "A", "rewrite": "Your improved listing text here", "categories": { "headline": { "grade": "A", "feedback": "feedback text" }, "length": { "grade": "B", "feedback": "feedback text" }, "emotion": { "grade": "A", "feedback": "feedback text" }, "keywords": { "grade": "B", "feedback": "feedback text" }, "cta": { "grade": "A", "feedback": "feedback text" }, "professionalism": { "grade": "A", "feedback": "feedback text" } }, "recommendations": ["recommendation 1", "recommendation 2", "recommendation 3"] }`,
+            content:
+              'You are a real estate listing expert. Analyze the listing and return ONLY a valid JSON object with this exact structure, no markdown, no explanation: { "overall": "A", "rewrite": "Your improved listing text here", "categories": { "headline": { "grade": "A", "feedback": "feedback text" }, "length": { "grade": "B", "feedback": "feedback text" }, "emotion": { "grade": "A", "feedback": "feedback text" }, "keywords": { "grade": "B", "feedback": "feedback text" }, "cta": { "grade": "A", "feedback": "feedback text" }, "professionalism": { "grade": "A", "feedback": "feedback text" } }, "recommendations": ["recommendation 1", "recommendation 2", "recommendation 3"] }',
           },
           {
             role: "user",
@@ -101,7 +102,24 @@ export async function POST(req: NextRequest) {
         const rewrite = String(analysis.rewrite || "");
         const recs = Array.isArray(analysis.recommendations) ? analysis.recommendations : [];
 
-        const html = `<div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;"><h2 style="color: #333;">Your GetReadyToPost Listing Report</h2><p style="font-size: 16px;"><strong>Overall Grade:</strong> <span style="font-size: 24px; color: #4CAF50; font-weight: bold;">${overall}</span></p><hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;"><h3 style="color: #333;">Professional Rewrite</h3><p style="white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 5px; color: #555;">${rewrite}</p><h3 style="color: #333;">Key Recommendations</h3><ol style="color: #555;">${recs.map((r) => `<li>${String(r)}</li>`).join("")}</ol><hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;"><p style="text-align: center;"><a href="https://getreadytopost.com/results?id=${submissionId}" style="background: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Full Report</a></p><p style="font-size: 12px; color: #999; text-align: center;">GetReadyToPost — Real Estate Listing Analysis</p></div>`;
+        const html = `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Your GetReadyToPost Listing Report</h2>
+            <p style="font-size: 16px;"><strong>Overall Grade:</strong> <span style="font-size: 24px; color: #4CAF50; font-weight: bold;">${overall}</span></p>
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+            <h3 style="color: #333;">Professional Rewrite</h3>
+            <p style="white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 5px; color: #555;">${rewrite}</p>
+            <h3 style="color: #333;">Key Recommendations</h3>
+            <ol style="color: #555;">
+              ${recs.map((r) => `<li>${String(r)}</li>`).join("")}
+            </ol>
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+            <p style="text-align: center;">
+              <a href="https://getreadytopost.com/results?id=${submissionId}" style="background: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Full Report</a>
+            </p>
+            <p style="font-size: 12px; color: #999; text-align: center;">GetReadyToPost — Real Estate Listing Analysis</p>
+          </div>
+        `;
 
         await resend.emails.send({
           from: "onboarding@resend.dev",
