@@ -38,15 +38,22 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
 
       if (mode === 'signup') {
         user = await signUpWithEmail(email, password);
+        if (!user || !user.uid) {
+          throw new Error('Sign up failed: no user returned');
+        }
         await createUserProfile(user.uid, email, fullName, company, designations);
       } else {
         user = await signInWithEmail(email, password);
+        if (!user || !user.uid) {
+          throw new Error('Sign in failed: no user returned');
+        }
         await getUserProfile(user.uid);
       }
 
       onSuccess?.(user);
       onClose();
     } catch (err: any) {
+      console.error('Auth error:', err);
       setError(err?.message || 'Authentication failed');
     } finally {
       setLoading(false);
@@ -58,20 +65,26 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     setLoading(true);
     try {
       const user: any = await signInWithGoogle();
-      // Ensure profile exists (don't overwrite if it already does)
-      await getUserProfile(user.uid).catch(async () => {
-        await createUserProfile(
-          user.uid,
-          user?.email || '',
-          user?.displayName || '',
-          '',
-          ''
-        );
-      });
+      
+      if (!user || !user.uid) {
+        throw new Error('Google sign-in failed: no user returned');
+      }
+
+      const userEmail = user.email || '';
+      const userName = user.displayName || '';
+
+      // Try to get existing profile, create if doesn't exist
+      try {
+        await getUserProfile(user.uid);
+      } catch {
+        // Profile doesn't exist, create it
+        await createUserProfile(user.uid, userEmail, userName, '', '');
+      }
 
       onSuccess?.(user);
       onClose();
     } catch (err: any) {
+      console.error('Google sign-in error:', err);
       setError(err?.message || 'Google sign-in failed');
     } finally {
       setLoading(false);
