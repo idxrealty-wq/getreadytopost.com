@@ -37,7 +37,7 @@ export default function Header() {
   };
 
   const getFirstName = () => {
-    if (!profile?.fullName) return "";
+    if (!profile?.fullName) return "User";
     return profile.fullName.split(" ")[0];
   };
 
@@ -164,7 +164,7 @@ export default function Header() {
           {/* Auth (desktop) */}
           <div className="hidden md:flex items-center gap-4 flex-shrink-0">
             {!loading &&
-              (user && profile ? (
+              (user ? (
                 <div className="flex items-center gap-4">
                   <p className="text-sm font-bold text-gray-800">
                     Welcome, {getFirstName()}! 👋
@@ -295,25 +295,30 @@ export default function Header() {
               )}
 
               {/* Mobile Auth - Logged In */}
-              {!loading && user && creditBalance !== null && (
-                <Link
-                  href="/checkout"
-                  onClick={closeMobile}
-                  className="block text-[#c9a227] font-bold text-sm py-2 border-t border-gray-200 mt-4 pt-4"
-                >
-                  Credits: {creditBalance}
-                </Link>
-              )}
-              {!loading && user && profile && (
-                <button
-                  onClick={() => {
-                    handleSignOut();
-                    closeMobile();
-                  }}
-                  className="block w-full text-left text-gray-700 hover:text-red-600 font-medium transition py-2 border-t border-gray-200 mt-4 pt-4"
-                >
-                  Sign Out
-                </button>
+              {!loading && user && (
+                <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
+                  {creditBalance !== null && (
+                    <Link
+                      href="/checkout"
+                      onClick={closeMobile}
+                      className="block text-[#c9a227] font-bold text-sm py-2"
+                    >
+                      Credits: {creditBalance}
+                    </Link>
+                  )}
+                  <p className="text-sm font-bold text-gray-800 py-2">
+                    Welcome, {getFirstName()}! 👋
+                  </p>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      closeMobile();
+                    }}
+                    className="block w-full text-left text-gray-700 hover:text-red-600 font-medium transition py-2"
+                  >
+                    Sign Out
+                  </button>
+                </div>
               )}
             </div>
           </div>
