@@ -28,37 +28,29 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     }
   }, [isOpen, initialMode]);
 
-  // Handle redirect result on mount AND when modal opens
   useEffect(() => {
     const finishRedirect = async () => {
       try {
-        console.log('[AuthModal] Checking for redirect result...');
         const user: any = await getGoogleRedirectResult();
-        console.log('[AuthModal] Redirect result:', user ? 'user found' : 'no user');
-        
         if (!user || !user.uid) return;
 
-        console.log('[AuthModal] Processing user:', user.uid);
         const userEmail = user.email || '';
         const userName = user.displayName || '';
 
         const existing = await getUserProfile(user.uid);
         if (!existing) {
-          console.log('[AuthModal] Creating new profile');
           await createUserProfile(user.uid, userEmail, userName, '', '');
         }
 
-        console.log('[AuthModal] Calling onSuccess');
         onSuccess?.(user);
         onClose();
       } catch (e) {
-        console.error('[AuthModal] Redirect result error:', e);
+        console.error('Redirect error:', e);
       }
     };
 
     finishRedirect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, onSuccess, onClose]);
 
   if (!isOpen) return null;
 
@@ -75,22 +67,16 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
 
       if (mode === 'signup') {
         user = await signUpWithEmail(email, password);
-        if (!user || !user.uid) {
-          throw new Error('Sign up failed: no user returned');
-        }
+        if (!user || !user.uid) throw new Error('Sign up failed');
         await createUserProfile(user.uid, email, fullName, company, designations);
       } else {
         user = await signInWithEmail(email, password);
-        if (!user || !user.uid) {
-          throw new Error('Sign in failed: no user returned');
-        }
-        await getUserProfile(user.uid);
+        if (!user || !user.uid) throw new Error('Sign in failed');
       }
 
       onSuccess?.(user);
       onClose();
     } catch (err: any) {
-      console.error('Auth error:', err);
       setError(err?.message || 'Authentication failed');
     } finally {
       setLoading(false);
@@ -102,17 +88,12 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     setLoading(true);
     try {
       if (isMobile()) {
-        console.log('[AuthModal] Mobile detected, using redirect');
         await signInWithGoogleRedirect();
-        // Don't set loading to false — page will redirect
         return;
       }
 
-      console.log('[AuthModal] Desktop detected, using popup');
       const user: any = await signInWithGooglePopup();
-      if (!user || !user.uid) {
-        throw new Error('Google sign-in failed: no user returned');
-      }
+      if (!user || !user.uid) throw new Error('Google sign-in failed');
 
       const userEmail = user.email || '';
       const userName = user.displayName || '';
@@ -125,23 +106,28 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
       onSuccess?.(user);
       onClose();
     } catch (err: any) {
-      console.error('Google sign-in error:', err);
       setError(err?.message || 'Google sign-in failed');
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+    <div 
+      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 px-4"
+      style={{ pointerEvents: 'auto' }}
+    >
+      <div 
+        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        style={{ pointerEvents: 'auto' }}
+      >
         <div className="flex items-start justify-between gap-4 mb-4">
           <h2 className="text-xl font-bold text-[#1a2b4a]">
             {mode === 'signup' ? 'Create your account' : 'Sign in'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-800 font-bold"
-            aria-label="Close"
+            className="text-gray-500 hover:text-gray-800 font-bold text-xl"
+            style={{ pointerEvents: 'auto' }}
           >
             ✕
           </button>
