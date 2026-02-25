@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { signUpWithEmail, signInWithEmail, signInWithGoogle } from '@/lib/auth';
+import { signUpWithEmail, signInWithEmail, signInWithGooglePopup, signInWithGoogleRedirect, getGoogleRedirectResult } from '@/lib/auth';
 import { createUserProfile, getUserProfile } from '@/lib/profile';
 
 interface AuthModalProps {
@@ -28,7 +28,38 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     }
   }, [isOpen, initialMode]);
 
+  // Handle redirect result on mount
+  useEffect(() => {
+    const finishRedirect = async () => {
+      try {
+        const user: any = await getGoogleRedirectResult();
+        if (!user || !user.uid) return;
+
+        const userEmail = user.email || '';
+        const userName = user.displayName || '';
+
+        const existing = await getUserProfile(user.uid);
+        if (!existing) {
+          await createUserProfile(user.uid, userEmail, userName, '', '');
+        }
+
+        onSuccess?.(user);
+        onClose();
+      } catch (e) {
+        console.error('Redirect result error:', e);
+      }
+    };
+
+    finishRedirect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (!isOpen) return null;
+
+  const isMobile = () => {
+    if (typeof window === 'undefined') return false;
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  };
 
   const handleAuth = async () => {
     setError('');
@@ -64,8 +95,14 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     setError('');
     setLoading(true);
     try {
-      const user: any = await signInWithGoogle();
-      
+      if (isMobile()) {
+        // Mobile: use redirect (will leave page and come back)
+        await signInWithGoogleRedirect();
+        return;
+      }
+
+      // Desktop: use popup
+      const user: any = await signInWithGooglePopup();
       if (!user || !user.uid) {
         throw new Error('Google sign-in failed: no user returned');
       }
@@ -73,11 +110,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
       const userEmail = user.email || '';
       const userName = user.displayName || '';
 
-      // Try to get existing profile, create if doesn't exist
-      try {
-        await getUserProfile(user.uid);
-      } catch {
-        // Profile doesn't exist, create it
+      const existing = await getUserProfile(user.uid);
+      if (!existing) {
         await createUserProfile(user.uid, userEmail, userName, '', '');
       }
 
@@ -86,7 +120,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     } catch (err: any) {
       console.error('Google sign-in error:', err);
       setError(err?.message || 'Google sign-in failed');
-    } finally {
       setLoading(false);
     }
   };
