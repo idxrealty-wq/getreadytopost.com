@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebaseAdmin';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,32 +9,32 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
 
-    console.log('Balance endpoint called for userId:', userId);
-
     if (!userId) {
       return NextResponse.json({ error: 'userId required' }, { status: 400 });
     }
 
-    const adminDb = getAdminDb();
-    const userRef = adminDb.collection('users').doc(userId);
-    const userDoc = await userRef.get();
+    // Initialize Admin SDK
+    if (!getApps().length) {
+      initializeApp({
+        credential: cert({
+          projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        }),
+      });
+    }
 
-    console.log('User doc exists:', userDoc.exists);
+    const db = getFirestore();
+    const userDoc = await db.collection('users').doc(userId).get();
 
     if (!userDoc.exists) {
-      console.log('User doc not found, returning 0');
       return NextResponse.json({ balance: 0 });
     }
 
-    const data = userDoc.data();
-    console.log('User doc data:', data);
-
-    const balance = data?.credits?.balance || 0;
-    console.log('Extracted balance:', balance);
-
+    const balance = userDoc.data()?.credits?.balance ?? 0;
     return NextResponse.json({ balance });
   } catch (error: any) {
-    console.error('Get balance error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to fetch balance' }, { status: 500 });
+    console.error('Balance error:', error.message);
+    return NextResponse.json({ balance: 0 });
   }
 }
