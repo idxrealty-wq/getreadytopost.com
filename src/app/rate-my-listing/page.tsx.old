@@ -1,8 +1,7 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useUser } from '@/contexts/UserContext';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
@@ -17,86 +16,25 @@ const gradingCategories = [
 
 export default function RateMyListingPage() {
   const router = useRouter();
-  const { user } = useUser();
   const [email, setEmail] = useState('');
   const [listing, setListing] = useState('');
   const [showPayment, setShowPayment] = useState(false);
   const [submissionId, setSubmissionId] = useState('');
   const [loading, setLoading] = useState(false);
-  const [creditBalance, setCreditBalance] = useState(0);
-  const [creditsLoading, setCreditsLoading] = useState(false);
-
   const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
 
-  // Fetch credit balance on mount
-  useEffect(() => {
-    if (user?.uid) {
-      fetchCreditBalance();
-    }
-  }, [user?.uid]);
-
-  const fetchCreditBalance = async () => {
-    if (!user?.uid) return;
-    setCreditsLoading(true);
-    try {
-      const res = await fetch(`/api/credits/balance?userId=${user.uid}`);
-      const data = await res.json();
-      setCreditBalance(data.balance || 0);
-    } catch (error) {
-      console.error('Error fetching credit balance:', error);
-    } finally {
-      setCreditsLoading(false);
-    }
-  };
-
   const handleSubmit = async () => {
-    if (!user?.uid) {
-      alert('Please sign in to submit a listing.');
-      return;
-    }
-
     setLoading(true);
     try {
       const docRef = await addDoc(collection(db, 'submissions'), {
-        userId: user.uid,
-        email: email || user.email,
+        email,
         listingText: listing,
         wordCount,
-        status: 'pending_analysis',
+        status: 'pending_payment',
         createdAt: new Date().toISOString(),
       });
-
       setSubmissionId(docRef.id);
-
-      // If user has credits, deduct one and proceed to analysis
-      if (creditBalance > 0) {
-        try {
-          const deductRes = await fetch('/api/credits/deduct', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.uid, submissionId: docRef.id }),
-          });
-          const deductData = await deductRes.json();
-          if (deductRes.ok) {
-            setCreditBalance(deductData.newBalance || creditBalance - 1);
-            // Trigger analysis immediately
-            await fetch('/api/submissions/run-analysis', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ submissionId: docRef.id }),
-            });
-            router.push(`/results?id=${docRef.id}`);
-          } else {
-            alert('Error deducting credit. Please try again.');
-          }
-        } catch (error) {
-          console.error('Error deducting credit:', error);
-          alert('Error processing credit. Please try again.');
-        }
-      } else {
-        // No credits, show payment
-        setShowPayment(true);
-      }
+      setShowPayment(true);
     } catch (error) {
       alert('Error saving submission. Please try again.');
       console.error(error);
@@ -121,6 +59,7 @@ export default function RateMyListingPage() {
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-10">
+
         {/* Hero */}
         <section className="py-8 text-center text-white">
           <div className="inline-block bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-full mb-4">🔥 Instant Listing Analysis</div>
@@ -130,12 +69,9 @@ export default function RateMyListingPage() {
             <p className="text-4xl font-bold text-[#c9a227] mb-1">$19.99</p>
             <p className="text-sm text-gray-300">Instant AI-powered analysis</p>
           </div>
-          {user && creditBalance > 0 && (
-            <div className="mt-4 text-green-300 font-semibold">✨ You have {creditBalance} credit(s) available</div>
-          )}
         </section>
 
-        {/* Video */}
+        {/* Video Placeholder */}
         <section className="mb-10">
           <div className="rounded-2xl overflow-hidden border border-white/20 shadow-2xl aspect-video">
             <iframe
@@ -255,7 +191,7 @@ export default function RateMyListingPage() {
                 className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50"
                 disabled={!email || !listing || loading}
               >
-                {loading ? 'Saving...' : '🔥 Continue to Analysis'}
+                {loading ? 'Saving...' : '🔥 Continue to Payment'}
               </button>
               <p className="text-xs text-gray-500 text-center">Secure payment via Square. See results instantly.</p>
             </div>
