@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
 export const dynamic = 'force-dynamic';
@@ -13,7 +13,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'userId required' }, { status: 400 });
     }
 
-    // Initialize Admin SDK
     if (!getApps().length) {
       initializeApp({
         credential: cert({
@@ -25,16 +24,18 @@ export async function GET(req: NextRequest) {
     }
 
     const db = getFirestore();
-    const userDoc = await db.collection('users').doc(userId).get();
+    const balanceDoc = await db
+      .collection('users')
+      .doc(userId)
+      .collection('credits')
+      .doc('balance')
+      .get();
 
-    if (!userDoc.exists) {
-      return NextResponse.json({ balance: 0 });
-    }
+    const balance = balanceDoc.exists ? (balanceDoc.data()?.balance ?? 0) : 0;
 
-    const balance = userDoc.data()?.credits?.balance ?? 0;
     return NextResponse.json({ balance });
   } catch (error: any) {
     console.error('Balance error:', error.message);
-    return NextResponse.json({ balance: 0 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
