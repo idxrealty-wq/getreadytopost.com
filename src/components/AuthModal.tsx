@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { signUpWithEmail, signInWithEmail, signInWithGooglePopup, signInWithGoogleRedirect, getGoogleRedirectResult } from '@/lib/auth';
+import Link from "next/link";
+import { signUpWithEmail, signInWithEmail, signInWithGooglePopup } from '@/lib/auth';
 import { createUserProfile, getUserProfile } from '@/lib/profile';
 
 interface AuthModalProps {
@@ -28,36 +29,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     }
   }, [isOpen, initialMode]);
 
-  useEffect(() => {
-    const finishRedirect = async () => {
-      try {
-        const user: any = await getGoogleRedirectResult();
-        if (!user || !user.uid) return;
-
-        const userEmail = user.email || '';
-        const userName = user.displayName || '';
-
-        const existing = await getUserProfile(user.uid);
-        if (!existing) {
-          await createUserProfile(user.uid, userEmail, userName, '', '');
-        }
-
-        onSuccess?.(user);
-        onClose();
-      } catch (e) {
-        console.error('Redirect error:', e);
-      }
-    };
-
-    finishRedirect();
-  }, [isOpen, onSuccess, onClose]);
-
   if (!isOpen) return null;
-
-  const isMobile = () => {
-    if (typeof window === 'undefined') return false;
-    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  };
 
   const handleAuth = async () => {
     setError('');
@@ -83,15 +55,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     }
   };
 
-  const handleGoogle = async () => {
+  const handleGoogleDesktop = async () => {
     setError('');
     setLoading(true);
     try {
-      if (isMobile()) {
-        await signInWithGoogleRedirect();
-        return;
-      }
-
       const user: any = await signInWithGooglePopup();
       if (!user || !user.uid) throw new Error('Google sign-in failed');
 
@@ -186,13 +153,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
             {loading ? 'Please wait…' : mode === 'signup' ? 'Create Account' : 'Sign In'}
           </button>
 
-          <button
-            onClick={handleGoogle}
-            disabled={loading}
-            className="w-full rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-800 font-bold py-2 transition disabled:opacity-60"
+          <Link
+            href="/auth/google"
+            onClick={onClose}
+            className="block w-full text-center rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-800 font-bold py-2 transition"
           >
             Continue with Google
-          </button>
+          </Link>
 
           <p className="text-sm text-gray-600 text-center pt-2">
             {mode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
