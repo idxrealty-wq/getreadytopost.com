@@ -28,31 +28,37 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     }
   }, [isOpen, initialMode]);
 
-  // Handle redirect result on mount
+  // Handle redirect result on mount AND when modal opens
   useEffect(() => {
     const finishRedirect = async () => {
       try {
+        console.log('[AuthModal] Checking for redirect result...');
         const user: any = await getGoogleRedirectResult();
+        console.log('[AuthModal] Redirect result:', user ? 'user found' : 'no user');
+        
         if (!user || !user.uid) return;
 
+        console.log('[AuthModal] Processing user:', user.uid);
         const userEmail = user.email || '';
         const userName = user.displayName || '';
 
         const existing = await getUserProfile(user.uid);
         if (!existing) {
+          console.log('[AuthModal] Creating new profile');
           await createUserProfile(user.uid, userEmail, userName, '', '');
         }
 
+        console.log('[AuthModal] Calling onSuccess');
         onSuccess?.(user);
         onClose();
       } catch (e) {
-        console.error('Redirect result error:', e);
+        console.error('[AuthModal] Redirect result error:', e);
       }
     };
 
     finishRedirect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -96,12 +102,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     setLoading(true);
     try {
       if (isMobile()) {
-        // Mobile: use redirect (will leave page and come back)
+        console.log('[AuthModal] Mobile detected, using redirect');
         await signInWithGoogleRedirect();
+        // Don't set loading to false — page will redirect
         return;
       }
 
-      // Desktop: use popup
+      console.log('[AuthModal] Desktop detected, using popup');
       const user: any = await signInWithGooglePopup();
       if (!user || !user.uid) {
         throw new Error('Google sign-in failed: no user returned');
