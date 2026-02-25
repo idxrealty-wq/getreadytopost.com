@@ -109,12 +109,10 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-md z-50">
         <div className="max-w-7xl mx-auto px-8 py-5 flex items-center justify-between gap-6">
-          {/* Logo */}
           <Link href="/" className="text-2xl font-bold text-[#1a2b4a] flex-shrink-0">
             GetReadyToPost
           </Link>
 
-          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-12 flex-1">
             {navItems.map((item) => (
               <div key={item.label} className="relative group">
@@ -151,7 +149,6 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Credits Pill (centered) */}
           {!loading && user && creditBalance !== null && (
             <Link
               href="/checkout"
@@ -161,7 +158,6 @@ export default function Header() {
             </Link>
           )}
 
-          {/* Auth (desktop) */}
           <div className="hidden md:flex items-center gap-4 flex-shrink-0">
             {!loading &&
               (user ? (
@@ -200,7 +196,6 @@ export default function Header() {
               ))}
           </div>
 
-          {/* Mobile menu button */}
           <button
             className="md:hidden text-gray-700 text-2xl flex-shrink-0"
             onClick={() => setMobileOpen((v) => !v)}
@@ -210,10 +205,37 @@ export default function Header() {
           </button>
         </div>
 
-        {/* Mobile menu panel */}
         {mobileOpen && (
           <div className="md:hidden bg-white border-t border-gray-200 max-h-96 overflow-y-auto">
             <div className="px-8 py-5 space-y-4">
+              {!loading && user && (
+                <div className="border-b border-gray-200 pb-4 mb-4">
+                  <p className="text-base font-bold text-gray-900">
+                    Welcome, {getFirstName()}! 👋
+                  </p>
+                  <div className="flex items-center justify-between gap-3 mt-3">
+                    {creditBalance !== null && (
+                      <Link
+                        href="/checkout"
+                        onClick={closeMobile}
+                        className="whitespace-nowrap bg-[#c9a227]/20 text-[#c9a227] px-3 py-1.5 rounded-lg font-bold text-xs border border-[#c9a227]/40"
+                      >
+                        Credits: {creditBalance}
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        handleSignOut();
+                        closeMobile();
+                      }}
+                      className="text-sm font-bold text-red-600 hover:text-red-700"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {navItems.map((item) => (
                 <div key={item.label}>
                   {"href" in item ? (
@@ -263,7 +285,6 @@ export default function Header() {
                 </div>
               ))}
 
-              {/* Mobile Auth - Not Logged In */}
               {!loading && !user && (
                 <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
                   <Link
@@ -289,33 +310,6 @@ export default function Header() {
                   >
                     Sign In
                   </Link>
-                </div>
-              )}
-
-              {/* Mobile Auth - Logged In */}
-              {!loading && user && (
-                <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
-                  {creditBalance !== null && (
-                    <Link
-                      href="/checkout"
-                      onClick={closeMobile}
-                      className="block text-[#c9a227] font-bold text-sm py-2"
-                    >
-                      Credits: {creditBalance}
-                    </Link>
-                  )}
-                  <p className="text-sm font-bold text-gray-800 py-2">
-                    Welcome, {getFirstName()}! 👋
-                  </p>
-                  <button
-                    onClick={() => {
-                      handleSignOut();
-                      closeMobile();
-                    }}
-                    className="block w-full text-left text-gray-700 hover:text-red-600 font-medium transition py-2"
-                  >
-                    Sign Out
-                  </button>
                 </div>
               )}
             </div>
