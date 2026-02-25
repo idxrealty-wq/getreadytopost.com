@@ -315,7 +315,7 @@ export default function ResultsContent() {
                     My Agent Vault
                   </Link>
                 )}
-                <p className="text-gray-400 text-sm mt-4">A copy of this report was also sent to your email</p>
+                <p className="text-gray-400 text-sm mt-4">Your report has been sent to <strong className="text-white">{submission?.email}</strong>. Check your inbox!</p>
               </div>
             </div>
           ) : null}
