@@ -3,3 +3,8 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "/vault"
+  to = "/agent-vault"
+  status = 301
