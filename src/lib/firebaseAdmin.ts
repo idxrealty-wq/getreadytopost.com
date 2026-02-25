@@ -8,7 +8,7 @@ function initAdmin() {
   const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || 'getreadtopost';
 
   if (!clientEmail || !privateKey) {
-    throw new Error('Missing FIREBASE_ADMIN_CLIENT_EMAIL or FIREBASE_ADMIN_PRIVATE_KEY');
+    throw new Error('Missing Firebase Admin credentials');
   }
 
   admin.initializeApp({
