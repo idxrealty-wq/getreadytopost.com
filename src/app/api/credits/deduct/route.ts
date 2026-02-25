@@ -1,25 +1,62 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebaseAdmin';
-import { FieldValue } from 'firebase-admin/firestore';
+import { NextRequest, NextResponse } from "next/server";
+import { getApps, initializeApp, cert } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+
+export const dynamic = "force-dynamic";
+
+function initAdmin() {
+  if (!getApps().length) {
+    initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      }),
+    });
+  }
+}
 
 export async function POST(req: NextRequest) {
+  initAdmin();
+  const db = getFirestore();
+
   try {
-    const { userId, listingId } = await req.json();
-    if (!userId || !listingId) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const { userId, submissionId } = await req.json();
+
+    if (!userId) {
+      return NextResponse.json({ error: "userId required" }, { status: 400 });
     }
-    const adminDb = getAdminDb();
-    const userCreditsRef = adminDb.collection('users').doc(userId).collection('credits').doc('balance');
-    await userCreditsRef.set({ balance: FieldValue.increment(-1) }, { merge: true });
-    const transactionsRef = adminDb.collection('users').doc(userId).collection('transactions');
-    await transactionsRef.add({ type: 'usage', creditsDeducted: 1, listingId, timestamp: FieldValue.serverTimestamp(), source: 'listing-analysis' });
-    const submissionRef = adminDb.collection('submissions').doc(listingId);
-    await submissionRef.set({ status: 'paid', paymentMethod: 'credit', paidAt: FieldValue.serverTimestamp() }, { merge: true });
-    const balanceDoc = await userCreditsRef.get();
-    const newBalance = balanceDoc.data()?.balance || 0;
+
+    const balanceRef = db.collection("users").doc(userId).collection("credits").doc("balance");
+    const balanceDoc = await balanceRef.get();
+    const currentBalance = balanceDoc.exists ? (balanceDoc.data()?.balance || 0) : 0;
+
+    if (currentBalance <= 0) {
+      return NextResponse.json({ error: "Insufficient credits" }, { status: 400 });
+    }
+
+    const newBalance = currentBalance - 1;
+
+    await balanceRef.update({ balance: newBalance });
+
+    if (submissionId) {
+      await db.collection("submissions").doc(submissionId).update({
+        creditUsed: true,
+        creditDeductedAt: new Date().toISOString(),
+      });
+    }
+
+    await db.collection("users").doc(userId).collection("transactions").add({
+      type: "deduct",
+      amount: -1,
+      newBalance,
+      submissionId: submissionId || null,
+      timestamp: new Date().toISOString(),
+    });
+
     return NextResponse.json({ success: true, newBalance });
-  } catch (error) {
-    console.error('Deduct credits error:', error);
-    return NextResponse.json({ error: 'Failed to deduct credit', details: String(error) }, { status: 500 });
+  } catch (error: any) {
+    console.error("Deduct credit error:", error?.message || error);
+    return NextResponse.json({ error: error?.message || "Server error" }, { status: 500 });
   }
 }
