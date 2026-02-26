@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
 
     // Fetch submission from Firestore
     const docSnap = await db.collection("submissions").doc(submissionId).get();
-    if (!docSnap.exists()) {
+    if (!docSnap.exists) {
       return NextResponse.json({ error: "Submission not found" }, { status: 404 });
     }
 
