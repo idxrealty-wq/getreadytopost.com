@@ -143,14 +143,14 @@ export default function ResultsContent() {
         {/* STEP 1: GRADES */}
         {currentStep === 1 && (
           <div className="space-y-8">
-            <h1 className="text-4xl font-bold text-white text-center mb-12">
+            <h1 className="text-5xl font-bold text-white text-center mb-12">
               Your Listing Grade
             </h1>
 
             <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-8 border-2 border-blue-500/40">
               <div className="text-center mb-8">
-                <div className="text-6xl mb-4">📊</div>
-                <h2 className="text-3xl font-bold text-white mb-2">Original Listing</h2>
+                <div className="text-7xl mb-4">📊</div>
+                <h2 className="text-4xl font-bold text-white mb-2">Original Listing</h2>
                 <p className="text-white/80">How your current listing scores</p>
               </div>
 
@@ -183,7 +183,7 @@ export default function ResultsContent() {
                     key={key}
                     className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 text-center"
                   >
-                    <div className="text-sm text-white/70 capitalize mb-2 font-semibold">
+                    <div className="text-base text-white/70 capitalize mb-2 font-semibold">
                       {key}
                     </div>
                     <div
@@ -223,14 +223,14 @@ export default function ResultsContent() {
         {/* STEP 2: REWRITE */}
         {currentStep === 2 && (
           <div className="space-y-8">
-            <h1 className="text-4xl font-bold text-white text-center mb-12">
+            <h1 className="text-5xl font-bold text-white text-center mb-12">
               Your Improved Listing
             </h1>
 
             <div className="bg-gradient-to-br from-amber-700 to-orange-900 rounded-3xl p-8 border-2 border-amber-400/40">
               <div className="text-center mb-8">
-                <div className="text-6xl mb-4">✍️</div>
-                <h2 className="text-3xl font-bold text-white mb-2">Professional Rewrite</h2>
+                <div className="text-7xl mb-4">✍️</div>
+                <h2 className="text-4xl font-bold text-white mb-2">Professional Rewrite</h2>
                 <p className="text-white/80">140–160 words, buyer-focused, MLS-ready</p>
               </div>
 
@@ -285,14 +285,14 @@ export default function ResultsContent() {
         {/* STEP 3: NEXT STEPS */}
         {currentStep === 3 && (
           <div className="space-y-8">
-            <h1 className="text-4xl font-bold text-white text-center mb-12">
+            <h1 className="text-5xl font-bold text-white text-center mb-12">
               Next Steps
             </h1>
 
             <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-3xl p-8 border-2 border-green-500/40">
               <div className="text-center mb-8">
-                <div className="text-6xl mb-4">🚀</div>
-                <h2 className="text-3xl font-bold text-white mb-2">Ready to Launch</h2>
+                <div className="text-7xl mb-4">🚀</div>
+                <h2 className="text-4xl font-bold text-white mb-2">Ready to Launch</h2>
                 <p className="text-white/80">Your listing is ready to go live</p>
               </div>
 
