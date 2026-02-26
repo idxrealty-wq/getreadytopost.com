@@ -10,7 +10,6 @@ import {
   query,
   where,
   getDocs,
-  orderBy,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
@@ -69,7 +68,6 @@ export default function VaultPage() {
     } else if (!authLoading && !user) {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
 
   async function fetchCreditBalance() {
@@ -101,15 +99,12 @@ export default function VaultPage() {
     if (!user) return;
     try {
       const reportsRef = collection(db, "submissions");
-      const q = query(
-        reportsRef,
-        where("email", "==", user.email),
-        orderBy("createdAt", "desc")
-      );
+      const q = query(reportsRef, where("email", "==", user.email));
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map(
         (d) => ({ id: d.id, ...d.data() } as Report)
       );
+      data.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
       setReports(data);
     } catch (err) {
       console.error("Failed to load reports:", err);
@@ -312,7 +307,6 @@ export default function VaultPage() {
             )}
           </>
         )}
-
         {tab === "reports" && (
           <>
             {reports.length === 0 ? (
@@ -393,4 +387,3 @@ export default function VaultPage() {
     </main>
   );
 }
-
