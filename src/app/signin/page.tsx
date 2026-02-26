@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signInWithEmail, signInWithGooglePopup, createUserWithEmail } from "@/lib/auth";
+import { signInWithEmail, signInWithGooglePopup, signUpWithEmail } from "@/lib/auth";
 import { useUser } from "@/contexts/UserContext";
 
 export default function SignInPage() {
@@ -36,7 +36,7 @@ export default function SignInPage() {
     setErr("");
     setLoading(true);
     try {
-      const u: any = await createUserWithEmail(email, password);
+      const u: any = await signUpWithEmail(email, password);
       if (!u || !u.uid) throw new Error("Account creation failed");
       router.push("/");
     } catch (e: any) {
