@@ -111,16 +111,26 @@ export async function POST(req: NextRequest) {
     const db = getFirestore();
 
     const body = await req.json();
-    const {
-      listingText,
-      propertyDetails,
-      email,
-      userId,
-      source = "rate-my-listing",
-    } = body || {};
+    const { submissionId } = body || {};
 
-    if (!listingText || typeof listingText !== "string") {
-      return NextResponse.json({ error: "Missing listingText" }, { status: 400 });
+    if (!submissionId) {
+      return NextResponse.json({ error: "Missing submissionId" }, { status: 400 });
+    }
+
+    // Fetch submission from Firestore
+    const docSnap = await db.collection("submissions").doc(submissionId).get();
+    if (!docSnap.exists()) {
+      return NextResponse.json({ error: "Submission not found" }, { status: 404 });
+    }
+
+    const submission: any = docSnap.data() || {};
+    const listingText = submission.listingText || "";
+    const propertyDetails = submission.propertyDetails || {};
+    const email = submission.email;
+    const userId = submission.userId;
+
+    if (!listingText) {
+      return NextResponse.json({ error: "No listing text in submission" }, { status: 400 });
     }
 
     const factsBlock = buildFactsBlock(propertyDetails);
@@ -163,31 +173,23 @@ export async function POST(req: NextRequest) {
     rewrite = await ensureRewriteLength(rewrite, factsBlock);
     const rewriteWordCount = countWords(rewrite);
 
-    // 3) Save submission (best-effort)
-    try {
-      const doc: any = {
-        createdAt: new Date().toISOString(),
-        source,
-        listingText,
-        propertyDetails: propertyDetails || null,
-        grades,
-        rewrite,
-        rewriteWordCount,
-      };
-      if (email) doc.email = email;
-      if (userId) doc.userId = userId;
-
-      await db.collection("submissions").add(doc);
-    } catch {
-      // ignore save failures; still return analysis
-    }
+    // 3) Update submission doc with analysis results
+    await db.collection("submissions").doc(submissionId).update({
+      status: "completed",
+      grades,
+      rewrite,
+      rewriteWordCount,
+      analyzedAt: new Date().toISOString(),
+    });
 
     return NextResponse.json({
+      submissionId,
       grades,
       rewrite,
       rewriteWordCount,
     });
   } catch (e: any) {
+    console.error("run-analysis error:", e);
     return NextResponse.json(
       { error: e?.message || "Run analysis failed" },
       { status: 500 }
