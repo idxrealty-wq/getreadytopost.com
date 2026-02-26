@@ -25,19 +25,58 @@ interface Submission {
   status: string;
 }
 
+const steps = [
+  { number: 1, label: "Grades", icon: "📊" },
+  { number: 2, label: "Rewrite", icon: "✍️" },
+  { number: 3, label: "Next Steps", icon: "🚀" },
+];
+
+const gradeColor = (grade: string) => {
+  switch (grade) {
+    case "A":
+      return "#27ae60";
+    case "B":
+      return "#f39c12";
+    case "C":
+      return "#e74c3c";
+    case "D":
+      return "#c0392b";
+    case "F":
+      return "#95a5a6";
+    default:
+      return "#7f8c8d";
+  }
+};
+
+const gradeLabel = (grade: string) => {
+  switch (grade) {
+    case "A":
+      return "Excellent";
+    case "B":
+      return "Good";
+    case "C":
+      return "Fair";
+    case "D":
+      return "Poor";
+    case "F":
+      return "Incomplete";
+    default:
+      return "Unknown";
+  }
+};
+
 export default function ResultsContent() {
   const searchParams = useSearchParams();
   const submissionId = searchParams.get("id");
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
+  const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
     if (!submissionId) return;
 
     const fetchSubmission = async () => {
       try {
-        
         const docRef = doc(db, "submissions", submissionId);
         const docSnap = await getDoc(docRef);
 
@@ -76,220 +115,253 @@ export default function ResultsContent() {
   }
 
   const analysis = submission.analysis;
-  const gradeColor = (grade: string) => {
-    switch (grade) {
-      case "A":
-        return "#27ae60";
-      case "B":
-        return "#f39c12";
-      case "C":
-        return "#e74c3c";
-      case "D":
-        return "#c0392b";
-      case "F":
-        return "#95a5a6";
-      default:
-        return "#7f8c8d";
-    }
-  };
 
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] pb-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* PAGE 1: GRADES */}
-        {page === 1 && (
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* STEP INDICATOR */}
+        <div className="mb-12">
+          <div className="flex justify-center gap-4 flex-wrap">
+            {steps.map((step) => (
+              <button
+                key={step.number}
+                onClick={() => setCurrentStep(step.number)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all ${
+                  currentStep === step.number
+                    ? "bg-gradient-to-r from-[#c9a227] to-[#d4b03a] text-black shadow-lg scale-105"
+                    : "bg-white/10 border border-white/20 text-white hover:bg-white/20"
+                }`}
+              >
+                <span className="text-xl">{step.icon}</span>
+                <span>{step.number}</span>
+                <span className="hidden sm:inline">{step.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* STEP 1: GRADES */}
+        {currentStep === 1 && (
           <div className="space-y-8">
             <h1 className="text-4xl font-bold text-white text-center mb-12">
-              Your Listing Analysis
+              Your Listing Grade
             </h1>
 
-            {/* Original Listing Grade */}
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-6">
-                Original Listing Grade
-              </h2>
-              <div className="flex items-center justify-center">
+            <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-8 border-2 border-blue-500/40">
+              <div className="text-center mb-8">
+                <div className="text-6xl mb-4">📊</div>
+                <h2 className="text-3xl font-bold text-white mb-2">Original Listing</h2>
+                <p className="text-white/80">How your current listing scores</p>
+              </div>
+
+              <div className="flex justify-center mb-8">
                 <div
                   style={{
-                    width: "120px",
-                    height: "120px",
+                    width: "140px",
+                    height: "140px",
                     borderRadius: "50%",
                     backgroundColor: gradeColor(analysis.overall),
                     display: "flex",
+                    flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
                   }}
                 >
-                  <span className="text-5xl font-bold text-white">
+                  <span className="text-6xl font-bold text-white">
                     {analysis.overall}
+                  </span>
+                  <span className="text-white text-sm font-semibold mt-1">
+                    {gradeLabel(analysis.overall)}
                   </span>
                 </div>
               </div>
-              <p className="text-center text-gray-300 mt-6 text-lg">
-                {analysis.overall === "A"
-                  ? "Excellent listing"
-                  : analysis.overall === "B"
-                  ? "Good listing with room for improvement"
-                  : analysis.overall === "C"
-                  ? "Fair listing - significant improvements needed"
-                  : analysis.overall === "D"
-                  ? "Poor listing - major revisions recommended"
-                  : "Incomplete or unusable listing"}
-              </p>
-            </div>
 
-            {/* Category Breakdown */}
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <h3 className="text-xl font-bold text-white mb-6">
-                Category Breakdown
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {Object.entries(analysis.categories).map(([key, value]) => (
                   <div
                     key={key}
-                    className="bg-white/5 rounded-lg p-4 border border-white/10"
+                    className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 text-center"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-white font-semibold capitalize">
-                        {key}
-                      </span>
-                      <div
-                        style={{
-                          width: "40px",
-                          height: "40px",
-                          borderRadius: "50%",
-                          backgroundColor: gradeColor(value.grade),
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <span className="text-white font-bold text-sm">
-                          {value.grade}
-                        </span>
-                      </div>
+                    <div className="text-sm text-white/70 capitalize mb-2 font-semibold">
+                      {key}
                     </div>
-                    <p className="text-gray-300 text-sm">{value.feedback}</p>
+                    <div
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        borderRadius: "50%",
+                        backgroundColor: gradeColor(value.grade),
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        margin: "0 auto 8px",
+                      }}
+                    >
+                      <span className="text-white font-bold text-lg">
+                        {value.grade}
+                      </span>
+                    </div>
+                    <p className="text-white/60 text-xs leading-tight">
+                      {value.feedback}
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Next Button */}
             <div className="flex justify-end">
               <button
-                onClick={() => setPage(2)}
-                className="bg-[#c9a227] hover:bg-[#d4b03a] text-black font-bold py-3 px-8 rounded-lg transition"
+                onClick={() => setCurrentStep(2)}
+                className="bg-[#c9a227] hover:bg-[#d4b03a] text-black font-bold py-4 px-8 rounded-xl text-lg transition shadow-lg"
               >
                 View Rewrite →
               </button>
             </div>
           </div>
         )}
-        {/* PAGE 2: REWRITE + RECOMMENDATIONS */}
-        {page === 2 && (
+        {/* STEP 2: REWRITE */}
+        {currentStep === 2 && (
           <div className="space-y-8">
             <h1 className="text-4xl font-bold text-white text-center mb-12">
-              Professional Rewrite
+              Your Improved Listing
             </h1>
 
-            {/* Rewrite Section */}
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-6">
-                Your Improved Listing
-              </h2>
-              <div className="bg-white/5 rounded-lg p-6 border-l-4 border-[#c9a227]">
-                <p className="text-white text-lg leading-relaxed whitespace-pre-wrap">
+            <div className="bg-gradient-to-br from-amber-700 to-orange-900 rounded-3xl p-8 border-2 border-amber-400/40">
+              <div className="text-center mb-8">
+                <div className="text-6xl mb-4">✍️</div>
+                <h2 className="text-3xl font-bold text-white mb-2">Professional Rewrite</h2>
+                <p className="text-white/80">140–160 words, buyer-focused, MLS-ready</p>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 mb-8">
+                <p className="text-white text-lg leading-relaxed whitespace-pre-wrap font-light">
                   {analysis.rewrite}
                 </p>
               </div>
-            </div>
 
-            {/* Recommendations Section */}
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <h3 className="text-2xl font-bold text-white mb-6">
-                Key Recommendations
-              </h3>
-              <ol className="space-y-4">
-                {analysis.recommendations.map((rec, idx) => (
-                  <li key={idx} className="flex gap-4">
-                    <div className="flex-shrink-0">
+              <button
+                onClick={() => navigator.clipboard.writeText(analysis.rewrite || "")}
+                className="w-full bg-white text-amber-900 font-bold py-4 px-8 rounded-xl text-lg hover:bg-gray-100 transition shadow-lg mb-8"
+              >
+                Copy to Clipboard
+              </button>
+
+              <div>
+                <h3 className="text-xl font-bold text-white mb-6">Key Recommendations</h3>
+                <div className="space-y-4">
+                  {analysis.recommendations.map((rec, idx) => (
+                    <div key={idx} className="flex gap-4 bg-white/5 rounded-lg p-4 border border-white/10">
                       <div
-                        className="flex items-center justify-center h-8 w-8 rounded-full"
+                        className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-black"
                         style={{ backgroundColor: "#c9a227" }}
                       >
-                        <span className="text-black font-bold text-sm">
-                          {idx + 1}
-                        </span>
+                        {idx + 1}
                       </div>
+                      <p className="text-white/90 leading-relaxed">{rec}</p>
                     </div>
-                    <p className="text-white text-lg leading-relaxed">{rec}</p>
-                  </li>
-                ))}
-              </ol>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            {/* Navigation Buttons */}
             <div className="flex justify-between">
               <button
-                onClick={() => setPage(1)}
-                className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition"
+                onClick={() => setCurrentStep(1)}
+                className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-4 px-8 rounded-xl transition"
               >
-                ← Back to Grades
+                ← Back
               </button>
               <button
-                onClick={() => setPage(3)}
-                className="bg-[#c9a227] hover:bg-[#d4b03a] text-black font-bold py-3 px-8 rounded-lg transition"
+                onClick={() => setCurrentStep(3)}
+                className="bg-[#c9a227] hover:bg-[#d4b03a] text-black font-bold py-4 px-8 rounded-xl text-lg transition shadow-lg"
               >
-                Next Steps →
+                Next →
               </button>
             </div>
           </div>
         )}
 
-        {/* PAGE 3: CTA / NEXT STEPS */}
-        {page === 3 && (
+        {/* STEP 3: NEXT STEPS */}
+        {currentStep === 3 && (
           <div className="space-y-8">
             <h1 className="text-4xl font-bold text-white text-center mb-12">
               Next Steps
             </h1>
 
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Ready to Publish?
-              </h2>
-              <p className="text-gray-300 text-lg mb-6">
-                Copy the improved listing above and update your MLS listing.
-              </p>
-              <button
-                onClick={() => navigator.clipboard.writeText(analysis.rewrite || "")}
-                className="w-full bg-[#c9a227] hover:bg-[#d4b03a] text-black font-bold py-4 px-8 rounded-lg text-lg transition"
-              >
-                Copy Rewrite to Clipboard
-              </button>
-            </div>
+            <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-3xl p-8 border-2 border-green-500/40">
+              <div className="text-center mb-8">
+                <div className="text-6xl mb-4">🚀</div>
+                <h2 className="text-3xl font-bold text-white mb-2">Ready to Launch</h2>
+                <p className="text-white/80">Your listing is ready to go live</p>
+              </div>
 
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Analyze Another Listing
-              </h2>
-              <p className="text-gray-300 text-lg mb-6">
-                Run another listing through the tool to improve your next post.
-              </p>
-              <a
-                href="/rate-my-listing"
-                className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg text-lg text-center transition"
-              >
-                Analyze Another Listing
-              </a>
+              <div className="space-y-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                  <div className="flex items-start gap-4">
+                    <div className="text-4xl">📋</div>
+                    <div>
+                      <h3 className="text-white font-bold text-lg mb-2">Copy Your Rewrite</h3>
+                      <p className="text-white/70 mb-4">
+                        Go back to Step 2 and copy the improved listing to your clipboard.
+                      </p>
+                      <button
+                        onClick={() => setCurrentStep(2)}
+                        className="text-sm font-bold text-white/90 hover:text-white underline underline-offset-2"
+                      >
+                        Back to Rewrite →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                  <div className="flex items-start gap-4">
+                    <div className="text-4xl">🌐</div>
+                    <div>
+                      <h3 className="text-white font-bold text-lg mb-2">Update Your MLS</h3>
+                      <p className="text-white/70">
+                        Paste the new description into your MLS listing (Stellar, Zillow, Realtor.com, or your local board).
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                  <div className="flex items-start gap-4">
+                    <div className="text-4xl">📈</div>
+                    <div>
+                      <h3 className="text-white font-bold text-lg mb-2">Watch Results</h3>
+                      <p className="text-white/70">
+                        Track showings, inquiries, and offers. Better copy = more buyer interest.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 space-y-4">
+                <a
+                  href="/rate-my-listing"
+                  className="block w-full bg-white text-green-900 font-bold py-4 px-8 rounded-xl text-lg text-center hover:bg-gray-100 transition shadow-lg"
+                >
+                  Analyze Another Listing
+                </a>
+                <a
+                  href="/agent-vault"
+                  className="block w-full bg-white/20 border border-white/40 text-white font-bold py-4 px-8 rounded-xl text-lg text-center hover:bg-white/30 transition"
+                >
+                  View Agent Vault
+                </a>
+              </div>
             </div>
 
             <div className="flex justify-start">
               <button
-                onClick={() => setPage(2)}
-                className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition"
+                onClick={() => setCurrentStep(2)}
+                className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-4 px-8 rounded-xl transition"
               >
-                ← Back to Rewrite
+                ← Back
               </button>
             </div>
           </div>
