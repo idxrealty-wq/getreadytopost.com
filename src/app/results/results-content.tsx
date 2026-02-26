@@ -255,6 +255,12 @@ export default function ResultsContent() {
               <button onClick={handleSaveToVault} disabled={saving || submission.saved} className={`px-6 py-3 rounded-lg font-semibold transition ${submission.saved ? "bg-green-600 text-white cursor-default" : "bg-green-500 hover:bg-green-600 text-white"}`}>
                 {saving ? "💾 Saving..." : submission.saved ? "✓ Saved to Vault" : "💾 Save to Vault"}
               </button>
+              <button
+                onClick={() => window.location.href = `/agent-vault?submissionId=`}
+                className="px-6 py-3 bg-white/10 hover:bg-white/20 text-gray-900 border border-gray-300 rounded-lg font-semibold transition"
+              >
+                🔎 View in Vault
+              </button>
             </div>
 
             {analysis.rewriteCategories && Object.keys(analysis.rewriteCategories).length > 0 && (
