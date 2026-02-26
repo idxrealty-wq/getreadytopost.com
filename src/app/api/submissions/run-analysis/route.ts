@@ -92,6 +92,39 @@ async function ensureRewriteLength(
   return current;
 }
 
+async function gradeText(text: string, listingText: string, locationContext: string, isRewrite: boolean = false): Promise<any> {
+  const gradeRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a strict real estate listing grader. Return ONLY valid JSON (no markdown, no commentary). You MUST grade in EXACTLY these 6 categories: 1) headline 2) length 3) emotion 4) keywords 5) cta 6) compliance. GRADING SCALE (A,B,C,D,F): A = excellent, B = good, C = fair, D = poor, F = failing. HEADLINE (opening 1–2 sentences): A = property-specific hook + differentiator (location + standout feature) with minimal hype. B = decent hook but generic phrasing or missing differentiator. C = flat/neutral opening. D = confusing or buried lead. F = missing/unusable. LENGTH (word count): A = 140–160 words. B = 120–139 or 161–180. C = 100–119 or 181–220. D = 70–99 or 221–280. F = <70 or >280. EMOTION (buyer psychology): A = benefits + lifestyle + sensory detail. B = some lifestyle framing, still feature-heavy. C = mostly feature list. D = dry/robotic. F = incoherent. KEYWORDS (searchability): A = property type + location cues + top features + lifestyle terms naturally. B = good features but missing property type or location. C = sparse keywords. D = weak terms. F = irrelevant. CTA (call to action): A = clear next step (schedule showing / request tour / contact agent). B = CTA present but weak. C = indirect CTA. D = vague. F = none. COMPLIANCE (Fair Housing + MLS): A = MLS-safe, factual, no discriminatory language, no errors. B = minor hype, still safe. C = multiple hype claims or steering-risk phrasing. D = major credibility issues. F = Fair Housing violation or discriminatory language. Fair Housing: Flag "perfect for families", "young professionals", "safe neighborhood", "ideal for students", "no Section 8", or protected class references. MLS: Avoid contact info, URLs, emojis, ALL CAPS spam. OUTPUT JSON: {"overall":"A|B|C|D|F","categories":{"headline":{"grade":"A|B|C|D|F","feedback":"..."},"length":{"grade":"A|B|C|D|F","feedback":"..."},"emotion":{"grade":"A|B|C|D|F","feedback":"..."},"keywords":{"grade":"A|B|C|D|F","feedback":"..."},"cta":{"grade":"A|B|C|D|F","feedback":"..."},"compliance":{"grade":"A|B|C|D|F","feedback":"..."}}}.`,
+        },
+        {
+          role: "user",
+          content: `${locationContext ? `LOCATION CONTEXT:\n${locationContext}\n\n` : ""}${isRewrite ? "REWRITE" : "ORIGINAL LISTING"}:\n${text}`,
+        },
+      ],
+      temperature: 0.7,
+    }),
+  });
+
+  if (!gradeRes.ok) return null;
+  const gradeData = await gradeRes.json();
+  const rawGrade = String(gradeData?.choices?.[0]?.message?.content || "{}");
+  const unfenced = rawGrade.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
+  const firstBrace = unfenced.indexOf("{");
+  const lastBrace = unfenced.lastIndexOf("}");
+  const candidate = firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace ? unfenced.slice(firstBrace, lastBrace + 1) : unfenced;
+  return safeJsonParse(candidate);
+}
+
 export async function POST(req: NextRequest) {
   initAdmin();
   const db = getFirestore();
@@ -119,7 +152,6 @@ export async function POST(req: NextRequest) {
 
     await submissionRef.update({ status: "processing" });
 
-    // Get location context from Maps
     const locationContext = await getLocationContext(
       propertyDetails.address || "",
       propertyDetails.city || "",
@@ -129,6 +161,10 @@ export async function POST(req: NextRequest) {
 
     const locationBlock = locationContext ? `LOCATION CONTEXT (from Google Maps, use only what's provided):\n${locationContext}\n\n` : "";
 
+    // Grade original listing
+    const originalGrade = await gradeText(listingText, listingText, locationContext, false);
+
+    // Generate rewrite
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -159,37 +195,32 @@ export async function POST(req: NextRequest) {
 
     const openaiData = await openaiRes.json();
     const rawContent = String(openaiData.choices?.[0]?.message?.content || "{}");
-
-    const unfenced = rawContent
-      .replace(/```json\s*/gi, "")
-      .replace(/```/g, "")
-      .trim();
-
+    const unfenced = rawContent.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
     const firstBrace = unfenced.indexOf("{");
     const lastBrace = unfenced.lastIndexOf("}");
-    const candidate =
-      firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace
-        ? unfenced.slice(firstBrace, lastBrace + 1)
-        : unfenced;
-
+    const candidate = firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace ? unfenced.slice(firstBrace, lastBrace + 1) : unfenced;
     const analysis = safeJsonParse(candidate);
 
     if (!analysis) {
-      await submissionRef.update({
-        status: "error",
-        error: "Failed to parse OpenAI JSON",
-        rawContent,
-      });
+      await submissionRef.update({ status: "error", error: "Failed to parse OpenAI JSON", rawContent });
       return NextResponse.json({ error: "Bad OpenAI JSON" }, { status: 500 });
     }
 
-    // Enforce 140–160 word rewrite (retry up to 3 times)
+    // Enforce rewrite length
     let rewrite = String(analysis.rewrite || "");
     rewrite = await ensureRewriteLength(rewrite, listingText, locationContext);
     const wc = countWords(rewrite);
     
+    // Grade the rewrite
+    const rewriteGrade = await gradeText(rewrite, listingText, locationContext, true);
+
+    // Build final analysis
     analysis.rewrite = rewrite;
     analysis.rewriteWordCount = wc;
+    analysis.rewriteGrade = rewriteGrade?.overall || "B";
+    analysis.rewriteCategories = rewriteGrade?.categories || {};
+    analysis.originalGrade = originalGrade?.overall || analysis.overall;
+    analysis.originalCategories = originalGrade?.categories || analysis.categories;
 
     await submissionRef.update({
       status: "completed",
@@ -201,9 +232,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, analysis });
   } catch (error: any) {
     console.error("Run analysis error:", error?.message || error);
-    return NextResponse.json(
-      { error: error?.message || "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error?.message || "Server error" }, { status: 500 });
   }
 }
