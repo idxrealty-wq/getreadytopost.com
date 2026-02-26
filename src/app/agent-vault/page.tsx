@@ -78,7 +78,7 @@ export default function VaultPage() {
     if (!user) return;
     try {
       const reportsRef = collection(db, 'submissions');
-      const q = query(reportsRef, where('userId', '==', user.uid), orderBy('createdAt', 'desc'));
+      const q = query(reportsRef, where('email', '==', user.email), orderBy('createdAt', 'desc'));
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Report));
       setReports(data);

@@ -94,7 +94,7 @@ export default function SignInPage() {
             <Link href="/forgot-password" className="text-gray-200 hover:text-white underline">
               Forgot password?
             </Link>
-            <Link href="/signup" className="text-gray-200 hover:text-white underline">
+            <Link href="/signin" className="text-gray-200 hover:text-white underline">
               Create account
             </Link>
           </div>

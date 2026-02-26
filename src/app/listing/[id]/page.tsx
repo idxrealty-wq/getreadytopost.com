@@ -83,7 +83,7 @@ export default function ListingViewPage() {
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20">
             <div className="text-6xl mb-4">⚠️</div>
             <h1 className="text-3xl font-bold text-white mb-4">{error || 'Listing Not Found'}</h1>
-            <Link href="/vault" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition">
+            <Link href="/agent-vault" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition">
               Back to Vault
             </Link>
           </div>
@@ -110,7 +110,7 @@ export default function ListingViewPage() {
               ✏️ Edit
             </Link>
             <Link
-              href="/vault"
+              href="/agent-vault"
               className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-bold transition"
             >
               ← Back to Vault

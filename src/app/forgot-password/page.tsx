@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
             <Link href="/signin" className="text-gray-200 hover:text-white underline">
               Back to Sign In
             </Link>
-            <Link href="/signup" className="text-gray-200 hover:text-white underline">
+            <Link href="/signin" className="text-gray-200 hover:text-white underline">
               Create Account
             </Link>
           </div>
