@@ -28,6 +28,28 @@ function countWords(text: string): number {
   return text.trim().split(/\s+/).filter((w) => w.length > 0).length;
 }
 
+async function getLocationContext(address: string, city: string, state: string, zip: string): Promise<string> {
+  try {
+    const fullAddress = `${address}, ${city}, ${state} ${zip}`;
+    const res = await fetch("/api/workspace/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: fullAddress }),
+    });
+    if (!res.ok) return "";
+    const data: any = await res.json();
+    const lines: string[] = [];
+    if (data.neighborhood) lines.push(`Neighborhood: ${data.neighborhood}`);
+    if (data.amenities && Array.isArray(data.amenities)) {
+      lines.push(`Nearby: ${data.amenities.slice(0, 5).join(", ")}`);
+    }
+    if (data.commute) lines.push(`Commute: ${data.commute}`);
+    return lines.length ? lines.join("\n") : "";
+  } catch (e) {
+    return "";
+  }
+}
+
 export async function POST(req: NextRequest) {
   initAdmin();
   const db = getFirestore();
@@ -47,12 +69,23 @@ export async function POST(req: NextRequest) {
     const data = submissionDoc.data() || {};
     const listingText = String(data.listingText || "");
     const email = String(data.email || "");
+    const propertyDetails = data.propertyDetails || {};
 
     if (!listingText) {
       return NextResponse.json({ error: "No listing text" }, { status: 400 });
     }
 
     await submissionRef.update({ status: "processing" });
+
+    // Get location context from Maps
+    const locationContext = await getLocationContext(
+      propertyDetails.address || "",
+      propertyDetails.city || "",
+      propertyDetails.state || "",
+      propertyDetails.zip || ""
+    );
+
+    const locationBlock = locationContext ? `LOCATION CONTEXT (from Google Maps, use only what's provided):\n${locationContext}\n\n` : "";
 
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -69,7 +102,7 @@ export async function POST(req: NextRequest) {
           },
           {
             role: "user",
-            content: `Analyze this real estate listing:\n\n${listingText}`,
+            content: `${locationBlock}LISTING:\n${listingText}`,
           },
         ],
         temperature: 0.7,
@@ -108,14 +141,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Bad OpenAI JSON" }, { status: 500 });
     }
 
-    // Ensure rewrite is 140-160 words
     const rewrite = String(analysis.rewrite || "");
     const wc = countWords(rewrite);
-    if (wc < 140 || wc > 160) {
-      analysis.rewriteWordCount = wc;
-    } else {
-      analysis.rewriteWordCount = wc;
-    }
+    analysis.rewriteWordCount = wc;
 
     await submissionRef.update({
       status: "completed",
