@@ -212,7 +212,50 @@ export async function POST(req: NextRequest) {
     const wc = countWords(rewrite);
     
     // Grade the rewrite
-    const rewriteGrade = await gradeText(rewrite, listingText, locationContext, true);
+    let rewriteGrade = await gradeText(rewrite, listingText, locationContext, true);
+
+    // If not an A, run one upgrade pass
+    let upgradedRewrite = rewrite;
+    if (rewriteGrade?.overall !== "A") {
+      const weakest = Object.entries(rewriteGrade?.categories || {}).sort(([,a]: any, [,b]: any) => {
+        const gradeOrder: any = { "A": 5, "B": 4, "C": 3, "D": 2, "F": 1 };
+        return gradeOrder[a.grade] - gradeOrder[b.grade];
+      })[0]?.[0] || "headline";
+      
+      const upgradeRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          temperature: 0.3,
+          messages: [
+            { role: "system", content: `Improve this rewrite to achieve an A grade, especially in ${weakest}. Keep it MLS-safe, Fair Housing safe, 140-160 words, factual. Return ONLY the improved rewrite text.` },
+            { role: "user", content: `${locationContext ? `LOCATION CONTEXT:
+${locationContext}
+
+` : ""}ORIGINAL LISTING:
+${listingText}
+
+CURRENT REWRITE (needs A in ${weakest}):
+${rewrite}
+
+Improve to A-grade.` }
+          ]
+        })
+      });
+      if (upgradeRes.ok) {
+        const upgradeData = await upgradeRes.json();
+        const improved = String(upgradeData?.choices?.[0]?.message?.content || "").trim();
+        if (improved && countWords(improved) >= 140 && countWords(improved) <= 160) {
+          upgradedRewrite = improved;
+          const reupgrade = await gradeText(upgradedRewrite, listingText, locationContext, true);
+          if (reupgrade?.overall === "A") {
+            rewrite = upgradedRewrite;
+            rewriteGrade = reupgrade;
+          }
+        }
+      }
+    }
 
     // Build final analysis
     analysis.rewrite = rewrite;
