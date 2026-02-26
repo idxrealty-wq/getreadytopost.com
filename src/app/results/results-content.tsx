@@ -1,7 +1,7 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface Analysis {
@@ -18,6 +18,7 @@ interface Submission {
   listingText: string;
   analysis?: Analysis;
   status: string;
+  saved?: boolean;
 }
 
 const steps = [
@@ -55,6 +56,8 @@ export default function ResultsContent() {
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [reanalyzing, setReanalyzing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!submissionId) return;
@@ -83,7 +86,6 @@ export default function ResultsContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ submissionId }),
       });
-      // Refetch submission
       const docRef = doc(db, "submissions", submissionId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
@@ -94,6 +96,40 @@ export default function ResultsContent() {
     } finally {
       setReanalyzing(false);
     }
+  };
+
+  const handleSaveToVault = async () => {
+    if (!submissionId) return;
+    setSaving(true);
+    try {
+      const docRef = doc(db, "submissions", submissionId);
+      await updateDoc(docRef, { saved: true, savedAt: new Date().toISOString() });
+      setSubmission((prev) => prev ? { ...prev, saved: true } : null);
+      alert("✓ Saved to Vault!");
+    } catch (e) {
+      console.error("Save error:", e);
+      alert("Error saving to vault");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCopyRewrite = () => {
+    if (!submission?.analysis?.rewrite) return;
+    navigator.clipboard.writeText(submission.analysis.rewrite);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownloadRewrite = () => {
+    if (!submission?.analysis?.rewrite) return;
+    const element = document.createElement("a");
+    const file = new Blob([submission.analysis.rewrite], { type: "text/plain" });
+    element.href = URL.createObjectURL(file);
+    element.download = `rewrite-${submissionId}.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
   };
 
   if (loading) {
@@ -150,10 +186,7 @@ export default function ResultsContent() {
             <div>
               <p className="text-white/60 text-sm uppercase tracking-wide mb-2">Overall Grade</p>
               <div className="flex items-center gap-4">
-                <div
-                  className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-4xl"
-                  style={{ backgroundColor: overallColor }}
-                >
+                <div className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-4xl" style={{ backgroundColor: overallColor }}>
                   {overall}
                 </div>
                 <div>
@@ -164,15 +197,7 @@ export default function ResultsContent() {
             </div>
             <div className="flex gap-3">
               {steps.map((step) => (
-                <button
-                  key={step.number}
-                  onClick={() => setCurrentStep(step.number)}
-                  className={`px-4 py-2 rounded-full font-semibold transition ${
-                    currentStep === step.number
-                      ? "bg-white text-[#1a2b4a]"
-                      : "bg-white/20 text-white hover:bg-white/30"
-                  }`}
-                >
+                <button key={step.number} onClick={() => setCurrentStep(step.number)} className={`px-4 py-2 rounded-full font-semibold transition ${currentStep === step.number ? "bg-white text-[#1a2b4a]" : "bg-white/20 text-white hover:bg-white/30"}`}>
                   {step.icon} {step.label}
                 </button>
               ))}
@@ -188,10 +213,7 @@ export default function ResultsContent() {
                 <div key={key} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-[#1a2b4a] capitalize">{key}</h3>
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
-                      style={{ backgroundColor: gradeColor(cat.grade) }}
-                    >
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: gradeColor(cat.grade) }}>
                       {cat.grade}
                     </div>
                   </div>
@@ -211,37 +233,39 @@ export default function ResultsContent() {
                   <p className="text-gray-600 text-xs uppercase tracking-wide">Rewrite Word Count</p>
                   <p className="text-2xl font-bold text-[#1a2b4a]">{analysis.rewriteWordCount || 0} words</p>
                 </div>
-                <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl transform -rotate-12"
-                  style={{ backgroundColor: rewriteGradeColor }}
-                >
+                <div className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl transform -rotate-12" style={{ backgroundColor: rewriteGradeColor }}>
                   {rewriteGrade}
                 </div>
-                <button
-                  onClick={handleReanalyze}
-                  disabled={reanalyzing}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition disabled:opacity-50"
-                  title="Re-run analysis"
-                >
+                <button onClick={handleReanalyze} disabled={reanalyzing} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition disabled:opacity-50">
                   {reanalyzing ? "⟳ Analyzing..." : "⟳ Refresh"}
                 </button>
               </div>
             </div>
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
               <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">{analysis.rewrite}</p>
             </div>
+
+            <div className="flex gap-3 mb-8 flex-wrap">
+              <button onClick={handleCopyRewrite} className="px-6 py-3 bg-[#c9a227] hover:bg-[#b8911f] text-white rounded-lg font-semibold transition">
+                {copied ? "✓ Copied!" : "📋 Copy Rewrite"}
+              </button>
+              <button onClick={handleDownloadRewrite} className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition">
+                ⬇️ Download
+              </button>
+              <button onClick={handleSaveToVault} disabled={saving || submission.saved} className={`px-6 py-3 rounded-lg font-semibold transition ${submission.saved ? "bg-green-600 text-white cursor-default" : "bg-green-500 hover:bg-green-600 text-white"}`}>
+                {saving ? "💾 Saving..." : submission.saved ? "✓ Saved to Vault" : "💾 Save to Vault"}
+              </button>
+            </div>
+
             {analysis.rewriteCategories && Object.keys(analysis.rewriteCategories).length > 0 && (
-              <div className="mt-8">
+              <div>
                 <h3 className="text-lg font-semibold text-[#1a2b4a] mb-4">Rewrite Grades</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {Object.entries(analysis.rewriteCategories).map(([key, cat]: [string, any]) => (
                     <div key={key} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-semibold text-[#1a2b4a] capitalize">{key}</h4>
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                          style={{ backgroundColor: gradeColor(cat.grade) }}
-                        >
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: gradeColor(cat.grade) }}>
                           {cat.grade}
                         </div>
                       </div>
