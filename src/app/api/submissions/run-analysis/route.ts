@@ -25,6 +25,34 @@ function safeJsonParse(raw: string): any {
   }
 }
 
+function countWords(text: string): number {
+  return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+
+async function ensureRewriteLength(rewrite: string, key: string): Promise<string> {
+  let current = rewrite;
+  for (let i = 0; i < 3; i++) {
+    const wc = countWords(current);
+    if (wc >= 140 && wc <= 160) return current;
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: "Rewrite to exactly 150 words. MLS-safe, Fair Housing safe, professional tone. Return ONLY the rewritten text." },
+          { role: "user", content: `Rewrite this to exactly 150 words:\n\n${current}` }
+        ],
+        temperature: 0.7
+      })
+    });
+    if (!res.ok) return current;
+    const data = await res.json();
+    current = String(data.choices?.[0]?.message?.content || current).trim();
+  }
+  return current;
+}
+
 export async function POST(req: NextRequest) {
   initAdmin();
   const db = getFirestore();
@@ -58,7 +86,7 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: "system",
-            content: `You are a strict real estate listing grader and rewriter. Return ONLY valid JSON (no markdown, no commentary). You MUST grade the listing in EXACTLY these 6 categories: 1) headline 2) length 3) emotion 4) keywords 5) cta 6) compliance. GRADING SCALE (A,B,C,D,F): A = excellent, B = good, C = fair, D = poor, F = failing. HEADLINE (opening 1–2 sentences): A = property-specific hook + differentiator (location + standout feature) with minimal hype. B = decent hook but generic phrasing or missing differentiator. C = flat/neutral opening. D = confusing or buried lead. F = missing/unusable. LENGTH (word count): A = 140–160 words. B = 120–139 or 161–180. C = 100–119 or 181–220. D = 70–99 or 221–280. F = <70 or >280. EMOTION (buyer psychology): A = benefits + lifestyle + sensory detail. B = some lifestyle framing, still feature-heavy. C = mostly feature list. D = dry/robotic. F = incoherent. KEYWORDS (searchability): A = property type + location cues + top features + lifestyle terms naturally. B = good features but missing property type or location. C = sparse keywords. D = weak terms. F = irrelevant. CTA (call to action): A = clear next step (schedule showing / request tour / contact agent). B = CTA present but weak. C = indirect CTA. D = vague. F = none. COMPLIANCE (Fair Housing + MLS): A = MLS-safe, factual, no discriminatory language, no errors. B = minor hype, still safe. C = multiple hype claims or steering-risk phrasing. D = major credibility issues. F = Fair Housing violation or discriminatory language. Fair Housing: Flag "perfect for families", "young professionals", "safe neighborhood", "ideal for students", "no Section 8", or protected class references. MLS: Avoid contact info, URLs, emojis, ALL CAPS spam. OUTPUT JSON: {"overall":"A|B|C|D|F","rewrite":"140-160 word MLS-ready rewrite with PRIMARY bedroom and clear CTA","categories":{"headline":{"grade":"A|B|C|D|F","feedback":"..."},"length":{"grade":"A|B|C|D|F","feedback":"..."},"emotion":{"grade":"A|B|C|D|F","feedback":"..."},"keywords":{"grade":"A|B|C|D|F","feedback":"..."},"cta":{"grade":"A|B|C|D|F","feedback":"..."},"compliance":{"grade":"A|B|C|D|F","feedback":"..."}},"recommendations":["...","...","..."]}. Be strict. Do not give A unless it truly meets A criteria. If missing key basics (beds/baths, property type, or extremely short), grades must drop.MANDATORY REWRITE LENGTH: Your rewrite MUST be exactly 140-160 words. This is non-negotiable. Count every single word in your rewrite before returning it. If it is under 140 words, you MUST expand it by adding more lifestyle details, sensory language, buyer benefits, or property features until it reaches at least 140 words. If it exceeds 160 words, trim it down. Do not return the JSON unless the rewrite word count is between 140-160 inclusive....`,
+            content: `You are a strict real estate listing grader and rewriter. Return ONLY valid JSON (no markdown, no commentary). You MUST grade the listing in EXACTLY these 6 categories: 1) headline 2) length 3) emotion 4) keywords 5) cta 6) compliance. GRADING SCALE (A,B,C,D,F): A = excellent, B = good, C = fair, D = poor, F = failing. HEADLINE (opening 1–2 sentences): A = property-specific hook + differentiator (location + standout feature) with minimal hype. B = decent hook but generic phrasing or missing differentiator. C = flat/neutral opening. D = confusing or buried lead. F = missing/unusable. LENGTH (word count): A = 140–160 words. B = 120–139 or 161–180. C = 100–119 or 181–220. D = 70–99 or 221–280. F = <70 or >280. EMOTION (buyer psychology): A = benefits + lifestyle + sensory detail. B = some lifestyle framing, still feature-heavy. C = mostly feature list. D = dry/robotic. F = incoherent. KEYWORDS (searchability): A = property type + location cues + top features + lifestyle terms naturally. B = good features but missing property type or location. C = sparse keywords. D = weak terms. F = irrelevant. CTA (call to action): A = clear next step (schedule showing / request tour / contact agent). B = CTA present but weak. C = indirect CTA. D = vague. F = none. COMPLIANCE (Fair Housing + MLS): A = MLS-safe, factual, no discriminatory language, no errors. B = minor hype, still safe. C = multiple hype claims or steering-risk phrasing. D = major credibility issues. F = Fair Housing violation or discriminatory language. Fair Housing: Flag "perfect for families", "young professionals", "safe neighborhood", "ideal for students", "no Section 8", or protected class references. MLS: Avoid contact info, URLs, emojis, ALL CAPS spam. OUTPUT JSON: {"overall":"A|B|C|D|F","rewrite":"140-160 word MLS-ready rewrite with PRIMARY bedroom and clear CTA","categories":{"headline":{"grade":"A|B|C|D|F","feedback":"..."},"length":{"grade":"A|B|C|D|F","feedback":"..."},"emotion":{"grade":"A|B|C|D|F","feedback":"..."},"keywords":{"grade":"A|B|C|D|F","feedback":"..."},"cta":{"grade":"A|B|C|D|F","feedback":"..."},"compliance":{"grade":"A|B|C|D|F","feedback":"..."}},"recommendations":["...","...","..."]}. Be strict. Do not give A unless it truly meets A criteria. If missing key basics (beds/baths, property type, or extremely short), grades must drop. MANDATORY REWRITE LENGTH: Your rewrite MUST be exactly 140-160 words. This is non-negotiable. Count every single word in your rewrite before returning it. If it is under 140 words, you MUST expand it by adding more lifestyle details, sensory language, buyer benefits, or property features until it reaches at least 140 words. If it exceeds 160 words, trim it down. Do not return the JSON unless the rewrite word count is between 140-160 inclusive.`,
           },
           {
             role: "user",
@@ -101,6 +129,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Bad OpenAI JSON" }, { status: 500 });
     }
 
+    analysis.rewrite = await ensureRewriteLength(String(analysis.rewrite || ""), String(process.env.OPENAI_API_KEY || ""));
+    analysis.rewriteWordCount = countWords(String(analysis.rewrite || ""));
+
     await submissionRef.update({
       status: "completed",
       analysis,
@@ -116,7 +147,6 @@ export async function POST(req: NextRequest) {
         const recs: string[] = Array.isArray(analysis.recommendations)
           ? (analysis.recommendations as string[])
           : [];
-
         const gradeColor =
           overall === "A"
             ? "#27ae60"
@@ -127,21 +157,18 @@ export async function POST(req: NextRequest) {
             : overall === "D"
             ? "#c0392b"
             : "#95a5a6";
-
         const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa;"><div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"><div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); padding: 40px 20px; text-align: center; color: white;"><h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 0.5px;">GetReadyToPost</h1><p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">Real Estate Listing Analysis Report</p></div><div style="background-color: #ecf0f1; padding: 30px 20px; text-align: center;"><p style="margin: 0 0 15px 0; color: #7f8c8d; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Overall Grade</p><div style="display: inline-block; width: 100px; height: 100px; border-radius: 50%; background-color: ${gradeColor}; display: flex; align-items: center; justify-content: center;"><span style="font-size: 48px; font-weight: 700; color: white;">${overall}</span></div></div><div style="padding: 30px 20px;"><div style="margin-bottom: 30px;"><h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px; font-weight: 600; border-bottom: 3px solid #3498db; padding-bottom: 10px;">Professional Rewrite</h2><p style="margin: 0; color: #34495e; line-height: 1.8; font-size: 14px; white-space: pre-wrap; background-color: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #3498db;">${rewrite}</p></div><div style="margin-bottom: 30px;"><h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px; font-weight: 600; border-bottom: 3px solid #e74c3c; padding-bottom: 10px;">Key Recommendations</h2><ol style="margin: 0; padding-left: 20px; color: #34495e;">${recs
           .map(
             (rec: string) =>
               `<li style="margin: 12px 0; color: #2c3e50; line-height: 1.6;">${rec}</li>`
           )
           .join("")}</ol></div><div style="text-align: center; margin: 30px 0;"><a href="https://getreadytopost.com/results?id=${submissionId}" style="display: inline-block; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);">View Full Report</a></div></div><div style="background-color: #ecf0f1; padding: 20px; text-align: center; border-top: 1px solid #bdc3c7;"><p style="margin: 0; color: #7f8c8d; font-size: 12px;"><strong>GetReadyToPost</strong> — Real Estate Listing Analysis<br><span style="opacity: 0.7;">Helping agents and sellers create winning listings</span></p></div></div></body></html>`;
-
         await resend.emails.send({
           from: "onboarding@resend.dev",
           to: email,
           subject: `Your GetReadyToPost Report - Grade ${overall}`,
           html,
         });
-
         await submissionRef.update({
           emailSendStatus: "sent",
           emailSentAt: new Date().toISOString(),
