@@ -118,7 +118,7 @@ export default function ResultsContent() {
 
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] pb-20">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
         {/* STEP INDICATOR */}
         <div className="mb-12">
           <div className="flex justify-center gap-4 flex-wrap">
