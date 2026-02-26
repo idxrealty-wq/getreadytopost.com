@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import { Resend } from "resend";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +25,7 @@ function safeJsonParse(raw: string): any {
 }
 
 function countWords(text: string): number {
-  return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  return text.trim().split(/\s+/).filter((w) => w.length > 0).length;
 }
 
 function buildFactsBlock(propertyDetails: any): string {
@@ -38,6 +37,7 @@ function buildFactsBlock(propertyDetails: any): string {
     if (!s) return;
     lines.push(`${label}: ${s}`);
   };
+
   add("Address", pd.address);
   add("City", pd.city);
   add("State", pd.state);
@@ -50,45 +50,147 @@ function buildFactsBlock(propertyDetails: any): string {
   add("Year Built", pd.yearBuilt);
   add("Price", pd.price);
   add("Features", pd.features);
+
   return lines.length ? lines.join("\n") : "None provided.";
 }
 
-async function ensureRewriteLength(
-  rewrite: string,
-  key: string,
-  factsBlock: string
-): Promise<string> {
-  let current = rewrite;
+async function callOpenAI(prompt: string): Promise<string> {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) throw new Error("Missing OPENAI_API_KEY");
+
+  const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      temperature: 0.2,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+
+  const data: any = await resp.json();
+  if (!resp.ok) {
+    throw new Error(data?.error?.message || "OpenAI request failed");
+  }
+
+  const text = data?.choices?.[0]?.message?.content || "";
+  return String(text).trim();
+}
+
+async function ensureRewriteLength(rewrite: string, factsBlock: string): Promise<string> {
+  let current = (rewrite || "").trim();
   for (let i = 0; i < 3; i++) {
     const wc = countWords(current);
     if (wc >= 140 && wc <= 160) return current;
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are an elite MLS listing copywriter. You MUST follow the facts. Do NOT invent beds, baths, square footage, upgrades, HOA, views, waterfront, or any features not explicitly provided. If facts are missing, use neutral phrasing (e.g., 'spacious layout') without adding numbers. Rewrite to exactly 150 words. MLS-safe, Fair Housing safe. Return ONLY the rewritten text.",
-          },
-          {
-            role: "user",
-            content: `FACTS (only use these; do not add new facts):\n${factsBlock}\n\nRewrite this to exactly 150 words:\n\n${current}`,
-          },
-        ],
-        temperature: 0.7,
-      }),
-    });
+    const tightenPrompt = [
+      "You are an elite MLS listing copywriter.",
+      "You MUST follow the facts. Do NOT invent beds, baths, square footage, upgrades, HOA, views, waterfront, or any features not explicitly provided.",
+      "If facts are missing, use neutral phrasing (e.g., 'spacious layout') without adding numbers.",
+      "",
+      "FACTS (ONLY use these):",
+      factsBlock,
+      "",
+      `Your previous rewrite was ${wc} words.`,
+      "Rewrite again to be BETWEEN 140 and 160 words (target 150).",
+      "MLS-safe, Fair Housing safe. No emojis. No ALL CAPS. No URLs. No agent contact info.",
+      "Return ONLY the rewritten text.",
+    ].join("\n");
 
-    if (!res.ok) return current;
-    const data = await res.json();
-    current = String(data.choices?.[0]?.message?.content || current).trim();
+    current = await callOpenAI(tightenPrompt);
   }
   return current;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    initAdmin();
+    const db = getFirestore();
+
+    const body = await req.json();
+    const {
+      listingText,
+      propertyDetails,
+      email,
+      userId,
+      source = "rate-my-listing",
+    } = body || {};
+
+    if (!listingText || typeof listingText !== "string") {
+      return NextResponse.json({ error: "Missing listingText" }, { status: 400 });
+    }
+
+    const factsBlock = buildFactsBlock(propertyDetails);
+
+    // 1) Grade JSON
+    const gradingPrompt = [
+      "You are a strict MLS listing grader.",
+      "Return ONLY valid JSON with keys: headline, length, emotion, keywords, cta, compliance.",
+      "Each key must be an object: { grade: \"A|B|C|D|F\", notes: \"...\" }",
+      "Be strict. Do not give A unless it fully meets criteria.",
+      "",
+      "FACTS (context only):",
+      factsBlock,
+      "",
+      "LISTING:",
+      listingText,
+    ].join("\n");
+
+    const gradingRaw = await callOpenAI(gradingPrompt);
+    const grades = safeJsonParse(gradingRaw) || null;
+
+    // 2) Rewrite (first pass exactly 150 words)
+    const rewritePrompt = [
+      "You are an elite MLS listing copywriter.",
+      "You MUST follow the facts. Do NOT invent beds, baths, square footage, upgrades, HOA, views, waterfront, or any features not explicitly provided.",
+      "If facts are missing, use neutral phrasing (e.g., 'spacious layout') without adding numbers.",
+      "",
+      "FACTS (ONLY use these):",
+      factsBlock,
+      "",
+      "Rewrite the listing to exactly 150 words.",
+      "MLS-safe, Fair Housing safe. No emojis. No ALL CAPS. No URLs. No agent contact info.",
+      "Return ONLY the rewritten text.",
+      "",
+      "LISTING:",
+      listingText,
+    ].join("\n");
+
+    let rewrite = await callOpenAI(rewritePrompt);
+    rewrite = await ensureRewriteLength(rewrite, factsBlock);
+    const rewriteWordCount = countWords(rewrite);
+
+    // 3) Save submission (best-effort)
+    try {
+      const doc: any = {
+        createdAt: new Date().toISOString(),
+        source,
+        listingText,
+        propertyDetails: propertyDetails || null,
+        grades,
+        rewrite,
+        rewriteWordCount,
+      };
+      if (email) doc.email = email;
+      if (userId) doc.userId = userId;
+
+      await db.collection("submissions").add(doc);
+    } catch {
+      // ignore save failures; still return analysis
+    }
+
+    return NextResponse.json({
+      grades,
+      rewrite,
+      rewriteWordCount,
+    });
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: e?.message || "Run analysis failed" },
+      { status: 500 }
+    );
+  }
 }
