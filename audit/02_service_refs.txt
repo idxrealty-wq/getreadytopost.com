@@ -1,0 +1,37 @@
+src/app/api/credits/balance/route.ts:19:          projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+src/app/api/credits/balance/route.ts:20:          clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+src/app/api/credits/balance/route.ts:21:          privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+src/app/api/credits/create-checkout/route.ts:52:        ? 'https://connect.squareupsandbox.com'
+src/app/api/credits/create-checkout/route.ts:53:        : 'https://connect.squareup.com';
+src/app/api/credits/credit-order/route.ts:12:    const orderResp = await fetch(`https://connect.squareup.com/v2/orders/${orderId}`, {
+src/app/api/credits/deduct/route.ts:11:        projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+src/app/api/credits/deduct/route.ts:12:        clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+src/app/api/credits/deduct/route.ts:13:        privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+src/app/api/credits/env-check/route.ts:6:    squareLocationIdPresent: Boolean(process.env.SQUARE_LOCATION_ID),
+src/app/api/credits/env-check/route.ts:7:    squareLocationIdLength: process.env.SQUARE_LOCATION_ID ? process.env.SQUARE_LOCATION_ID.length : 0,
+src/app/api/credits/purchase/route.ts:6:  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+src/app/api/credits/purchase/route.ts:7:  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+src/app/api/credits/purchase/route.ts:8:  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+src/app/api/credits/purchase/route.ts:9:  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+src/app/api/credits/purchase/route.ts:10:  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+src/app/api/credits/purchase/route.ts:11:  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+src/app/api/credits/square-webhook/route.ts:33:    const orderResp = await fetch(`https://connect.squareup.com/v2/orders/${orderId}`, {
+src/app/api/credits/square-webhook/route.ts:81:      source: 'square-webhook',
+src/app/api/debug/firebase/route.ts:12:    const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || "";
+src/app/api/debug/firebase/route.ts:13:    const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL || "";
+src/app/api/debug/firebase/route.ts:14:    const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n") || "";
+src/app/api/square-webhook/route.ts:1:export { POST } from '../credits/square-webhook/route';
+src/app/api/submissions/run-analysis/route.ts:12:        projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+src/app/api/submissions/run-analysis/route.ts:13:        clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+src/app/api/submissions/run-analysis/route.ts:14:        privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+src/app/api/submissions/run-analysis/route.ts:78:              "You are an elite MLS listing copywriter. You MUST follow the facts. Do NOT invent beds, baths, square footage, upgrades, HOA, views, waterfront, or any features not explicitly provided. If facts are missing, use neutral phrasing (e.g., 'spacious layout') without adding numbers. Rewrite to exactly 150 words. MLS-safe, Fair Housing safe. Return ONLY the rewritten text.",
+src/app/api/workspace/analyze/route.ts:4:var GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+src/app/api/workspace/analyze/route.ts:5:var OPENAI_KEY = process.env.OPENAI_API_KEY || '';
+src/app/api/workspace/analyze/route.ts:8:  var res = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(address) + '&key=' + GOOGLE_MAPS_KEY);
+src/app/api/workspace/analyze/route.ts:15:  var url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=' + lat + ',' + lng + '&radius=5000&keyword=' + encodeURIComponent(keyword) + '&key=' + GOOGLE_MAPS_KEY;
+src/app/api/workspace/analyze/route.ts:24:  var url = 'https://maps.googleapis.com/maps/api/distancematrix/json?origins=' + originLat + ',' + originLng + '&destinations=' + destinations + '&units=imperial&key=' + GOOGLE_MAPS_KEY;
+src/app/listing/[id]/page.tsx:95:  const mapEmbedUrl = `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(listing.address)}`;
+src/app/rate-my-listing/page.tsx:30:  const mapKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+src/app/rate-my-listing/page.tsx:142:            <button onClick={() => window.open('https://square.link/u/22tY4Rla', '_blank')} className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold mb-3">Open Square Payment</button>
+src/app/seo-optimization/page.tsx:55:                  <span>Key features (bedrooms, baths, square footage)</span>
+src/app/workspace/tabs/tab2.tsx:24:  const mapKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';

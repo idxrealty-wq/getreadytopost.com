@@ -1,0 +1,48 @@
+src/app/agent-vault/dashboard/page.tsx:111:          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
+src/app/agent-vault/dashboard/page.tsx:131:                  <Link href="/checkout" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-4 py-2 rounded-lg font-bold text-sm transition">
+src/app/agent-vault/dashboard/page.tsx:176:                <Link href="/workspace" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
+src/app/agent-vault/dashboard/page.tsx:211:                <Link href="/rate-my-listing" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
+src/app/agent-vault/dashboard/page.tsx:242:          <Link href="/" className="text-white/70 hover:text-white font-semibold">
+src/app/agent-vault/page.tsx:126:          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
+src/app/agent-vault/page.tsx:145:                <Link href="/checkout" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-4 py-2 rounded-lg font-bold text-sm transition">
+src/app/agent-vault/page.tsx:191:                <Link href="/workspace" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition">
+src/app/agent-vault/page.tsx:253:                <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition">
+src/app/agents/page.tsx:43:          <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Rate My Listing</Link>
+src/app/ai-advantage/page.tsx:166:            href="/workspace"
+src/app/brokers/page.tsx:26:            <Link href="/contact-broker" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Contact Us</Link>
+src/app/contact-broker/page.tsx:69:            <Link href="/brokers" className="text-[#1a2b4a]/60 hover:text-[#1a2b4a] font-semibold">← Back to Broker Info</Link>
+src/app/examples/page.tsx:112:              href="/rate-my-listing"
+src/app/examples/page.tsx:118:              href="/how-it-works"
+src/app/examples/page.tsx:282:                  href="/rate-my-listing"
+src/app/faq/page.tsx:78:          <a href="/contact-broker" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition">Contact Us</a>
+src/app/forgot-password/page.tsx:80:            <Link href="/signin" className="text-gray-200 hover:text-white underline">
+src/app/forgot-password/page.tsx:83:            <Link href="/signin" className="text-gray-200 hover:text-white underline">
+src/app/fsbo/page.tsx:27:                <Link href="/rate-my-listing" className="block bg-[#c9a227] hover:bg-[#e8c547] text-white py-3 rounded-lg font-semibold text-center">Get Started Now</Link>
+src/app/fsbo/page.tsx:115:          <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Get Started Now</Link>
+src/app/get-why-copy-matters/page.tsx:130:            <Link href="/upload" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">See How It Works</Link>
+src/app/home-sellers/page.tsx:31:          <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-12 py-4 rounded-lg font-bold text-lg transition shadow-lg mb-8">Grade My Listing</Link>
+src/app/home-sellers/page.tsx:99:              href="/checkout?pkg=single"
+src/app/how-it-works/page.tsx:167:            <Link href="/upload" className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-4 rounded-xl font-bold text-lg transition">Upload a Listing</Link>
+src/app/listing/[id]/page.tsx:86:            <Link href="/agent-vault" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition">
+src/app/listing/[id]/page.tsx:113:              href="/agent-vault"
+src/app/page.tsx:16:            <Link href="/rate-my-listing" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-8 py-4 rounded-lg font-bold text-lg transition shadow-lg">Rate My Listing</Link>
+src/app/page.tsx:17:            <Link href="/how-it-works" className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-4 rounded-lg font-bold text-lg transition">See How It Works</Link>
+src/app/page.tsx:105:              <Link href="/our-deals" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-lg font-bold transition">Buy Now</Link>
+src/app/page.tsx:112:              <Link href="/our-deals" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-lg font-bold transition">Buy Now</Link>
+src/app/page.tsx:118:              <Link href="/our-deals" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-lg font-bold transition">Buy Now</Link>
+src/app/page.tsx:127:          <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-12 py-4 rounded-lg font-bold text-lg transition shadow-lg">Grade My Listing Free</Link>
+src/app/pricing/page.tsx:174:          <a href="/checkout?pkg=single" target="_blank" rel="noopener noreferrer">
+src/app/pricing/page.tsx:196:          <a href="/checkout?pkg=single" target="_blank" rel="noopener noreferrer">
+src/app/privacy/page.tsx:35:          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">← Back to Home</Link>
+src/app/results/results-content.tsx:276:                href="/rate-my-listing"
+src/app/results/ResultsPaginated.tsx:150:          <Link className="text-[#c9a227] hover:underline" href="/rate-my-listing">
+src/app/results/ResultsPaginated.tsx:243:                    Saved to your Agent Vault! <Link className="underline hover:text-white" href="/agent-vault">View Vault</Link>
+src/app/results/ResultsPaginated.tsx:341:                    <Link className="inline-block bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-xl" href="/rate-my-listing">
+src/app/results/ResultsPaginated.tsx:345:                      <Link className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-xl" href="/agent-vault">
+src/app/seo-optimization/page.tsx:106:            <Link href="/upload" className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg inline-block">Submit Your Listing</Link>
+src/app/seo-optimization/page.tsx:107:            <Link href="/pricing" className="border-2 border-white/30 hover:border-white/60 text-white px-8 py-4 rounded-lg font-semibold text-lg inline-block">View Pricing</Link>
+src/app/signin/page.tsx:94:            <Link href="/forgot-password" className="text-gray-200 hover:text-white underline">
+src/app/signin/page.tsx:97:            <Link href="/signin" className="text-gray-200 hover:text-white underline">
+src/app/terms/page.tsx:45:          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">← Back to Home</Link>
+src/app/upload/page.tsx:19:            <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-xl font-bold text-lg">Go to Rate My Listing →</Link>
+src/app/upload-new/page.tsx:19:            <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-xl font-bold text-lg">Go to Rate My Listing →</Link>
