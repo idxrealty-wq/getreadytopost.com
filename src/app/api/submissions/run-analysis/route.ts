@@ -127,6 +127,7 @@ Return this exact JSON structure:
       status: "completed",
       analysis,
       completedAt: new Date().toISOString(),
+      email,
     });
 
     if (email && process.env.RESEND_API_KEY) {
