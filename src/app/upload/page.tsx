@@ -16,7 +16,7 @@ export default function UploadPage() {
             <div className="text-6xl mb-6">🚀</div>
             <h2 className="text-3xl font-bold text-[#1a2b4a] mb-4">We've Upgraded!</h2>
             <p className="text-gray-600 mb-6 text-lg">Our process is now fully automated. Paste your listing into Rate My Listing and get your grade, rewrite, and full report instantly — for just $19.99.</p>
-            <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-xl font-bold text-lg">Go to Rate My Listing →</Link>
+            <Link href="#listing-form" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-xl font-bold text-lg">Go to Rate My Listing →</Link>
           </div>
         </div>
       </section>
