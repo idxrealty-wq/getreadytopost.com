@@ -2,19 +2,21 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface Analysis {
   overall: string;
   rewrite: string;
+  rewriteWordCount?: number;
   categories: {
     headline: { grade: string; feedback: string };
     length: { grade: string; feedback: string };
     emotion: { grade: string; feedback: string };
     keywords: { grade: string; feedback: string };
     cta: { grade: string; feedback: string };
-    professionalism: { grade: string; feedback: string };
+    professionalism?: { grade: string; feedback: string };
+    compliance?: { grade: string; feedback: string };
   };
   recommendations: string[];
 }
@@ -68,6 +70,7 @@ const gradeLabel = (grade: string) => {
 export default function ResultsContent() {
   const searchParams = useSearchParams();
   const submissionId = searchParams.get("id");
+
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
@@ -79,7 +82,6 @@ export default function ResultsContent() {
       try {
         const docRef = doc(db, "submissions", submissionId);
         const docSnap = await getDoc(docRef);
-
         if (docSnap.exists()) {
           setSubmission(docSnap.data() as Submission);
         }
@@ -98,271 +100,184 @@ export default function ResultsContent() {
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
         <div className="text-center">
           <div className="w-20 h-20 border-4 border-[#c9a227] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white text-xl">Loading results...</p>
+          <p className="text-white/80">Loading your results…</p>
         </div>
       </main>
     );
   }
 
-  if (!submission || !submission.analysis) {
+  if (!submissionId) {
     return (
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-white text-xl">No analysis found.</p>
-        </div>
+        <p className="text-white/80">Missing submission id.</p>
+      </main>
+    );
+  }
+
+  if (!submission) {
+    return (
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
+        <p className="text-white/80">Submission not found.</p>
       </main>
     );
   }
 
   const analysis = submission.analysis;
 
+  if (!analysis) {
+    return (
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
+        <p className="text-white/80">Analysis not available yet.</p>
+      </main>
+    );
+  }
+
+  const overall = String(analysis.overall || "");
+  const overallColor = gradeColor(overall);
+
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] pb-20">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
-        {/* STEP INDICATOR */}
         <div className="mb-12">
-          <div className="flex justify-center gap-4 flex-wrap">
-            {steps.map((step) => (
-              <button
-                key={step.number}
-                onClick={() => setCurrentStep(step.number)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all ${
-                  currentStep === step.number
-                    ? "bg-gradient-to-r from-[#c9a227] to-[#d4b03a] text-black shadow-lg scale-105"
-                    : "bg-white/10 border border-white/20 text-white hover:bg-white/20"
-                }`}
-              >
-                <span className="text-xl">{step.icon}</span>
-                <span>{step.number}</span>
-                <span className="hidden sm:inline">{step.label}</span>
-              </button>
-            ))}
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">
+            Your Listing Results
+          </h1>
+          <p className="text-white/80">
+            Step through grades, the MLS-ready rewrite, and next steps.
+          </p>
+        </div>
+
+        <div className="bg-white/10 border border-white/15 rounded-2xl p-6 mb-10">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div>
+              <p className="text-white/70 text-sm uppercase tracking-wide mb-2">
+                Overall Grade
+              </p>
+              <div className="inline-flex items-center gap-3">
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold text-white"
+                  style={{ backgroundColor: overallColor }}
+                >
+                  {overall || "—"}
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-lg">
+                    {gradeLabel(overall)}
+                  </p>
+                  <p className="text-white/70 text-sm">
+                    Based on 6 categories + compliance
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+              {steps.map(s => (
+                <button
+                  key={s.number}
+                  onClick={() => setCurrentStep(s.number)}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold border transition ${
+                    currentStep === s.number
+                      ? "bg-white text-[#1a2b4a] border-white"
+                      : "bg-transparent text-white border-white/30 hover:border-white/60"
+                  }`}
+                >
+                  {s.icon} {s.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* STEP 1: GRADES */}
         {currentStep === 1 && (
-          <div className="space-y-8">
-            <h1 className="text-5xl font-bold text-white text-center mb-12">
-              Your Listing Grade
-            </h1>
+          <div className="bg-white rounded-2xl p-6 sm:p-8">
+            <h2 className="text-2xl font-bold text-[#1a2b4a] mb-6">Grades</h2>
 
-            <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-8 border-2 border-blue-500/40">
-              <div className="text-center mb-8">
-                <div className="text-7xl mb-4">📊</div>
-                <h2 className="text-4xl font-bold text-white mb-2">Original Listing</h2>
-                <p className="text-white/80">How your current listing scores</p>
-              </div>
-
-              <div className="flex justify-center mb-8">
-                <div
-                  style={{
-                    width: "140px",
-                    height: "140px",
-                    borderRadius: "50%",
-                    backgroundColor: gradeColor(analysis.overall),
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
-                  }}
-                >
-                  <span className="text-6xl font-bold text-white">
-                    {analysis.overall}
-                  </span>
-                  <span className="text-white text-sm font-semibold mt-1">
-                    {gradeLabel(analysis.overall)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {Object.entries(analysis.categories).map(([key, value]) => (
-                  <div
-                    key={key}
-                    className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 text-center"
-                  >
-                    <div className="text-base text-white/70 capitalize mb-2 font-semibold">
-                      {key}
-                    </div>
-                    <div
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        borderRadius: "50%",
-                        backgroundColor: gradeColor(value.grade),
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        margin: "0 auto 8px",
-                      }}
-                    >
-                      <span className="text-white font-bold text-lg">
-                        {value.grade}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {Object.entries(analysis.categories || {}).map(([key, val]) => {
+                const grade = String((val as any)?.grade || "");
+                const feedback = String((val as any)?.feedback || "");
+                return (
+                  <div key={key} className="border border-gray-200 rounded-xl p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-semibold text-[#1a2b4a] capitalize">
+                        {key}
+                      </p>
+                      <span
+                        className="px-3 py-1 rounded-full text-white text-sm font-bold"
+                        style={{ backgroundColor: gradeColor(grade) }}
+                      >
+                        {grade || "—"}
                       </span>
                     </div>
-                    <p className="text-white/60 text-xs leading-tight">
-                      {value.feedback}
+                    <p className="text-gray-700 text-sm leading-relaxed">
+                      {feedback || "No feedback provided."}
                     </p>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                onClick={() => setCurrentStep(2)}
-                className="bg-[#c9a227] hover:bg-[#d4b03a] text-black font-bold py-4 px-8 rounded-xl text-lg transition shadow-lg"
-              >
-                View Rewrite →
-              </button>
+                );
+              })}
             </div>
           </div>
         )}
-        {/* STEP 2: REWRITE */}
+
         {currentStep === 2 && (
-          <div className="space-y-8">
-            <h1 className="text-5xl font-bold text-white text-center mb-12">
-              Your Improved Listing
-            </h1>
+          <div className="bg-white rounded-2xl p-6 sm:p-8">
+            <h2 className="text-2xl font-bold text-[#1a2b4a] mb-4">Rewrite</h2>
 
-            <div className="bg-gradient-to-br from-amber-700 to-orange-900 rounded-3xl p-8 border-2 border-amber-400/40">
-              <div className="text-center mb-8">
-                <div className="text-7xl mb-4">✍️</div>
-                <h2 className="text-4xl font-bold text-white mb-2">Professional Rewrite</h2>
-                <p className="text-white/80">140–160 words, buyer-focused, MLS-ready</p>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 mb-8">
-                <p className="text-white text-lg leading-relaxed whitespace-pre-wrap font-light">
-                  {analysis.rewrite}
-                </p>
-              </div>
-
-              <button
-                onClick={() => navigator.clipboard.writeText(analysis.rewrite || "")}
-                className="w-full bg-white text-amber-900 font-bold py-4 px-8 rounded-xl text-lg hover:bg-gray-100 transition shadow-lg mb-8"
+            <div
+              style={{
+                marginBottom: "16px",
+                padding: "12px",
+                backgroundColor: "#f8f9fa",
+                borderRadius: "10px",
+                borderLeft: "4px solid #3498db",
+              }}
+            >
+              <p
+                style={{
+                  margin: "0 0 6px 0",
+                  fontSize: "12px",
+                  color: "#7f8c8d",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
               >
-                Copy to Clipboard
-              </button>
-
-              <div>
-                <h3 className="text-xl font-bold text-white mb-6">Key Recommendations</h3>
-                <div className="space-y-4">
-                  {analysis.recommendations.map((rec, idx) => (
-                    <div key={idx} className="flex gap-4 bg-white/5 rounded-lg p-4 border border-white/10">
-                      <div
-                        className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-black"
-                        style={{ backgroundColor: "#c9a227" }}
-                      >
-                        {idx + 1}
-                      </div>
-                      <p className="text-white/90 leading-relaxed">{rec}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                Rewrite Word Count
+              </p>
+              <p style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#2c3e50" }}>
+                {typeof analysis.rewriteWordCount === "number" ? analysis.rewriteWordCount : "—"} words
+              </p>
             </div>
 
-            <div className="flex justify-between">
-              <button
-                onClick={() => setCurrentStep(1)}
-                className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-4 px-8 rounded-xl transition"
-              >
-                ← Back
-              </button>
-              <button
-                onClick={() => setCurrentStep(3)}
-                className="bg-[#c9a227] hover:bg-[#d4b03a] text-black font-bold py-4 px-8 rounded-xl text-lg transition shadow-lg"
-              >
-                Next →
-              </button>
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                {analysis.rewrite || "No rewrite returned."}
+              </p>
             </div>
           </div>
         )}
 
-        {/* STEP 3: NEXT STEPS */}
         {currentStep === 3 && (
-          <div className="space-y-8">
-            <h1 className="text-5xl font-bold text-white text-center mb-12">
-              Next Steps
-            </h1>
+          <div className="bg-white rounded-2xl p-6 sm:p-8">
+            <h2 className="text-2xl font-bold text-[#1a2b4a] mb-6">Next Steps</h2>
 
-            <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-3xl p-8 border-2 border-green-500/40">
-              <div className="text-center mb-8">
-                <div className="text-7xl mb-4">🚀</div>
-                <h2 className="text-4xl font-bold text-white mb-2">Ready to Launch</h2>
-                <p className="text-white/80">Your listing is ready to go live</p>
-              </div>
+            <ol className="list-decimal pl-6 space-y-3 text-gray-800">
+              {(Array.isArray(analysis.recommendations) ? analysis.recommendations : []).map(
+                (rec, idx) => (
+                  <li key={idx} className="leading-relaxed">
+                    {rec}
+                  </li>
+                )
+              )}
+            </ol>
 
-              <div className="space-y-6">
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                  <div className="flex items-start gap-4">
-                    <div className="text-4xl">📋</div>
-                    <div>
-                      <h3 className="text-white font-bold text-lg mb-2">Copy Your Rewrite</h3>
-                      <p className="text-white/70 mb-4">
-                        Go back to Step 2 and copy the improved listing to your clipboard.
-                      </p>
-                      <button
-                        onClick={() => setCurrentStep(2)}
-                        className="text-sm font-bold text-white/90 hover:text-white underline underline-offset-2"
-                      >
-                        Back to Rewrite →
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                  <div className="flex items-start gap-4">
-                    <div className="text-4xl">🌐</div>
-                    <div>
-                      <h3 className="text-white font-bold text-lg mb-2">Update Your MLS</h3>
-                      <p className="text-white/70">
-                        Paste the new description into your MLS listing (Stellar, Zillow, Realtor.com, or your local board).
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                  <div className="flex items-start gap-4">
-                    <div className="text-4xl">📈</div>
-                    <div>
-                      <h3 className="text-white font-bold text-lg mb-2">Watch Results</h3>
-                      <p className="text-white/70">
-                        Track showings, inquiries, and offers. Better copy = more buyer interest.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 space-y-4">
-                <a
-                  href="/rate-my-listing"
-                  className="block w-full bg-white text-green-900 font-bold py-4 px-8 rounded-xl text-lg text-center hover:bg-gray-100 transition shadow-lg"
-                >
-                  Analyze Another Listing
-                </a>
-                <a
-                  href="/agent-vault"
-                  className="block w-full bg-white/20 border border-white/40 text-white font-bold py-4 px-8 rounded-xl text-lg text-center hover:bg-white/30 transition"
-                >
-                  View Agent Vault
-                </a>
-              </div>
-            </div>
-
-            <div className="flex justify-start">
-              <button
-                onClick={() => setCurrentStep(2)}
-                className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-4 px-8 rounded-xl transition"
+            <div className="mt-8">
+              <a
+                href="/rate-my-listing"
+                className="inline-flex items-center justify-center px-5 py-3 rounded-xl font-semibold bg-[#1a2b4a] text-white hover:bg-[#243a63] transition"
               >
-                ← Back
-              </button>
+                Run another listing
+              </a>
             </div>
           </div>
         )}
