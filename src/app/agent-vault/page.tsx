@@ -189,7 +189,7 @@ export default function VaultPage() {
 
         <div className="flex gap-4 mb-8 border-b border-white/20">
           <button
-            onClick={() => setTab("listings")}
+            onClick={() => window.location.href = "/workspace"}
             className={`px-6 py-3 font-bold transition ${
               tab === "listings"
                 ? "text-[#c9a227] border-b-2 border-[#c9a227]"
