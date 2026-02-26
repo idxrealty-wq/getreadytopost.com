@@ -39,7 +39,7 @@ export default function RateMyListingPage() {
           const data = await res.json();
           setCreditBalance(data.balance || 0);
         } catch (e) {
-          console.error('Error fetching credits:', e);
+          console.error('Error:', e);
         }
       })();
     }
