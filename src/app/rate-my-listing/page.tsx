@@ -23,10 +23,10 @@ export default function RateMyListingPage() {
   const [submissionId, setSubmissionId] = useState('');
   const [loading, setLoading] = useState(false);
   const [creditBalance, setCreditBalance] = useState(0);
-  const [showPropertyDetails, setShowPropertyDetails] = useState(false);
   const [propertyDetails, setPropertyDetails] = useState({
     address: '', city: '', beds: '', baths: '', sqft: '', yearBuilt: '',
   });
+  const [mapUrl, setMapUrl] = useState('');
 
   const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
 
@@ -44,9 +44,27 @@ export default function RateMyListingPage() {
     }
   }, [user?.uid]);
 
+  const generateMapUrl = () => {
+    const fullAddress = `${propertyDetails.address}, ${propertyDetails.city}`;
+    const encoded = encodeURIComponent(fullAddress);
+    return `https://www.google.com/maps/embed/v1/place?key=AIzaSyDummyKey&q=${encoded}`;
+  };
+
+  useEffect(() => {
+    if (propertyDetails.address && propertyDetails.city) {
+      setMapUrl(generateMapUrl());
+    }
+  }, [propertyDetails.address, propertyDetails.city]);
+
+  const isFormValid = email && listing && propertyDetails.address && propertyDetails.city && propertyDetails.beds && propertyDetails.baths;
+
   const handleSubmit = async () => {
     if (!user?.uid) {
       alert('Please sign in.');
+      return;
+    }
+    if (!isFormValid) {
+      alert('Please fill all required fields.');
       return;
     }
     setLoading(true);
@@ -55,7 +73,7 @@ export default function RateMyListingPage() {
         userId: user.uid,
         email: email || user.email,
         listingText: listing,
-        propertyDetails: showPropertyDetails ? propertyDetails : {},
+        propertyDetails,
         wordCount,
         status: 'pending_analysis',
         createdAt: new Date().toISOString(),
@@ -134,33 +152,43 @@ export default function RateMyListingPage() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl p-6 shadow-2xl">
-            <h2 className="text-xl font-bold text-[#1a2b4a] mb-4 text-center">Submit Your Listing</h2>
+            <h2 className="text-xl font-bold text-[#1a2b4a] mb-6 text-center">Submit Your Listing</h2>
             <div className="space-y-4">
+              {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                 <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="your@email.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
+
+              {/* Property Details */}
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <h3 className="font-bold text-gray-700 mb-3">Property Details *</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input type="text" placeholder="Address" value={propertyDetails.address} onChange={(e) => setPropertyDetails({...propertyDetails, address: e.target.value})} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#c9a227] focus:outline-none" />
+                  <input type="text" placeholder="City" value={propertyDetails.city} onChange={(e) => setPropertyDetails({...propertyDetails, city: e.target.value})} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#c9a227] focus:outline-none" />
+                  <input type="text" placeholder="Beds" value={propertyDetails.beds} onChange={(e) => setPropertyDetails({...propertyDetails, beds: e.target.value})} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#c9a227] focus:outline-none" />
+                  <input type="text" placeholder="Baths" value={propertyDetails.baths} onChange={(e) => setPropertyDetails({...propertyDetails, baths: e.target.value})} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#c9a227] focus:outline-none" />
+                  <input type="text" placeholder="Sqft" value={propertyDetails.sqft} onChange={(e) => setPropertyDetails({...propertyDetails, sqft: e.target.value})} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#c9a227] focus:outline-none" />
+                  <input type="text" placeholder="Year Built" value={propertyDetails.yearBuilt} onChange={(e) => setPropertyDetails({...propertyDetails, yearBuilt: e.target.value})} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#c9a227] focus:outline-none" />
+                </div>
+              </div>
+
+              {/* Map */}
+              {mapUrl && (
+                <div className="rounded-xl overflow-hidden border border-gray-200 h-64">
+                  <iframe width="100%" height="100%" frameBorder="0" src={mapUrl} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+              )}
+
+              {/* Listing */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Listing *</label>
                 <textarea className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Paste listing here..." rows={8} value={listing} onChange={(e) => setListing(e.target.value)} />
                 <p className={`text-sm font-bold mt-1 ${wordCount < 50 ? 'text-red-500' : wordCount < 140 ? 'text-amber-500' : 'text-green-500'}`}>{wordCount} words</p>
-                <p className={`text-sm font-bold mt-1 ${wordCount < 50 ? 'text-red-500' : wordCount < 140 ? 'text-amber-500' : 'text-green-500'}`}>{wordCount} words</p>
-                <input type="checkbox" id="showDetails" checked={showPropertyDetails} onChange={(e) => setShowPropertyDetails(e.target.checked)} className="w-4 h-4" />
-                <label htmlFor="showDetails" className="text-sm font-medium text-gray-700">Add property details (optional)</label>
               </div>
-              {showPropertyDetails && (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <input type="text" placeholder="Address" value={propertyDetails.address} onChange={(e) => setPropertyDetails({...propertyDetails, address: e.target.value})} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-                    <input type="text" placeholder="City" value={propertyDetails.city} onChange={(e) => setPropertyDetails({...propertyDetails, city: e.target.value})} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-                    <input type="text" placeholder="Beds" value={propertyDetails.beds} onChange={(e) => setPropertyDetails({...propertyDetails, beds: e.target.value})} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-                    <input type="text" placeholder="Baths" value={propertyDetails.baths} onChange={(e) => setPropertyDetails({...propertyDetails, baths: e.target.value})} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-                    <input type="text" placeholder="Sqft" value={propertyDetails.sqft} onChange={(e) => setPropertyDetails({...propertyDetails, sqft: e.target.value})} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-                    <input type="text" placeholder="Year Built" value={propertyDetails.yearBuilt} onChange={(e) => setPropertyDetails({...propertyDetails, yearBuilt: e.target.value})} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-                  </div>
-                </div>
-              )}
-              <button onClick={handleSubmit} className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold transition disabled:opacity-50" disabled={!email || !listing || loading}>
+
+              {/* Submit */}
+              <button onClick={handleSubmit} className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold transition disabled:opacity-50" disabled={!isFormValid || loading}>
                 {loading ? 'Saving...' : '🔥 Continue'}
               </button>
             </div>
