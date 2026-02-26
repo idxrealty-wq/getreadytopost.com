@@ -111,7 +111,7 @@ async function gradeText(text: string, listingText: string, locationContext: str
           content: `${locationContext ? `LOCATION CONTEXT:\n${locationContext}\n\n` : ""}${isRewrite ? "REWRITE" : "ORIGINAL LISTING"}:\n${text}`,
         },
       ],
-      temperature: 0.7,
+      temperature: 0.0,
     }),
   });
 
@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
             content: `${locationBlock}LISTING:\n${listingText}`,
           },
         ],
-        temperature: 0.7,
+        temperature: 0.0,
       }),
     });
 
