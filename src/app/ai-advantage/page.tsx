@@ -15,7 +15,7 @@ export default function AIAdvantagePage() {
       <div className="relative z-10 max-w-6xl mx-auto px-6 py-16">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            🤖 Why Our AI Is Different
+            <img src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/3a0eee84-6e0f-45f0-867e-760038a4fbc6/image.png" alt="Professional" className="w-20 h-20 inline-block mr-3" /> Why Our AI Is Different
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Not all AI is created equal. Here's why GetReadyToPost delivers A+ listings every time — and ChatGPT doesn't.
