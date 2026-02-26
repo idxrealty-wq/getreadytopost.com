@@ -26,7 +26,10 @@ export default function RateMyListingPage() {
   const [propertyDetails, setPropertyDetails] = useState({
     address: '', city: '', beds: '', baths: '', sqft: '', yearBuilt: '',
   });
-  const [mapUrl, setMapUrl] = useState('');
+  const mapKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+  const fullAddress = propertyDetails.address && propertyDetails.city 
+    ? `${propertyDetails.address}, ${propertyDetails.city}` 
+    : '';
 
   const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
 
@@ -43,18 +46,6 @@ export default function RateMyListingPage() {
       })();
     }
   }, [user?.uid]);
-
-  const generateMapUrl = () => {
-    const fullAddress = `${propertyDetails.address}, ${propertyDetails.city}`;
-    const encoded = encodeURIComponent(fullAddress);
-    return `https://www.google.com/maps/embed/v1/place?key=AIzaSyDummyKey&q=${encoded}`;
-  };
-
-  useEffect(() => {
-    if (propertyDetails.address && propertyDetails.city) {
-      setMapUrl(generateMapUrl());
-    }
-  }, [propertyDetails.address, propertyDetails.city]);
 
   const isFormValid = email && listing && propertyDetails.address && propertyDetails.city && propertyDetails.beds && propertyDetails.baths;
 
@@ -173,10 +164,16 @@ export default function RateMyListingPage() {
                 </div>
               </div>
 
-              {/* Map */}
-              {mapUrl && (
-                <div className="rounded-xl overflow-hidden border border-gray-200 h-64">
-                  <iframe width="100%" height="100%" frameBorder="0" src={mapUrl} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"></iframe>
+              {/* Map - Same as Tab 2 */}
+              {fullAddress && (
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+                  <h2 className="text-xl font-bold text-gray-700 mb-4">📍 Property Location</h2>
+                  <iframe
+                    className="w-full h-96 rounded-xl"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    src={`https://www.google.com/maps/embed/v1/place?key=${mapKey}&q=${encodeURIComponent(fullAddress)}&zoom=17`}
+                  />
                 </div>
               )}
 
