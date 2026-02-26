@@ -31,7 +31,7 @@ function countWords(text: string): number {
 async function getLocationContext(address: string, city: string, state: string, zip: string): Promise<string> {
   try {
     const fullAddress = `${address}, ${city}, ${state} ${zip}`;
-    const res = await fetch("/api/workspace/analyze", {
+    const res = await fetch("https://getreadytopost.com/api/workspace/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ address: fullAddress }),
@@ -48,6 +48,48 @@ async function getLocationContext(address: string, city: string, state: string, 
   } catch (e) {
     return "";
   }
+}
+
+async function ensureRewriteLength(
+  rewrite: string,
+  listingText: string,
+  locationContext: string
+): Promise<string> {
+  let current = (rewrite || "").trim();
+  
+  for (let i = 0; i < 3; i++) {
+    const wc = countWords(current);
+    if (wc >= 140 && wc <= 160) return current;
+
+    const tightenRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        temperature: 0.2,
+        messages: [
+          {
+            role: "system",
+            content: "Rewrite ONLY the listing. Keep MLS-safe and Fair Housing safe. No emojis, no ALL CAPS, no URLs, no agent contact info. Use any LOCATION CONTEXT provided. Return ONLY plain text. Target 150 words and MUST be between 140 and 160 words.",
+          },
+          {
+            role: "user",
+            content: `${locationContext ? `LOCATION CONTEXT (use only if provided):\n${locationContext}\n\n` : ""}ORIGINAL LISTING:\n${listingText}\n\nCURRENT REWRITE (${wc} words):\n${current}\n\nRewrite to be EXACTLY between 140 and 160 words.`,
+          },
+        ],
+      }),
+    });
+
+    if (!tightenRes.ok) break;
+    const tightenData = await tightenRes.json();
+    const tightened = String(tightenData?.choices?.[0]?.message?.content || "").trim();
+    if (tightened) current = tightened;
+  }
+  
+  return current;
 }
 
 export async function POST(req: NextRequest) {
@@ -141,8 +183,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Bad OpenAI JSON" }, { status: 500 });
     }
 
-    const rewrite = String(analysis.rewrite || "");
+    // Enforce 140–160 word rewrite (retry up to 3 times)
+    let rewrite = String(analysis.rewrite || "");
+    rewrite = await ensureRewriteLength(rewrite, listingText, locationContext);
     const wc = countWords(rewrite);
+    
+    analysis.rewrite = rewrite;
     analysis.rewriteWordCount = wc;
 
     await submissionRef.update({
