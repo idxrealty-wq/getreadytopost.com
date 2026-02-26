@@ -117,7 +117,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing submissionId" }, { status: 400 });
     }
 
-    // Fetch submission from Firestore
     const docSnap = await db.collection("submissions").doc(submissionId).get();
     if (!docSnap.exists) {
       return NextResponse.json({ error: "Submission not found" }, { status: 404 });
@@ -126,8 +125,6 @@ export async function POST(req: NextRequest) {
     const submission: any = docSnap.data() || {};
     const listingText = submission.listingText || "";
     const propertyDetails = submission.propertyDetails || {};
-    const email = submission.email;
-    const userId = submission.userId;
 
     if (!listingText) {
       return NextResponse.json({ error: "No listing text in submission" }, { status: 400 });
@@ -150,9 +147,9 @@ export async function POST(req: NextRequest) {
     ].join("\n");
 
     const gradingRaw = await callOpenAI(gradingPrompt);
-    const grades = safeJsonParse(gradingRaw) || null;
+    const grades = safeJsonParse(gradingRaw) || {};
 
-    // 2) Rewrite (first pass exactly 150 words)
+    // 2) Rewrite
     const rewritePrompt = [
       "You are an elite MLS listing copywriter.",
       "You MUST follow the facts. Do NOT invent beds, baths, square footage, upgrades, HOA, views, waterfront, or any features not explicitly provided.",
@@ -173,20 +170,36 @@ export async function POST(req: NextRequest) {
     rewrite = await ensureRewriteLength(rewrite, factsBlock);
     const rewriteWordCount = countWords(rewrite);
 
-    // 3) Update submission doc with analysis results
-    await db.collection("submissions").doc(submissionId).update({
-      status: "completed",
-      grades,
+    // 3) Build analysis object in the format results page expects
+    const analysis = {
+      overall: grades.headline?.grade || "B",
       rewrite,
       rewriteWordCount,
+      categories: {
+        headline: grades.headline || { grade: "B", notes: "" },
+        length: grades.length || { grade: "B", notes: "" },
+        emotion: grades.emotion || { grade: "B", notes: "" },
+        keywords: grades.keywords || { grade: "B", notes: "" },
+        cta: grades.cta || { grade: "B", notes: "" },
+        compliance: grades.compliance || { grade: "B", notes: "" },
+      },
+      recommendations: [
+        "Review the rewrite for tone and accuracy",
+        "Test the listing on your MLS platform",
+        "Consider A/B testing with your original",
+      ],
+    };
+
+    // 4) Update submission doc with analysis
+    await db.collection("submissions").doc(submissionId).update({
+      status: "completed",
+      analysis,
       analyzedAt: new Date().toISOString(),
     });
 
     return NextResponse.json({
       submissionId,
-      grades,
-      rewrite,
-      rewriteWordCount,
+      analysis,
     });
   } catch (e: any) {
     console.error("run-analysis error:", e);
