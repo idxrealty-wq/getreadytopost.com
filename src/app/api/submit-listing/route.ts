@@ -1,20 +1,24 @@
 export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, listingText } = await req.json();
+    const { email, listingText, propertyDetails } = await req.json();
 
     if (!email || !listingText) {
-      return NextResponse.json({ error: 'Email and listing text are required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Email and listing text are required' },
+        { status: 400 }
+      );
     }
 
-    // Save submission as pending_payment - AI grading happens after payment
     const submissionRef = await addDoc(collection(db, 'submissions'), {
       email,
       listingText,
+      propertyDetails: propertyDetails || {}, // beds, baths, sqft, address, yearBuilt, lotSize, features, etc.
       status: 'pending_payment',
       createdAt: new Date().toISOString(),
     });
