@@ -196,7 +196,7 @@ export default function VaultPage() {
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            My Listings ({listings.length})
+            Descriptions ({listings.length})
           </button>
           <button
             onClick={() => setTab("reports")}
