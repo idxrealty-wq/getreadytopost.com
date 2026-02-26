@@ -144,8 +144,7 @@ export default function RateMyListingPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Listing *</label>
                 <textarea className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Paste listing here..." rows={8} value={listing} onChange={(e) => setListing(e.target.value)} />
                 <p className={`text-sm font-bold mt-1 ${wordCount < 50 ? 'text-red-500' : wordCount < 140 ? 'text-amber-500' : 'text-green-500'}`}>{wordCount} words</p>
-              </div>
-              <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
+                <p className={`text-sm font-bold mt-1 ${wordCount < 50 ? 'text-red-500' : wordCount < 140 ? 'text-amber-500' : 'text-green-500'}`}>{wordCount} words</p>
                 <input type="checkbox" id="showDetails" checked={showPropertyDetails} onChange={(e) => setShowPropertyDetails(e.target.checked)} className="w-4 h-4" />
                 <label htmlFor="showDetails" className="text-sm font-medium text-gray-700">Add property details (optional)</label>
               </div>
