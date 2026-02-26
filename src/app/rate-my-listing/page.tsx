@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useUser } from '@/contexts/UserContext';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
@@ -98,7 +97,6 @@ export default function RateMyListingPage() {
         <section className="py-8 text-center text-white mb-10">
           <div className="inline-block bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-full mb-4">🔥 Instant Listing Analysis</div>
           <h1 className="text-4xl font-bold mb-3">Rate My Listing</h1>
-          <p className="text-xs text-white/50">UI VERSION: 2026-02-26-1013</p>
           <p className="text-gray-300 mb-4">Grade → Rewrite → Report.</p>
           <div className="bg-white/10 rounded-xl p-6 inline-block">
             <p className="text-4xl font-bold text-[#c9a227] mb-1">$19.99</p>
