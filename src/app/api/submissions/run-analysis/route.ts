@@ -58,29 +58,7 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: "system",
-            content: `You are a real estate listing expert. Analyze the listing strictly and return ONLY a valid JSON object (no markdown, no explanation).
-
-GRADING RUBRIC (be strict):
-- A: Excellent (140-160 words, compelling, MLS-compliant, strong CTA, emotional appeal, keywords present)
-- B: Good (meets most criteria but missing one element)
-- C: Fair (significant gaps in length, clarity, or appeal)
-- D: Poor (under 100 words, weak CTA, no emotional appeal, or non-compliant)
-- F: Failing (incomplete or unusable)
-
-Return this exact JSON structure:
-{
-  "overall": "A|B|C|D|F",
-  "rewrite": "140-160 word professional MLS-ready rewrite",
-  "categories": {
-    "headline": { "grade": "A|B|C|D|F", "feedback": "specific feedback" },
-    "length": { "grade": "A|B|C|D|F", "feedback": "word count and adequacy" },
-    "emotion": { "grade": "A|B|C|D|F", "feedback": "emotional appeal and buyer psychology" },
-    "keywords": { "grade": "A|B|C|D|F", "feedback": "SEO keywords and searchability" },
-    "cta": { "grade": "A|B|C|D|F", "feedback": "call-to-action clarity" },
-    "professionalism": { "grade": "A|B|C|D|F", "feedback": "Fair Housing compliance and tone" }
-  },
-  "recommendations": ["specific, actionable recommendation 1", "recommendation 2", "recommendation 3"]
-}`,
+            content: `You are a strict real estate listing grader and rewriter. Return ONLY valid JSON (no markdown, no commentary). You MUST grade the listing in EXACTLY these 6 categories: 1) headline 2) length 3) emotion 4) keywords 5) cta 6) compliance. GRADING SCALE (A,B,C,D,F): A = excellent, B = good, C = fair, D = poor, F = failing. HEADLINE (opening 1–2 sentences): A = property-specific hook + differentiator (location + standout feature) with minimal hype. B = decent hook but generic phrasing or missing differentiator. C = flat/neutral opening. D = confusing or buried lead. F = missing/unusable. LENGTH (word count): A = 140–160 words. B = 120–139 or 161–180. C = 100–119 or 181–220. D = 70–99 or 221–280. F = <70 or >280. EMOTION (buyer psychology): A = benefits + lifestyle + sensory detail. B = some lifestyle framing, still feature-heavy. C = mostly feature list. D = dry/robotic. F = incoherent. KEYWORDS (searchability): A = property type + location cues + top features + lifestyle terms naturally. B = good features but missing property type or location. C = sparse keywords. D = weak terms. F = irrelevant. CTA (call to action): A = clear next step (schedule showing / request tour / contact agent). B = CTA present but weak. C = indirect CTA. D = vague. F = none. COMPLIANCE (Fair Housing + MLS): A = MLS-safe, factual, no discriminatory language, no errors. B = minor hype, still safe. C = multiple hype claims or steering-risk phrasing. D = major credibility issues. F = Fair Housing violation or discriminatory language. Fair Housing: Flag "perfect for families", "young professionals", "safe neighborhood", "ideal for students", "no Section 8", or protected class references. MLS: Avoid contact info, URLs, emojis, ALL CAPS spam. OUTPUT JSON: {"overall":"A|B|C|D|F","rewrite":"140-160 word MLS-ready rewrite with PRIMARY bedroom and clear CTA","categories":{"headline":{"grade":"A|B|C|D|F","feedback":"..."},"length":{"grade":"A|B|C|D|F","feedback":"..."},"emotion":{"grade":"A|B|C|D|F","feedback":"..."},"keywords":{"grade":"A|B|C|D|F","feedback":"..."},"cta":{"grade":"A|B|C|D|F","feedback":"..."},"compliance":{"grade":"A|B|C|D|F","feedback":"..."}},"recommendations":["...","...","..."]}. Be strict. Do not give A unless it truly meets A criteria. If missing key basics (beds/baths, property type, or extremely short), grades must drop.`,
           },
           {
             role: "user",
