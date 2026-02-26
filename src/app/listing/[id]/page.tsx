@@ -92,7 +92,7 @@ export default function ListingViewPage() {
     );
   }
 
-  const mapEmbedUrl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBVdeO0rH0l1WrTdImMYOxnz1A9zWkJKSQ&q=${encodeURIComponent(listing.address)}`;
+  const mapEmbedUrl = `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(listing.address)}`;
 
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
