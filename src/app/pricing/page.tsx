@@ -1,3 +1,4 @@
+import ShareButtons from '@/components/ShareButtons';
 
 import Image from 'next/image';
 

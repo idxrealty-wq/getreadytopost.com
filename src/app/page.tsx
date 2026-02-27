@@ -1,3 +1,4 @@
+import ShareButtons from '@/components/ShareButtons';
 import Link from 'next/link';
 
 export default function Home() {

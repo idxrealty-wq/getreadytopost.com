@@ -1,4 +1,5 @@
 "use client";
+import ShareButtons from '@/components/ShareButtons';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
