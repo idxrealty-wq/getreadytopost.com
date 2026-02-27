@@ -32,7 +32,7 @@ function ExampleBlock({
   gradesAfter: Grade[];
 }) {
   return (
-    <section className="py-14 bg-white">
+    <section className="py-14 bg-transparent">
       <div className="max-w-5xl mx-auto px-6">
         <div className="mb-6">
           <span className="bg-[#c9a227]/10 text-[#c9a227] px-3 py-1 rounded-full text-sm font-semibold">
