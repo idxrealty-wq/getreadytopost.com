@@ -96,7 +96,9 @@ function ExampleBlock({
 
 export default function ExamplesPage() {
   return (
-    <main>
+    <main style={{backgroundImage: "url('https://images.unsplash.com/photo-1557821552-17105176677c?w=1200<main>h=800<main>fit=crop')", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed", minHeight: "100vh"}}>
+    <div style={{position: "absolute", inset: 0, backgroundColor: "rgba(255, 255, 255, 0.85)"}}></div>
+    <div style={{position: "relative", zIndex: 10}}>
       {/* Hero */}
       <section className="bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] text-white py-16 pt-32">
         <div className="max-w-5xl mx-auto px-6 text-center">
@@ -292,6 +294,7 @@ export default function ExamplesPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
+  </main>
   );
 }
