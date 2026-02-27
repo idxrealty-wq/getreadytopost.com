@@ -53,71 +53,117 @@ export default function ClosingCostsInputs({ state, onChange }: Props) {
         className="w-full border rounded px-2 py-1 mb-3"
       />
 
-      <label className="block text-xs font-semibold mb-1">Appraisal Fee</label>
-      <input
-        type="number"
-        value={state.appraisalFee}
-        onChange={(e) => onChange({ appraisalFee: num(e.target.value) })}
-        className="w-full border rounded px-2 py-1 mb-3"
-      />
+      <div className="border-t pt-3 mt-3 mb-3">
+        <label className="block text-xs font-semibold mb-2 text-gray-700">Property Tax</label>
 
-      <label className="block text-xs font-semibold mb-1">Credit Report Fee</label>
-      <input
-        type="number"
-        value={state.creditReportFee}
-        onChange={(e) => onChange({ creditReportFee: num(e.target.value) })}
-        className="w-full border rounded px-2 py-1 mb-3"
-      />
+        <label className="block text-xs font-semibold mb-1">Seller Current Annual Tax</label>
+        <input
+          type="number"
+          value={state.sellerCurrentAnnualTax || ''}
+          onChange={(e) => onChange({ sellerCurrentAnnualTax: num(e.target.value) })}
+          placeholder="From seller's tax bill"
+          className="w-full border rounded px-2 py-1 mb-3"
+        />
 
-      <label className="block text-xs font-semibold mb-1">Settlement Fee</label>
-      <input
-        type="number"
-        value={state.settlementFee}
-        onChange={(e) => onChange({ settlementFee: num(e.target.value) })}
-        className="w-full border rounded px-2 py-1 mb-3"
-      />
+        <label className="block text-xs font-semibold mb-2 text-gray-700">Buyer Exemptions (reduce taxable value)</label>
 
-      <label className="block text-xs font-semibold mb-1">Title Search Fee</label>
-      <input
-        type="number"
-        value={state.titleSearchFee}
-        onChange={(e) => onChange({ titleSearchFee: num(e.target.value) })}
-        className="w-full border rounded px-2 py-1 mb-3"
-      />
+        <label className="flex items-center gap-2 text-xs mb-2">
+          <input
+            type="checkbox"
+            checked={state.homesteadExemption}
+            onChange={(e) => onChange({ homesteadExemption: e.target.checked })}
+          />
+          Homestead (-$50,000)
+        </label>
 
-      <label className="block text-xs font-semibold mb-1">Seller Annual Tax</label>
-      <input
-        type="number"
-        value={state.sellerCurrentAnnualTax || ''}
-        onChange={(e) => onChange({ sellerCurrentAnnualTax: num(e.target.value) })}
-        placeholder="Enter amount"
-        className="w-full border rounded px-2 py-1 mb-3"
-      />
+        <label className="flex items-center gap-2 text-xs mb-2">
+          <input
+            type="checkbox"
+            checked={state.seniorExemption}
+            onChange={(e) => onChange({ seniorExemption: e.target.checked })}
+          />
+          Senior 65+ (-$25,000)
+        </label>
 
-      <label className="block text-xs font-semibold mb-1">Homeowners Annual Premium</label>
-      <input
-        type="number"
-        value={state.homeownersAnnualPremium}
-        onChange={(e) => onChange({ homeownersAnnualPremium: num(e.target.value) })}
-        className="w-full border rounded px-2 py-1 mb-3"
-      />
+        <label className="flex items-center gap-2 text-xs mb-2">
+          <input
+            type="checkbox"
+            checked={state.disabledExemption}
+            onChange={(e) => onChange({ disabledExemption: e.target.checked })}
+          />
+          Disabled (-$50,000)
+        </label>
 
-      <label className="block text-xs font-semibold mb-1">HOA Annual Dues</label>
-      <input
-        type="number"
-        value={state.hoaAnnualDues}
-        onChange={(e) => onChange({ hoaAnnualDues: num(e.target.value) })}
-        className="w-full border rounded px-2 py-1 mb-3"
-      />
+        <label className="flex items-center gap-2 text-xs mb-3">
+          <input
+            type="checkbox"
+            checked={state.widowExemption}
+            onChange={(e) => onChange({ widowExemption: e.target.checked })}
+          />
+          Widow/Widower (-$5,000)
+        </label>
+      </div>
 
-      <label className="block text-xs font-semibold mb-1">Commission %</label>
-      <input
-        type="number"
-        step="0.01"
-        value={state.commissionPercent}
-        onChange={(e) => onChange({ commissionPercent: num(e.target.value) })}
-        className="w-full border rounded px-2 py-1"
-      />
+      <div className="border-t pt-3 mt-3 mb-3">
+        <label className="block text-xs font-semibold mb-2 text-gray-700">Closing Costs</label>
+
+        <label className="block text-xs font-semibold mb-1">Appraisal Fee</label>
+        <input
+          type="number"
+          value={state.appraisalFee}
+          onChange={(e) => onChange({ appraisalFee: num(e.target.value) })}
+          className="w-full border rounded px-2 py-1 mb-3"
+        />
+
+        <label className="block text-xs font-semibold mb-1">Credit Report Fee</label>
+        <input
+          type="number"
+          value={state.creditReportFee}
+          onChange={(e) => onChange({ creditReportFee: num(e.target.value) })}
+          className="w-full border rounded px-2 py-1 mb-3"
+        />
+
+        <label className="block text-xs font-semibold mb-1">Settlement Fee</label>
+        <input
+          type="number"
+          value={state.settlementFee}
+          onChange={(e) => onChange({ settlementFee: num(e.target.value) })}
+          className="w-full border rounded px-2 py-1 mb-3"
+        />
+
+        <label className="block text-xs font-semibold mb-1">Title Search Fee</label>
+        <input
+          type="number"
+          value={state.titleSearchFee}
+          onChange={(e) => onChange({ titleSearchFee: num(e.target.value) })}
+          className="w-full border rounded px-2 py-1 mb-3"
+        />
+
+        <label className="block text-xs font-semibold mb-1">Homeowners Annual Premium</label>
+        <input
+          type="number"
+          value={state.homeownersAnnualPremium}
+          onChange={(e) => onChange({ homeownersAnnualPremium: num(e.target.value) })}
+          className="w-full border rounded px-2 py-1 mb-3"
+        />
+
+        <label className="block text-xs font-semibold mb-1">HOA Annual Dues</label>
+        <input
+          type="number"
+          value={state.hoaAnnualDues}
+          onChange={(e) => onChange({ hoaAnnualDues: num(e.target.value) })}
+          className="w-full border rounded px-2 py-1 mb-3"
+        />
+
+        <label className="block text-xs font-semibold mb-1">Commission %</label>
+        <input
+          type="number"
+          step="0.01"
+          value={state.commissionPercent}
+          onChange={(e) => onChange({ commissionPercent: num(e.target.value) })}
+          className="w-full border rounded px-2 py-1"
+        />
+      </div>
     </div>
   );
 }
