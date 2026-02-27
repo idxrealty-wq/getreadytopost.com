@@ -1,0 +1,38 @@
+
+export function calculateDownPayment(state: ClosingCostsState): {
+  downPaymentAmount: number;
+  downPaymentPercent: number;
+  loanAmount: number;
+  ltv: number;
+} {
+  const price = Math.max(0, state.purchasePrice || 0);
+  let downAmt = Math.max(0, state.downPaymentAmount || 0);
+  if (state.downPaymentType === 'percent') {
+    downAmt = Math.round((price * downAmt) / 100 * 100) / 100;
+  }
+  downAmt = Math.min(downAmt, price);
+  const loan = Math.max(0, price - downAmt);
+  const ltv = price > 0 ? loan / price : 0;
+  const downPct = price > 0 ? (downAmt / price) * 100 : 0;
+  return {
+    downPaymentAmount: Math.round(downAmt * 100) / 100,
+    downPaymentPercent: Math.round(downPct * 100) / 100,
+    loanAmount: Math.round(loan * 100) / 100,
+    ltv: Math.round(ltv * 10000) / 10000,
+  };
+}
+
+export function calculateMortgageInsuranceMonthly(state: ClosingCostsState): {
+  applies: boolean;
+  monthlyMI: number;
+  annualMI: number;
+  ltv: number;
+} {
+  const dp = calculateDownPayment(state);
+  const ltv = dp.ltv;
+  const applies = state.mortgageInsurance || ltv > 0.8;
+  const manualAnnual = Math.max(0, state.mortgageInsuranceAmount || 0);
+  const annual = manualAnnual > 0 ? manualAnnual : applies ? Math.round((dp.loanAmount * 0.0055) * 100) / 100 : 0;
+  const monthly = Math.round((annual / 12) * 100) / 100;
+  return { applies, monthlyMI: monthly, annualMI: annual, ltv };
+}
