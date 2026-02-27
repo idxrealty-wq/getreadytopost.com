@@ -13,3 +13,70 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ShareButtons Styles */
+.share-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem 0;
+  border-top: 1px solid #d1d5db;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.share-buttons-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.share-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.share-button-copy {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.share-button-copy:hover {
+  background-color: #d1d5db;
+}
+
+.share-button-facebook {
+  background-color: #2563eb;
+  color: white;
+}
+
+.share-button-facebook:hover {
+  background-color: #1d4ed8;
+}
+
+.share-button-x {
+  background-color: #000000;
+  color: white;
+}
+
+.share-button-x:hover {
+  background-color: #1f2937;
+}
+
+.share-button-linkedin {
+  background-color: #1e40af;
+  color: white;
+}
+
+.share-button-linkedin:hover {
+  background-color: #1e3a8a;
+}
