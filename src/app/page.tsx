@@ -39,8 +39,8 @@ export default function Home() {
             <p className="text-2xl text-black mb-8">Your Words Get The Showing.</p>
             <p className="text-lg text-black mb-12 max-w-2xl mx-auto">Most listing descriptions are invisible to buyers. Ours aren't. GetReadyToPost grades your listing across 6 critical categories and shows you exactly what to improve.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-12 py-4 rounded-lg font-bold text-lg transition shadow-lg">
-                Grade My Listing Free
+              <Link href="/closing-costs" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-12 py-4 rounded-lg font-bold text-lg transition shadow-lg">
+                Closing Cost Calculator
               </Link>
               <Link href="/how-it-works" className="inline-block bg-white hover:bg-gray-100 text-[#1a2b4a] px-12 py-4 rounded-lg font-bold text-lg transition shadow-lg border-2 border-[#1a2b4a]">
                 How It Works
@@ -58,6 +58,25 @@ export default function Home() {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-10 text-center shadow-sm">
+            <h2 className="text-3xl font-bold text-black mb-4">New: Closing Cost Calculator (Orange County, FL)</h2>
+            <p className="text-lg text-gray-700 mb-8">
+              Buyer cash-to-close + seller net proceeds, with itemized breakdowns and accurate Orange County rules.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/closing-costs" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-10 py-4 rounded-lg font-bold text-lg transition shadow-lg">
+                Open Calculator
+              </Link>
+              <Link href="/contact-broker" className="inline-block bg-white hover:bg-gray-100 text-[#1a2b4a] px-10 py-4 rounded-lg font-bold text-lg transition shadow-lg border-2 border-[#1a2b4a]">
+                Get Early Access
+              </Link>
             </div>
           </div>
         </div>
