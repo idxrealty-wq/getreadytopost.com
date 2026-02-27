@@ -7,7 +7,7 @@ export default function Home() {
         className="relative min-h-screen pt-32 pb-20 px-6 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/hero-bg.png')" }}
       >
-        <div className="absolute inset-0 bg-white/80" />
+        <div className="absolute inset-0 bg-white/95" />
         <div className="relative max-w-4xl mx-auto text-center">
           <h1 className="text-6xl md:text-7xl font-bold text-black mb-6">Your Photos Get the Click.</h1>
           <p className="text-2xl text-black mb-8">Your Words Get the Showing.</p>
