@@ -69,7 +69,7 @@ export default function PricingPage() {
 
       name: '5 Listing Rewrite Pack',
 
-      price: '$89.99',
+      price: '$85',
 
       image: '/offers/5-pack-rewrite.png',
 
@@ -109,7 +109,7 @@ export default function PricingPage() {
 
       name: 'Agent Vault Pro - 6 Months',
 
-      price: '$449.99',
+      price: '$495',
 
       image: '/offers/agent-vault-pro-6-month.png',
 

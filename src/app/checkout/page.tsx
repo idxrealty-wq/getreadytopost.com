@@ -11,7 +11,7 @@ const packages = [
   { id: '5pack', name: '5-Pack', credits: 5, price: 85, description: '5 analyses' },
   { id: 'monthly', name: 'Monthly', credits: 99, price: 99, description: 'Unlimited 30 days' },
   { id: '6month', name: '6-Month', credits: 495, price: 495, description: 'Unlimited 6 months' },
-  { id: 'annual', name: 'Annual', credits: 899, price: 799, description: 'Unlimited 12 months' },
+  { id: 'annual', name: 'Annual', credits: 899, price: 899, description: 'Unlimited 12 months' },
 ];
 
 function CheckoutContent() {
