@@ -8,10 +8,10 @@ const BG_URL = "https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224
 
 const packages = [
   { id: 'single', name: 'Single', credits: 1, price: 19.99, description: 'One listing analysis' },
-  { id: '5pack', name: '5-Pack', credits: 5, price: 89.99, description: '5 analyses' },
-  { id: 'monthly', name: 'Monthly', credits: 99, price: 99.99, description: 'Unlimited 30 days' },
-  { id: '6month', name: '6-Month', credits: 495, price: 449.99, description: 'Unlimited 6 months' },
-  { id: 'annual', name: 'Annual', credits: 899, price: 799.99, description: 'Unlimited 12 months' },
+  { id: '5pack', name: '5-Pack', credits: 5, price: 85, description: '5 analyses' },
+  { id: 'monthly', name: 'Monthly', credits: 99, price: 99, description: 'Unlimited 30 days' },
+  { id: '6month', name: '6-Month', credits: 495, price: 495, description: 'Unlimited 6 months' },
+  { id: 'annual', name: 'Annual', credits: 899, price: 799, description: 'Unlimited 12 months' },
 ];
 
 function CheckoutContent() {
