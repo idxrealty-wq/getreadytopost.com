@@ -68,6 +68,13 @@ export default function ContactBrokerPage() {
           </div>
         </section>
 
+      <section className="py-20 bg-gray-900">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
+            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/Lo6f8UmsHTA" title="GetReadyToPost: Transform Your Listings" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+          </div>
+        </div>
+      </section>
         <section className="py-12 bg-white">
           <div className="max-w-3xl mx-auto px-6 text-center">
             <div className="bg-green-50 border-2 border-green-200 rounded-xl p-8">
@@ -104,6 +111,13 @@ export default function ContactBrokerPage() {
         </div>
       </section>
 
+      <section className="py-20 bg-gray-900">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
+            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/Lo6f8UmsHTA" title="GetReadyToPost: Transform Your Listings" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+          </div>
+        </div>
+      </section>
       <section className="py-12 bg-white">
         <div className="max-w-3xl mx-auto px-6">
           <form onSubmit={handleSubmit} className="space-y-6">
