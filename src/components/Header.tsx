@@ -68,6 +68,7 @@ export default function Header() {
         { label: "Why Our AI", href: "/ai-advantage" },
         { label: "How It Works", href: "/how-it-works" },
         { label: "Pricing", href: "/pricing" },
+          { href: "/closing-costs", label: "Closing Costs Calculator" },
         { label: "Our Deals", href: "/our-deals" },
         { label: "Examples", href: "/examples" },
       ],
@@ -97,6 +98,7 @@ export default function Header() {
       label: "Resources",
       dropdown: [
         { label: "FAQ", href: "/faq" },
+          { href: "/closing-costs", label: "Closing Costs Calculator" },
         { label: "Feedback", href: "/feedback" },
         { label: "Our Deals", href: "/our-deals" },
         { label: "Privacy", href: "/privacy" },
