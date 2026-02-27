@@ -68,13 +68,6 @@ export default function ContactBrokerPage() {
           </div>
         </section>
 
-      <section className="py-20 bg-gray-900">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
-            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/Lo6f8UmsHTA" title="GetReadyToPost: Transform Your Listings" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
-          </div>
-        </div>
-      </section>
         <section className="py-12 bg-white">
           <div className="max-w-3xl mx-auto px-6 text-center">
             <div className="bg-green-50 border-2 border-green-200 rounded-xl p-8">
@@ -114,12 +107,34 @@ export default function ContactBrokerPage() {
       <section className="py-20 bg-gray-900">
         <div className="max-w-4xl mx-auto px-6">
           <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
-            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/Lo6f8UmsHTA" title="GetReadyToPost: Transform Your Listings" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/Lo6f8UmsHTA"
+              title="GetReadyToPost: Transform Your Listings"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
           </div>
         </div>
       </section>
-      <section className="py-12 bg-white">
-        <div className="max-w-3xl mx-auto px-6">
+
+      <section
+        className="py-12 relative"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=800&fit=crop')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: "rgba(255, 255, 255, 0.70)" }}
+        ></div>
+
+        <div className="max-w-3xl mx-auto px-6 relative z-10">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               <div>
