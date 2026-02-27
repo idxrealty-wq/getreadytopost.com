@@ -28,7 +28,7 @@ export default function HomeSellersPage() {
       className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] pt-32 pb-16 bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/home-sellers-bg.png')" }}
     >
-      <div className="absolute inset-0 bg-white/95" />
+      <div className="absolute inset-0 bg-white/60" />
 
       <div className="relative max-w-4xl mx-auto px-6">
         <ShareButtons
