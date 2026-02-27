@@ -1,26 +1,47 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { defaultClosingCostsState } from "@/lib/closing-costs/calc";
 import type { ClosingCostsState } from "@/lib/closing-costs/types";
+
+import ClosingCostsInputs from "@/components/closing-costs/ClosingCostsInputs";
 import Summary from "@/components/closing-costs/Summary";
 import BuyerForm from "@/components/closing-costs/BuyerForm";
 import SellerForm from "@/components/closing-costs/SellerForm";
 
+type Step = "summary" | "buyer" | "seller";
+
 export default function ClosingCostsPage() {
   const [state, setState] = useState<ClosingCostsState>(defaultClosingCostsState);
-  const [currentPage, setCurrentPage] = useState<"summary" | "buyer" | "seller">("summary");
+  const [currentPage, setCurrentPage] = useState<Step>("summary");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("closingCostsState");
+    if (saved) {
+      setState(JSON.parse(saved));
+    }
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem("closingCostsState", JSON.stringify(state));
+    }
+  }, [state, mounted]);
 
   const handleChange = (updates: Partial<ClosingCostsState>) => {
     setState((prev) => ({ ...prev, ...updates }));
   };
 
-  const pages = ["summary", "buyer", "seller"];
+  const pages: Step[] = ["summary", "buyer", "seller"];
   const currentIndex = pages.indexOf(currentPage);
+
+  if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-extrabold text-white mb-2">Closing Costs Calculator</h1>
         <p className="text-slate-300 mb-8">Orange County, Florida</p>
 
@@ -29,7 +50,7 @@ export default function ClosingCostsPage() {
           {pages.map((page, idx) => (
             <div key={page} className="flex items-center flex-1">
               <button
-                onClick={() => setCurrentPage(page as any)}
+                onClick={() => setCurrentPage(page)}
                 className={`w-10 h-10 rounded-full font-bold transition ${
                   currentIndex === idx
                     ? "bg-blue-600 text-white"
@@ -52,27 +73,35 @@ export default function ClosingCostsPage() {
           ))}
         </div>
 
-        {/* Pages */}
-        {currentPage === "summary" && <Summary state={state} onStateChange={handleChange} />}
-        {currentPage === "buyer" && <BuyerForm state={state} onStateChange={handleChange} />}
-        {currentPage === "seller" && <SellerForm state={state} onStateChange={handleChange} />}
+        {/* Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <ClosingCostsInputs state={state} onStateChange={handleChange} />
+          </div>
 
-        {/* Navigation */}
-        <div className="flex justify-between mt-8">
-          <button
-            onClick={() => setCurrentPage(pages[currentIndex - 1] as any)}
-            disabled={currentIndex === 0}
-            className="px-6 py-2 bg-slate-600 text-white rounded-lg disabled:opacity-50"
-          >
-            Back
-          </button>
-          <button
-            onClick={() => setCurrentPage(pages[currentIndex + 1] as any)}
-            disabled={currentIndex === pages.length - 1}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
-          >
-            Next
-          </button>
+          <div className="lg:col-span-2">
+            {currentPage === "summary" && <Summary state={state} onStateChange={handleChange} />}
+            {currentPage === "buyer" && <BuyerForm state={state} onStateChange={handleChange} />}
+            {currentPage === "seller" && <SellerForm state={state} onStateChange={handleChange} />}
+
+            {/* Navigation */}
+            <div className="flex justify-between mt-8">
+              <button
+                onClick={() => setCurrentPage(pages[currentIndex - 1])}
+                disabled={currentIndex === 0}
+                className="px-6 py-2 bg-slate-600 text-white rounded-lg disabled:opacity-50"
+              >
+                Back
+              </button>
+              <button
+                onClick={() => setCurrentPage(pages[currentIndex + 1])}
+                disabled={currentIndex === pages.length - 1}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

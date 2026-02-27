@@ -57,9 +57,28 @@ export function calculateIntangibleTax(loanAmount: number) {
   return loanAmount * rate;
 }
 
+export function calculateRecordingFees(purchasePrice: number) {
+  const baseFee = 40;
+  const perPageFee = 0.50;
+  const estimatedPages = 3;
+  return baseFee + (perPageFee * estimatedPages);
+}
+
 export function calculatePropertyTaxProration(annualTax: number, closingDate: string) {
   if (!closingDate) return 0;
-  const date = new Date(closingDate);
+  const dateStr = closingDate.trim();
+  if (!dateStr) return 0;
+  
+  const parts = dateStr.split('/');
+  if (parts.length !== 3) return 0;
+  
+  const month = parseInt(parts[0], 10);
+  const day = parseInt(parts[1], 10);
+  const year = parseInt(parts[2], 10);
+  
+  if (isNaN(month) || isNaN(day) || isNaN(year)) return 0;
+  
+  const date = new Date(year, month - 1, day);
   const daysInYear = 365;
   const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
   const dailyRate = annualTax / daysInYear;
@@ -71,6 +90,7 @@ export function calculateBuyerCosts(state: ClosingCostsState): LineItem[] {
   const titleIns = calculateTitleInsurance(dp.loanAmount, state.purchasePrice, state.ownerTitleInsurance);
   const docStamps = calculateDocStamps(state.purchasePrice);
   const intangibleTax = calculateIntangibleTax(dp.loanAmount);
+  const recordingFees = calculateRecordingFees(state.purchasePrice);
 
   return [
     { label: 'Loan Origination Fee', amount: state.lenderOriginationFee },
@@ -82,6 +102,7 @@ export function calculateBuyerCosts(state: ClosingCostsState): LineItem[] {
     { label: 'Settlement/Closing Fee', amount: state.settlementFee },
     { label: 'Document Stamps (Deed)', amount: docStamps },
     { label: 'Intangible Tax', amount: intangibleTax },
+    { label: 'Recording Fees', amount: recordingFees },
     { label: 'Mortgage Insurance (UFMIP)', amount: state.mortgageInsuranceAmount },
   ];
 }
