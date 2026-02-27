@@ -1,28 +1,23 @@
-"use client";
-import ShareButtons from '@/components/ShareButtons';
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
+import ShareButtons from '@/components/ShareButtons';
+import { useState } from 'react';
+import Link from 'next/link';
 
 export default function ContactBrokerPage() {
   const [formData, setFormData] = useState({
-    brokerageName: "",
-    contactName: "",
-    email: "",
-    phone: "",
-    agentCount: "",
-    message: "",
+    name: '',
+    email: '',
+    company: '',
+    phone: '',
+    message: '',
   });
-
-  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,220 +25,162 @@ export default function ContactBrokerPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/contact-broker", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/contact-broker', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        setSubmitted(true);
-        setFormData({
-          brokerageName: "",
-          contactName: "",
-          email: "",
-          phone: "",
-          agentCount: "",
-          message: "",
-        });
-      } else {
-        alert("Error sending inquiry. Please try again.");
+        setSuccess(true);
+        setFormData({ name: '', email: '', company: '', phone: '', message: '' });
+        setTimeout(() => setSuccess(false), 5000);
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("Error sending inquiry. Please try again.");
+      console.error('Error submitting form:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  if (submitted) {
-    return (
-      <main>
-        <section className="bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] text-white py-16 pt-32">
-          <div className="max-w-4xl mx-auto px-6 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Thank You!</h1>
-            <p className="text-xl text-gray-300">
-              Your inquiry has been sent successfully
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] pt-32 pb-16">
+      <ShareButtons
+        url="https://getreadytopost.com/contact-broker"
+        title="Broker Solutions - GetReadyToPost"
+      />
+
+      <div className="max-w-4xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">Broker Solutions</h1>
+          <p className="text-2xl text-gray-200">Scale your team's listing quality with GetReadyToPost.</p>
+        </div>
+
+        <div className="mb-16 rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              className="absolute top-0 left-0 w-full h-full"
+              src="https://www.youtube.com/embed/NJWcpVAYuqM?rel=0"
+              title="GetReadyToPost for Brokers"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8">
+            <h3 className="text-2xl font-bold text-white mb-4">✓ Team Efficiency</h3>
+            <p className="text-gray-300">
+              Agents grade and rewrite listings in seconds. No back-and-forth. No delays. Faster listings to market.
             </p>
           </div>
-        </section>
 
-        <section className="py-12 bg-white">
-          <div className="max-w-3xl mx-auto px-6 text-center">
-            <div className="bg-green-50 border-2 border-green-200 rounded-xl p-8">
-              <div className="text-6xl mb-4">✓</div>
-              <h2 className="text-2xl font-bold text-green-700 mb-2">
-                Inquiry Received
-              </h2>
-              <p className="text-gray-700 mb-6">
-                We'll review your information and contact you within 24 hours.
-              </p>
-              <Link
-                href="/brokers"
-                className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-3 rounded-xl font-bold transition"
-              >
-                Back to Broker Info
-              </Link>
-            </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8">
+            <h3 className="text-2xl font-bold text-white mb-4">✓ Quality Control</h3>
+            <p className="text-gray-300">
+              Consistent, MLS-compliant descriptions across your entire portfolio. Fair Housing safe. Every time.
+            </p>
           </div>
-        </section>
-      </main>
-    );
-  }
 
-  return (
-    <main>
-      <section className="bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] text-white py-16 pt-32">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Contact Us - Broker Inquiries
-          </h1>
-          <p className="text-xl text-gray-300">
-            Let's discuss volume pricing and brokerage solutions
-          </p>
-        </div>
-      </section>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8">
+            <h3 className="text-2xl font-bold text-white mb-4">✓ Buyer Psychology</h3>
+            <p className="text-gray-300">
+              Listings optimized for search, readability, and conversion. Better descriptions = more showings.
+            </p>
+          </div>
 
-      <section className="py-20 bg-gray-900">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
-            <iframe
-              width="100%"
-              height="100%"
-              src="https://www.youtube.com/embed/Lo6f8UmsHTA"
-              title="GetReadyToPost: Transform Your Listings"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8">
+            <h3 className="text-2xl font-bold text-white mb-4">✓ Flexible Pricing</h3>
+            <p className="text-gray-300">
+              Monthly, 6-month, and annual plans. Bulk discounts available. Fits any team size or budget.
+            </p>
           </div>
         </div>
-      </section>
 
-      <section
-        className="py-12 relative"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=800&fit=crop')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div
-          className="absolute inset-0"
-          style={{ backgroundColor: "rgba(255, 255, 255, 0.70)" }}
-        ></div>
-
-        <div className="max-w-3xl mx-auto px-6 relative z-10">
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-12 mb-16">
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">Get Started Today</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-[#1a2b4a] mb-2">
-                  Brokerage Name *
-                </label>
-                <input
-                  name="brokerageName"
-                  value={formData.brokerageName}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-[#1a2b4a] mb-2">
-                  Your Name *
-                </label>
-                <input
-                  name="contactName"
-                  value={formData.contactName}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-[#1a2b4a] mb-2">
-                  Email *
-                </label>
-                <input
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-[#1a2b4a] mb-2">
-                  Phone
-                </label>
-                <input
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-[#1a2b4a] mb-2">
-                Number of Agents
-              </label>
-              <select
-                name="agentCount"
-                value={formData.agentCount}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <input
+                type="text"
+                name="name"
+                placeholder="Your Name"
+                value={formData.name}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none bg-white"
-              >
-                <option value="">Select...</option>
-                <option value="1-10">1-10 agents</option>
-                <option value="11-50">11-50 agents</option>
-                <option value="51-100">51-100 agents</option>
-                <option value="100+">100+ agents</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-[#1a2b4a] mb-2">
-                Message
-              </label>
-              <textarea
-                name="message"
-                value={formData.message}
+                required
+                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-[#c9a227]"
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                value={formData.email}
                 onChange={handleChange}
-                rows={5}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                placeholder="Tell us about your needs..."
+                required
+                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-[#c9a227]"
               />
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <input
+                type="text"
+                name="company"
+                placeholder="Brokerage / Company"
+                value={formData.company}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-[#c9a227]"
+              />
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Phone Number"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-[#c9a227]"
+              />
+            </div>
+
+            <textarea
+              name="message"
+              placeholder="Tell us about your team and how we can help..."
+              value={formData.message}
+              onChange={handleChange}
+              rows={6}
+              className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-[#c9a227]"
+            />
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#c9a227] hover:bg-[#e8c547] text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50"
+              className="w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-lg font-bold text-lg transition disabled:opacity-50"
             >
-              {loading ? "Sending..." : "Send Inquiry"}
+              {loading ? 'Sending...' : 'Send Inquiry'}
             </button>
-          </form>
 
-          <div className="mt-8 text-center">
-            <Link
-              href="/brokers"
-              className="text-[#1a2b4a]/60 hover:text-[#1a2b4a] font-semibold"
-            >
-              ← Back to Broker Info
-            </Link>
-          </div>
+            {success && (
+              <div className="bg-green-500/20 border border-green-500 text-green-300 px-4 py-3 rounded-lg text-center">
+                ✓ Thank you! We'll be in touch soon.
+              </div>
+            )}
+          </form>
         </div>
-      </section>
+
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-white mb-6">Ready to Scale Your Team?</h2>
+          <p className="text-xl text-gray-300 mb-8">
+            Or check out our <Link href="/pricing" className="text-[#c9a227] hover:text-[#e8c547] underline">pricing</Link> for individual agents.
+          </p>
+        </div>
+
+        <div className="mt-16">
+          <ShareButtons
+            url="https://getreadytopost.com/contact-broker"
+            title="Broker Solutions - GetReadyToPost"
+          />
+        </div>
+      </div>
     </main>
   );
 }
