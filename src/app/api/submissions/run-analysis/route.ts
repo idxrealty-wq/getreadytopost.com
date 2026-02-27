@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { Resend } from "resend";
 
 export const dynamic = "force-dynamic";
 
@@ -25,104 +26,71 @@ function safeJsonParse(raw: string): any {
 }
 
 function countWords(text: string): number {
-  return text.trim().split(/\s+/).filter((w) => w.length > 0).length;
+  return text.trim().split(/\s+/).filter(w => w.length > 0).length;
 }
 
-async function getLocationContext(address: string, city: string, state: string, zip: string): Promise<string> {
-  try {
-    const fullAddress = `${address}, ${city}, ${state} ${zip}`;
-    const res = await fetch("https://getreadytopost.com/api/workspace/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ address: fullAddress }),
-    });
-    if (!res.ok) return "";
-    const data: any = await res.json();
-    const lines: string[] = [];
-    if (data.neighborhood) lines.push(`Neighborhood: ${data.neighborhood}`);
-    if (data.amenities && Array.isArray(data.amenities)) {
-      lines.push(`Nearby: ${data.amenities.slice(0, 5).join(", ")}`);
-    }
-    if (data.commute) lines.push(`Commute: ${data.commute}`);
-    return lines.length ? lines.join("\n") : "";
-  } catch (e) {
-    return "";
-  }
+function buildFactsBlock(propertyDetails: any): string {
+  const pd = propertyDetails || {};
+  const lines: string[] = [];
+  const add = (label: string, val: any) => {
+    if (val === undefined || val === null) return;
+    const s = String(val).trim();
+    if (!s) return;
+    lines.push(`${label}: ${s}`);
+  };
+  add("Address", pd.address);
+  add("City", pd.city);
+  add("State", pd.state);
+  add("ZIP", pd.zip);
+  add("Property Type", pd.propertyType);
+  add("Bedrooms", pd.beds);
+  add("Bathrooms", pd.baths);
+  add("Square Feet", pd.sqft);
+  add("Lot Size", pd.lotSize);
+  add("Year Built", pd.yearBuilt);
+  add("Price", pd.price);
+  add("Features", pd.features);
+  return lines.length ? lines.join("\n") : "None provided.";
 }
 
 async function ensureRewriteLength(
   rewrite: string,
-  listingText: string,
-  locationContext: string
+  key: string,
+  factsBlock: string
 ): Promise<string> {
-  let current = (rewrite || "").trim();
-  
+  let current = rewrite;
   for (let i = 0; i < 3; i++) {
     const wc = countWords(current);
     if (wc >= 140 && wc <= 160) return current;
 
-    const tightenRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${key}`,
       },
       body: JSON.stringify({
         model: "gpt-4o",
-        temperature: 0.2,
         messages: [
           {
             role: "system",
-            content: "Rewrite ONLY the listing. Keep MLS-safe and Fair Housing safe. No emojis, no ALL CAPS, no URLs, no agent contact info. Use any LOCATION CONTEXT provided. Return ONLY plain text. Target 150 words and MUST be between 140 and 160 words.",
+            content:
+              "You are an elite MLS listing copywriter. You MUST follow the facts. Do NOT invent beds, baths, square footage, upgrades, HOA, views, waterfront, or any features not explicitly provided. If facts are missing, use neutral phrasing (e.g., 'spacious layout') without adding numbers. Rewrite to exactly 150 words. MLS-safe, Fair Housing safe. Return ONLY the rewritten text.",
           },
           {
             role: "user",
-            content: `${locationContext ? `LOCATION CONTEXT (use only if provided):\n${locationContext}\n\n` : ""}ORIGINAL LISTING:\n${listingText}\n\nCURRENT REWRITE (${wc} words):\n${current}\n\nRewrite to be EXACTLY between 140 and 160 words.`,
+            content: `FACTS (only use these; do not add new facts):\n${factsBlock}\n\nRewrite this to exactly 150 words:\n\n${current}`,
           },
         ],
+        temperature: 0.7,
       }),
     });
 
-    if (!tightenRes.ok) break;
-    const tightenData = await tightenRes.json();
-    const tightened = String(tightenData?.choices?.[0]?.message?.content || "").trim();
-    if (tightened) current = tightened;
+    if (!res.ok) return current;
+    const data = await res.json();
+    current = String(data.choices?.[0]?.message?.content || current).trim();
   }
-  
   return current;
-}
-
-async function gradeText(text: string, listingText: string, locationContext: string, isRewrite: boolean = false): Promise<any> {
-  const gradeRes = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: `You are a strict real estate listing grader. Return ONLY valid JSON (no markdown, no commentary). You MUST grade in EXACTLY these 6 categories: 1) headline 2) length 3) emotion 4) keywords 5) cta 6) compliance. GRADING SCALE (A,B,C,D,F): A = excellent, B = good, C = fair, D = poor, F = failing. HEADLINE (opening 1–2 sentences): A = property-specific hook + differentiator (location + standout feature) with minimal hype. B = decent hook but generic phrasing or missing differentiator. C = flat/neutral opening. D = confusing or buried lead. F = missing/unusable. LENGTH (word count): A = 140–160 words. B = 120–139 or 161–180. C = 100–119 or 181–220. D = 70–99 or 221–280. F = <70 or >280. EMOTION (buyer psychology): A = benefits + lifestyle + sensory detail. B = some lifestyle framing, still feature-heavy. C = mostly feature list. D = dry/robotic. F = incoherent. KEYWORDS (searchability): A = property type + location cues + top features + lifestyle terms naturally. B = good features but missing property type or location. C = sparse keywords. D = weak terms. F = irrelevant. CTA (call to action): A = clear next step (schedule showing / request tour / contact agent). B = CTA present but weak. C = indirect CTA. D = vague. F = none. COMPLIANCE (Fair Housing + MLS): A = MLS-safe, factual, no discriminatory language, no errors. B = minor hype, still safe. C = multiple hype claims or steering-risk phrasing. D = major credibility issues. F = Fair Housing violation or discriminatory language. Fair Housing: Flag "perfect for families", "young professionals", "safe neighborhood", "ideal for students", "no Section 8", or protected class references. MLS: Avoid contact info, URLs, emojis, ALL CAPS spam. OUTPUT JSON: {"overall":"A|B|C|D|F","categories":{"headline":{"grade":"A|B|C|D|F","feedback":"..."},"length":{"grade":"A|B|C|D|F","feedback":"..."},"emotion":{"grade":"A|B|C|D|F","feedback":"..."},"keywords":{"grade":"A|B|C|D|F","feedback":"..."},"cta":{"grade":"A|B|C|D|F","feedback":"..."},"compliance":{"grade":"A|B|C|D|F","feedback":"..."}}}.`,
-        },
-        {
-          role: "user",
-          content: `${locationContext ? `LOCATION CONTEXT:\n${locationContext}\n\n` : ""}${isRewrite ? "REWRITE" : "ORIGINAL LISTING"}:\n${text}`,
-        },
-      ],
-      temperature: 0.0,
-    }),
-  });
-
-  if (!gradeRes.ok) return null;
-  const gradeData = await gradeRes.json();
-  const rawGrade = String(gradeData?.choices?.[0]?.message?.content || "{}");
-  const unfenced = rawGrade.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
-  const firstBrace = unfenced.indexOf("{");
-  const lastBrace = unfenced.lastIndexOf("}");
-  const candidate = firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace ? unfenced.slice(firstBrace, lastBrace + 1) : unfenced;
-  return safeJsonParse(candidate);
 }
 
 export async function POST(req: NextRequest) {
@@ -132,39 +100,30 @@ export async function POST(req: NextRequest) {
   try {
     const { submissionId } = await req.json();
     if (!submissionId) {
-      return NextResponse.json({ error: "submissionId required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "submissionId required" },
+        { status: 400 }
+      );
     }
 
     const submissionRef = db.collection("submissions").doc(submissionId);
     const submissionDoc = await submissionRef.get();
+
     if (!submissionDoc.exists) {
-      return NextResponse.json({ error: "Submission not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Submission not found" },
+        { status: 404 }
+      );
     }
 
     const data = submissionDoc.data() || {};
     const listingText = String(data.listingText || "");
     const email = String(data.email || "");
     const propertyDetails = data.propertyDetails || {};
-
-    if (!listingText) {
-      return NextResponse.json({ error: "No listing text" }, { status: 400 });
-    }
+    const factsBlock = buildFactsBlock(propertyDetails);
 
     await submissionRef.update({ status: "processing" });
 
-    const locationContext = await getLocationContext(
-      propertyDetails.address || "",
-      propertyDetails.city || "",
-      propertyDetails.state || "",
-      propertyDetails.zip || ""
-    );
-
-    const locationBlock = locationContext ? `LOCATION CONTEXT (from Google Maps, use only what's provided):\n${locationContext}\n\n` : "";
-
-    // Grade original listing
-    const originalGrade = await gradeText(listingText, listingText, locationContext, false);
-
-    // Generate rewrite
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -176,14 +135,37 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: "system",
-            content: `You are a strict real estate listing grader and rewriter. Return ONLY valid JSON (no markdown, no commentary). You MUST grade the listing in EXACTLY these 6 categories: 1) headline 2) length 3) emotion 4) keywords 5) cta 6) compliance. GRADING SCALE (A,B,C,D,F): A = excellent, B = good, C = fair, D = poor, F = failing. HEADLINE (opening 1–2 sentences): A = property-specific hook + differentiator (location + standout feature) with minimal hype. B = decent hook but generic phrasing or missing differentiator. C = flat/neutral opening. D = confusing or buried lead. F = missing/unusable. LENGTH (word count): A = 140–160 words. B = 120–139 or 161–180. C = 100–119 or 181–220. D = 70–99 or 221–280. F = <70 or >280. EMOTION (buyer psychology): A = benefits + lifestyle + sensory detail. B = some lifestyle framing, still feature-heavy. C = mostly feature list. D = dry/robotic. F = incoherent. KEYWORDS (searchability): A = property type + location cues + top features + lifestyle terms naturally. B = good features but missing property type or location. C = sparse keywords. D = weak terms. F = irrelevant. CTA (call to action): A = clear next step (schedule showing / request tour / contact agent). B = CTA present but weak. C = indirect CTA. D = vague. F = none. COMPLIANCE (Fair Housing + MLS): A = MLS-safe, factual, no discriminatory language, no errors. B = minor hype, still safe. C = multiple hype claims or steering-risk phrasing. D = major credibility issues. F = Fair Housing violation or discriminatory language. Fair Housing: Flag "perfect for families", "young professionals", "safe neighborhood", "ideal for students", "no Section 8", or protected class references. MLS: Avoid contact info, URLs, emojis, ALL CAPS spam. OUTPUT JSON: {"overall":"A|B|C|D|F","rewrite":"140-160 word MLS-ready rewrite with PRIMARY bedroom and clear CTA","categories":{"headline":{"grade":"A|B|C|D|F","feedback":"..."},"length":{"grade":"A|B|C|D|F","feedback":"..."},"emotion":{"grade":"A|B|C|D|F","feedback":"..."},"keywords":{"grade":"A|B|C|D|F","feedback":"..."},"cta":{"grade":"A|B|C|D|F","feedback":"..."},"compliance":{"grade":"A|B|C|D|F","feedback":"..."}},"recommendations":["...","...","..."]}. Be strict. Do not give A unless it truly meets A criteria. If missing key basics (beds/baths, property type, or extremely short), grades must drop.`,
+            content: `You are a strict real estate listing grader and rewriter. CRITICAL FACT RULE: You may ONLY use facts in the FACTS block and the user's original listing text. DO NOT invent beds, baths, square footage, lot size, year built, HOA, fees, views, waterfront, renovations, appliances, school zones, distances, or neighborhood claims. If a fact is missing, do NOT guess. Use neutral phrasing without numbers.
+
+Return ONLY valid JSON (no markdown, no commentary).
+
+You MUST grade EXACTLY these 6 categories: 1) headline 2) length 3) emotion 4) keywords 5) cta 6) compliance
+
+GRADING SCALE: A, B, C, D, F (be strict).
+
+OUTPUT JSON SHAPE:
+{
+  "overall": "A|B|C|D|F",
+  "rewrite": "140-160 word MLS-ready rewrite with PRIMARY bedroom and clear CTA (no invented facts).",
+  "categories": {
+    "headline": { "grade": "A|B|C|D|F", "feedback": "..." },
+    "length": { "grade": "A|B|C|D|F", "feedback": "..." },
+    "emotion": { "grade": "A|B|C|D|F", "feedback": "..." },
+    "keywords": { "grade": "A|B|C|D|F", "feedback": "..." },
+    "cta": { "grade": "A|B|C|D|F", "feedback": "..." },
+    "compliance": { "grade": "A|B|C|D|F", "feedback": "..." }
+  },
+  "recommendations": ["...", "...", "..."]
+}
+
+MANDATORY REWRITE LENGTH: Rewrite MUST be 140–160 words inclusive. Count words before returning JSON. If under 140, expand using buyer-benefit language that does NOT add new facts. If over 160, trim.`,
           },
           {
             role: "user",
-            content: `${locationBlock}LISTING:\n${listingText}`,
+            content: `FACTS (only use these; do not add new facts):\n${factsBlock}\n\nORIGINAL LISTING TEXT:\n${listingText}`,
           },
         ],
-        temperature: 0.0,
+        temperature: 0.7,
       }),
     });
 
@@ -195,86 +177,141 @@ export async function POST(req: NextRequest) {
 
     const openaiData = await openaiRes.json();
     const rawContent = String(openaiData.choices?.[0]?.message?.content || "{}");
-    const unfenced = rawContent.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
+
+    const unfenced = rawContent
+      .replace(/```json\s*/gi, "")
+      .replace(/```/g, "")
+      .trim();
+
     const firstBrace = unfenced.indexOf("{");
     const lastBrace = unfenced.lastIndexOf("}");
-    const candidate = firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace ? unfenced.slice(firstBrace, lastBrace + 1) : unfenced;
+    const candidate =
+      firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace
+        ? unfenced.slice(firstBrace, lastBrace + 1)
+        : unfenced;
+
     const analysis = safeJsonParse(candidate);
 
     if (!analysis) {
-      await submissionRef.update({ status: "error", error: "Failed to parse OpenAI JSON", rawContent });
+      await submissionRef.update({
+        status: "error",
+        error: "Failed to parse OpenAI JSON",
+        rawContent,
+      });
       return NextResponse.json({ error: "Bad OpenAI JSON" }, { status: 500 });
     }
 
-    // Enforce rewrite length
-    let rewrite = String(analysis.rewrite || "");
-    rewrite = await ensureRewriteLength(rewrite, listingText, locationContext);
-    const wc = countWords(rewrite);
-    
-    // Grade the rewrite
-    let rewriteGrade = await gradeText(rewrite, listingText, locationContext, true);
+    analysis.rewrite = await ensureRewriteLength(
+      String(analysis.rewrite || ""),
+      String(process.env.OPENAI_API_KEY || ""),
+      factsBlock
+    );
 
-    // If not an A, run one upgrade pass
-    let upgradedRewrite = rewrite;
-    if (rewriteGrade?.overall !== "A") {
-      const weakest = Object.entries(rewriteGrade?.categories || {}).sort(([,a]: any, [,b]: any) => {
-        const gradeOrder: any = { "A": 5, "B": 4, "C": 3, "D": 2, "F": 1 };
-        return gradeOrder[a.grade] - gradeOrder[b.grade];
-      })[0]?.[0] || "headline";
-      
-      const upgradeRes = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          temperature: 0.3,
-          messages: [
-            { role: "system", content: `Improve this rewrite to achieve an A grade, especially in ${weakest}. Keep it MLS-safe, Fair Housing safe, 140-160 words, factual. Return ONLY the improved rewrite text.` },
-            { role: "user", content: `${locationContext ? `LOCATION CONTEXT:
-${locationContext}
-
-` : ""}ORIGINAL LISTING:
-${listingText}
-
-CURRENT REWRITE (needs A in ${weakest}):
-${rewrite}
-
-Improve to A-grade.` }
-          ]
-        })
-      });
-      if (upgradeRes.ok) {
-        const upgradeData = await upgradeRes.json();
-        const improved = String(upgradeData?.choices?.[0]?.message?.content || "").trim();
-        if (improved && countWords(improved) >= 140 && countWords(improved) <= 160) {
-          upgradedRewrite = improved;
-          const reupgrade = await gradeText(upgradedRewrite, listingText, locationContext, true);
-          if (reupgrade?.overall === "A") {
-            rewrite = upgradedRewrite;
-            rewriteGrade = reupgrade;
-          }
-        }
-      }
-    }
-
-    // Build final analysis
-    analysis.rewrite = rewrite;
-    analysis.rewriteWordCount = wc;
-    analysis.rewriteGrade = rewriteGrade?.overall || "B";
-    analysis.rewriteCategories = rewriteGrade?.categories || {};
-    analysis.originalGrade = originalGrade?.overall || analysis.overall;
-    analysis.originalCategories = originalGrade?.categories || analysis.categories;
+    analysis.rewriteWordCount = countWords(String(analysis.rewrite || ""));
 
     await submissionRef.update({
       status: "completed",
       analysis,
       completedAt: new Date().toISOString(),
       email,
+      propertyDetails,
     });
+    // Email report (optional)
+    if (email && process.env.RESEND_API_KEY) {
+      try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
 
-    return NextResponse.json({ success: true, analysis });
-  } catch (error: any) {
-    console.error("Run analysis error:", error?.message || error);
-    return NextResponse.json({ error: error?.message || "Server error" }, { status: 500 });
+        const overall = String(analysis.overall || "");
+        const rewrite = String(analysis.rewrite || "");
+        const recs: string[] = Array.isArray(analysis.recommendations)
+          ? (analysis.recommendations as string[])
+          : [];
+
+        const gradeColor =
+          overall === "A"
+            ? "#27ae60"
+            : overall === "B"
+            ? "#f39c12"
+            : overall === "C"
+            ? "#e74c3c"
+            : overall === "D"
+            ? "#c0392b"
+            : "#95a5a6";
+
+        const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;background-color:#f8f9fa;">
+  <div style="max-width:600px;margin:0 auto;background-color:#ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+    <div style="background:linear-gradient(135deg,#2c3e50 0%,#34495e 100%);padding:40px 20px;text-align:center;color:white;">
+      <h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:0.5px;">GetReadyToPost</h1>
+      <p style="margin:8px 0 0 0;font-size:14px;opacity:0.9;">Real Estate Listing Analysis Report</p>
+    </div>
+
+    <div style="background-color:#ecf0f1;padding:30px 20px;text-align:center;">
+      <p style="margin:0 0 15px 0;color:#7f8c8d;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Overall Grade</p>
+      <div style="display:inline-block;width:100px;height:100px;border-radius:50%;background-color:${gradeColor};display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:48px;font-weight:700;color:white;">${overall}</span>
+      </div>
+    </div>
+
+    <div style="padding:30px 20px;">
+      <div style="margin-bottom:30px;">
+        <h2 style="margin:0 0 15px 0;color:#2c3e50;font-size:18px;font-weight:600;border-bottom:3px solid #3498db;padding-bottom:10px;">Professional Rewrite</h2>
+        <p style="margin:0;color:#34495e;line-height:1.8;font-size:14px;white-space:pre-wrap;background-color:#f8f9fa;padding:15px;border-radius:6px;border-left:4px solid #3498db;">${rewrite}</p>
+      </div>
+
+      <div style="margin-bottom:30px;">
+        <h2 style="margin:0 0 15px 0;color:#2c3e50;font-size:18px;font-weight:600;border-bottom:3px solid #e74c3c;padding-bottom:10px;">Key Recommendations</h2>
+        <ol style="margin:0;padding-left:20px;color:#34495e;">
+          ${recs
+            .map(
+              (rec: string) =>
+                `<li style="margin:12px 0;color:#2c3e50;line-height:1.6;">${rec}</li>`
+            )
+            .join("")}
+        </ol>
+      </div>
+
+      <div style="text-align:center;margin:30px 0;">
+        <a href="https://getreadytopost.com/results?id=${submissionId}"
+           style="display:inline-block;background:linear-gradient(135deg,#3498db 0%,#2980b9 100%);color:white;padding:14px 32px;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px;box-shadow:0 4px 6px rgba(52,152,219,0.3);">
+          View Full Report
+        </a>
+      </div>
+    </div>
+
+    <div style="background-color:#ecf0f1;padding:20px;text-align:center;border-top:1px solid #bdc3c7;">
+      <p style="margin:0;color:#7f8c8d;font-size:12px;">
+        <strong>GetReadyToPost</strong> — Real Estate Listing Analysis<br>
+        <span style="opacity:0.7;">Helping agents and sellers create winning listings</span>
+      </p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+        await resend.emails.send({
+          from: "onboarding@resend.dev",
+          to: email,
+          subject: `Your GetReadyToPost Report - Grade ${overall}`,
+          html,
+        });
+      } catch (e) {
+        // Don't fail the request if email fails
+        console.error("Email send failed:", e);
+      }
+    }
+
+    return NextResponse.json({ ok: true, submissionId });
+  } catch (e: any) {
+    console.error(e);
+    return NextResponse.json(
+      { error: e?.message || "Unknown error" },
+      { status: 500 }
+    );
   }
 }
