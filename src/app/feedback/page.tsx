@@ -9,7 +9,7 @@ export default function FeedbackPage() {
     e.preventDefault();
     setStatus("loading");
     try {
-      const response = await fetch("https://alluring-encouragement-production.up.railway.app/public/lead_v3", {
+      const response = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, name, message, source: "getreadytopost.com/feedback" }),
