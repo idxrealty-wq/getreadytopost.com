@@ -5,6 +5,7 @@
   closingDate: string;
   commissionPercent: number;
   sellerCurrentAnnualTax: number;
+  hoaMonthly: number;
 };
 
 export type LineItem = {
