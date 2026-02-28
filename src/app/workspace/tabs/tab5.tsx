@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 
 import { saveListing } from '@/lib/listings';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -37,6 +37,7 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
           aiListing: listing,
           checklistState,
           notes,
+          documentAccessCode,
           updatedAt: new Date().toISOString(),
         });
       } else {
