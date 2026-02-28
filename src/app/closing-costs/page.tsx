@@ -1,105 +1,99 @@
 ﻿"use client";
 
 import { useState, useEffect } from "react";
-import { defaultClosingCostsState } from "@/lib/closing-costs/calc";
 import type { ClosingCostsState } from "@/lib/closing-costs/types";
-
-import ClosingCostsInputs from "@/components/closing-costs/ClosingCostsInputs";
-import Summary from "@/components/closing-costs/Summary";
-import BuyerForm from "@/components/closing-costs/BuyerForm";
-import SellerForm from "@/components/closing-costs/SellerForm";
-
-type Step = "summary" | "buyer" | "seller";
+import { calculateBuyerCosts, calculateSellerCosts } from "@/lib/closing-costs/calc";
 
 export default function ClosingCostsPage() {
-  const [state, setState] = useState<ClosingCostsState>(defaultClosingCostsState);
-  const [currentPage, setCurrentPage] = useState<Step>("summary");
+  const [state, setState] = useState<ClosingCostsState>({
+    purchasePrice: 450000,
+    loanAmount: 360000,
+    downPaymentAmount: 90000,
+    closingDate: "",
+    commissionPercent: 5.5,
+    sellerCurrentAnnualTax: 1800,
+  });
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("closingCostsState");
-    if (saved) {
-      setState(JSON.parse(saved));
-    }
+    if (saved) setState(JSON.parse(saved));
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (mounted) {
-      localStorage.setItem("closingCostsState", JSON.stringify(state));
-    }
+    if (mounted) localStorage.setItem("closingCostsState", JSON.stringify(state));
   }, [state, mounted]);
-
-  const handleChange = (updates: Partial<ClosingCostsState>) => {
-    setState((prev) => ({ ...prev, ...updates }));
-  };
-
-  const pages: Step[] = ["summary", "buyer", "seller"];
-  const currentIndex = pages.indexOf(currentPage);
 
   if (!mounted) return null;
 
+  const buyerCosts = calculateBuyerCosts(state.purchasePrice, state.loanAmount);
+  const sellerCosts = calculateSellerCosts(state.purchasePrice, state.commissionPercent, state.sellerCurrentAnnualTax, state.closingDate);
+  const buyerTotal = buyerCosts.reduce((sum, item) => sum + item.amount, 0);
+  const sellerTotal = sellerCosts.reduce((sum, item) => sum + item.amount, 0);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-extrabold text-white mb-2">Closing Costs Calculator</h1>
-        <p className="text-slate-300 mb-8">Orange County, Florida</p>
-
-        {/* Stepper */}
-        <div className="flex justify-between mb-8">
-          {pages.map((page, idx) => (
-            <div key={page} className="flex items-center flex-1">
-              <button
-                onClick={() => setCurrentPage(page)}
-                className={`w-10 h-10 rounded-full font-bold transition ${
-                  currentIndex === idx
-                    ? "bg-blue-600 text-white"
-                    : currentIndex > idx
-                    ? "bg-green-600 text-white"
-                    : "bg-slate-600 text-white"
-                }`}
-              >
-                {idx + 1}
-              </button>
-              <span className="ml-2 text-white capitalize">{page}</span>
-              {idx < pages.length - 1 && (
-                <div
-                  className={`flex-1 h-1 mx-4 ${
-                    currentIndex > idx ? "bg-green-600" : "bg-slate-600"
-                  }`}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Layout */}
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-extrabold text-white mb-8">Closing Costs Calculator</h1>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <ClosingCostsInputs state={state} onStateChange={handleChange} />
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <h2 className="text-lg font-bold text-slate-900 mb-4">Deal Details</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Purchase Price</label>
+                <input type="number" value={state.purchasePrice} onChange={(e) => setState({...state, purchasePrice: Number(e.target.value)})} className="w-full border rounded-lg px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Loan Amount</label>
+                <input type="number" value={state.loanAmount} onChange={(e) => setState({...state, loanAmount: Number(e.target.value)})} className="w-full border rounded-lg px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Down Payment</label>
+                <input type="number" value={state.downPaymentAmount} onChange={(e) => setState({...state, downPaymentAmount: Number(e.target.value)})} className="w-full border rounded-lg px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Closing Date (MM/DD/YYYY)</label>
+                <input type="text" value={state.closingDate} onChange={(e) => setState({...state, closingDate: e.target.value})} placeholder="02/27/2026" className="w-full border rounded-lg px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Commission %</label>
+                <input type="number" step="0.1" value={state.commissionPercent} onChange={(e) => setState({...state, commissionPercent: Number(e.target.value)})} className="w-full border rounded-lg px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Annual Property Tax</label>
+                <input type="number" value={state.sellerCurrentAnnualTax} onChange={(e) => setState({...state, sellerCurrentAnnualTax: Number(e.target.value)})} className="w-full border rounded-lg px-3 py-2" />
+              </div>
+            </div>
           </div>
-
-          <div className="lg:col-span-2">
-            {currentPage === "summary" && <Summary state={state} onStateChange={handleChange} />}
-            {currentPage === "buyer" && <BuyerForm state={state} onStateChange={handleChange} />}
-            {currentPage === "seller" && <SellerForm state={state} onStateChange={handleChange} />}
-
-            {/* Navigation */}
-            <div className="flex justify-between mt-8">
-              <button
-                onClick={() => setCurrentPage(pages[currentIndex - 1])}
-                disabled={currentIndex === 0}
-                className="px-6 py-2 bg-slate-600 text-white rounded-lg disabled:opacity-50"
-              >
-                Back
-              </button>
-              <button
-                onClick={() => setCurrentPage(pages[currentIndex + 1])}
-                disabled={currentIndex === pages.length - 1}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
-              >
-                Next
-              </button>
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <h3 className="text-lg font-bold text-slate-900 mb-4">Buyer Closing Costs</h3>
+            <div className="space-y-2">
+              {buyerCosts.map((item, i) => (
+                <div key={i} className={`flex justify-between px-3 py-2 ${i % 2 === 0 ? "bg-slate-50" : "bg-white"}`}>
+                  <span className="text-sm text-slate-700">{item.label}</span>
+                  <span className="font-semibold text-slate-900">${item.amount.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </div>
+              ))}
+              <div className="flex justify-between px-3 py-2 border-t-2 border-slate-300 bg-blue-50">
+                <span className="font-bold text-slate-900">Total</span>
+                <span className="font-bold text-blue-600">${buyerTotal.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <h3 className="text-lg font-bold text-slate-900 mb-4">Seller Closing Costs</h3>
+            <div className="space-y-2">
+              {sellerCosts.map((item, i) => (
+                <div key={i} className={`flex justify-between px-3 py-2 ${i % 2 === 0 ? "bg-slate-50" : "bg-white"}`}>
+                  <span className="text-sm text-slate-700">{item.label}</span>
+                  <span className="font-semibold text-slate-900">${item.amount.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </div>
+              ))}
+              <div className="flex justify-between px-3 py-2 border-t-2 border-slate-300 bg-red-50">
+                <span className="font-bold text-slate-900">Total</span>
+                <span className="font-bold text-red-600">${sellerTotal.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+              </div>
             </div>
           </div>
         </div>

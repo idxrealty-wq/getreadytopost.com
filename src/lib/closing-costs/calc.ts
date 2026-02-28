@@ -1,121 +1,54 @@
 ﻿import type { ClosingCostsState, LineItem } from "./types";
 
-export const defaultClosingCostsState: ClosingCostsState = {
-  role: 'both',
-  closingDate: '',
-  propertyAddress: '',
-  buyerName: '',
-  sellerName: '',
-  purchasePrice: 450000,
-  loanAmount: 360000,
-  downPaymentAmount: 90000,
-  downPaymentType: 'amount',
-  mortgageInsurance: false,
-  mortgageInsuranceAmount: 0,
-  interestRate: 6.5,
-  termMonths: 360,
-  points: 0,
-  lenderOriginationFee: 0,
-  appraisalFee: 600,
-  creditReportFee: 50,
-  settlementFee: 500,
-  titleSearchFee: 150,
-  ownerTitleInsurance: true,
-  commissionPercent: 5.5,
-  sellerCurrentAnnualTax: 1800,
-  homesteadExemption: true,
-  floodZone: 'X',
-  floodMortgage: false,
-};
-
-export function calculateDownPayment(state: ClosingCostsState) {
-  const price = state.purchasePrice || 0;
-  let downAmt = state.downPaymentAmount || 0;
-  if (state.downPaymentType === 'percent') {
-    downAmt = (price * downAmt) / 100;
-  }
-  const loan = price - downAmt;
-  const ltv = loan / price;
-  return { downPaymentAmount: downAmt, loanAmount: loan, ltv };
-}
-
-export function calculateTitleInsurance(loanAmount: number, purchasePrice: number, ownerPolicy: boolean) {
-  const lenderRate = 0.005;
-  const ownerRate = 0.006;
-  const lenderInsurance = loanAmount * lenderRate;
-  const ownerInsurance = ownerPolicy ? purchasePrice * ownerRate : 0;
-  return { lenderInsurance, ownerInsurance, total: lenderInsurance + ownerInsurance };
-}
-
 export function calculateDocStamps(purchasePrice: number) {
-  const rate = 0.0035;
-  return purchasePrice * rate;
+  return purchasePrice * 0.0035;
 }
 
 export function calculateIntangibleTax(loanAmount: number) {
-  const rate = 0.002;
-  return loanAmount * rate;
+  return loanAmount * 0.002;
 }
 
-export function calculateRecordingFees(purchasePrice: number) {
-  const baseFee = 40;
-  const perPageFee = 0.50;
-  const estimatedPages = 3;
-  return baseFee + (perPageFee * estimatedPages);
+export function calculateRecordingFees() {
+  return 40 + (0.50 * 3);
 }
 
 export function calculatePropertyTaxProration(annualTax: number, closingDate: string) {
   if (!closingDate) return 0;
-  const dateStr = closingDate.trim();
-  if (!dateStr) return 0;
-  
-  const parts = dateStr.split('/');
+  const parts = closingDate.split('/');
   if (parts.length !== 3) return 0;
-  
   const month = parseInt(parts[0], 10);
   const day = parseInt(parts[1], 10);
   const year = parseInt(parts[2], 10);
-  
   if (isNaN(month) || isNaN(day) || isNaN(year)) return 0;
-  
   const date = new Date(year, month - 1, day);
-  const daysInYear = 365;
   const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
-  const dailyRate = annualTax / daysInYear;
+  const dailyRate = annualTax / 365;
   return dailyRate * dayOfYear;
 }
 
-export function calculateBuyerCosts(state: ClosingCostsState): LineItem[] {
-  const dp = calculateDownPayment(state);
-  const titleIns = calculateTitleInsurance(dp.loanAmount, state.purchasePrice, state.ownerTitleInsurance);
-  const docStamps = calculateDocStamps(state.purchasePrice);
-  const intangibleTax = calculateIntangibleTax(dp.loanAmount);
-  const recordingFees = calculateRecordingFees(state.purchasePrice);
-
+export function calculateBuyerCosts(purchasePrice: number, loanAmount: number): LineItem[] {
+  const docStamps = calculateDocStamps(purchasePrice);
+  const intangibleTax = calculateIntangibleTax(loanAmount);
+  const recordingFees = calculateRecordingFees();
   return [
-    { label: 'Loan Origination Fee', amount: state.lenderOriginationFee },
-    { label: 'Appraisal Fee', amount: state.appraisalFee },
-    { label: 'Credit Report', amount: state.creditReportFee },
-    { label: 'Title Search', amount: state.titleSearchFee },
-    { label: 'Lender Title Insurance', amount: titleIns.lenderInsurance },
-    { label: 'Owner Title Insurance', amount: titleIns.ownerInsurance },
-    { label: 'Settlement/Closing Fee', amount: state.settlementFee },
-    { label: 'Document Stamps (Deed)', amount: docStamps },
+    { label: 'Appraisal', amount: 600 },
+    { label: 'Title Search', amount: 150 },
+    { label: 'Lender Title Insurance', amount: loanAmount * 0.005 },
+    { label: 'Settlement Fee', amount: 500 },
+    { label: 'Document Stamps', amount: docStamps },
     { label: 'Intangible Tax', amount: intangibleTax },
     { label: 'Recording Fees', amount: recordingFees },
-    { label: 'Mortgage Insurance (UFMIP)', amount: state.mortgageInsuranceAmount },
   ];
 }
 
-export function calculateSellerCosts(state: ClosingCostsState): LineItem[] {
-  const commission = (state.purchasePrice * state.commissionPercent) / 100;
-  const docStamps = calculateDocStamps(state.purchasePrice);
-  const taxProration = calculatePropertyTaxProration(state.sellerCurrentAnnualTax, state.closingDate);
-
+export function calculateSellerCosts(purchasePrice: number, commissionPercent: number, annualTax: number, closingDate: string): LineItem[] {
+  const commission = (purchasePrice * commissionPercent) / 100;
+  const docStamps = calculateDocStamps(purchasePrice);
+  const taxProration = calculatePropertyTaxProration(annualTax, closingDate);
   return [
-    { label: 'Real Estate Commission', amount: commission },
-    { label: 'Document Stamps (Deed)', amount: docStamps },
-    { label: 'Settlement/Closing Fee', amount: state.settlementFee },
+    { label: 'Commission', amount: commission },
+    { label: 'Document Stamps', amount: docStamps },
+    { label: 'Settlement Fee', amount: 500 },
     { label: 'Property Tax Proration', amount: taxProration },
   ];
 }
