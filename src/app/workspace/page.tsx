@@ -97,7 +97,7 @@ function WorkspaceContent() {
           setChecklistState(data.checklistState);
           setNotes(data.notes);
           setExistingPhotos(data.photos || []);
-          setExistingDocuments(data.documents || []);
+          setExistingDocuments(data.documents || []);setSavedEstimate((data as any).closingCostEstimate || null);
           setSaved(false);
         } else {
           alert('You do not have permission to edit this listing.');
@@ -211,7 +211,7 @@ function WorkspaceContent() {
         {activeTab === 3 && <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />}
         {activeTab === 4 && <Tab4Checklist listingId={listingId} checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} photos={photos} setPhotos={setPhotos} existingPhotos={existingPhotos} existingDocuments={existingDocuments} setExistingDocuments={setExistingDocuments} onNext={() => setActiveTab(5)} documentAccessCode={documentAccessCode} setDocumentAccessCode={setDocumentAccessCode} />}
         {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} photos={photos} existingPhotos={existingPhotos} documents={existingDocuments} existingDocuments={existingDocuments} documentAccessCode={documentAccessCode} />}
-        {activeTab === 6 && <Tab6ClosingCosts listingId={listingId} address={address} propertyData={propertyData} />}
+        {activeTab === 6 && <Tab6ClosingCosts listingId={listingId} address={address} propertyData={propertyData} savedEstimate={savedEstimate} />}
       </div>
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onSuccess={() => setShowAuthModal(false)} />
     </main>
