@@ -1,4 +1,7 @@
-"use client";
+const fs = require('fs');
+const file = 'src/app/auth/google/page.tsx';
+
+const newContent = `"use client";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
@@ -41,3 +44,7 @@ export default function GoogleAuthRedirectPage() {
     </main>
   );
 }
+`;
+
+fs.writeFileSync(file, newContent, 'utf8');
+console.log('SUCCESS');
