@@ -10,7 +10,7 @@ import Tab1PropertyBasics from './tabs/tab1';
 import Tab2Neighborhood from './tabs/tab2';
 import Tab3Listing from './tabs/tab3';
 import Tab4Checklist from './tabs/tab4';
-import Tab5Save from './tabs/tab5';
+import Tab5Save from './tabs/tab5';import Tab6ClosingCosts from './tabs/tab6';
 
 function WorkspaceContent() {
   const searchParams = useSearchParams();
@@ -36,7 +36,7 @@ function WorkspaceContent() {
   const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
   const [existingPhotos, setExistingPhotos] = useState<Array<any>>([]);
   const [existingDocuments, setExistingDocuments] = useState<Array<any>>([]);
-  const [listingId, setListingId] = useState<string | null>(null);
+  const [listingId, setListingId] = useState<string | null>(null);const [savedEstimate, setSavedEstimate] = useState<any>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -118,6 +118,8 @@ function WorkspaceContent() {
     { num: 3, label: 'AI Listing', icon: '✨', done: !!listing },
     { num: 4, label: 'Documents & Checklist', icon: '✅', done: false },
     { num: 5, label: 'Save to Vault', icon: '💾', done: saved },
+
+		{ num: 6, label: 'Closing Costs', icon: '🧮', done: !!savedEstimate },
   ];
 
   if (loadingListing) {
@@ -209,6 +211,7 @@ function WorkspaceContent() {
         {activeTab === 3 && <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />}
         {activeTab === 4 && <Tab4Checklist listingId={listingId} checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} photos={photos} setPhotos={setPhotos} existingPhotos={existingPhotos} existingDocuments={existingDocuments} setExistingDocuments={setExistingDocuments} onNext={() => setActiveTab(5)} documentAccessCode={documentAccessCode} setDocumentAccessCode={setDocumentAccessCode} />}
         {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} photos={photos} existingPhotos={existingPhotos} documents={existingDocuments} existingDocuments={existingDocuments} documentAccessCode={documentAccessCode} />}
+        {activeTab === 6 && <Tab6ClosingCosts listingId={listingId} address={address} propertyData={propertyData} />}
       </div>
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onSuccess={() => setShowAuthModal(false)} />
     </main>
