@@ -61,10 +61,10 @@ export default function Tab4Checklist({
   setDocumentAccessCode,
 }: any) {
   const [uploads, setUploads] = useState<Record<string, any>>({});
-  const [docMeta, setDocMeta] = useState<Record<string, { isPaid: boolean; price: string; party: string; paymentMethod: string }>>(() => {
+  const [docMeta, setDocMeta] = useState<Record<string, { isPaid: boolean; price: string; party: string; accessCode: string }>>(() => {
     const defaults: Record<string, any> = {};
     DOCUMENT_SLOTS.forEach((d) => {
-      defaults[d.id] = { isPaid: true, price: "", party: "Buyer", paymentMethod: "Already Paid" };
+      defaults[d.id] = { isPaid: true, price: "", party: "Buyer", accessCode: "" };
     });
     return defaults;
   });
