@@ -61,10 +61,10 @@ export default function Tab4Checklist({
   setDocumentAccessCode,
 }: any) {
   const [uploads, setUploads] = useState<Record<string, any>>({});
-  const [docMeta, setDocMeta] = useState<Record<string, { isPaid: boolean; price: string; party: string; accessCode: string }>>(() => {
+  const [docMeta, setDocMeta] = useState<Record<string, { isPaid: boolean; price: string; party: string; accessCode: string; codeSaved?: boolean }>>(() => {
     const defaults: Record<string, any> = {};
     DOCUMENT_SLOTS.forEach((d) => {
-      defaults[d.id] = { isPaid: true, price: "", party: "Buyer", accessCode: "" };
+      defaults[d.id] = { isPaid: true, price: "", party: "Buyer", accessCode: "", codeSaved: false };
     });
     return defaults;
   });
@@ -398,7 +398,7 @@ export default function Tab4Checklist({
                 disabled={uploads[docSlot.id]?.uploading}
                 className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#c9a227] file:text-white hover:file:bg-[#b8911f] file:cursor-pointer disabled:opacity-50"
               />
-              <div className="mt-3 grid grid-cols-3 gap-3">
+              <div className="mt-3 grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">💰 Price to Unlock ($)</label>
                   <input type="number" min="0" placeholder="0 = free" value={docMeta[docSlot.id]?.price || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], price: e.target.value } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />
@@ -414,7 +414,7 @@ export default function Tab4Checklist({
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">🔒 Access Code</label>
                   <div className="flex gap-2">
-                    <input type="text" placeholder="Optional code" value={docMeta[docSlot.id]?.accessCode || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], accessCode: e.target.value } }))} className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />
+                    <input type={docMeta[docSlot.id]?.codeSaved ? "password" : "text"} placeholder="Optional code" value={docMeta[docSlot.id]?.accessCode || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], accessCode: e.target.value, codeSaved: false } }))} className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />
                     <button onClick={async () => {
                       if (!listingId || !uploads[docSlot.id]?.url) return;
                       try {
@@ -423,6 +423,7 @@ export default function Tab4Checklist({
                           const updated = (snap.data().documents || []).map((d: any) => d.docId === docSlot.id ? { ...d, accessCode: docMeta[docSlot.id]?.accessCode || '', price: docMeta[docSlot.id]?.price || '', party: docMeta[docSlot.id]?.party || 'Buyer', isPaid: docMeta[docSlot.id]?.price ? false : true } : d);
                           await updateDoc(doc(db, 'listings', listingId), { documents: updated });
                           alert('Saved!');
+                          setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], codeSaved: true } }));
                         }
                       } catch(e) { alert('Save failed'); }
                     }} className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap">💾 Save</button>
