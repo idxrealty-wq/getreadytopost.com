@@ -121,6 +121,14 @@ function WorkspaceContent() {
   ];
 
   if (loadingListing) {
+    if (authLoading) return (
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
+        <div className="max-w-7xl mx-auto px-6 py-20 text-center">
+          <div className="text-white text-xl">Loading...</div>
+        </div>
+      </main>
+    );
+
     return (
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
         <div className="max-w-7xl mx-auto px-6 py-20 text-center">
