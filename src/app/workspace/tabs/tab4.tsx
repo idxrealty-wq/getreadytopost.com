@@ -413,7 +413,20 @@ export default function Tab4Checklist({
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">🔒 Access Code</label>
-                  <input type="text" placeholder="Optional code" value={docMeta[docSlot.id]?.accessCode || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], accessCode: e.target.value } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />
+                  <div className="flex gap-2">
+                    <input type="text" placeholder="Optional code" value={docMeta[docSlot.id]?.accessCode || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], accessCode: e.target.value } }))} className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />
+                    <button onClick={async () => {
+                      if (!listingId || !uploads[docSlot.id]?.url) return;
+                      try {
+                        const snap = await getDoc(doc(db, 'listings', listingId));
+                        if (snap.exists()) {
+                          const updated = (snap.data().documents || []).map((d: any) => d.docId === docSlot.id ? { ...d, accessCode: docMeta[docSlot.id]?.accessCode || '', price: docMeta[docSlot.id]?.price || '', party: docMeta[docSlot.id]?.party || 'Buyer', isPaid: docMeta[docSlot.id]?.price ? false : true } : d);
+                          await updateDoc(doc(db, 'listings', listingId), { documents: updated });
+                          alert('Saved!');
+                        }
+                      } catch(e) { alert('Save failed'); }
+                    }} className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap">💾 Save</button>
+                  </div>
                 </div>
               </div>
               {uploads[docSlot.id] && (
