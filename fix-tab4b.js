@@ -1,0 +1,15 @@
+const fs = require('fs');
+const file = 'src/app/workspace/tabs/tab4.tsx';
+let c = fs.readFileSync(file, 'utf8');
+
+const oldBlock = `              <input\r\n                type="file"\r\n                onChange={(e) =>\r\n                  handleFileUpload(docSlot.id, e.target.files?.[0] || null)\r\n                }\r\n                disabled={uploads[docSlot.id]?.uploading}\r\n                className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#c9a227] file:text-white hover:file:bg-[#b8911f] file:cursor-pointer disabled:opacity-50"\r\n              />`;
+
+const newBlock = `              <input\r\n                type="file"\r\n                onChange={(e) =>\r\n                  handleFileUpload(docSlot.id, e.target.files?.[0] || null)\r\n                }\r\n                disabled={uploads[docSlot.id]?.uploading}\r\n                className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#c9a227] file:text-white hover:file:bg-[#b8911f] file:cursor-pointer disabled:opacity-50"\r\n              />\r\n              <div className="mt-3 grid grid-cols-3 gap-3">\r\n                <div>\r\n                  <label className="block text-xs text-gray-400 mb-1">💰 Price to Unlock ($)</label>\r\n                  <input type="number" min="0" placeholder="0 = free" value={docMeta[docSlot.id]?.price || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], price: e.target.value } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />\r\n                </div>\r\n                <div>\r\n                  <label className="block text-xs text-gray-400 mb-1">👤 Responsible Party</label>\r\n                  <select value={docMeta[docSlot.id]?.party || "Buyer"} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], party: e.target.value } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm">\r\n                    <option>Buyer</option>\r\n                    <option>Seller</option>\r\n                    <option>Both</option>\r\n                  </select>\r\n                </div>\r\n                <div>\r\n                  <label className="block text-xs text-gray-400 mb-1">🔒 Access Code</label>\r\n                  <input type="text" placeholder="Optional code" value={docMeta[docSlot.id]?.accessCode || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], accessCode: e.target.value } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />\r\n                </div>\r\n              </div>`;
+
+if (c.includes(oldBlock)) {
+  c = c.replace(oldBlock, newBlock);
+  fs.writeFileSync(file, c, 'utf8');
+  console.log('SUCCESS');
+} else {
+  console.log('MATCH FAILED');
+}

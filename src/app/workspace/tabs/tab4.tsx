@@ -402,6 +402,24 @@ export default function Tab4Checklist({
                 disabled={uploads[docSlot.id]?.uploading}
                 className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#c9a227] file:text-white hover:file:bg-[#b8911f] file:cursor-pointer disabled:opacity-50"
               />
+              <div className="mt-3 grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">💰 Price to Unlock ($)</label>
+                  <input type="number" min="0" placeholder="0 = free" value={docMeta[docSlot.id]?.price || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], price: e.target.value } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">👤 Responsible Party</label>
+                  <select value={docMeta[docSlot.id]?.party || "Buyer"} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], party: e.target.value } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm">
+                    <option>Buyer</option>
+                    <option>Seller</option>
+                    <option>Both</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">🔒 Access Code</label>
+                  <input type="text" placeholder="Optional code" value={docMeta[docSlot.id]?.accessCode || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], accessCode: e.target.value } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />
+                </div>
+              </div>
               {uploads[docSlot.id] && (
                 <div className="mt-2 text-xs text-gray-300">
                   <p>📎 {uploads[docSlot.id]?.file.name}</p>
