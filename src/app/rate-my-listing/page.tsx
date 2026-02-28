@@ -1,192 +1,205 @@
-'use client';
-
-import ShareButtons from '@/components/ShareButtons';
-import { useState, useEffect } from 'react';
+"use client";
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/contexts/UserContext';
+import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import Link from 'next/link';
+
+const gradingCategories = [
+  { icon: '🎣', title: 'Hook', description: 'Does your opening line stop a buyer mid-scroll? The first sentence is everything.', color: 'bg-blue-500/20 border-blue-400/40' },
+  { icon: '🏠', title: 'Features', description: 'Are your key property details highlighted in a way that excites — not just informs?', color: 'bg-green-500/20 border-green-400/40' },
+  { icon: '🌅', title: 'Lifestyle', description: 'Does your description paint a picture of what it feels like to actually live there?', color: 'bg-purple-500/20 border-purple-400/40' },
+  { icon: '⚖️', title: 'Compliance', description: 'Is your language Fair Housing compliant and MLS-safe? One wrong word can cost you.', color: 'bg-red-500/20 border-red-400/40' },
+  { icon: '📖', title: 'Flow', description: 'Is it easy to read? Short sentences, active voice, no walls of text.', color: 'bg-amber-500/20 border-amber-400/40' },
+  { icon: '📣', title: 'Call to Action', description: 'Does it drive the buyer to schedule a showing — or just describe a house?', color: 'bg-pink-500/20 border-pink-400/40' },
+];
 
 export default function RateMyListingPage() {
   const router = useRouter();
-  const { user } = useUser();
+  const [email, setEmail] = useState('');
   const [listing, setListing] = useState('');
+  const [showPayment, setShowPayment] = useState(false);
+  const [submissionId, setSubmissionId] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!listing.trim()) {
-      setError('Please paste your listing description.');
-      return;
-    }
-
+  const handleSubmit = async () => {
     setLoading(true);
-
     try {
-      const submissionsRef = collection(db, 'submissions');
-      const docRef = await addDoc(submissionsRef, {
-        userId: user?.uid || 'anonymous',
-        userEmail: user?.email || '',
-        listing: listing.trim(),
-        createdAt: new Date(),
-        status: 'processing',
+      const docRef = await addDoc(collection(db, 'submissions'), {
+        email,
+        listingText: listing,
+        wordCount,
+        status: 'pending_payment',
+        createdAt: new Date().toISOString(),
       });
-
-      router.push(`/processing?id=${docRef.id}`);
-    } catch (err) {
-      console.error('Error submitting listing:', err);
-      setError('Something went wrong. Please try again.');
+      setSubmissionId(docRef.id);
+      setShowPayment(true);
+    } catch (error) {
+      alert('Error saving submission. Please try again.');
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
+  const handlePaymentClick = () => {
+    window.open('https://square.link/u/22tY4Rla', '_blank');
+  };
+
+  const handleViewResults = () => {
+    router.push(`/results?id=${submissionId}`);
+  };
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] pt-32 pb-16">
-      <ShareButtons
-        url="https://getreadytopost.com/rate-my-listing"
-        title="Rate My Listing - GetReadyToPost"
-      />
+    <main className="pt-20 min-h-screen relative">
+      <div className="fixed inset-0 z-0">
+        <img src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/1c6b6e83-767a-4a5f-9cc4-ea33a9ca148a/image.png?w=1200&h=896" alt="Background" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-[#1a2b4a]/85"></div>
+      </div>
 
-      <div className="max-w-4xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">Grade Your Listing</h1>
-          <p className="text-2xl text-gray-200">Paste your MLS description below. Get instant feedback in 30 seconds.</p>
-        </div>
+      <div className="relative z-10 max-w-4xl mx-auto px-6 py-10">
 
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-12 mb-16">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="listing" className="block text-white font-bold mb-4">
-                Your Listing Description
-              </label>
-              <textarea
-                id="listing"
-                value={listing}
-                onChange={(e) => setListing(e.target.value)}
-                placeholder="Paste your full MLS listing description here..."
-                rows={10}
-                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-[#c9a227]"
-              />
-              <p className="text-gray-400 text-sm mt-2">Minimum 50 characters. Copy from your MLS listing.</p>
-            </div>
-
-            {error && (
-              <div className="bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || !listing.trim()}
-              className="w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-4 rounded-lg font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Analyzing...' : 'Grade My Listing'}
-            </button>
-
-            <p className="text-center text-gray-400 text-sm">
-              {!user ? (
-                <>
-                  <Link href="/signin" className="text-[#c9a227] hover:text-[#e8c547] underline">
-                    Sign in
-                  </Link>
-                  {' '}to save your results, or continue as a guest.
-                </>
-              ) : (
-                `Logged in as ${user.email}`
-              )}
-            </p>
-          </form>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8 text-center">
-            <div className="text-4xl font-bold text-[#c9a227] mb-4">1</div>
-            <h3 className="text-white font-bold text-lg mb-2">Paste</h3>
-            <p className="text-gray-300">Copy your MLS description and paste it above.</p>
+        {/* Hero */}
+        <section className="py-8 text-center text-white">
+          <div className="inline-block bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-full mb-4">🔥 Instant Listing Analysis</div>
+          <h1 className="text-3xl md:text-5xl font-bold mb-3">Rate My Listing</h1>
+          <p className="text-gray-300 mb-4 text-lg">Grade → Rewrite → Report. All in one place.</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 inline-block">
+            <p className="text-4xl font-bold text-[#c9a227] mb-1">$19.99</p>
+            <p className="text-sm text-gray-300">Instant AI-powered analysis</p>
           </div>
+        </section>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8 text-center">
-            <div className="text-4xl font-bold text-[#c9a227] mb-4">2</div>
-            <h3 className="text-white font-bold text-lg mb-2">Grade</h3>
-            <p className="text-gray-300">Get instant AI feedback across 6 categories.</p>
+        {/* Video Placeholder */}
+        <section className="mb-10">
+          <div className="rounded-2xl overflow-hidden border border-white/20 shadow-2xl aspect-video">
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/cbfSoBk7hfI?rel=0&modestbranding=1&color=white"
+              title="Are You On The Fence? Your Listing Description Is Costing You Money"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            ></iframe>
           </div>
+        </section>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8 text-center">
-            <div className="text-4xl font-bold text-[#c9a227] mb-4">3</div>
-            <h3 className="text-white font-bold text-lg mb-2">Improve</h3>
-            <p className="text-gray-300">Get a rewrite + actionable recommendations.</p>
+        {/* Agent Workspace Callout */}
+        <section className="mb-10">
+          <Link href="/workspace" className="block bg-gradient-to-r from-[#c9a227]/20 to-amber-600/10 border-2 border-[#c9a227]/40 rounded-2xl p-6 hover:border-[#c9a227]/70 transition group">
+            <div className="flex items-center gap-4">
+              <div className="text-5xl">🔧</div>
+              <div className="flex-1">
+                <div className="text-[#c9a227] font-bold text-sm uppercase tracking-widest mb-1">Having trouble writing it?</div>
+                <h3 className="text-white font-bold text-xl mb-1">Try the Agent Workspace</h3>
+                <p className="text-gray-300 text-sm">Pull your property details, neighborhood data, features, and photos into one place. No more blank screen — everything you need to write a great listing is right there waiting for you.</p>
+              </div>
+              <div className="text-white/50 group-hover:text-[#c9a227] transition text-2xl">→</div>
+            </div>
+          </Link>
+        </section>
+
+        {/* Grading Criteria */}
+        <section className="mb-10">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-white mb-2">How We Grade Your Listing</h2>
+            <p className="text-gray-400">Your description is scored across 6 categories. Here is what we look for:</p>
           </div>
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {gradingCategories.map((cat, i) => (
+              <div key={i} className={`rounded-xl p-5 border ${cat.color} backdrop-blur-sm`}>
+                <div className="flex items-start gap-3">
+                  <div className="text-3xl">{cat.icon}</div>
+                  <div>
+                    <h3 className="text-white font-bold mb-1">{cat.title}</h3>
+                    <p className="text-gray-300 text-sm leading-relaxed">{cat.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 text-center">
+            <p className="text-gray-400 text-sm">Each category is scored 1–10. Your total score determines your listing grade — and exactly what needs to be fixed.</p>
+          </div>
+        </section>
 
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-12 mb-16">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">What We Grade</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="flex gap-4">
-              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">✓</div>
-              <div>
-                <h3 className="text-white font-bold text-lg mb-2">Headline Impact</h3>
-                <p className="text-gray-300">Does your title grab attention and include key keywords?</p>
+        {/* Form or Payment */}
+        {showPayment ? (
+          <div className="bg-white rounded-2xl p-8 shadow-2xl text-center">
+            <div className="text-6xl mb-4">💳</div>
+            <h2 className="text-2xl font-bold text-[#1a2b4a] mb-4">Complete Your Payment</h2>
+            <p className="text-gray-600 mb-6">Complete these 2 steps:</p>
+            <div className="space-y-4 mb-6">
+              <div className="bg-gray-50 p-4 rounded-xl text-left">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-[#c9a227] text-white flex items-center justify-center font-bold">1</div>
+                  <h3 className="font-bold text-gray-800">Pay $19.99 via Square</h3>
+                </div>
+                <button onClick={handlePaymentClick} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition">
+                  Open Square Payment
+                </button>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-xl text-left">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-gray-300 text-white flex items-center justify-center font-bold">2</div>
+                  <h3 className="font-bold text-gray-800">View Your Results</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">After completing payment, click below to see your instant analysis</p>
+                <button onClick={handleViewResults} className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-semibold transition">
+                  ✨ View My Results
+                </button>
               </div>
             </div>
-
-            <div className="flex gap-4">
-              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">✓</div>
+            <p className="text-xs text-gray-500">Your results will appear instantly after payment is processed (usually 30-60 seconds)</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl p-6 shadow-2xl mb-6">
+            <h2 className="text-xl font-bold text-[#1a2b4a] mb-4 text-center">Paste Your Listing Below</h2>
+            <div className="space-y-4">
               <div>
-                <h3 className="text-white font-bold text-lg mb-2">Description Quality</h3>
-                <p className="text-gray-300">Is your description clear, compelling, and buyer-focused?</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                  placeholder="your@email.com"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">Your report will be sent here</p>
               </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">✓</div>
               <div>
-                <h3 className="text-white font-bold text-lg mb-2">Keyword Optimization</h3>
-                <p className="text-gray-300">Are you using the right keywords for search visibility?</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Listing Description *</label>
+                <textarea
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                  placeholder="Paste your MLS listing description here... The more detail you include, the better your grade and rewrite will be."
+                  rows={8}
+                  value={listing}
+                  onChange={(e) => setListing(e.target.value)}
+                  required
+                />
+                <div className="flex justify-between mt-1">
+                  <p className="text-xs text-gray-500">Aim for 140–160 words for best results</p>
+                  <p className={`text-sm font-bold ${wordCount < 50 ? 'text-red-500' : wordCount < 140 ? 'text-amber-500' : 'text-green-500'}`}>{wordCount} words</p>
+                </div>
               </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">✓</div>
-              <div>
-                <h3 className="text-white font-bold text-lg mb-2">Emotional Appeal</h3>
-                <p className="text-gray-300">Does your listing create desire and urgency?</p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">✓</div>
-              <div>
-                <h3 className="text-white font-bold text-lg mb-2">Call to Action</h3>
-                <p className="text-gray-300">Do you have a clear, compelling next step for buyers?</p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">✓</div>
-              <div>
-                <h3 className="text-white font-bold text-lg mb-2">MLS Compliance</h3>
-                <p className="text-gray-300">Is your listing Fair Housing safe and MLS-compliant?</p>
-              </div>
+              <button
+                onClick={handleSubmit}
+                className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50"
+                disabled={!email || !listing || loading}
+              >
+                {loading ? 'Saving...' : '🔥 Continue to Payment'}
+              </button>
+              <p className="text-xs text-gray-500 text-center">Secure payment via Square. See results instantly.</p>
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-white mb-6">Ready?</h2>
-          <p className="text-xl text-gray-300 mb-8">Scroll up and paste your listing to get started.</p>
-        </div>
-
-        <div className="mt-16">
-          <ShareButtons
-            url="https://getreadytopost.com/rate-my-listing"
-            title="Rate My Listing - GetReadyToPost"
-          />
+        <div className="text-center mt-8">
+          <Link href="/" className="text-white/70 hover:text-white font-semibold">← Back to Home</Link>
         </div>
       </div>
     </main>
