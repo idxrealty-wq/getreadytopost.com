@@ -1,4 +1,4 @@
-// FORCE REBUILD - timestamp: 1771628717
+﻿// src/lib/listings.ts
 import { collection, doc, setDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from './firebaseClient';
 
@@ -24,6 +24,7 @@ export interface Listing {
   notes: string;
   photos?: Array<{ url?: string; downloadURL?: string; categoryId?: string; category?: string; uploadedAt: string }>;
   documents?: Array<{ docId: string; label: string; fileName: string; fileSize: number; fileType: string; downloadURL: string; uploadedAt: string; required: boolean }>;
+  documentAccessCode?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,7 +37,9 @@ export const saveListing = async (
   aiListing: string,
   checklistState: Record<string, boolean>,
   notes: string,
-  photos?: Array<{ url: string; category: string; uploadedAt: string }>
+  photos?: Array<{ url: string; category: string; uploadedAt: string }>,
+  documents?: Array<{ docId: string; label: string; fileName: string; fileSize: number; fileType: string; downloadURL: string; uploadedAt: string; required: boolean }>,
+  documentAccessCode?: string
 ): Promise<string> => {
   const listingId = `listing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const listingRef = doc(db, 'listings', listingId);
@@ -51,6 +54,8 @@ export const saveListing = async (
     checklistState,
     notes,
     photos: photos || [],
+    documents: documents || [],
+    documentAccessCode: documentAccessCode || '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
