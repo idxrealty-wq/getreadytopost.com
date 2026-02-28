@@ -350,11 +350,7 @@ export default function Tab4Checklist({
         </h2>
         <p className="text-gray-300 mb-6">
           Required: {uploadedRequired}/{requiredDocs} | Total: {uploadedCount}
-        <div className="mb-6 bg-white/5 rounded-xl p-4 border border-white/20">
-          <label className="block text-sm font-semibold text-gray-300 mb-2">🔒 Document Access Code (optional)</label>
-          <p className="text-xs text-gray-400 mb-2">Set a password to protect documents on the public share page. Leave blank for no protection.</p>
-          <input type="text" value={documentAccessCode} onChange={(e) => setDocumentAccessCode(e.target.value)} placeholder="Enter access code..." className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black" />
-        </div>
+        
         </p>
         <div className="space-y-4">
           {DOCUMENT_SLOTS.map((docSlot) => (
