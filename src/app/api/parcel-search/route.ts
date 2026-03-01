@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import serviceAccount from '../../../data/serviceAccount.json';
 
 if (!getApps().length) {
   initializeApp({
-    credential: cert({
-      projectId: 'getreadtopost',
-      clientEmail: 'firebase-adminsdk-fbsvc@getreadtopost.iam.gserviceaccount.com',
-      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY,
-    }),
+    credential: cert(serviceAccount as any),
   });
 }
 
@@ -32,3 +29,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
