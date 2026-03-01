@@ -96,7 +96,7 @@ function PropertyTaxContent() {
             </label>
             {hasHomestead && (
               <div className="ml-8 max-w-xs">
-                <label className={labelClass}>Save Our Homes / County Exemption Amount ($) <span className="text-gray-400 font-normal text-xs">default $55,722</span></label>
+                <label className={labelClass}>Additional Homestead (Hx) / SOH Cap <span className="text-gray-400 font-normal text-xs">default $25,722 — verify at ocpafl.org</span></label>
                 <input type="number" value={sohCap || ''} onChange={e => setSohCap(parseFloat(e.target.value) || 0)} className={inputClass} />
                 <p className="text-gray-400 text-xs mt-1">Schools get $25,000 exemption. County/Fire/Library get this amount.</p>
               </div>
