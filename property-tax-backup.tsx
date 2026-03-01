@@ -21,34 +21,39 @@ function PropertyTaxContent() {
   const [customAssessed, setCustomAssessed] = useState(false);
   const [hasHomestead, setHasHomestead] = useState(false);
   const [sohCap, setSohCap] = useState(25722);
-  const [seniorExemption, setSeniorExemption] = useState(false);
-  const [disabilityExemption, setDisabilityExemption] = useState(false);
-  const [veteranExemption, setVeteranExemption] = useState(false);
-  const [widowExemption, setWidowExemption] = useState(false);
-  const [blindExemption, setBlindExemption] = useState(false);
-  const [nonAdValorem1, setNonAdValorem1] = useState(0);
+  const [nonAdValorem1, setNonAdValorem1] = useState(800);
   const [nonAdValorem2, setNonAdValorem2] = useState(0);
   const [navLabel1, setNavLabel1] = useState('Waste/Garbage Collection');
   const [navLabel2, setNavLabel2] = useState('Stormwater/Other Assessment');
   const [inCity, setInCity] = useState(false);
   const [cityMillage, setCityMillage] = useState(6.75);
   const [calculated, setCalculated] = useState(false);
+
+  const [seniorExemption, setSeniorExemption] = useState(false);
+  const [disabilityExemption, setDisabilityExemption] = useState(false);
+  const [veteranExemption, setVeteranExemption] = useState(false);
+  const [widowExemption, setWidowExemption] = useState(false);
+  const [blindExemption, setBlindExemption] = useState(false);
   const otherExemptions = (seniorExemption ? 5000 : 0) + (disabilityExemption ? 5000 : 0) + (veteranExemption ? 5000 : 0) + (widowExemption ? 500 : 0) + (blindExemption ? 500 : 0);
   const baseHomestead = 25000;
   const schoolExemption = hasHomestead ? baseHomestead + otherExemptions : 0;
   const countyExemption = hasHomestead ? baseHomestead + sohCap + otherExemptions : 0;
   const schoolTaxable = Math.max(0, assessedValue - schoolExemption);
   const countyTaxable = Math.max(0, assessedValue - countyExemption);
+
   const allRates = [...COUNTY_RATES.filter(r => inCity ? !r.label.includes('Unincorporated') : true), ...(inCity ? [{ label: 'City Millage', mills: cityMillage, group: 'county' as const }] : [])];
+
   const lineItems = allRates.map(r => {
     const tv = r.group === 'school' ? schoolTaxable : countyTaxable;
     return { ...r, taxableValue: tv, tax: (tv * r.mills) / 1000 };
   });
+
   const annualTax = lineItems.reduce((s, l) => s + l.tax, 0);
   const totalMillage = allRates.reduce((s, l) => s + l.mills, 0);
   const monthlyTax = annualTax / 12;
   const totalNonAdValorem = nonAdValorem1 + nonAdValorem2;
   const grandTotal = annualTax + totalNonAdValorem;
+
   const fmt = (n: number) => '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black bg-white";
   const labelClass = "block text-sm font-semibold text-gray-300 mb-2";
@@ -66,7 +71,8 @@ function PropertyTaxContent() {
           </Link>
         </div>
 
-        <div className={cardClass + " mb-6"}>
+        {/* Input Card */}
+        <div className={`${cardClass} mb-6`}>
           <h2 className="text-xl font-bold text-white mb-6">Property Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="col-span-2">
@@ -82,46 +88,17 @@ function PropertyTaxContent() {
               <input type="number" value={assessedValue || ''} onChange={e => { setAssessedValue(parseFloat(e.target.value) || 0); setCustomAssessed(true); }} className={inputClass} />
             </div>
           </div>
+
           <div className="space-y-3 mt-6">
             <label className="flex items-center gap-3 text-white cursor-pointer">
               <input type="checkbox" checked={hasHomestead} onChange={e => setHasHomestead(e.target.checked)} className="w-5 h-5 accent-[#c9a227]" />
               Homestead Exemption
             </label>
             {hasHomestead && (
-              <div className="ml-8 space-y-4 max-w-sm">
-                <div>
-                  <label className={labelClass}>Additional Homestead (Hx) / SOH Cap <span className="text-gray-400 font-normal text-xs">default $25,722 — verify at ocpafl.org</span></label>
-                  <input type="number" value={sohCap || ''} onChange={e => setSohCap(parseFloat(e.target.value) || 0)} className={inputClass} />
-                  <p className="text-gray-400 text-xs mt-1">County gets $25,000 + this amount. Schools get $25,000 + other exemptions only.</p>
-                </div>
-                <div>
-                  <label className={labelClass}>Other Exemptions <span className="text-gray-400 font-normal text-xs">check all that apply</span></label>
-                  <div className="space-y-2 mt-1">
-                    <label className="flex items-center gap-3 text-white cursor-pointer text-sm">
-                      <input type="checkbox" checked={seniorExemption} onChange={e => setSeniorExemption(e.target.checked)} className="w-4 h-4 accent-[#c9a227]" />
-                      <span>Senior Exemption (+$5,000)</span>
-                    </label>
-                    <label className="flex items-center gap-3 text-white cursor-pointer text-sm">
-                      <input type="checkbox" checked={disabilityExemption} onChange={e => setDisabilityExemption(e.target.checked)} className="w-4 h-4 accent-[#c9a227]" />
-                      <span>Total &amp; Permanent Disability (+$5,000)</span>
-                    </label>
-                    <label className="flex items-center gap-3 text-white cursor-pointer text-sm">
-                      <input type="checkbox" checked={veteranExemption} onChange={e => setVeteranExemption(e.target.checked)} className="w-4 h-4 accent-[#c9a227]" />
-                      <span>Veteran Disability (+$5,000)</span>
-                    </label>
-                    <label className="flex items-center gap-3 text-white cursor-pointer text-sm">
-                      <input type="checkbox" checked={widowExemption} onChange={e => setWidowExemption(e.target.checked)} className="w-4 h-4 accent-[#c9a227]" />
-                      <span>Widow / Widower (+$500)</span>
-                    </label>
-                    <label className="flex items-center gap-3 text-white cursor-pointer text-sm">
-                      <input type="checkbox" checked={blindExemption} onChange={e => setBlindExemption(e.target.checked)} className="w-4 h-4 accent-[#c9a227]" />
-                      <span>Blind Person (+$500)</span>
-                    </label>
-                  </div>
-                  {otherExemptions > 0 && (
-                    <p className="text-yellow-300 text-xs mt-2 font-semibold">Total other exemptions: {fmt(otherExemptions)}</p>
-                  )}
-                </div>
+              <div className="ml-8 max-w-xs">
+                <label className={labelClass}>Additional Homestead (Hx) / SOH Cap <span className="text-gray-400 font-normal text-xs">default $25,722 — verify at ocpafl.org</span></label>
+                <input type="number" value={sohCap || ''} onChange={e => setSohCap(parseFloat(e.target.value) || 0)} className={inputClass} />
+                <p className="text-gray-400 text-xs mt-1">Schools get $25,000 exemption. County/Fire/Library get this amount.</p>
               </div>
             )}
             <label className="flex items-center gap-3 text-white cursor-pointer">
@@ -132,10 +109,12 @@ function PropertyTaxContent() {
               <div className="ml-8 max-w-xs">
                 <label className={labelClass}>City Millage Rate</label>
                 <input type="number" step="0.001" value={cityMillage} onChange={e => setCityMillage(parseFloat(e.target.value) || 0)} className={inputClass} />
-                <p className="text-gray-400 text-xs mt-1">Orlando: 6.75 · Winter Park: 3.8 · Winter Garden: 4.8565 · Kissimmee: 6.5</p>
+                <p className="text-gray-400 text-xs mt-1">Orlando: 6.75 · Winter Park: 3.8 · Kissimmee: 6.5</p>
               </div>
             )}
           </div>
+
+          {/* Non-Ad Valorem */}
           <div className="mt-6 border-t border-white/20 pt-6">
             <h3 className="text-white font-bold mb-4">🧾 Non-Ad Valorem Assessments <span className="text-gray-400 font-normal text-sm">(flat fees — garbage, stormwater, etc.)</span></h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -157,12 +136,15 @@ function PropertyTaxContent() {
               </div>
             </div>
           </div>
+
           <button onClick={() => setCalculated(true)} className="mt-6 w-full py-4 rounded-xl bg-[#c9a227] text-white font-bold text-lg hover:bg-[#b8911f] transition">
             Calculate Property Tax Estimate
           </button>
         </div>
+        {/* Results */}
         {calculated && (
           <div className="space-y-6">
+            {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-blue-600/20 border border-blue-400/30 rounded-2xl p-6 text-center">
                 <p className="text-blue-300 text-sm font-semibold mb-1">Ad Valorem Tax</p>
@@ -180,8 +162,11 @@ function PropertyTaxContent() {
                 <p className="text-red-300 text-xs mt-1">Ad Valorem + {fmt(totalNonAdValorem)} non-ad valorem</p>
               </div>
             </div>
+
+            {/* How We Got Here */}
             <div className={cardClass}>
               <h2 className="text-xl font-bold text-[#c9a227] mb-6">📐 How We Arrived at This Figure</h2>
+
               <div className="mb-6">
                 <h3 className="text-white font-bold mb-3">Step 1 — Assessed Value</h3>
                 <div className="bg-white/5 rounded-xl p-4 space-y-2 text-sm">
@@ -190,20 +175,22 @@ function PropertyTaxContent() {
                   <div className="flex justify-between text-white font-bold border-t border-white/20 pt-2"><span>Assessed Value Used</span><span>{fmt(assessedValue)}</span></div>
                 </div>
               </div>
+
               <div className="mb-6">
                 <h3 className="text-white font-bold mb-3">Step 2 — Exemptions (Split by Authority)</h3>
                 <div className="bg-white/5 rounded-xl p-4 space-y-2 text-sm">
                   {hasHomestead ? (
                     <>
-                      <div className="flex justify-between text-blue-300"><span>School Authorities: {fmt(schoolExemption)} exemption</span><span>Taxable: {fmt(schoolTaxable)}</span></div>
-                      <div className="flex justify-between text-green-300"><span>County/Fire/Library: {fmt(countyExemption)} exemption</span><span>Taxable: {fmt(countyTaxable)}</span></div>
-                      <p className="text-gray-400 text-xs pt-2 italic">Schools get $25,000 + other exemptions. County gets $25,000 + SOH Cap + other exemptions.</p>
+                      <div className="flex justify-between text-blue-300"><span>School Authorities: $25,000 exemption</span><span>Taxable: {fmt(schoolTaxable)}</span></div>
+                      <div className="flex justify-between text-green-300"><span>County/Fire/Library/Water: {fmt(sohCap)} exemption</span><span>Taxable: {fmt(countyTaxable)}</span></div>
+                      <p className="text-gray-400 text-xs pt-2 italic">Florida applies different exemption amounts per taxing authority. Schools get a flat $25K; county authorities use Save Our Homes cap.</p>
                     </>
                   ) : (
                     <div className="flex justify-between text-gray-400"><span>No exemptions applied</span><span>Taxable: {fmt(assessedValue)}</span></div>
                   )}
                 </div>
               </div>
+
               <div className="mb-6">
                 <h3 className="text-white font-bold mb-3">Step 3 — Millage Rate Breakdown</h3>
                 <div className="bg-white/5 rounded-xl p-4 text-sm">
@@ -226,6 +213,7 @@ function PropertyTaxContent() {
                   </div>
                 </div>
               </div>
+              {/* Non-Ad Valorem Summary */}
               {totalNonAdValorem > 0 && (
                 <div className="mb-6">
                   <h3 className="text-white font-bold mb-3">Step 4 — Non-Ad Valorem Assessments</h3>
@@ -249,6 +237,8 @@ function PropertyTaxContent() {
                   </div>
                 </div>
               )}
+
+              {/* Grand Total */}
               <div className="bg-red-900/20 border border-red-500/40 rounded-xl p-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-white font-bold text-lg">Ad Valorem Tax</span>
@@ -265,11 +255,14 @@ function PropertyTaxContent() {
                   <span className="text-white font-bold text-3xl">{fmt(grandTotal)}</span>
                 </div>
               </div>
+
               <div className="mt-6 bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4">
                 <p className="text-yellow-300 text-xs font-semibold mb-1">⚠️ Estimate Only</p>
-                <p className="text-gray-400 text-xs">Based on 2025 Orange County millage rates. Actual taxes may vary. Verify at <a href="https://www.ocpafl.org" target="_blank" rel="noopener noreferrer" className="text-blue-300 underline">ocpafl.org</a>.</p>
+                <p className="text-gray-400 text-xs">Based on 2025 Orange County millage rates. Actual taxes may vary based on county assessed value, Save Our Homes cap, and special assessments. Verify at <a href="https://www.ocpafl.org" target="_blank" rel="noopener noreferrer" className="text-blue-300 underline">ocpafl.org</a>.</p>
               </div>
             </div>
+
+            {/* CTA */}
             <div className="bg-green-900/20 border border-green-500/30 rounded-2xl p-6 flex items-center justify-between flex-wrap gap-4">
               <div>
                 <p className="text-green-300 font-bold">Ready to plug this into closing costs?</p>
@@ -299,3 +292,4 @@ export default function PropertyTaxPage() {
     </Suspense>
   );
 }
+
