@@ -28,11 +28,10 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
   const [open, setOpen] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const mouseDownOnDropdown = useRef(false);
+  const justSelected = useRef(false);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (mouseDownOnDropdown.current) return;
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
@@ -43,6 +42,10 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
 
   const handleChange = (val: string) => {
     onChange(val);
+    if (justSelected.current) {
+      justSelected.current = false;
+      return;
+    }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (val.length < 3) { setResults([]); setOpen(false); return; }
     debounceRef.current = setTimeout(async () => {
@@ -61,12 +64,13 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
   };
 
   const handleSelect = (parcel: ParcelResult) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    justSelected.current = true;
     const fullAddress = parcel.address + ', ' + parcel.city + ', FL ' + parcel.zip;
     onChange(fullAddress);
     onSelect(parcel);
     setOpen(false);
     setResults([]);
-    mouseDownOnDropdown.current = false;
   };
 
   return (
@@ -84,8 +88,7 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
       {open && results.length > 0 && (
         <div
           className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-80 overflow-y-auto"
-          onMouseEnter={() => { if (debounceRef.current) clearTimeout(debounceRef.current); }} onMouseDown={() => { mouseDownOnDropdown.current = true; }}
-          onMouseUp={() => { mouseDownOnDropdown.current = false; }}
+          onMouseEnter={() => { if (debounceRef.current) clearTimeout(debounceRef.current); }}
         >
           {results.map((r, i) => (
             <button
