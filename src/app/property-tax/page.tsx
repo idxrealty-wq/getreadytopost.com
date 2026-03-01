@@ -21,7 +21,6 @@ function PropertyTaxContent() {
   const [customAssessed, setCustomAssessed] = useState(false);
   const [hasHomestead, setHasHomestead] = useState(false);
   const [sohCap, setSohCap] = useState(25722);
-  const [otherExemptions, setOtherExemptions] = useState(5000);
   const [nonAdValorem1, setNonAdValorem1] = useState(800);
   const [nonAdValorem2, setNonAdValorem2] = useState(0);
   const [navLabel1, setNavLabel1] = useState('Waste/Garbage Collection');
@@ -30,6 +29,12 @@ function PropertyTaxContent() {
   const [cityMillage, setCityMillage] = useState(6.75);
   const [calculated, setCalculated] = useState(false);
 
+  const [seniorExemption, setSeniorExemption] = useState(false);
+  const [disabilityExemption, setDisabilityExemption] = useState(false);
+  const [veteranExemption, setVeteranExemption] = useState(false);
+  const [widowExemption, setWidowExemption] = useState(false);
+  const [blindExemption, setBlindExemption] = useState(false);
+  const otherExemptions = (seniorExemption ? 5000 : 0) + (disabilityExemption ? 5000 : 0) + (veteranExemption ? 5000 : 0) + (widowExemption ? 500 : 0) + (blindExemption ? 500 : 0);
   const baseHomestead = 25000;
   const schoolExemption = hasHomestead ? baseHomestead + otherExemptions : 0;
   const countyExemption = hasHomestead ? baseHomestead + sohCap + otherExemptions : 0;
