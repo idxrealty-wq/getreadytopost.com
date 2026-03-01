@@ -7,7 +7,7 @@ if (!getApps().length) {
     credential: cert({
       projectId: 'getreadtopost',
       clientEmail: 'firebase-adminsdk-fbsvc@getreadtopost.iam.gserviceaccount.com',
-      privateKey: (process.env.FIREBASE_ADMIN_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY,
     }),
   });
 }
