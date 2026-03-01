@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -8,6 +8,7 @@ import type { Listing } from '@/lib/listings';
 import AuthModal from '@/components/AuthModal';
 import Tab1PropertyBasics from './tabs/tab1';
 import CSVImport from './tabs/csv-import';
+import AddressAutosuggest from '@/components/AddressAutosuggest';
 import Tab2Neighborhood from './tabs/tab2';
 import Tab3Listing from './tabs/tab3';
 import Tab4Checklist from './tabs/tab4';
@@ -119,13 +120,13 @@ function WorkspaceContent() {
   };
 
   const tabs = [
-    { num: 1, label: 'Property Basics', icon: '🏠', done: !!address && !!propertyData.taxId },
-    { num: 2, label: 'Neighborhood', icon: '📍', done: !!nearby },
-    { num: 3, label: 'AI Listing', icon: '✨', done: !!listing },
-    { num: 4, label: 'Documents & Checklist', icon: '✅', done: false },
-    { num: 5, label: 'Save to Vault', icon: '💾', done: saved },
+    { num: 1, label: 'Property Basics', icon: '??', done: !!address && !!propertyData.taxId },
+    { num: 2, label: 'Neighborhood', icon: '??', done: !!nearby },
+    { num: 3, label: 'AI Listing', icon: '?', done: !!listing },
+    { num: 4, label: 'Documents & Checklist', icon: '?', done: false },
+    { num: 5, label: 'Save to Vault', icon: '??', done: saved },
 
-		{ num: 6, label: 'Closing Costs', icon: '🧮', done: !!savedEstimate },
+		{ num: 6, label: 'Closing Costs', icon: '??', done: !!savedEstimate },
   ];
 
   if (loadingListing) {
@@ -159,7 +160,7 @@ function WorkspaceContent() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
-            {editId ? '✏️ Edit Listing' : '🏠 Agent Workspace'}
+            {editId ? '?? Edit Listing' : '?? Agent Workspace'}
           </h1>
           <p className="text-gray-300 text-lg">
             {editId ? 'Update your listing details' : 'Your complete pre-listing command center'}
@@ -167,7 +168,7 @@ function WorkspaceContent() {
         </div>
         {!authLoading && !user && (
           <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6 text-center">
-            <h2 className="text-2xl font-bold text-white mb-3">⚠️ Sign In Required</h2>
+            <h2 className="text-2xl font-bold text-white mb-3">?? Sign In Required</h2>
             <p className="text-gray-200 text-lg mb-4">
               You must be signed in to save your work. Without an account, all data will be lost when you leave this page.
             </p>
@@ -180,18 +181,12 @@ function WorkspaceContent() {
           </div>
         )}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Enter property address..."
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-lg"
-          />
+          <AddressAutosuggest value={address} onChange={setAddress} onSelect={(parcel) => { setPropertyData((prev) => ({ ...prev, taxId: parcel.parcel_id, yearBuilt: parcel.year_built, sqft: parcel.sqft, assessedValue:   parcel.just_value, lastSalePrice: parcel.sale_price, lastSaleYear: parcel.sale_year })); }} />
         </div>
         <div className="flex justify-between items-center mb-4">
           <div></div>
           <button onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/agent-vault", "_blank"), 600); }} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition">
-            💾 View in Vault
+            ?? View in Vault
           </button>
         </div>
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
@@ -207,7 +202,7 @@ function WorkspaceContent() {
                   : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20'
               )}
             >
-              <span className="text-lg">{tab.done && activeTab !== tab.num ? '✅' : tab.icon}</span>
+              <span className="text-lg">{tab.done && activeTab !== tab.num ? '?' : tab.icon}</span>
               <span>{tab.num}. {tab.label}</span>
             </button>
           ))}
