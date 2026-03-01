@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
+import { useUser } from '@/contexts/UserContext';
 import { collection, addDoc } from 'firebase/firestore';
 
 const gradingCategories = [
@@ -16,6 +17,8 @@ const gradingCategories = [
 
 export default function RateMyListingPage() {
   const router = useRouter();
+  const { user } = useUser();
+
   const [email, setEmail] = useState('');
   const [listing, setListing] = useState('');
   const [showPayment, setShowPayment] = useState(false);
@@ -65,6 +68,27 @@ export default function RateMyListingPage() {
         createdAt: new Date().toISOString(),
       });
       setSubmissionId(docRef.id);
+      // Check if user has credits
+      if (user?.uid) {
+        try {
+          const creditRes = await fetch('/api/credits/balance?userId=' + user.uid);
+          const creditData = await creditRes.json();
+          if (creditData.balance > 0) {
+            await fetch('/api/credits/deduct', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: user.uid, submissionId: docRef.id }),
+            });
+            await fetch('/api/submissions/run-analysis', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ submissionId: docRef.id }),
+            });
+            router.push('/results?id=' + docRef.id);
+            return;
+          }
+        } catch(e) { console.error('Credit check failed', e); }
+      }
       setShowPayment(true);
     } catch (error) {
       alert('Error saving submission. Please try again.');
