@@ -28,7 +28,8 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
   const [open, setOpen] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const justSelected = useRef(false);
+ const justSelected = useRef(false);
+ const skipNextSearch = useRef(false);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -40,15 +41,16 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleChange = (val: string) => {
+  const handleChange = const handleChange = (val: string) => {
     onChange(val);
-    if (justSelected.current) {
-      justSelected.current = false;
+    if (skipNextSearch.current) {
+      skipNextSearch.current = false;
       return;
     }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (val.length < 3) { setResults([]); setOpen(false); return; }
     debounceRef.current = setTimeout(async () => {
+      if (justSelected.current) return;
       setLoading(true);
       try {
         const res = await fetch('/api/parcel-search?q=' + encodeURIComponent(val.toLowerCase()));
@@ -63,14 +65,16 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
     }, 600);
   };
 
-  const handleSelect = (parcel: ParcelResult) => {
+    const handleSelect = (parcel: ParcelResult) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     justSelected.current = true;
+    skipNextSearch.current = true;
     const fullAddress = parcel.address + ', ' + parcel.city + ', FL ' + parcel.zip;
     onChange(fullAddress);
     onSelect(parcel);
     setOpen(false);
     setResults([]);
+    setTimeout(() => { justSelected.current = false; }, 1000);
   };
 
   return (
