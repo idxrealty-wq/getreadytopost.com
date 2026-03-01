@@ -28,9 +28,11 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
   const [open, setOpen] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const mouseDownOnDropdown = useRef(false);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
+      if (mouseDownOnDropdown.current) return;
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
@@ -55,14 +57,16 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
       } finally {
         setLoading(false);
       }
-    }, 300);
+    }, 400);
   };
 
   const handleSelect = (parcel: ParcelResult) => {
-    onChange(parcel.address + ', ' + parcel.city + ', FL ' + parcel.zip);
+    const fullAddress = parcel.address + ', ' + parcel.city + ', FL ' + parcel.zip;
+    onChange(fullAddress);
     onSelect(parcel);
     setOpen(false);
     setResults([]);
+    mouseDownOnDropdown.current = false;
   };
 
   return (
@@ -78,11 +82,15 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
         <div className="absolute right-4 top-4 text-gray-400 text-sm">Searching...</div>
       )}
       {open && results.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-80 overflow-y-auto">
+        <div
+          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-80 overflow-y-auto"
+          onMouseDown={() => { mouseDownOnDropdown.current = true; }}
+          onMouseUp={() => { mouseDownOnDropdown.current = false; }}
+        >
           {results.map((r, i) => (
             <button
               key={i}
-              onClick={() => handleSelect(r)}
+              onMouseDown={(e) => { e.preventDefault(); handleSelect(r); }}
               className="w-full text-left px-4 py-3 hover:bg-[#c9a227]/10 border-b border-gray-100 last:border-0 transition"
             >
               <div className="font-semibold text-gray-900">{r.address}, {r.city}, FL {r.zip}</div>
