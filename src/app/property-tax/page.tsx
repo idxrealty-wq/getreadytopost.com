@@ -33,6 +33,18 @@ function PropertyTaxContent() {
   const [inCity, setInCity] = useState(false);
   const [cityMillage, setCityMillage] = useState(6.75);
   const [calculated, setCalculated] = useState(false);
+
+  // Read from localStorage on mount
+  useState(() => {
+    try {
+      const saved = localStorage.getItem('grtp_property');
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.address) setAddress(p.address + (p.city ? ', ' + p.city : '') + (p.state ? ', ' + p.state : ''));
+        if (p.price) { setMarketValue(parseFloat(p.price)); setAssessedValue(parseFloat(p.price)); }
+      }
+    } catch(e) {}
+  });
   const otherExemptions = (seniorExemption ? 5000 : 0) + (disabilityExemption ? 5000 : 0) + (veteranExemption ? 5000 : 0) + (widowExemption ? 500 : 0) + (blindExemption ? 500 : 0);
   const baseHomestead = 25000;
   const schoolExemption = hasHomestead ? baseHomestead + otherExemptions : 0;

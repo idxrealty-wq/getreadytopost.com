@@ -23,12 +23,16 @@ const defaultInputs: ClosingCostInputs = {
 function ClosingCostsContent() {
   const [step, setStep] = useState(0);
   const searchParams = useSearchParams();
-  const [inputs, setInputs] = useState<ClosingCostInputs>(() => ({
-    ...defaultInputs,
-    address: searchParams.get('address') || '',
-    salePrice: parseFloat(searchParams.get('price') || '0') || 0,
-    annualPropertyTax: parseFloat(searchParams.get('tax') || '0') || 0,
-  }));
+  const [inputs, setInputs] = useState<ClosingCostInputs>(() => {
+    let saved: Record<string, string> = {};
+    try { const s = localStorage.getItem('grtp_property'); if (s) saved = JSON.parse(s); } catch(e) {}
+    return {
+      ...defaultInputs,
+      address: searchParams.get('address') || saved.fullAddress || '',
+      salePrice: parseFloat(searchParams.get('price') || saved.price || '0') || 0,
+      annualPropertyTax: parseFloat(searchParams.get('tax') || '0') || 0,
+    };
+  });
   const [results, setResults] = useState<ReturnType<typeof calculateClosingCosts> | null>(null);
 
   const set = (field: keyof ClosingCostInputs, value: any) => setInputs(prev => ({ ...prev, [field]: value }));
