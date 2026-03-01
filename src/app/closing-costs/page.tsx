@@ -1,5 +1,8 @@
 ﻿"use client";
 import { useState, useEffect, Suspense } from 'react';
+import { useUser } from '@/contexts/UserContext';
+import { db } from '@/lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 import { useSearchParams } from 'next/navigation';
 import type { ClosingCostInputs } from './types';
 import { calculateClosingCosts } from './calc';
@@ -35,6 +38,9 @@ function ClosingCostsContent() {
   });
   const [results, setResults] = useState<ReturnType<typeof calculateClosingCosts> | null>(null);
 
+  const { user } = useUser();
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const set = (field: keyof ClosingCostInputs, value: any) => setInputs(prev => ({ ...prev, [field]: value }));
   const num = (field: keyof ClosingCostInputs) => (e: React.ChangeEvent<HTMLInputElement>) => set(field, parseFloat(e.target.value) || 0);
   const txt = (field: keyof ClosingCostInputs) => (e: React.ChangeEvent<HTMLInputElement>) => set(field, e.target.value);
@@ -45,6 +51,31 @@ function ClosingCostsContent() {
     setStep(5);
   };
 
+  const handleSaveToVault = async () => {
+    if (!user || !results) return;
+    setSaving(true);
+    try {
+      await addDoc(collection(db, 'users', user.uid, 'closingCostEstimates'), {
+        address: inputs.address,
+        salePrice: inputs.salePrice,
+        inputs,
+        results: {
+          buyerTotal: results.buyerTotal,
+          buyerCashToClose: results.buyerCashToClose,
+          sellerTotal: results.sellerTotal,
+          sellerNetProceeds: results.sellerNetProceeds,
+        },
+        savedAt: new Date().toISOString(),
+      });
+      setSaved(true);
+    } catch (e) {
+      console.error('Save error:', e);
+      alert('Error saving to vault');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black";
   const labelClass = "block text-sm font-semibold text-gray-300 mb-2";
   const cardClass = "bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20";
@@ -52,6 +83,30 @@ function ClosingCostsContent() {
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
       <div className="max-w-4xl mx-auto px-6 py-10">
+        {!user && (
+          <div className="mb-6 bg-yellow-500/20 border border-yellow-400/40 rounded-xl px-5 py-3 flex items-center justify-between gap-4">
+            <p className="text-yellow-200 text-sm">⚠️ <strong>Sign in</strong> to save your estimates to the Vault for later reference.</p>
+            <a href="/signin" className="text-yellow-300 font-bold text-sm underline hover:text-yellow-100 whitespace-nowrap">Sign In →</a>
+          </div>
+        )}
+        {!user && (
+          <div className="mb-6 bg-yellow-500/20 border border-yellow-400/40 rounded-xl px-5 py-3 flex items-center justify-between gap-4">
+            <p className="text-yellow-200 text-sm">⚠️ <strong>Sign in</strong> to save your estimates to the Vault for later reference.</p>
+            <a href="/signin" className="text-yellow-300 font-bold text-sm underline hover:text-yellow-100 whitespace-nowrap">Sign In →</a>
+          </div>
+        )}
+        {!user && (
+          <div className="mb-6 bg-yellow-500/20 border border-yellow-400/40 rounded-xl px-5 py-3 flex items-center justify-between gap-4">
+            <p className="text-yellow-200 text-sm">⚠️ <strong>Sign in</strong> to save your estimates to the Vault for later reference.</p>
+            <a href="/signin" className="text-yellow-300 font-bold text-sm underline hover:text-yellow-100 whitespace-nowrap">Sign In →</a>
+          </div>
+        )}
+        {!user && (
+          <div className="mb-6 bg-yellow-500/20 border border-yellow-400/40 rounded-xl px-5 py-3 flex items-center justify-between gap-4">
+            <p className="text-yellow-200 text-sm"><strong>Sign in</strong> to save your estimates to the Vault for later reference.</p>
+            <a href="/signin" className="text-yellow-300 font-bold text-sm underline hover:text-yellow-100 whitespace-nowrap">Sign In</a>
+          </div>
+        )}
         <h1 className="text-4xl font-bold text-white mb-2 text-center">🏠 Closing Cost Calculator</h1>
         <p className="text-gray-300 text-center mb-8">Florida / Orange County — TRID Format</p>
 
@@ -247,7 +302,21 @@ function ClosingCostsContent() {
               </div>
             </div>
 
-            <button onClick={() => { setStep(0); setResults(null); setInputs(defaultInputs); }} className="w-full py-4 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20 transition">
+            {user && (
+              <button
+                onClick={handleSaveToVault}
+                disabled={saving || saved}
+                className={`w-full py-4 rounded-xl font-bold transition ${saved ? 'bg-green-600 text-white cursor-default' : 'bg-[#c9a227] hover:bg-[#b8911f] text-white'}`}
+              >
+                {saving ? '💾 Saving...' : saved ? '✓ Saved to Vault!' : '💾 Save to Vault'}
+              </button>
+            )}
+            {!user && (
+              <div className="w-full py-4 rounded-xl bg-yellow-500/20 border border-yellow-400/40 text-center text-yellow-200 text-sm">
+                ⚠️ <a href="/signin" className="underline font-bold hover:text-yellow-100">Sign in</a> to save this estimate to your Vault
+              </div>
+            )}
+            <button onClick={() => { setStep(0); setResults(null); setInputs(defaultInputs); setSaved(false); }} className="w-full py-4 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20 transition">
               ← Start New Calculation
             </button>
           </div>
