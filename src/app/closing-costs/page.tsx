@@ -1,5 +1,6 @@
 ﻿"use client";
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import type { ClosingCostInputs } from './types';
 import { calculateClosingCosts } from './calc';
 
@@ -19,9 +20,15 @@ const defaultInputs: ClosingCostInputs = {
   homeInspection: 400, pestInspection: 125, windMitigation: 100, fourPointInspection: 150,
 };
 
-export default function ClosingCostsPage() {
+function ClosingCostsContent() {
   const [step, setStep] = useState(0);
-  const [inputs, setInputs] = useState<ClosingCostInputs>(defaultInputs);
+  const searchParams = useSearchParams();
+  const [inputs, setInputs] = useState<ClosingCostInputs>(() => ({
+    ...defaultInputs,
+    address: searchParams.get('address') || '',
+    salePrice: parseFloat(searchParams.get('price') || '0') || 0,
+    annualPropertyTax: parseFloat(searchParams.get('tax') || '0') || 0,
+  }));
   const [results, setResults] = useState<ReturnType<typeof calculateClosingCosts> | null>(null);
 
   const set = (field: keyof ClosingCostInputs, value: any) => setInputs(prev => ({ ...prev, [field]: value }));
@@ -261,5 +268,19 @@ export default function ClosingCostsPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function ClosingCostsPage() {
+  return (
+    <Suspense fallback={
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
+        <div className="max-w-4xl mx-auto px-6 py-20 text-center">
+          <div className="text-white text-xl">Loading...</div>
+        </div>
+      </main>
+    }>
+      <ClosingCostsContent />
+    </Suspense>
   );
 }

@@ -52,7 +52,7 @@ function PropertyTaxContent() {
   const fmt = (n: number) => '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black bg-white";
   const labelClass = "block text-sm font-semibold text-gray-300 mb-2";
-  const cardClass = "bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20";
+  const cardClass = "bg-[#1e3a5f] rounded-2xl p-8 border border-white/20";
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
       <div className="max-w-4xl mx-auto px-6 py-10">
@@ -61,7 +61,7 @@ function PropertyTaxContent() {
             <h1 className="text-4xl font-bold text-white mb-2">🏛️ Property Tax Estimator</h1>
             <p className="text-gray-300">Orange County, FL — 2025 Millage Rates</p>
           </div>
-          <Link href="/closing-costs" className="bg-green-600/30 hover:bg-green-600/50 text-green-300 px-5 py-3 rounded-xl font-bold transition border border-green-500/40">
+          <Link href={`/closing-costs?address=${encodeURIComponent(address)}&price=${marketValue}&tax=${Math.round(annualTax)}`} className="bg-green-600/30 hover:bg-green-600/50 text-green-300 px-5 py-3 rounded-xl font-bold transition border border-green-500/40">
             🧮 Closing Costs →
           </Link>
         </div>
