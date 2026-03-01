@@ -20,7 +20,8 @@ function PropertyTaxContent() {
   const [assessedValue, setAssessedValue] = useState(parseFloat(searchParams.get('price') || '') || 0);
   const [customAssessed, setCustomAssessed] = useState(false);
   const [hasHomestead, setHasHomestead] = useState(false);
-  const [saveOurHomesExemption, setSaveOurHomesExemption] = useState(55722);
+  const [sohCap, setSohCap] = useState(25722);
+  const [otherExemptions, setOtherExemptions] = useState(5000);
   const [nonAdValorem1, setNonAdValorem1] = useState(800);
   const [nonAdValorem2, setNonAdValorem2] = useState(0);
   const [navLabel1, setNavLabel1] = useState('Waste/Garbage Collection');
@@ -29,8 +30,9 @@ function PropertyTaxContent() {
   const [cityMillage, setCityMillage] = useState(6.75);
   const [calculated, setCalculated] = useState(false);
 
-  const schoolExemption = hasHomestead ? 25000 : 0;
-  const countyExemption = hasHomestead ? saveOurHomesExemption : 0;
+  const baseHomestead = 25000;
+  const schoolExemption = hasHomestead ? baseHomestead + otherExemptions : 0;
+  const countyExemption = hasHomestead ? baseHomestead + sohCap + otherExemptions : 0;
   const schoolTaxable = Math.max(0, assessedValue - schoolExemption);
   const countyTaxable = Math.max(0, assessedValue - countyExemption);
 
@@ -90,7 +92,7 @@ function PropertyTaxContent() {
             {hasHomestead && (
               <div className="ml-8 max-w-xs">
                 <label className={labelClass}>Save Our Homes / County Exemption Amount ($) <span className="text-gray-400 font-normal text-xs">default $55,722</span></label>
-                <input type="number" value={saveOurHomesExemption || ''} onChange={e => setSaveOurHomesExemption(parseFloat(e.target.value) || 0)} className={inputClass} />
+                <input type="number" value={sohCap || ''} onChange={e => setSohCap(parseFloat(e.target.value) || 0)} className={inputClass} />
                 <p className="text-gray-400 text-xs mt-1">Schools get $25,000 exemption. County/Fire/Library get this amount.</p>
               </div>
             )}
@@ -175,7 +177,7 @@ function PropertyTaxContent() {
                   {hasHomestead ? (
                     <>
                       <div className="flex justify-between text-blue-300"><span>School Authorities: $25,000 exemption</span><span>Taxable: {fmt(schoolTaxable)}</span></div>
-                      <div className="flex justify-between text-green-300"><span>County/Fire/Library/Water: {fmt(saveOurHomesExemption)} exemption</span><span>Taxable: {fmt(countyTaxable)}</span></div>
+                      <div className="flex justify-between text-green-300"><span>County/Fire/Library/Water: {fmt(sohCap)} exemption</span><span>Taxable: {fmt(countyTaxable)}</span></div>
                       <p className="text-gray-400 text-xs pt-2 italic">Florida applies different exemption amounts per taxing authority. Schools get a flat $25K; county authorities use Save Our Homes cap.</p>
                     </>
                   ) : (
