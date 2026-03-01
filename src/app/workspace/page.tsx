@@ -24,7 +24,7 @@ function WorkspaceContent() {
   const [activeTab, setActiveTab] = useState(1);
   const [address, setAddress] = useState('');
   const [propertyData, setPropertyData] = useState({
-    taxId: '', yearBuilt: '', beds: '', baths: '', legalDescription: '',
+    taxId: '', yearBuilt: '', beds: '', baths: '', legalDescription: '', propertyType: '', zoning: '', stories: '', garage: '', pool: '', construction: '', schoolDistrict: '', hoa: '', hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '', roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '', lastSaleYear: '', homestead: '',
     sqft: '', lotSize: '', price: '', features: '', dateAdded: '',
   });
   const [nearby, setNearby] = useState<any>(null);
@@ -57,7 +57,7 @@ function WorkspaceContent() {
             userId: user.uid,
             status: 'draft',
             address: '',
-            propertyData: { taxId: '', yearBuilt: '', beds: '', baths: '', sqft: '', lotSize: '', price: '', features: '', dateAdded: '', legalDescription: '' },
+            propertyData: { taxId: '', yearBuilt: '', beds: '', baths: '', sqft: '', lotSize: '', price: '', features: '', dateAdded: '', legalDescription: '', propertyType: '', zoning: '', stories: '', garage: '', pool: '',    construction: '', schoolDistrict: '', hoa: '', hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '', roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '', lastSaleYear: '', homestead: '' },
             nearby: null,
             aiListing: '',
             checklistState: {},
@@ -92,7 +92,7 @@ function WorkspaceContent() {
         const data = listingSnap.data() as Listing;
         if (data.userId === user?.uid) {
           setAddress(data.address);
-          setPropertyData({ ...data.propertyData, legalDescription: (data.propertyData as any).legalDescription || '' });
+          setPropertyData({ ...data.propertyData, legalDescription: (data.propertyData as any).legalDescription || '', propertyType: (data.propertyData as any).propertyType || '', zoning: (data.propertyData as any).zoning || '', stories: (data.propertyData as any).stories || '', garage: (data.propertyData as any).garage || '', pool: (data.propertyData as any).pool || '', construction: (data.propertyData as any).construction || '', schoolDistrict: (data.propertyData as any).schoolDistrict || '', hoa: (data.propertyData as any).hoa || '', hoaAmount: (data.propertyData as any).hoaAmount || '', hoaName: (data.propertyData as any).hoaName || '', amenities: (data.propertyData as any).amenities || '', floodZone: (data.propertyData as any).floodZone || '', water: (data.propertyData as any).water || '', sewer: (data.propertyData as any).sewer || '', roofYear: (data.propertyData as any).roofYear || '', acYear: (data.propertyData as any).acYear || '', waterHeaterYear: (data.propertyData as any).waterHeaterYear || '', assessedValue: (data.propertyData as any).assessedValue || '', lastSalePrice: (data.propertyData as any).lastSalePrice || '', lastSaleYear: (data.propertyData as any).lastSaleYear || '', homestead: (data.propertyData as any).homestead || '' });
           setNearby(data.nearby);
           setListing(data.aiListing);
           setChecklistState(data.checklistState);
