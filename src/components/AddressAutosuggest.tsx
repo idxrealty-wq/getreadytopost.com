@@ -41,7 +41,7 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleChange = const handleChange = (val: string) => {
+  const handleChange = (val: string) => {
     onChange(val);
     if (skipNextSearch.current) {
       skipNextSearch.current = false;
