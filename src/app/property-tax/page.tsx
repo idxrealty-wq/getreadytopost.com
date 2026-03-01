@@ -4,14 +4,13 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 const MILLAGE_RATES = [
-  { label: 'Orange County General', mills: 4.4347 },
-  { label: 'Orange County Library', mills: 0.3748 },
-  { label: 'Orange County Fire Rescue', mills: 2.6761 },
-  { label: 'School Board — Required Local Effort', mills: 2.7480 },
-  { label: 'School Board — Basic Discretionary', mills: 0.7480 },
-  { label: 'School Board — Capital Outlay', mills: 1.5000 },
-  { label: 'South Florida Water Mgmt District', mills: 0.2289 },
-  { label: 'Florida Inland Navigation District', mills: 0.0320 },
+{ label: 'General County', mills: 4.4347 },
+  { label: 'Unincorporated County Fire', mills: 2.8437 },
+  { label: 'Unincorporated Taxing District', mills: 1.8043 },
+  { label: 'Library — Operating Budget', mills: 0.3748 },
+  { label: 'St Johns Water Management District', mills: 0.1793 },
+  { label: 'Public Schools — By State Law (RLE)', mills: 3.2010 },
+  { label: 'Public Schools — By Local Board', mills: 3.2480 },
 ];
 
 const HOMESTEAD_EXEMPTION = 50000;
@@ -26,6 +25,10 @@ function PropertyTaxContent() {
   const [hasHomestead, setHasHomestead] = useState(false);
   const [hasAdditional, setHasAdditional] = useState(false);
   const [inCity, setInCity] = useState(false);
+  const [nonAdValorem1, setNonAdValorem1] = useState(800);
+  const [nonAdValorem2, setNonAdValorem2] = useState(0);
+  const [navLabel1, setNavLabel1] = useState('Waste/Garbage Collection');
+  const [navLabel2, setNavLabel2] = useState('Stormwater/Other Assessment');
   const [cityMillage, setCityMillage] = useState(6.75);
   const [calculated, setCalculated] = useState(false);
 
@@ -34,7 +37,8 @@ function PropertyTaxContent() {
   const allMillage = [...MILLAGE_RATES, ...(inCity ? [{ label: 'City Millage', mills: cityMillage }] : [])];
   const totalMillage = allMillage.reduce((s, l) => s + l.mills, 0);
   const annualTax = (taxableValue * totalMillage) / 1000;
-  const monthlyTax = annualTax / 12;
+  const monthlyTax = annualTax / 12;const totalNonAdValorem = nonAdValorem1 + nonAdValorem2;
+  const grandTotal = annualTax + totalNonAdValorem;
 
   const fmt = (n: number) => '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black bg-white";
@@ -94,6 +98,28 @@ function PropertyTaxContent() {
               </div>
             )}
           </div>
+          <div className="mt-6 border-t border-white/20 pt-6">
+            <h3 className="text-white font-bold mb-4">🧾 Non-Ad Valorem Assessments <span className="text-gray-400 font-normal text-sm">(flat fees — garbage, stormwater, etc.)</span></h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Assessment 1 Description</label>
+                <input type="text" value={navLabel1} onChange={e => setNavLabel1(e.target.value)} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Assessment 1 Amount ($)</label>
+                <input type="number" value={nonAdValorem1 || ''} onChange={e => setNonAdValorem1(parseFloat(e.target.value) || 0)} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Assessment 2 Description</label>
+                <input type="text" value={navLabel2} onChange={e => setNavLabel2(e.target.value)} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Assessment 2 Amount ($)</label>
+                <input type="number" value={nonAdValorem2 || ''} onChange={e => setNonAdValorem2(parseFloat(e.target.value) || 0)} className={inputClass} />
+              </div>
+            </div>
+          </div>
+
           <button onClick={() => setCalculated(true)} className="mt-6 w-full py-4 rounded-xl bg-[#c9a227] text-white font-bold text-lg hover:bg-[#b8911f] transition">
             Calculate Property Tax Estimate
           </button>
@@ -117,8 +143,12 @@ function PropertyTaxContent() {
                 <p className="text-green-300 text-sm font-semibold mb-1">Monthly Escrow</p>
                 <p className="text-3xl font-bold text-white">{fmt(monthlyTax)}</p>
                 <p className="text-green-300 text-xs mt-1">Annual ÷ 12</p>
+              </div>            </div>              <div className="bg-red-600/20 border border-red-400/30 rounded-2xl p-6 text-center md:col-span-3">
+                <p className="text-red-300 text-sm font-semibold mb-1">🧾 Gross Tax Total (Ad Valorem + Non-Ad Valorem)</p>
+                <p className="text-4xl font-bold text-white">{fmt(grandTotal)}</p>
+                <p className="text-red-300 text-xs mt-1">Ad Valorem {fmt(annualTax)} + Non-Ad Valorem {fmt(totalNonAdValorem)}</p>
               </div>
-            </div>
+
 
             <div className={cardClass}>
               <h2 className="text-xl font-bold text-[#c9a227] mb-6">📐 How We Arrived at This Figure</h2>
