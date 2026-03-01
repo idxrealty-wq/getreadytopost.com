@@ -21,15 +21,46 @@ export default function RateMyListingPage() {
   const [showPayment, setShowPayment] = useState(false);
   const [submissionId, setSubmissionId] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Property detail fields
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('FL');
+  const [zip, setZip] = useState('');
+  const [beds, setBeds] = useState('');
+  const [baths, setBaths] = useState('');
+  const [sqft, setSqft] = useState('');
+  const [yearBuilt, setYearBuilt] = useState('');
+  const [price, setPrice] = useState('');
+
   const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
+  const saveToLocalStorage = () => {
+    const propertyData = {
+      address, city, state, zip,
+      beds, baths, sqft, yearBuilt, price,
+      email,
+      fullAddress: `${address}, ${city}, ${state} ${zip}`.trim(),
+    };
+    localStorage.setItem('grtp_property', JSON.stringify(propertyData));
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      saveToLocalStorage();
       const docRef = await addDoc(collection(db, 'submissions'), {
         email,
         listingText: listing,
         wordCount,
+        address,
+        city,
+        state,
+        zip,
+        beds: beds ? parseInt(beds) : null,
+        baths: baths ? parseFloat(baths) : null,
+        sqft: sqft ? parseInt(sqft) : null,
+        yearBuilt: yearBuilt ? parseInt(yearBuilt) : null,
+        price: price ? parseFloat(price) : null,
         status: 'pending_payment',
         createdAt: new Date().toISOString(),
       });
@@ -50,14 +81,12 @@ export default function RateMyListingPage() {
   const handleViewResults = () => {
     router.push(`/results?id=${submissionId}`);
   };
-
   return (
     <main className="pt-20 min-h-screen relative">
       <div className="fixed inset-0 z-0">
         <img src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/1c6b6e83-767a-4a5f-9cc4-ea33a9ca148a/image.png?w=1200&h=896" alt="Background" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-[#1a2b4a]/85"></div>
       </div>
-
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-10">
 
         {/* Hero */}
@@ -71,7 +100,7 @@ export default function RateMyListingPage() {
           </div>
         </section>
 
-        {/* Video Placeholder */}
+        {/* Video */}
         <section className="mb-10">
           <div className="rounded-2xl overflow-hidden border border-white/20 shadow-2xl aspect-video">
             <iframe
@@ -101,7 +130,6 @@ export default function RateMyListingPage() {
             </div>
           </Link>
         </section>
-
         {/* Grading Criteria */}
         <section className="mb-10">
           <div className="text-center mb-6">
@@ -125,7 +153,6 @@ export default function RateMyListingPage() {
             <p className="text-gray-400 text-sm">Each category is scored 1–10. Your total score determines your listing grade — and exactly what needs to be fixed.</p>
           </div>
         </section>
-
         {/* Form or Payment */}
         {showPayment ? (
           <div className="bg-white rounded-2xl p-8 shadow-2xl text-center">
@@ -157,8 +184,10 @@ export default function RateMyListingPage() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl p-6 shadow-2xl mb-6">
-            <h2 className="text-xl font-bold text-[#1a2b4a] mb-4 text-center">Paste Your Listing Below</h2>
+            <h2 className="text-xl font-bold text-[#1a2b4a] mb-4 text-center">📋 Paste Your Listing Below</h2>
             <div className="space-y-4">
+
+              {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                 <input
@@ -171,7 +200,76 @@ export default function RateMyListingPage() {
                 />
                 <p className="text-xs text-gray-500 mt-1">Your report will be sent here</p>
               </div>
-              <div>
+
+              {/* Property Details */}
+              <div className="border-t border-gray-100 pt-4">
+                <label className="block text-sm font-bold text-gray-700 mb-3">Property Details <span className="text-gray-400 font-normal">(helps AI grade more accurately)</span></label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <input
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                      placeholder="Address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                    />
+                  </div>
+                  <input
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                    placeholder="City"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  />
+                  <input
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                    placeholder="State (FL)"
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                  />
+                  <input
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                    placeholder="Zip"
+                    value={zip}
+                    onChange={(e) => setZip(e.target.value)}
+                  />
+                  <input
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                    placeholder="List Price ($)"
+                    type="number"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                  />
+                  <input
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                    placeholder="Beds"
+                    type="number"
+                    value={beds}
+                    onChange={(e) => setBeds(e.target.value)}
+                  />
+                  <input
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                    placeholder="Baths"
+                    type="number"
+                    value={baths}
+                    onChange={(e) => setBaths(e.target.value)}
+                  />
+                  <input
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                    placeholder="Sqft"
+                    type="number"
+                    value={sqft}
+                    onChange={(e) => setSqft(e.target.value)}
+                  />
+                  <input
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                    placeholder="Year Built"
+                    type="number"
+                    value={yearBuilt}
+                    onChange={(e) => setYearBuilt(e.target.value)}
+                  />
+                </div>
+              </div>
+              {/* Listing Description */}
+              <div className="border-t border-gray-100 pt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Listing Description *</label>
                 <textarea
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
@@ -186,6 +284,7 @@ export default function RateMyListingPage() {
                   <p className={`text-sm font-bold ${wordCount < 50 ? 'text-red-500' : wordCount < 140 ? 'text-amber-500' : 'text-green-500'}`}>{wordCount} words</p>
                 </div>
               </div>
+
               <button
                 onClick={handleSubmit}
                 className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50"
