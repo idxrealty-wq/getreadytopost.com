@@ -3,11 +3,15 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
 if (!getApps().length) {
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY
+    ? process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, '\n')
+    : undefined;
+
   initializeApp({
     credential: cert({
       projectId: 'getreadtopost',
       clientEmail: 'firebase-adminsdk-fbsvc@getreadtopost.iam.gserviceaccount.com',
-      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      privateKey,
     }),
   });
 }
@@ -34,3 +38,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
