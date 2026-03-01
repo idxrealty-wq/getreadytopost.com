@@ -3,18 +3,15 @@ import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-const MILLAGE_RATES = [
-{ label: 'General County', mills: 4.4347 },
-  { label: 'Unincorporated County Fire', mills: 2.8437 },
-  { label: 'Unincorporated Taxing District', mills: 1.8043 },
-  { label: 'Library — Operating Budget', mills: 0.3748 },
-  { label: 'St Johns Water Management District', mills: 0.1793 },
-  { label: 'Public Schools — By State Law (RLE)', mills: 3.2010 },
-  { label: 'Public Schools — By Local Board', mills: 3.2480 },
+const COUNTY_RATES = [
+  { label: 'General County', mills: 4.4347, group: 'county' },
+  { label: 'Unincorporated County Fire', mills: 2.8437, group: 'county' },
+  { label: 'Unincorporated Taxing District', mills: 1.8043, group: 'county' },
+  { label: 'Library — Operating Budget', mills: 0.3748, group: 'county' },
+  { label: 'St Johns Water Management District', mills: 0.1793, group: 'county' },
+  { label: 'Public Schools — By State Law (RLE)', mills: 3.2010, group: 'school' },
+  { label: 'Public Schools — By Local Board', mills: 3.2480, group: 'school' },
 ];
-
-const HOMESTEAD_EXEMPTION = 50000;
-const ADDITIONAL_EXEMPTION = 25000;
 
 function PropertyTaxContent() {
   const searchParams = useSearchParams();
@@ -23,42 +20,51 @@ function PropertyTaxContent() {
   const [assessedValue, setAssessedValue] = useState(parseFloat(searchParams.get('price') || '') || 0);
   const [customAssessed, setCustomAssessed] = useState(false);
   const [hasHomestead, setHasHomestead] = useState(false);
-  const [hasAdditional, setHasAdditional] = useState(false);
-  const [inCity, setInCity] = useState(false);
+  const [saveOurHomesExemption, setSaveOurHomesExemption] = useState(55722);
   const [nonAdValorem1, setNonAdValorem1] = useState(800);
   const [nonAdValorem2, setNonAdValorem2] = useState(0);
   const [navLabel1, setNavLabel1] = useState('Waste/Garbage Collection');
   const [navLabel2, setNavLabel2] = useState('Stormwater/Other Assessment');
+  const [inCity, setInCity] = useState(false);
   const [cityMillage, setCityMillage] = useState(6.75);
   const [calculated, setCalculated] = useState(false);
 
-  const exemptions = hasHomestead ? HOMESTEAD_EXEMPTION + (hasAdditional ? ADDITIONAL_EXEMPTION : 0) : 0;
-  const taxableValue = Math.max(0, assessedValue - exemptions);
-  const allMillage = [...MILLAGE_RATES, ...(inCity ? [{ label: 'City Millage', mills: cityMillage }] : [])];
-  const totalMillage = allMillage.reduce((s, l) => s + l.mills, 0);
-  const annualTax = (taxableValue * totalMillage) / 1000;
-  const monthlyTax = annualTax / 12;const totalNonAdValorem = nonAdValorem1 + nonAdValorem2;
+  const schoolExemption = hasHomestead ? 25000 : 0;
+  const countyExemption = hasHomestead ? saveOurHomesExemption : 0;
+  const schoolTaxable = Math.max(0, assessedValue - schoolExemption);
+  const countyTaxable = Math.max(0, assessedValue - countyExemption);
+
+  const allRates = [...COUNTY_RATES, ...(inCity ? [{ label: 'City Millage', mills: cityMillage, group: 'county' as const }] : [])];
+
+  const lineItems = allRates.map(r => {
+    const tv = r.group === 'school' ? schoolTaxable : countyTaxable;
+    return { ...r, taxableValue: tv, tax: (tv * r.mills) / 1000 };
+  });
+
+  const annualTax = lineItems.reduce((s, l) => s + l.tax, 0);
+  const totalMillage = allRates.reduce((s, l) => s + l.mills, 0);
+  const monthlyTax = annualTax / 12;
+  const totalNonAdValorem = nonAdValorem1 + nonAdValorem2;
   const grandTotal = annualTax + totalNonAdValorem;
 
   const fmt = (n: number) => '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black bg-white";
   const labelClass = "block text-sm font-semibold text-gray-300 mb-2";
   const cardClass = "bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20";
-
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>
             <h1 className="text-4xl font-bold text-white mb-2">🏛️ Property Tax Estimator</h1>
-            <p className="text-gray-300">Orange County, FL — 2024 Millage Rates</p>
+            <p className="text-gray-300">Orange County, FL — 2025 Millage Rates</p>
           </div>
           <Link href="/closing-costs" className="bg-green-600/30 hover:bg-green-600/50 text-green-300 px-5 py-3 rounded-xl font-bold transition border border-green-500/40">
             🧮 Closing Costs →
           </Link>
         </div>
 
-        {/* Inputs */}
+        {/* Input Card */}
         <div className={`${cardClass} mb-6`}>
           <h2 className="text-xl font-bold text-white mb-6">Property Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -71,24 +77,26 @@ function PropertyTaxContent() {
               <input type="number" value={marketValue || ''} onChange={e => { const v = parseFloat(e.target.value) || 0; setMarketValue(v); if (!customAssessed) setAssessedValue(v); }} className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>County Assessed Value ($) <span className="text-gray-400 font-normal text-xs">(if different from price)</span></label>
+              <label className={labelClass}>County Assessed Value ($) <span className="text-gray-400 font-normal text-xs">(check ocpafl.org)</span></label>
               <input type="number" value={assessedValue || ''} onChange={e => { setAssessedValue(parseFloat(e.target.value) || 0); setCustomAssessed(true); }} className={inputClass} />
             </div>
           </div>
+
           <div className="space-y-3 mt-6">
             <label className="flex items-center gap-3 text-white cursor-pointer">
               <input type="checkbox" checked={hasHomestead} onChange={e => setHasHomestead(e.target.checked)} className="w-5 h-5 accent-[#c9a227]" />
-              Homestead Exemption ($50,000 off assessed value)
+              Homestead Exemption
             </label>
             {hasHomestead && (
-              <label className="flex items-center gap-3 text-white cursor-pointer ml-8">
-                <input type="checkbox" checked={hasAdditional} onChange={e => setHasAdditional(e.target.checked)} className="w-5 h-5 accent-[#c9a227]" />
-                Additional Low-Income Senior Exemption (+$25,000)
-              </label>
+              <div className="ml-8 max-w-xs">
+                <label className={labelClass}>Save Our Homes / County Exemption Amount ($) <span className="text-gray-400 font-normal text-xs">default $55,722</span></label>
+                <input type="number" value={saveOurHomesExemption || ''} onChange={e => setSaveOurHomesExemption(parseFloat(e.target.value) || 0)} className={inputClass} />
+                <p className="text-gray-400 text-xs mt-1">Schools get $25,000 exemption. County/Fire/Library get this amount.</p>
+              </div>
             )}
             <label className="flex items-center gap-3 text-white cursor-pointer">
               <input type="checkbox" checked={inCity} onChange={e => setInCity(e.target.checked)} className="w-5 h-5 accent-[#c9a227]" />
-              Property is within a City limits
+              Property is within City limits
             </label>
             {inCity && (
               <div className="ml-8 max-w-xs">
@@ -98,6 +106,8 @@ function PropertyTaxContent() {
               </div>
             )}
           </div>
+
+          {/* Non-Ad Valorem */}
           <div className="mt-6 border-t border-white/20 pt-6">
             <h3 className="text-white font-bold mb-4">🧾 Non-Ad Valorem Assessments <span className="text-gray-400 font-normal text-sm">(flat fees — garbage, stormwater, etc.)</span></h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -124,32 +134,29 @@ function PropertyTaxContent() {
             Calculate Property Tax Estimate
           </button>
         </div>
-
         {/* Results */}
         {calculated && (
           <div className="space-y-6">
+            {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-blue-600/20 border border-blue-400/30 rounded-2xl p-6 text-center">
-                <p className="text-blue-300 text-sm font-semibold mb-1">Taxable Value</p>
-                <p className="text-3xl font-bold text-white">{fmt(taxableValue)}</p>
-                <p className="text-blue-300 text-xs mt-1">After {fmt(exemptions)} in exemptions</p>
-              </div>
-              <div className="bg-[#c9a227]/20 border border-[#c9a227]/30 rounded-2xl p-6 text-center">
-                <p className="text-yellow-300 text-sm font-semibold mb-1">Est. Annual Tax</p>
+                <p className="text-blue-300 text-sm font-semibold mb-1">Ad Valorem Tax</p>
                 <p className="text-3xl font-bold text-white">{fmt(annualTax)}</p>
-                <p className="text-yellow-300 text-xs mt-1">Total millage: {totalMillage.toFixed(4)}</p>
+                <p className="text-blue-300 text-xs mt-1">Millage: {totalMillage.toFixed(4)}</p>
               </div>
               <div className="bg-green-600/20 border border-green-400/30 rounded-2xl p-6 text-center">
                 <p className="text-green-300 text-sm font-semibold mb-1">Monthly Escrow</p>
                 <p className="text-3xl font-bold text-white">{fmt(monthlyTax)}</p>
                 <p className="text-green-300 text-xs mt-1">Annual ÷ 12</p>
-              </div>            </div>              <div className="bg-red-600/20 border border-red-400/30 rounded-2xl p-6 text-center md:col-span-3">
-                <p className="text-red-300 text-sm font-semibold mb-1">🧾 Gross Tax Total (Ad Valorem + Non-Ad Valorem)</p>
-                <p className="text-4xl font-bold text-white">{fmt(grandTotal)}</p>
-                <p className="text-red-300 text-xs mt-1">Ad Valorem {fmt(annualTax)} + Non-Ad Valorem {fmt(totalNonAdValorem)}</p>
               </div>
+              <div className="bg-red-600/20 border border-red-400/30 rounded-2xl p-6 text-center">
+                <p className="text-red-300 text-sm font-semibold mb-1">🧾 Gross Tax Total</p>
+                <p className="text-3xl font-bold text-white">{fmt(grandTotal)}</p>
+                <p className="text-red-300 text-xs mt-1">Ad Valorem + {fmt(totalNonAdValorem)} non-ad valorem</p>
+              </div>
+            </div>
 
-
+            {/* How We Got Here */}
             <div className={cardClass}>
               <h2 className="text-xl font-bold text-[#c9a227] mb-6">📐 How We Arrived at This Figure</h2>
 
@@ -163,45 +170,92 @@ function PropertyTaxContent() {
               </div>
 
               <div className="mb-6">
-                <h3 className="text-white font-bold mb-3">Step 2 — Exemptions</h3>
+                <h3 className="text-white font-bold mb-3">Step 2 — Exemptions (Split by Authority)</h3>
                 <div className="bg-white/5 rounded-xl p-4 space-y-2 text-sm">
-                  <div className="flex justify-between text-white"><span>Assessed Value</span><span>{fmt(assessedValue)}</span></div>
-                  {hasHomestead && <div className="flex justify-between text-red-300"><span>— Homestead Exemption</span><span>({fmt(HOMESTEAD_EXEMPTION)})</span></div>}
-                  {hasAdditional && <div className="flex justify-between text-red-300"><span>— Additional Senior Exemption</span><span>({fmt(ADDITIONAL_EXEMPTION)})</span></div>}
-                  {!hasHomestead && <div className="flex justify-between text-gray-400"><span>No exemptions applied</span><span>$0.00</span></div>}
-                  <div className="flex justify-between text-white font-bold border-t border-white/20 pt-2"><span>Taxable Value</span><span>{fmt(taxableValue)}</span></div>
+                  {hasHomestead ? (
+                    <>
+                      <div className="flex justify-between text-blue-300"><span>School Authorities: $25,000 exemption</span><span>Taxable: {fmt(schoolTaxable)}</span></div>
+                      <div className="flex justify-between text-green-300"><span>County/Fire/Library/Water: {fmt(saveOurHomesExemption)} exemption</span><span>Taxable: {fmt(countyTaxable)}</span></div>
+                      <p className="text-gray-400 text-xs pt-2 italic">Florida applies different exemption amounts per taxing authority. Schools get a flat $25K; county authorities use Save Our Homes cap.</p>
+                    </>
+                  ) : (
+                    <div className="flex justify-between text-gray-400"><span>No exemptions applied</span><span>Taxable: {fmt(assessedValue)}</span></div>
+                  )}
                 </div>
               </div>
 
               <div className="mb-6">
                 <h3 className="text-white font-bold mb-3">Step 3 — Millage Rate Breakdown</h3>
                 <div className="bg-white/5 rounded-xl p-4 text-sm">
-                  <div className="grid grid-cols-3 gap-2 text-gray-400 text-xs mb-2 font-semibold">
-                    <span>Taxing Authority</span><span className="text-right">Mills</span><span className="text-right">Tax</span>
+                  <div className="grid grid-cols-4 gap-2 text-gray-400 text-xs mb-2 font-semibold">
+                    <span>Taxing Authority</span><span className="text-right">Taxable</span><span className="text-right">Mills</span><span className="text-right">Tax</span>
                   </div>
-                  {allMillage.map((line, idx) => (
-                    <div key={idx} className="grid grid-cols-3 gap-2 py-2 border-b border-white/10">
+                  {lineItems.map((line, idx) => (
+                    <div key={idx} className="grid grid-cols-4 gap-2 py-2 border-b border-white/10">
                       <span className="text-white text-xs">{line.label}</span>
+                      <span className="text-right text-gray-300 text-xs">{fmt(line.taxableValue)}</span>
                       <span className="text-right text-gray-300 text-xs">{line.mills.toFixed(4)}</span>
-                      <span className="text-right text-yellow-200 text-xs">{fmt((taxableValue * line.mills) / 1000)}</span>
+                      <span className="text-right text-yellow-200 text-xs">{fmt(line.tax)}</span>
                     </div>
                   ))}
-                  <div className="grid grid-cols-3 gap-2 pt-3 font-bold">
+                  <div className="grid grid-cols-4 gap-2 pt-3 font-bold">
                     <span className="text-white">TOTAL</span>
+                    <span></span>
                     <span className="text-right text-white">{totalMillage.toFixed(4)}</span>
                     <span className="text-right text-[#c9a227]">{fmt(annualTax)}</span>
                   </div>
                 </div>
-                <p className="text-gray-400 text-xs mt-3">Formula: (Taxable Value ÷ 1,000) × Total Millage = Annual Tax</p>
-                <p className="text-gray-400 text-xs">({fmt(taxableValue)} ÷ 1,000) × {totalMillage.toFixed(4)} = <strong className="text-white">{fmt(annualTax)}</strong></p>
+              </div>
+              {/* Non-Ad Valorem Summary */}
+              {totalNonAdValorem > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-white font-bold mb-3">Step 4 — Non-Ad Valorem Assessments</h3>
+                  <div className="bg-white/5 rounded-xl p-4 text-sm">
+                    {nonAdValorem1 > 0 && (
+                      <div className="flex justify-between py-2 border-b border-white/10">
+                        <span className="text-white">{navLabel1}</span>
+                        <span className="text-yellow-200">{fmt(nonAdValorem1)}</span>
+                      </div>
+                    )}
+                    {nonAdValorem2 > 0 && (
+                      <div className="flex justify-between py-2 border-b border-white/10">
+                        <span className="text-white">{navLabel2}</span>
+                        <span className="text-yellow-200">{fmt(nonAdValorem2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between pt-3 font-bold">
+                      <span className="text-white">Total Non-Ad Valorem</span>
+                      <span className="text-[#c9a227]">{fmt(totalNonAdValorem)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Grand Total */}
+              <div className="bg-red-900/20 border border-red-500/40 rounded-xl p-6">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-white font-bold text-lg">Ad Valorem Tax</span>
+                  <span className="text-white font-bold text-lg">{fmt(annualTax)}</span>
+                </div>
+                {totalNonAdValorem > 0 && (
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-300">Non-Ad Valorem Assessments</span>
+                    <span className="text-gray-300">{fmt(totalNonAdValorem)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center border-t border-red-500/40 pt-3 mt-2">
+                  <span className="text-red-300 font-bold text-xl">🧾 2025 Gross Tax Total</span>
+                  <span className="text-white font-bold text-3xl">{fmt(grandTotal)}</span>
+                </div>
               </div>
 
-              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4">
+              <div className="mt-6 bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4">
                 <p className="text-yellow-300 text-xs font-semibold mb-1">⚠️ Estimate Only</p>
-                <p className="text-gray-400 text-xs">Based on 2024 Orange County millage rates. Actual taxes may vary. Verify at <a href="https://www.ocpafl.org" target="_blank" rel="noopener noreferrer" className="text-blue-300 underline">ocpafl.org</a>.</p>
+                <p className="text-gray-400 text-xs">Based on 2025 Orange County millage rates. Actual taxes may vary based on county assessed value, Save Our Homes cap, and special assessments. Verify at <a href="https://www.ocpafl.org" target="_blank" rel="noopener noreferrer" className="text-blue-300 underline">ocpafl.org</a>.</p>
               </div>
             </div>
 
+            {/* CTA */}
             <div className="bg-green-900/20 border border-green-500/30 rounded-2xl p-6 flex items-center justify-between flex-wrap gap-4">
               <div>
                 <p className="text-green-300 font-bold">Ready to plug this into closing costs?</p>
@@ -231,3 +285,4 @@ export default function PropertyTaxPage() {
     </Suspense>
   );
 }
+
