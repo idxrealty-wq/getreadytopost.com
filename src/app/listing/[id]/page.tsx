@@ -30,7 +30,6 @@ export default function ListingViewPage() {
     try {
       const listingRef = doc(db, 'listings', id);
       const listingSnap = await getDoc(listingRef);
-      
       if (listingSnap.exists()) {
         const data = listingSnap.data() as Listing;
         if (data.userId !== user?.uid) {
@@ -50,21 +49,11 @@ export default function ListingViewPage() {
 
   const completedChecklist = listing ? Object.entries(listing.checklistState).filter(([, v]) => v).length : 0;
   const totalChecklist = listing ? Object.keys(listing.checklistState).length : 0;
-
   const photos = listing?.photos || [];
   const hasPhotos = photos.length > 0;
 
-  const nextPhoto = () => {
-    if (hasPhotos) {
-      setCurrentPhotoIndex((prev) => (prev + 1) % photos.length);
-    }
-  };
-
-  const prevPhoto = () => {
-    if (hasPhotos) {
-      setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
-    }
-  };
+  const nextPhoto = () => { if (hasPhotos) setCurrentPhotoIndex((prev) => (prev + 1) % photos.length); };
+  const prevPhoto = () => { if (hasPhotos) setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length); };
 
   if (authLoading || loading) {
     return (
@@ -93,32 +82,73 @@ export default function ListingViewPage() {
   }
 
   const mapEmbedUrl = `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(listing.address)}`;
+  const closingEstimate = (listing as any).closingCostEstimate;
 
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex items-center justify-between mb-8">
+
+        {/* Header */}
+        <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
             <h1 className="text-4xl font-bold text-white mb-2">🏠 {listing.address}</h1>
             <p className="text-gray-300">Tax ID: {listing.propertyData.taxId}</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <Link
               href={`/workspace?edit=${listing.id}`}
-              className="bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 px-6 py-3 rounded-xl font-bold transition border border-amber-500/40"
+              className="bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 px-5 py-3 rounded-xl font-bold transition border border-amber-500/40"
             >
               ✏️ Edit
             </Link>
             <Link
-              href="/agent-vault"
-              className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-bold transition"
+              href={`/workspace?edit=${listing.id}`}
+              className="bg-green-600/30 hover:bg-green-600/50 text-green-300 px-5 py-3 rounded-xl font-bold transition border border-green-500/40"
             >
-              ← Back to Vault
+              🧮 Closing Costs
+            </Link>
+            <Link
+              href={`/property-tax?address=${encodeURIComponent(listing.address)}&price=${encodeURIComponent(listing.propertyData.price || '')}`}
+              className="bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 px-5 py-3 rounded-xl font-bold transition border border-blue-500/40"
+            >
+              🏛️ Tax Estimate
+            </Link>
+            <Link
+              href="/agent-vault"
+              className="bg-white/20 hover:bg-white/30 text-white px-5 py-3 rounded-xl font-bold transition"
+            >
+              ← Vault
             </Link>
           </div>
         </div>
-
         <div className="space-y-6">
+
+          {/* Closing Cost Summary Card (if saved) */}
+          {closingEstimate && closingEstimate.results && (
+            <div className="bg-gradient-to-r from-green-900/40 to-blue-900/40 backdrop-blur-md rounded-2xl p-8 border border-green-500/30">
+              <h2 className="text-2xl font-bold text-white mb-4">🧮 Closing Cost Estimate</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-blue-300 text-sm">Buyer Cash to Close</p>
+                  <p className="text-white font-bold text-xl">${closingEstimate.results.buyerCashToClose?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                </div>
+                <div>
+                  <p className="text-green-300 text-sm">Seller Net Proceeds</p>
+                  <p className="text-white font-bold text-xl">${closingEstimate.results.sellerNetProceeds?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                </div>
+                <div>
+                  <p className="text-blue-300 text-sm">Buyer Closing Costs</p>
+                  <p className="text-white font-bold text-xl">${closingEstimate.results.buyerTotal?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                </div>
+                <div>
+                  <p className="text-green-300 text-sm">Seller Closing Costs</p>
+                  <p className="text-white font-bold text-xl">${closingEstimate.results.sellerTotal?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                </div>
+              </div>
+              <p className="text-gray-400 text-xs mt-4">Calculated: {new Date(closingEstimate.calculatedAt).toLocaleString()}</p>
+            </div>
+          )}
+
           {/* Photo Gallery */}
           {hasPhotos ? (
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
@@ -133,18 +163,8 @@ export default function ListingViewPage() {
                 </div>
                 {photos.length > 1 && (
                   <>
-                    <button
-                      onClick={prevPhoto}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition"
-                    >
-                      ←
-                    </button>
-                    <button
-                      onClick={nextPhoto}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition"
-                    >
-                      →
-                    </button>
+                    <button onClick={prevPhoto} className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition">←</button>
+                    <button onClick={nextPhoto} className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition">→</button>
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm">
                       {currentPhotoIndex + 1} / {photos.length}
                     </div>
@@ -157,9 +177,7 @@ export default function ListingViewPage() {
                     <button
                       key={idx}
                       onClick={() => setCurrentPhotoIndex(idx)}
-                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition ${
-                        idx === currentPhotoIndex ? 'border-[#c9a227]' : 'border-white/20'
-                      }`}
+                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition ${idx === currentPhotoIndex ? 'border-[#c9a227]' : 'border-white/20'}`}
                     >
                       <img src={photo.downloadURL || photo.url || ""} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
                     </button>
@@ -179,19 +197,14 @@ export default function ListingViewPage() {
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
               <h2 className="text-2xl font-bold text-white mb-6">📄 Documents</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {listing.documents.map((doc: any, idx: number) => (
-                  <a
-                    key={idx}
-                    href={doc.downloadURL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-white/15 hover:bg-white/25 rounded-xl p-4 border border-white/30 transition flex flex-col items-center justify-center text-center cursor-pointer"
-                  >
+                {listing.documents.map((d: any, idx: number) => (
+                  <a key={idx} href={d.downloadURL} target="_blank" rel="noopener noreferrer"
+                    className="bg-white/15 hover:bg-white/25 rounded-xl p-4 border border-white/30 transition flex flex-col items-center justify-center text-center cursor-pointer">
                     <div className="text-4xl mb-2">📎</div>
-                    <p className="text-white font-semibold text-sm line-clamp-2">{doc.label}</p>
-                    <p className="text-gray-200 text-xs mt-2">{doc.fileName}</p>
-                    {doc.required && <span className="text-red-400 text-xs mt-2">Required</span>}
-                    <p className="text-gray-300 text-xs mt-1">{new Date(doc.uploadedAt).toLocaleDateString()}</p>
+                    <p className="text-white font-semibold text-sm line-clamp-2">{d.label}</p>
+                    <p className="text-gray-200 text-xs mt-2">{d.fileName}</p>
+                    {d.required && <span className="text-red-400 text-xs mt-2">Required</span>}
+                    <p className="text-gray-300 text-xs mt-1">{new Date(d.uploadedAt).toLocaleDateString()}</p>
                   </a>
                 ))}
               </div>
@@ -202,7 +215,6 @@ export default function ListingViewPage() {
               <p className="text-gray-300">No documents uploaded yet</p>
             </div>
           )}
-
           {/* Map */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
             <h2 className="text-2xl font-bold text-white mb-6">📍 Location</h2>
@@ -302,6 +314,7 @@ export default function ListingViewPage() {
               </div>
             </div>
           )}
+
         </div>
       </div>
     </main>
