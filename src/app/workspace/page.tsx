@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import type { Listing } from '@/lib/listings';
 import AuthModal from '@/components/AuthModal';
 import Tab1PropertyBasics from './tabs/tab1';
+import CSVImport from './tabs/csv-import';
 import Tab2Neighborhood from './tabs/tab2';
 import Tab3Listing from './tabs/tab3';
 import Tab4Checklist from './tabs/tab4';
@@ -112,6 +113,11 @@ function WorkspaceContent() {
     }
   };
 
+  const handleCSVImport = (imported: any) => {
+    setAddress(imported.address);
+    setPropertyData((prev: any) => ({ ...prev, ...imported.propertyData }));
+  };
+
   const tabs = [
     { num: 1, label: 'Property Basics', icon: '🏠', done: !!address && !!propertyData.taxId },
     { num: 2, label: 'Neighborhood', icon: '📍', done: !!nearby },
@@ -206,7 +212,7 @@ function WorkspaceContent() {
             </button>
           ))}
         </div>
-        {activeTab === 1 && <Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} />}
+        {activeTab === 1 && <><CSVImport onImport={handleCSVImport} /><Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} /></>}
         {activeTab === 2 && <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />}
         {activeTab === 3 && <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />}
         {activeTab === 4 && <Tab4Checklist listingId={listingId} checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} photos={photos} setPhotos={setPhotos} existingPhotos={existingPhotos} existingDocuments={existingDocuments} setExistingDocuments={setExistingDocuments} onNext={() => setActiveTab(5)} documentAccessCode={documentAccessCode} setDocumentAccessCode={setDocumentAccessCode} />}
