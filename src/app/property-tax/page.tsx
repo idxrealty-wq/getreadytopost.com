@@ -41,7 +41,7 @@ function PropertyTaxContent() {
   const schoolTaxable = Math.max(0, assessedValue - schoolExemption);
   const countyTaxable = Math.max(0, assessedValue - countyExemption);
 
-  const allRates = [...COUNTY_RATES, ...(inCity ? [{ label: 'City Millage', mills: cityMillage, group: 'county' as const }] : [])];
+  const allRates = [...COUNTY_RATES.filter(r => inCity ? !r.label.includes('Unincorporated') : true), ...(inCity ? [{ label: 'City Millage', mills: cityMillage, group: 'county' as const }] : [])];
 
   const lineItems = allRates.map(r => {
     const tv = r.group === 'school' ? schoolTaxable : countyTaxable;
