@@ -57,7 +57,7 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
       } finally {
         setLoading(false);
       }
-    }, 400);
+    }, 600);
   };
 
   const handleSelect = (parcel: ParcelResult) => {
@@ -84,7 +84,7 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
       {open && results.length > 0 && (
         <div
           className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-80 overflow-y-auto"
-          onMouseDown={() => { mouseDownOnDropdown.current = true; }}
+          onMouseEnter={() => { if (debounceRef.current) clearTimeout(debounceRef.current); }} onMouseDown={() => { mouseDownOnDropdown.current = true; }}
           onMouseUp={() => { mouseDownOnDropdown.current = false; }}
         >
           {results.map((r, i) => (
