@@ -251,8 +251,8 @@ export default function Tab4Checklist({
               </button>
             </div>
             {documentAccessCode
-              ? <p className="text-gray-500 text-xs mt-2">?? Protected — Access code: <span className="text-white font-bold">{documentAccessCode}</span></p>
-              : <p className="text-yellow-400 text-xs mt-2">?? No access code — anyone with this link can view documents</p>
+              ? <p className="text-gray-500 text-xs mt-2">?? Protected â€” Access code: <span className="text-white font-bold">{documentAccessCode}</span></p>
+              : <p className="text-yellow-400 text-xs mt-2">?? No access code â€” anyone with this link can view documents</p>
             }
           </div>
         )}
@@ -307,7 +307,7 @@ export default function Tab4Checklist({
                   </select>
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs text-gray-400 mb-1">?? Access Code (optional — leave blank for no protection)</label>
+                  <label className="block text-xs text-gray-400 mb-1">?? Access Code (optional â€” leave blank for no protection)</label>
                   <div className="flex gap-2">
                     <input type={docMeta[docSlot.id]?.codeSaved ? "password" : "text"} placeholder="Leave blank = no lock" value={docMeta[docSlot.id]?.accessCode || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], accessCode: e.target.value, codeSaved: false } }))} className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />
                     <button onClick={async () => {
@@ -325,7 +325,7 @@ export default function Tab4Checklist({
                   </div>
                   {docMeta[docSlot.id]?.codeSaved && (
                     <p className="text-green-400 text-xs mt-1">
-                      {docMeta[docSlot.id]?.accessCode ? '?? Locked — access code saved' : '?? Unlocked — no access code set'}
+                      {docMeta[docSlot.id]?.accessCode ? '?? Locked â€” access code saved' : '?? Unlocked â€” no access code set'}
                     </p>
                   )}
                 </div>
