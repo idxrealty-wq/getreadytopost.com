@@ -222,6 +222,12 @@ function WorkspaceContent() {
                 assessedValue: parcel.just_value || '',
                 lastSalePrice: parcel.sale_price || '',
                 lastSaleYear: parcel.sale_year || '',
+                baths: parcel.baths || '',
+                propertyType: parcel.property_type || '',
+                zoning: parcel.zoning || '',
+                homestead: parcel.homestead || '',
+                lotSize: parcel.acres || parcel.land_sqft || '',
+                assessedValue: parcel.assessed_value || parcel.just_value || '',
               }));
             }}
           />
