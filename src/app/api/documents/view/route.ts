@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid access code" }, { status: 403 });
     }
     const documents = (data.documents || [])
-      .filter((doc: any) => doc.sharedWithBuyer === true)
+      .filter((doc: any) => doc.sharedWithBuyer !== false)
       .map((doc: any) => ({
         docId: doc.docId,
         label: doc.label,
