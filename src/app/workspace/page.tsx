@@ -150,11 +150,20 @@ function WorkspaceContent() {
       setLoadingListing(false);
     }
   };
-
   const handleCSVImport = (imported: any) => {
-    setAddress(imported.address);
-    setPropertyData((prev: any) => ({ ...prev, ...imported.propertyData }));
+    if (!address) setAddress(imported.address);
+    setPropertyData((prev: any) => {
+      const merged: any = { ...prev };
+      const incoming = imported.propertyData || {};
+      Object.keys(incoming).forEach((key) => {
+        if (!prev[key] || prev[key] === '') {
+          merged[key] = incoming[key];
+        }
+      });
+      return merged;
+    });
   };
+
   const tabs = [
     { num: 1, label: 'Property Basics', icon: '🏠', done: !!address && !!propertyData.taxId },
     { num: 2, label: 'Neighborhood', icon: '🗺️', done: !!nearby },
@@ -193,6 +202,7 @@ function WorkspaceContent() {
             {editId ? 'Update your listing details' : 'Your complete pre-listing command center'}
           </p>
         </div>
+
         {!authLoading && !user && (
           <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6 text-center">
             <h2 className="text-2xl font-bold text-white mb-3">⚠️ Sign In Required</h2>
@@ -207,6 +217,7 @@ function WorkspaceContent() {
             </button>
           </div>
         )}
+
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
           <AddressAutosuggest
             value={address}
@@ -214,22 +225,24 @@ function WorkspaceContent() {
             onSelect={(parcel) => {
               setPropertyData((prev) => ({
                 ...prev,
-                taxId: parcel.parcel_id || '',
-                yearBuilt: parcel.year_built || '',
-                sqft: parcel.sqft || '',
-                beds: parcel.beds || '',
-                lotSize: parcel.land_sqft || '',
-                assessedValue: parcel.just_value || '',
-                lastSalePrice: parcel.sale_price || '',
-                lastSaleYear: parcel.sale_year || '',
-                baths: parcel.baths || '',
-                propertyType: parcel.property_type || '',
-                zoning: parcel.zoning || '',
-                homestead: parcel.homestead || '',propertyLink: parcel.property_link || '',
+                taxId: prev.taxId || parcel.parcel_id || '',
+                yearBuilt: prev.yearBuilt || parcel.year_built || '',
+                sqft: prev.sqft || parcel.sqft || '',
+                beds: prev.beds || parcel.beds || '',
+                lotSize: prev.lotSize || parcel.land_sqft || '',
+                assessedValue: prev.assessedValue || parcel.just_value || '',
+                lastSalePrice: prev.lastSalePrice || parcel.sale_price || '',
+                lastSaleYear: prev.lastSaleYear || parcel.sale_year || '',
+                baths: prev.baths || parcel.baths || '',
+                propertyType: prev.propertyType || parcel.property_type || '',
+                zoning: prev.zoning || parcel.zoning || '',
+                homestead: prev.homestead || parcel.homestead || '',
+                propertyLink: (prev as any).propertyLink || parcel.property_link || '',
               }));
             }}
           />
         </div>
+
         <div className="flex justify-between items-center mb-4">
           <div></div>
           <button
@@ -239,6 +252,7 @@ function WorkspaceContent() {
             🏦 View in Vault
           </button>
         </div>
+
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {tabs.map((tab) => (
             <button
@@ -257,12 +271,58 @@ function WorkspaceContent() {
             </button>
           ))}
         </div>
-        {activeTab === 1 && <><CSVImport onImport={handleCSVImport} /><Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} /></>}
-        {activeTab === 2 && <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />}
-        {activeTab === 3 && <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />}
-        {activeTab === 4 && <Tab4Checklist listingId={listingId} checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} photos={photos} setPhotos={setPhotos} existingPhotos={existingPhotos} existingDocuments={existingDocuments} setExistingDocuments={setExistingDocuments} onNext={() => setActiveTab(5)} documentAccessCode={documentAccessCode} setDocumentAccessCode={setDocumentAccessCode} />}
-        {activeTab === 5 && <Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} photos={photos} existingPhotos={existingPhotos} documents={existingDocuments} existingDocuments={existingDocuments} documentAccessCode={documentAccessCode} />}
-        {activeTab === 6 && <Tab6ClosingCosts listingId={listingId} address={address} propertyData={propertyData} savedEstimate={savedEstimate} />}
+        {activeTab === 1 && (
+          <>
+            <CSVImport onImport={handleCSVImport} />
+            <Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} />
+          </>
+        )}
+        {activeTab === 2 && (
+          <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />
+        )}
+        {activeTab === 3 && (
+          <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />
+        )}
+        {activeTab === 4 && (
+          <Tab4Checklist
+            listingId={listingId}
+            checklistState={checklistState}
+            setChecklistState={setChecklistState}
+            notes={notes}
+            setNotes={setNotes}
+            photos={photos}
+            setPhotos={setPhotos}
+            existingPhotos={existingPhotos}
+            existingDocuments={existingDocuments}
+            setExistingDocuments={setExistingDocuments}
+            onNext={() => setActiveTab(5)}
+            documentAccessCode={documentAccessCode}
+            setDocumentAccessCode={setDocumentAccessCode}
+          />
+        )}
+        {activeTab === 5 && (
+          <Tab5Save
+            address={address}
+            propertyData={propertyData}
+            nearby={nearby}
+            listing={listing}
+            checklistState={checklistState}
+            notes={notes}
+            saved={saved}
+            setSaved={setSaved}
+            user={user}
+            editId={editId}
+            photos={photos}
+            existingPhotos={existingPhotos}
+            documents={existingDocuments}
+            existingDocuments={existingDocuments}
+            documentAccessCode={documentAccessCode}
+            saveNowNonce={saveNowNonce}
+          />
+        )}
+        {activeTab === 6 && (
+          <Tab6ClosingCosts listingId={listingId} address={address} propertyData={propertyData} savedEstimate={savedEstimate} />
+        )}
       </div>
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onSuccess={() => setShowAuthModal(false)} />
     </main>
