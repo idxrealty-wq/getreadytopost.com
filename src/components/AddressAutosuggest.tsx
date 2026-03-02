@@ -16,6 +16,20 @@ interface ParcelResult {
   land_sqft: string;
   dor_uc: string;
   search_key: string;
+  baths: string;
+  property_type: string;
+  zoning: string;
+  homestead: string;
+  acres: string;
+  taxable_value: string;
+  assessed_value: string;
+  land_value: string;
+  building_value: string;
+  feature_value: string;
+  owner_name: string;
+  taxing_jurisdiction: string;
+  property_link: string;
+  search_key: string;
 }
 
 interface Props {
