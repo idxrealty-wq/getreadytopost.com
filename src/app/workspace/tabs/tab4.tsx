@@ -46,9 +46,9 @@ export default function Tab4Checklist({
   listingId, documentAccessCode, setDocumentAccessCode,
 }: any) {
   const [uploads, setUploads] = useState<Record<string, any>>({});
-  const [docMeta, setDocMeta] = useState<Record<string, { price: string; party: string; accessCode: string; codeSaved?: boolean }>>(() => {
+  const [docMeta, setDocMeta] = useState<Record<string, { price: string; party: string; accessCode: string; codeSaved?: boolean; sharedWithBuyer: boolean }>>(() => {
     const defaults: Record<string, any> = {};
-    DOCUMENT_SLOTS.forEach((d) => { defaults[d.id] = { price: "", party: "Buyer", accessCode: "", codeSaved: false }; });
+    DOCUMENT_SLOTS.forEach((d) => { defaults[d.id] = { price: "", party: "Buyer", accessCode: "", codeSaved: false, sharedWithBuyer: false }; });
     return defaults;
   });
   const [savedPhotos, setSavedPhotos] = useState<any[]>([]);
@@ -85,6 +85,11 @@ export default function Tab4Checklist({
         loaded[d.docId] = { file: { name: d.fileName } as File, date: d.uploadedAt ? new Date(d.uploadedAt).toLocaleString() : "", url: d.downloadURL, uploading: false, storagePath: d.storagePath || null };
       });
       setUploads(loaded);
+      const metaUpdate: Record<string, any> = {};
+      existingDocuments.forEach((d: any) => {
+        metaUpdate[d.docId] = { price: d.price || "", party: d.party || "Buyer", accessCode: d.accessCode || "", codeSaved: !!d.accessCode, sharedWithBuyer: d.sharedWithBuyer || false };
+      });
+      setDocMeta((prev) => ({ ...prev, ...metaUpdate }));
     }
   }, [existingDocuments]);
 
@@ -114,7 +119,6 @@ export default function Tab4Checklist({
     try {
       await updateDoc(doc(db, 'listings', listingId), { documentAccessCode });
       setCodeSaved(true);
-      setTimeout(() => setCodeSaved(false), 3000);
     } catch (e) { alert('Failed to save access code'); }
     finally { setSavingCode(false); }
   };
@@ -135,7 +139,7 @@ export default function Tab4Checklist({
       const downloadURL = await getDownloadURL(storageRef);
       setUploads((prev) => ({ ...prev, [docId]: { file, date: new Date().toLocaleString(), url: downloadURL, uploading: false, storagePath } }));
       if (listingId) {
-        const docMetaItem = { docId, label: DOCUMENT_SLOTS.find((d) => d.id === docId)?.label || docId, fileName: file.name, fileSize: file.size, fileType: file.type, downloadURL, storagePath, uploadedAt: new Date().toISOString(), required: DOCUMENT_SLOTS.find((d) => d.id === docId)?.required || false };
+        const docMetaItem = { docId, label: DOCUMENT_SLOTS.find((d) => d.id === docId)?.label || docId, fileName: file.name, fileSize: file.size, fileType: file.type, downloadURL, storagePath, uploadedAt: new Date().toISOString(), required: DOCUMENT_SLOTS.find((d) => d.id === docId)?.required || false, sharedWithBuyer: false };
         await updateDoc(doc(db, "listings", listingId), { documents: arrayUnion(docMetaItem) });
         if (setExistingDocuments) setExistingDocuments((prev: any[]) => [...prev, docMetaItem]);
       }
@@ -160,182 +164,151 @@ export default function Tab4Checklist({
     } catch (e) { console.error(e); }
     finally { setDeletingDoc(null); }
   };
-  const handlePhotoUpload = async (categoryId: string, files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    const incoming = Array.from(files);
-    const total = Object.values(photos).reduce((s: number, a: any) => s + a.length, 0) + savedPhotos.length;
-    if (total + incoming.length > 20) { alert(`Max 20 photos. You have ${total}.`); return; }
-    for (const file of incoming) {
-      const preview = URL.createObjectURL(file);
-      setPhotos((prev: any) => ({ ...prev, [categoryId]: [...(prev[categoryId] || []), { file, preview, date: new Date().toLocaleString() }] }));
-      if (!listingId) continue;
-      try {
-        const photoId = `photo_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-        const storagePath = `photos/${listingId}/${categoryId}/${photoId}_${file.name}`;
-        const storageRef = ref(storage, storagePath);
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-        await updateDoc(doc(db, "listings", listingId), {
-          photos: arrayUnion({ photoId, categoryId, fileName: file.name, fileSize: file.size, fileType: file.type, downloadURL, storagePath, uploadedAt: new Date().toISOString() }),
-        });
-        setSavedPhotos((prev) => [...prev, { photoId, categoryId, fileName: file.name, downloadURL, storagePath, uploadedAt: new Date().toISOString() }]);
-      } catch (e) { console.error("[Tab4] photo failed", e); }
-    }
+  const handleSaveDocMeta = async (docId: string) => {
+    if (!listingId) return;
+    try {
+      const snap = await getDoc(doc(db, "listings", listingId));
+      if (snap.exists()) {
+        const updated = (snap.data().documents || []).map((d: any) =>
+          d.docId === docId ? {
+            ...d,
+            accessCode: docMeta[docId]?.accessCode || "",
+            price: docMeta[docId]?.price || "",
+            party: docMeta[docId]?.party || "Buyer",
+            sharedWithBuyer: docMeta[docId]?.sharedWithBuyer || false,
+          } : d
+        );
+        await updateDoc(doc(db, "listings", listingId), { documents: updated });
+        setDocMeta((prev) => ({ ...prev, [docId]: { ...prev[docId], codeSaved: true } }));
+      }
+    } catch (e) { alert("Failed to save document settings"); }
   };
 
   const handleDeleteSavedPhoto = async (photo: any) => {
     if (!window.confirm("Delete this photo?")) return;
     try {
-      if (photo.storagePath) { try { await deleteObject(ref(storage, photo.storagePath)); } catch {} }
+      if (photo.storagePath) { const storageRef = ref(storage, photo.storagePath); await deleteObject(storageRef); }
       if (listingId) {
         const snap = await getDoc(doc(db, "listings", listingId));
         if (snap.exists()) {
-          const updated = (snap.data().photos || []).filter((p: any) => p.photoId !== photo.photoId);
+          const updated = (snap.data().photos || []).filter((p: any) => p.downloadURL !== photo.downloadURL);
           await updateDoc(doc(db, "listings", listingId), { photos: updated });
         }
       }
-      setSavedPhotos((prev) => prev.filter((p) => p.photoId !== photo.photoId));
+      setSavedPhotos((prev) => prev.filter((p) => p.downloadURL !== photo.downloadURL));
     } catch (e) { console.error(e); }
   };
 
   const handleDeleteLocalPhoto = (categoryId: string, index: number) => {
-    if (!window.confirm("Remove this photo?")) return;
-    setPhotos((prev: any) => ({ ...prev, [categoryId]: prev[categoryId].filter((_: any, i: number) => i !== index) }));
+    setPhotos((prev: any) => ({ ...prev, [categoryId]: (prev[categoryId] || []).filter((_: any, i: number) => i !== index) }));
   };
 
-  const groupedChecklist = CHECKLIST_ITEMS.reduce((acc: any, item) => {
-    if (!acc[item.category]) acc[item.category] = [];
-    acc[item.category].push(item);
-    return acc;
-  }, {});
+  const handlePhotoUpload = (categoryId: string, files: FileList | null) => {
+    if (!files) return;
+    const newPhotos = Array.from(files).map((file) => ({ file, preview: URL.createObjectURL(file), date: new Date().toLocaleString() }));
+    setPhotos((prev: any) => ({ ...prev, [categoryId]: [...(prev[categoryId] || []), ...newPhotos] }));
+  };
 
-  const uploadedRequired = DOCUMENT_SLOTS.filter((d) => d.required && uploads[d.id]?.url).length;
-  const requiredDocs = DOCUMENT_SLOTS.filter((d) => d.required).length;
-  const uploadedCount = Object.values(uploads).filter((u: any) => u?.url).length;
-  const completedCount = Object.values(checklistState).filter((v) => v).length;
+  const totalPhotos = savedPhotos.length + Object.values(photos).reduce((sum: number, arr: any) => sum + (arr?.length || 0), 0);
+  const completedCount = Object.values(checklistState).filter(Boolean).length;
   const totalCount = CHECKLIST_ITEMS.length;
-  const totalPhotos = Object.values(photos).reduce((s: number, a: any) => s + a.length, 0) + savedPhotos.length;
+  const groupedChecklist = CHECKLIST_ITEMS.reduce((acc: any, item) => { if (!acc[item.category]) acc[item.category] = []; acc[item.category].push(item); return acc; }, {});
+  const sharedCount = DOCUMENT_SLOTS.filter((slot) => docMeta[slot.id]?.sharedWithBuyer).length;
 
   return (
     <div className="space-y-8">
 
-      {/* Share Documents with Buyer */}
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-        <h3 className="text-white font-bold text-lg mb-1">Share Documents with Buyer</h3>
-        <p className="text-gray-400 text-sm mb-4">Set a master access code below, click Generate Link, then send both the link AND the code to your buyer via text or email.</p>
-        <div className="flex gap-2 mb-3">
+      {/* Share Link */}
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+        <h2 className="text-2xl font-bold text-white mb-2">Buyer Document Share Link</h2>
+        <p className="text-gray-300 mb-6 text-sm">Set an access code and choose which documents to share. Only documents marked "Include in share link" will be visible to the buyer. <span className="text-[#c9a227] font-semibold">{sharedCount} document{sharedCount !== 1 ? "s" : ""} selected for sharing.</span></p>
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
           <input
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black"
-            placeholder="Optional: set access code (e.g. SMITH2024)"
-            value={documentAccessCode || ''}
+            type="text"
+            value={documentAccessCode}
             onChange={(e) => { setDocumentAccessCode(e.target.value); setCodeSaved(false); }}
+            placeholder="Set access code (e.g. SMITH2024)"
+            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black"
           />
-          <button
-            onClick={handleShareClick}
-            disabled={savingCode || !listingId}
-            className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-3 rounded-xl font-bold transition whitespace-nowrap disabled:opacity-50"
-          >
-            {savingCode ? 'Saving...' : 'Generate Link'}
+          <button onClick={handleShareClick} disabled={savingCode} className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition disabled:opacity-50">
+            {savingCode ? "Saving..." : "Save & Generate Link"}
           </button>
         </div>
-        {codeSaved && (
-          <div className="bg-white/5 border border-white/20 rounded-xl p-4 mb-3">
-            <p className="text-gray-400 text-xs mb-2">Shareable link:</p>
-            <div className="flex gap-2 items-center">
-              <code className="flex-1 text-[#c9a227] text-sm break-all">{shareUrl}</code>
-              <button
-                onClick={() => { navigator.clipboard.writeText(shareUrl); setCodeCopied(true); setTimeout(() => setCodeCopied(false), 2000); }}
-                className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition"
-              >
-                {codeCopied ? 'Copied!' : 'Copy'}
+        {codeSaved && shareUrl && (
+          <div className="bg-white/10 rounded-xl p-4 border border-white/20">
+            <p className="text-gray-300 text-sm mb-2">Share this link with your buyer:</p>
+            <div className="flex items-center gap-3">
+              <code className="text-[#c9a227] text-sm break-all flex-1">{shareUrl}</code>
+              <button onClick={() => { navigator.clipboard.writeText(shareUrl); setCodeCopied(true); }} className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-semibold transition whitespace-nowrap">
+                {codeCopied ? "Copied!" : "Copy Link"}
               </button>
             </div>
-            {documentAccessCode
-              ? <p className="text-gray-500 text-xs mt-2">Protected — Access code: <span className="text-white font-bold">{documentAccessCode}</span></p>
-              : <p className="text-yellow-400 text-xs mt-2">No access code — anyone with this link can view documents</p>
-            }
           </div>
         )}
-        {!listingId && <p className="text-yellow-400 text-sm">Save the listing first to generate the share link.</p>}
       </div>
 
-      {/* Contract Day Calculator */}
+      {/* Documents */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-4">Contract Day Calculator</h2>
-        <div className="flex gap-4 items-end">
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Days from Today</label>
-            <input type="number" value={daysOut} onChange={(e) => setDaysOut(e.target.value)} className="px-4 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none" />
-          </div>
-          {calculatedDate && <div className="text-lg font-bold text-[#c9a227]">{calculatedDate}</div>}
-        </div>
-      </div>
-
-      {/* Document Upload Center */}
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-4">Document Upload Center</h2>
-        <p className="text-gray-300 mb-6">Required: {uploadedRequired}/{requiredDocs} | Total: {uploadedCount}</p>
-        <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-white mb-2">Transaction Documents</h2>
+        <p className="text-gray-300 mb-6 text-sm">Upload documents, set access codes, and check "Include in share link" to control what the buyer sees.</p>
+        <div className="space-y-6">
           {DOCUMENT_SLOTS.map((docSlot) => (
-            <div key={docSlot.id} className="bg-white/5 rounded-xl p-4 border border-white/20">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-white font-semibold">
-                  {docSlot.label}{docSlot.required && <span className="text-red-400 ml-1">*</span>}
-                </label>
-                <div className="flex items-center gap-2">
-                  {uploads[docSlot.id]?.url && <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">Uploaded</span>}
-                  {uploads[docSlot.id]?.url && (
-                    <>
-                      <button onClick={() => handleViewClick(docSlot.id)} className="text-xs bg-blue-500/20 hover:bg-blue-500/40 text-blue-300 px-2 py-1 rounded transition">View</button>
-                      <button onClick={() => handleDeleteDoc(docSlot.id)} disabled={deletingDoc === docSlot.id} className="text-xs bg-red-500/20 hover:bg-red-500/40 text-red-300 px-2 py-1 rounded transition disabled:opacity-50">
-                        {deletingDoc === docSlot.id ? "..." : "Delete"}
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-              <input type="file" onChange={(e) => handleFileUpload(docSlot.id, e.target.files?.[0] || null)} disabled={uploads[docSlot.id]?.uploading} className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#c9a227] file:text-white hover:file:bg-[#b8911f] file:cursor-pointer disabled:opacity-50" />
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">Price to Unlock ($)</label>
-                  <input type="number" min="0" placeholder="0 = free" value={docMeta[docSlot.id]?.price || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], price: e.target.value } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">Responsible Party</label>
-                  <select value={docMeta[docSlot.id]?.party || "Buyer"} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], party: e.target.value } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm">
-                    <option>Buyer</option>
-                    <option>Seller</option>
-                    <option>Both</option>
-                  </select>
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-xs text-gray-400 mb-1">Access Code (optional — leave blank for no protection)</label>
+            <div key={docSlot.id} className="bg-white/5 rounded-xl p-5 border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-white font-bold">{docSlot.label} {docSlot.required && <span className="text-red-400 text-xs ml-1">Required</span>}</h3>
+                {uploads[docSlot.id]?.url && (
                   <div className="flex gap-2">
-                    <input type={docMeta[docSlot.id]?.codeSaved ? "password" : "text"} placeholder="Leave blank = no lock" value={docMeta[docSlot.id]?.accessCode || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], accessCode: e.target.value, codeSaved: false } }))} className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />
-                    <button onClick={async () => {
-                      if (!listingId || !uploads[docSlot.id]?.url) return;
-                      try {
-                        const snap = await getDoc(doc(db, 'listings', listingId));
-                        if (snap.exists()) {
-                          const updated = (snap.data().documents || []).map((d: any) => d.docId === docSlot.id ? { ...d, accessCode: docMeta[docSlot.id]?.accessCode || '', price: docMeta[docSlot.id]?.price || '', party: docMeta[docSlot.id]?.party || 'Buyer' } : d);
-                          await updateDoc(doc(db, 'listings', listingId), { documents: updated });
-                          setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], codeSaved: true } }));
-                          setViewingDoc(null);
-                        }
-                      } catch(e) { alert('Save failed'); }
-                    }} className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap">Save</button>
+                    <button onClick={() => handleViewClick(docSlot.id)} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg transition">View</button>
+                    <button onClick={() => handleDeleteDoc(docSlot.id)} disabled={deletingDoc === docSlot.id} className="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg transition disabled:opacity-50">
+                      {deletingDoc === docSlot.id ? "Deleting..." : "Delete"}
+                    </button>
                   </div>
-                  {docMeta[docSlot.id]?.codeSaved && (
-                    <p className="text-green-400 text-xs mt-1">
-                      {docMeta[docSlot.id]?.accessCode ? 'Locked — access code saved' : 'Unlocked — no access code set'}
-                    </p>
+                )}
+              </div>
+              {uploads[docSlot.id] ? (
+                <div className="mb-3 text-sm text-gray-300">
+                  {uploads[docSlot.id].uploading ? (
+                    <span className="text-yellow-400">Uploading...</span>
+                  ) : (
+                    <span className="text-green-400">{uploads[docSlot.id].file?.name} — uploaded {uploads[docSlot.id].date}</span>
                   )}
                 </div>
-              </div>
-              {uploads[docSlot.id] && (
-                <div className="mt-2 text-xs text-gray-300">
-                  <p>{uploads[docSlot.id]?.file.name}</p>
-                  <p className="text-gray-400">Uploaded: {uploads[docSlot.id]?.date}</p>
+              ) : (
+                <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => handleFileUpload(docSlot.id, e.target.files?.[0] || null)} className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer mb-3" />
+              )}
+              {uploads[docSlot.id]?.url && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                  {/* Include in share link checkbox */}
+                  <div className="col-span-2">
+                    <label className="flex items-center gap-3 cursor-pointer bg-[#c9a227]/10 hover:bg-[#c9a227]/20 border border-[#c9a227]/40 p-3 rounded-xl transition">
+                      <input
+                        type="checkbox"
+                        checked={docMeta[docSlot.id]?.sharedWithBuyer || false}
+                        onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], sharedWithBuyer: e.target.checked } }))}
+                        className="w-5 h-5 accent-[#c9a227]"
+                      />
+                      <span className="text-white font-semibold text-sm">Include in buyer share link</span>
+                      {docMeta[docSlot.id]?.sharedWithBuyer && <span className="ml-auto text-[#c9a227] text-xs font-bold">WILL BE SHARED</span>}
+                    </label>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Access Code (optional)</label>
+                    <input type="text" value={docMeta[docSlot.id]?.accessCode || ""} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], accessCode: e.target.value, codeSaved: false } }))} placeholder="e.g. SMITH2024" className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Visible To</label>
+                    <select value={docMeta[docSlot.id]?.party || "Buyer"} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], party: e.target.value } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm">
+                      <option>Buyer</option>
+                      <option>Seller</option>
+                      <option>Both</option>
+                      <option>Agent Only</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <button onClick={() => handleSaveDocMeta(docSlot.id)} className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-5 py-2 rounded-lg text-sm font-bold transition">
+                      {docMeta[docSlot.id]?.codeSaved ? "Saved!" : "Save Settings"}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -413,7 +386,7 @@ export default function Tab4Checklist({
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-md p-8">
             <h3 className="text-white font-bold text-xl mb-3 text-center">No Access Code Set</h3>
-            <p className="text-gray-400 text-sm mb-6 text-center">This link is not password protected. Anyone with the link can view all documents. Do you want to add an access code first?</p>
+            <p className="text-gray-400 text-sm mb-6 text-center">This link is not password protected. Anyone with the link can view all shared documents. Do you want to add an access code first?</p>
             <div className="flex gap-3">
               <button onClick={() => setShowShareConfirm(false)} className="flex-1 bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-3 rounded-xl font-bold transition">Add Code First</button>
               <button onClick={async () => { setShowShareConfirm(false); await handleSaveAccessCode(); }} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl font-bold transition">Share Anyway</button>
