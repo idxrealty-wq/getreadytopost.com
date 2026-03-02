@@ -31,11 +31,8 @@ interface ParsedProperty {
 function parseCSV(text: string): ParsedProperty[] {
   const lines = text.split('\n').filter(l => l.trim());
   if (lines.length < 2) return [];
-  
-  // Detect separator from first line
   const sep = lines[0].startsWith('sep=') ? lines[0].replace('sep=', '').trim() : '$';
   const dataLines = lines[0].startsWith('sep=') ? lines.slice(2) : lines.slice(1);
-
   return dataLines.map(line => {
     const cols = line.split(sep);
     return {
@@ -77,6 +74,7 @@ interface Props {
       sqft: string;
       lotSize: string;
       price: string;
+      propertyType: string;
       legalDescription: string;
       yearBuilt: string;
       features: string;
@@ -84,7 +82,8 @@ interface Props {
       zoning: string;
       homestead: string;
       assessedValue: string;
-      justValue: string;
+      lastSalePrice: string;
+      lastSaleYear: string;
     };
   }) => void;
 }
@@ -128,14 +127,16 @@ export default function CSVImport({ onImport }: Props) {
         sqft: p.heatedArea,
         lotSize: p.acres,
         price: p.justValue.replace(/[^0-9.]/g, ''),
+        propertyType: p.dorDescription,
         legalDescription: p.dorDescription,
         yearBuilt: '',
-        features: `Zoning: ${p.zoningCode} | Type: ${p.dorDescription} | Homestead: ${p.homestead}`,
+        features: '',
         dateAdded: '',
         zoning: p.zoningCode,
         homestead: p.homestead,
         assessedValue: p.assessedValue.replace(/[^0-9.]/g, ''),
-        justValue: p.justValue.replace(/[^0-9.]/g, ''),
+        lastSalePrice: '',
+        lastSaleYear: '',
       },
     });
     setOpen(false);
@@ -157,7 +158,6 @@ export default function CSVImport({ onImport }: Props) {
       >
         📂 Import from Orange County Appraiser CSV
       </button>
-
       {open && (
         <div className="mt-4 bg-white/10 border border-white/20 rounded-2xl p-6">
           {properties.length === 0 ? (
