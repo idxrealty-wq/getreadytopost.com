@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { storage, db } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
-
 const DOCUMENT_SLOTS = [
   { id: "seller_disclosure", label: "Seller Disclosure", required: true },
   { id: "listing_agreement", label: "Listing Agreement", required: true },
@@ -14,7 +13,6 @@ const DOCUMENT_SLOTS = [
   { id: "appraisal", label: "Appraisal", required: false },
   { id: "inspection", label: "Inspection Report", required: false },
 ];
-
 const PHOTO_CATEGORIES = [
   { id: "exterior", label: "Exterior Photos" },
   { id: "interior", label: "Interior Photos" },
@@ -25,7 +23,6 @@ const PHOTO_CATEGORIES = [
   { id: "outdoor", label: "Outdoor/Yard" },
   { id: "other", label: "Other" },
 ];
-
 const CHECKLIST_ITEMS = [
   { id: "photos_exterior", label: "Exterior Photos Taken", category: "Photos & Media" },
   { id: "photos_interior", label: "Interior Photos Taken", category: "Photos & Media" },
@@ -43,7 +40,6 @@ const CHECKLIST_ITEMS = [
   { id: "email_blast", label: "Email Blast Sent", category: "Marketing" },
   { id: "open_house", label: "Open House Scheduled", category: "Marketing" },
 ];
-
 export default function Tab4Checklist({
   checklistState,
   setChecklistState,
@@ -72,8 +68,10 @@ export default function Tab4Checklist({
   const [calculatedDate, setCalculatedDate] = useState("");
   const [deletingDoc, setDeletingDoc] = useState<string | null>(null);
   const [viewingDoc, setViewingDoc] = useState<string | null>(null);
+  const [viewCodeInput, setViewCodeInput] = useState("");
+  const [viewCodeError, setViewCodeError] = useState(false);
+  const [viewCodePending, setViewCodePending] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
-
   useEffect(() => {
     const days = parseInt(daysOut);
     if (!isNaN(days) && days > 0) {
@@ -84,7 +82,6 @@ export default function Tab4Checklist({
       setCalculatedDate("");
     }
   }, [daysOut]);
-
   useEffect(() => {
     if (existingDocuments && existingDocuments.length > 0) {
       const loaded: Record<string, any> = {};
@@ -100,17 +97,36 @@ export default function Tab4Checklist({
       setUploads(loaded);
     }
   }, [existingDocuments]);
-
   useEffect(() => {
     if (existingPhotos && existingPhotos.length > 0) {
       setSavedPhotos(existingPhotos);
     }
   }, [existingPhotos]);
-
   const toggleChecklist = (id: string) => {
     setChecklistState((prev: any) => ({ ...prev, [id]: !prev[id] }));
   };
-
+  const handleViewClick = (docId: string) => {
+    const code = docMeta[docId]?.accessCode || "";
+    if (!code) {
+      setViewingDoc(docId);
+    } else {
+      setViewCodePending(docId);
+      setViewCodeInput("");
+      setViewCodeError(false);
+    }
+  };
+  const handleViewCodeSubmit = () => {
+    if (!viewCodePending) return;
+    const code = docMeta[viewCodePending]?.accessCode || "";
+    if (viewCodeInput.trim() === code.trim()) {
+      setViewingDoc(viewCodePending);
+      setViewCodePending(null);
+      setViewCodeInput("");
+      setViewCodeError(false);
+    } else {
+      setViewCodeError(true);
+    }
+  };
   const handleFileUpload = async (docId: string, file: File | null) => {
     if (!file) {
       setUploads((prev) => ({ ...prev, [docId]: null }));
@@ -145,7 +161,6 @@ export default function Tab4Checklist({
       setUploads((prev) => ({ ...prev, [docId]: { file, date: new Date().toLocaleString(), uploading: false } }));
     }
   };
-
   const handleDeleteDoc = async (docId: string) => {
     if (!window.confirm("Delete this document?")) return;
     setDeletingDoc(docId);
@@ -164,7 +179,6 @@ export default function Tab4Checklist({
       setDeletingDoc(null);
     }
   };
-
   const handlePhotoUpload = async (categoryId: string, files: FileList | null) => {
     if (!files || files.length === 0) return;
     const incoming = Array.from(files);
@@ -192,7 +206,6 @@ export default function Tab4Checklist({
       }
     }
   };
-
   const handleDeleteSavedPhoto = async (photo: any) => {
     if (!window.confirm("Delete this photo?")) return;
     try {
@@ -211,18 +224,15 @@ export default function Tab4Checklist({
       console.error(e);
     }
   };
-
   const handleDeleteLocalPhoto = (categoryId: string, index: number) => {
     if (!window.confirm("Remove this photo?")) return;
     setPhotos((prev: any) => ({ ...prev, [categoryId]: prev[categoryId].filter((_: any, i: number) => i !== index) }));
   };
-
   const groupedChecklist = CHECKLIST_ITEMS.reduce((acc: any, item) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;
   }, {});
-
   const uploadedRequired = DOCUMENT_SLOTS.filter((d) => d.required && uploads[d.id]?.url).length;
   const requiredDocs = DOCUMENT_SLOTS.filter((d) => d.required).length;
   const uploadedCount = Object.values(uploads).filter((u: any) => u?.url).length;
@@ -232,7 +242,6 @@ export default function Tab4Checklist({
   const shareUrl = listingId ? `https://getreadytopost.com/documents/view?id=${listingId}` : '';
   return (
     <div className="space-y-8">
-
       {/* Contract Day Calculator */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">📋 Contract Day Calculator</h2>
@@ -244,7 +253,6 @@ export default function Tab4Checklist({
           {calculatedDate && <div className="text-lg font-bold text-[#c9a227]">📅 {calculatedDate}</div>}
         </div>
       </div>
-
       {/* Document Upload Center */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">📄 Document Upload Center</h2>
@@ -261,7 +269,7 @@ export default function Tab4Checklist({
                   {uploads[docSlot.id]?.url && <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">✓ Uploaded</span>}
                   {uploads[docSlot.id]?.url && (
                     <>
-                      <button onClick={() => setViewingDoc(docSlot.id)} className="text-xs bg-blue-500/20 hover:bg-blue-500/40 text-blue-300 px-2 py-1 rounded transition">👁️ View</button>
+                      <button onClick={() => handleViewClick(docSlot.id)} className="text-xs bg-blue-500/20 hover:bg-blue-500/40 text-blue-300 px-2 py-1 rounded transition">👁️ View</button>
                       <button onClick={() => handleDeleteDoc(docSlot.id)} disabled={deletingDoc === docSlot.id} className="text-xs bg-red-500/20 hover:bg-red-500/40 text-red-300 px-2 py-1 rounded transition disabled:opacity-50">
                         {deletingDoc === docSlot.id ? "⏳" : "🗑️ Delete"}
                       </button>
@@ -312,7 +320,6 @@ export default function Tab4Checklist({
           ))}
         </div>
       </div>
-
       {/* Property Photos */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">📸 Property Photos</h2>
@@ -372,7 +379,6 @@ export default function Tab4Checklist({
           ))}
         </div>
       </div>
-
       {/* Notes */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">📝 Notes</h2>
@@ -384,7 +390,6 @@ export default function Tab4Checklist({
           className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none resize-none"
         />
       </div>
-
       {/* Share Documents with Buyer */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
         <h3 className="text-white font-bold text-lg mb-1">🔗 Share Documents with Buyer</h3>
@@ -425,7 +430,28 @@ export default function Tab4Checklist({
           <p className="text-yellow-400 text-sm">⚠️ Save the listing first to generate the share link.</p>
         )}
       </div>
-
+      {/* Access Code Prompt Modal */}
+      {viewCodePending && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-md p-8">
+            <h3 className="text-white font-bold text-xl mb-4">🔒 Enter Access Code</h3>
+            <p className="text-gray-400 text-sm mb-4">This document is protected. Enter the access code to view.</p>
+            <input
+              type="text"
+              value={viewCodeInput}
+              onChange={(e) => { setViewCodeInput(e.target.value); setViewCodeError(false); }}
+              placeholder="Enter access code"
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black mb-3"
+              onKeyDown={(e) => { if (e.key === 'Enter') handleViewCodeSubmit(); }}
+            />
+            {viewCodeError && <p className="text-red-400 text-sm mb-3">❌ Incorrect code. Try again.</p>}
+            <div className="flex gap-3">
+              <button onClick={handleViewCodeSubmit} className="flex-1 bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-3 rounded-xl font-bold transition">Unlock</button>
+              <button onClick={() => { setViewCodePending(null); setViewCodeInput(""); setViewCodeError(false); }} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl font-bold transition">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Document Viewer Modal */}
       {viewingDoc && uploads[viewingDoc]?.url && (() => {
         const url = String(uploads[viewingDoc]?.url || "");
@@ -456,16 +482,12 @@ export default function Tab4Checklist({
           </div>
         );
       })()}
-
       {/* Next Button */}
       <div className="flex justify-end">
         <button onClick={onNext} className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition">
           Next: Save to Vault →
         </button>
       </div>
-
     </div>
   );
 }
-
-               
