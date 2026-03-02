@@ -12,7 +12,8 @@ import AddressAutosuggest from '@/components/AddressAutosuggest';
 import Tab2Neighborhood from './tabs/tab2';
 import Tab3Listing from './tabs/tab3';
 import Tab4Checklist from './tabs/tab4';
-import Tab5Save from './tabs/tab5';import Tab6ClosingCosts from './tabs/tab6';
+import Tab5Save from './tabs/tab5';
+import Tab6ClosingCosts from './tabs/tab6';
 
 function WorkspaceContent() {
   const searchParams = useSearchParams();
@@ -25,8 +26,11 @@ function WorkspaceContent() {
   const [activeTab, setActiveTab] = useState(1);
   const [address, setAddress] = useState('');
   const [propertyData, setPropertyData] = useState({
-    taxId: '', yearBuilt: '', beds: '', baths: '', legalDescription: '', propertyType: '', zoning: '', stories: '', garage: '', pool: '', construction: '', schoolDistrict: '', hoa: '', hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '', roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '', lastSaleYear: '', homestead: '',
-    sqft: '', lotSize: '', price: '', features: '', dateAdded: '',
+    taxId: '', yearBuilt: '', beds: '', baths: '', legalDescription: '', propertyType: '',
+    zoning: '', stories: '', garage: '', pool: '', construction: '', schoolDistrict: '',
+    hoa: '', hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '',
+    roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '',
+    lastSaleYear: '', homestead: '', sqft: '', lotSize: '', price: '', features: '', dateAdded: '',
   });
   const [nearby, setNearby] = useState<any>(null);
   const [listing, setListing] = useState('');
@@ -38,7 +42,8 @@ function WorkspaceContent() {
   const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
   const [existingPhotos, setExistingPhotos] = useState<Array<any>>([]);
   const [existingDocuments, setExistingDocuments] = useState<Array<any>>([]);
-  const [listingId, setListingId] = useState<string | null>(null);const [savedEstimate, setSavedEstimate] = useState<any>(null);
+  const [listingId, setListingId] = useState<string | null>(null);
+  const [savedEstimate, setSavedEstimate] = useState<any>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -58,7 +63,14 @@ function WorkspaceContent() {
             userId: user.uid,
             status: 'draft',
             address: '',
-            propertyData: { taxId: '', yearBuilt: '', beds: '', baths: '', sqft: '', lotSize: '', price: '', features: '', dateAdded: '', legalDescription: '', propertyType: '', zoning: '', stories: '', garage: '', pool: '',    construction: '', schoolDistrict: '', hoa: '', hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '', roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '', lastSaleYear: '', homestead: '' },
+            propertyData: {
+              taxId: '', yearBuilt: '', beds: '', baths: '', sqft: '', lotSize: '', price: '',
+              features: '', dateAdded: '', legalDescription: '', propertyType: '', zoning: '',
+              stories: '', garage: '', pool: '', construction: '', schoolDistrict: '', hoa: '',
+              hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '',
+              roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '',
+              lastSaleYear: '', homestead: ''
+            },
             nearby: null,
             aiListing: '',
             checklistState: {},
@@ -93,13 +105,38 @@ function WorkspaceContent() {
         const data = listingSnap.data() as Listing;
         if (data.userId === user?.uid) {
           setAddress(data.address);
-          setPropertyData({ ...data.propertyData, legalDescription: (data.propertyData as any).legalDescription || '', propertyType: (data.propertyData as any).propertyType || '', zoning: (data.propertyData as any).zoning || '', stories: (data.propertyData as any).stories || '', garage: (data.propertyData as any).garage || '', pool: (data.propertyData as any).pool || '', construction: (data.propertyData as any).construction || '', schoolDistrict: (data.propertyData as any).schoolDistrict || '', hoa: (data.propertyData as any).hoa || '', hoaAmount: (data.propertyData as any).hoaAmount || '', hoaName: (data.propertyData as any).hoaName || '', amenities: (data.propertyData as any).amenities || '', floodZone: (data.propertyData as any).floodZone || '', water: (data.propertyData as any).water || '', sewer: (data.propertyData as any).sewer || '', roofYear: (data.propertyData as any).roofYear || '', acYear: (data.propertyData as any).acYear || '', waterHeaterYear: (data.propertyData as any).waterHeaterYear || '', assessedValue: (data.propertyData as any).assessedValue || '', lastSalePrice: (data.propertyData as any).lastSalePrice || '', lastSaleYear: (data.propertyData as any).lastSaleYear || '', homestead: (data.propertyData as any).homestead || '' });
+          setPropertyData({
+            ...data.propertyData,
+            legalDescription: (data.propertyData as any).legalDescription || '',
+            propertyType: (data.propertyData as any).propertyType || '',
+            zoning: (data.propertyData as any).zoning || '',
+            stories: (data.propertyData as any).stories || '',
+            garage: (data.propertyData as any).garage || '',
+            pool: (data.propertyData as any).pool || '',
+            construction: (data.propertyData as any).construction || '',
+            schoolDistrict: (data.propertyData as any).schoolDistrict || '',
+            hoa: (data.propertyData as any).hoa || '',
+            hoaAmount: (data.propertyData as any).hoaAmount || '',
+            hoaName: (data.propertyData as any).hoaName || '',
+            amenities: (data.propertyData as any).amenities || '',
+            floodZone: (data.propertyData as any).floodZone || '',
+            water: (data.propertyData as any).water || '',
+            sewer: (data.propertyData as any).sewer || '',
+            roofYear: (data.propertyData as any).roofYear || '',
+            acYear: (data.propertyData as any).acYear || '',
+            waterHeaterYear: (data.propertyData as any).waterHeaterYear || '',
+            assessedValue: (data.propertyData as any).assessedValue || '',
+            lastSalePrice: (data.propertyData as any).lastSalePrice || '',
+            lastSaleYear: (data.propertyData as any).lastSaleYear || '',
+            homestead: (data.propertyData as any).homestead || '',
+          });
           setNearby(data.nearby);
           setListing(data.aiListing);
           setChecklistState(data.checklistState);
           setNotes(data.notes);
           setExistingPhotos(data.photos || []);
-          setExistingDocuments(data.documents || []);setSavedEstimate((data as any).closingCostEstimate || null);
+          setExistingDocuments(data.documents || []);
+          setSavedEstimate((data as any).closingCostEstimate || null);
           setSaved(false);
         } else {
           alert('You do not have permission to edit this listing.');
@@ -118,26 +155,16 @@ function WorkspaceContent() {
     setAddress(imported.address);
     setPropertyData((prev: any) => ({ ...prev, ...imported.propertyData }));
   };
-
   const tabs = [
-    { num: 1, label: 'Property Basics', icon: '??', done: !!address && !!propertyData.taxId },
-    { num: 2, label: 'Neighborhood', icon: '??', done: !!nearby },
-    { num: 3, label: 'AI Listing', icon: '?', done: !!listing },
-    { num: 4, label: 'Documents & Checklist', icon: '?', done: false },
-    { num: 5, label: 'Save to Vault', icon: '??', done: saved },
-
-		{ num: 6, label: 'Closing Costs', icon: '??', done: !!savedEstimate },
+    { num: 1, label: 'Property Basics', icon: '🏠', done: !!address && !!propertyData.taxId },
+    { num: 2, label: 'Neighborhood', icon: '🗺️', done: !!nearby },
+    { num: 3, label: 'AI Listing', icon: '✨', done: !!listing },
+    { num: 4, label: 'Documents & Checklist', icon: '📋', done: false },
+    { num: 5, label: 'Save to Vault', icon: '💾', done: saved },
+    { num: 6, label: 'Closing Costs', icon: '🧮', done: !!savedEstimate },
   ];
 
   if (loadingListing) {
-    if (authLoading) return (
-      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
-        <div className="max-w-7xl mx-auto px-6 py-20 text-center">
-          <div className="text-white text-xl">Loading...</div>
-        </div>
-      </main>
-    );
-
     return (
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
         <div className="max-w-7xl mx-auto px-6 py-20 text-center">
@@ -160,7 +187,7 @@ function WorkspaceContent() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
-            {editId ? '?? Edit Listing' : '?? Agent Workspace'}
+            {editId ? '✏️ Edit Listing' : '🏠 Agent Workspace'}
           </h1>
           <p className="text-gray-300 text-lg">
             {editId ? 'Update your listing details' : 'Your complete pre-listing command center'}
@@ -168,7 +195,7 @@ function WorkspaceContent() {
         </div>
         {!authLoading && !user && (
           <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6 text-center">
-            <h2 className="text-2xl font-bold text-white mb-3">?? Sign In Required</h2>
+            <h2 className="text-2xl font-bold text-white mb-3">⚠️ Sign In Required</h2>
             <p className="text-gray-200 text-lg mb-4">
               You must be signed in to save your work. Without an account, all data will be lost when you leave this page.
             </p>
@@ -181,12 +208,31 @@ function WorkspaceContent() {
           </div>
         )}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
-          <AddressAutosuggest value={address} onChange={setAddress} onSelect={(parcel) => { setPropertyData((prev) => ({ ...prev, taxId: parcel.parcel_id, yearBuilt: parcel.year_built, sqft: parcel.sqft, assessedValue:   parcel.just_value, lastSalePrice: parcel.sale_price, lastSaleYear: parcel.sale_year })); }} />
+          <AddressAutosuggest
+            value={address}
+            onChange={setAddress}
+            onSelect={(parcel) => {
+              setPropertyData((prev) => ({
+                ...prev,
+                taxId: parcel.parcel_id || '',
+                yearBuilt: parcel.year_built || '',
+                sqft: parcel.sqft || '',
+                beds: parcel.beds || '',
+                lotSize: parcel.land_sqft || '',
+                assessedValue: parcel.just_value || '',
+                lastSalePrice: parcel.sale_price || '',
+                lastSaleYear: parcel.sale_year || '',
+              }));
+            }}
+          />
         </div>
         <div className="flex justify-between items-center mb-4">
           <div></div>
-          <button onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/agent-vault", "_blank"), 600); }} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition">
-            ?? View in Vault
+          <button
+            onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/agent-vault", "_blank"), 600); }}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition"
+          >
+            🏦 View in Vault
           </button>
         </div>
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
@@ -202,7 +248,7 @@ function WorkspaceContent() {
                   : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20'
               )}
             >
-              <span className="text-lg">{tab.done && activeTab !== tab.num ? '?' : tab.icon}</span>
+              <span className="text-lg">{tab.done && activeTab !== tab.num ? '✅' : tab.icon}</span>
               <span>{tab.num}. {tab.label}</span>
             </button>
           ))}
@@ -232,4 +278,3 @@ export default function WorkspacePage() {
     </Suspense>
   );
 }
-
