@@ -1,6 +1,5 @@
 "use client";
 import { useEffect } from 'react';
-
 export default function Tab1PropertyBasics({ data, setData, onNext, address }: any) {
   useEffect(() => {
     if (!data.dateAdded) {
@@ -8,24 +7,24 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
       setData((prev: any) => ({ ...prev, dateAdded: today }));
     }
   }, []);
-
   const updateField = (field: string, value: string) => {
     setData((prev: any) => ({ ...prev, [field]: value }));
   };
-
   const canProceed = address && data.taxId && data.yearBuilt;
-
   const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none bg-white text-gray-900";
   const selectClass = "w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none bg-white text-gray-900";
   const labelClass = "block text-gray-300 text-sm font-bold mb-2";
   const sectionClass = "bg-white/5 border border-white/10 rounded-2xl p-6 mb-6";
   const sectionTitle = "text-lg font-bold text-[#c9a227] mb-4 flex items-center gap-2";
-
+  const formatCurrency = (val: string) => {
+    if (!val) return '';
+    const num = Number(String(val).replace(/[^0-9.]/g, ''));
+    if (isNaN(num)) return val;
+    return '$' + num.toLocaleString();
+  };
   return (
     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
       <h2 className="text-2xl font-bold text-white mb-6">🏠 Property Basics</h2>
-
-      {/* SECTION 1: Core Property Info */}
       <div className={sectionClass}>
         <h3 className={sectionTitle}>📋 Core Property Info</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -129,7 +128,7 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
           </div>
           <div className="md:col-span-2">
             {data.propertyLink && (
-              <div className="col-span-2 mb-2">
+              <div className="mb-2">
                 <a href={data.propertyLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm transition">
                   🔗 View Full Parcel Details on Orange County Appraiser
                 </a>
@@ -141,8 +140,6 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
           </div>
         </div>
       </div>
-
-      {/* SECTION 2: HOA & Community */}
       <div className={sectionClass}>
         <h3 className={sectionTitle}>🏘️ HOA & Community</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -169,8 +166,6 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
           </div>
         </div>
       </div>
-
-      {/* SECTION 3: Florida-Specific */}
       <div className={sectionClass}>
         <h3 className={sectionTitle}>🌴 Florida-Specific Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -217,12 +212,16 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             <input type="text" value={data.waterHeaterYear || ''} onChange={(e) => updateField('waterHeaterYear', e.target.value)} placeholder="e.g., 2019" className={inputClass} />
           </div>
           <div>
+            <label className={labelClass}>Owner Name</label>
+            <input type="text" value={(data as any).ownerName || ''} onChange={(e) => updateField('ownerName', e.target.value)} placeholder="e.g., SMITH JOHN A" className={inputClass} />
+          </div>
+          <div>
             <label className={labelClass}>Assessed Value (County)</label>
-            <input type="text" value={data.assessedValue || ''} onChange={(e) => updateField('assessedValue', e.target.value)} placeholder="e.g., $285,000" className={inputClass} />
+            <input type="text" value={formatCurrency(data.assessedValue)} onChange={(e) => updateField('assessedValue', e.target.value)} placeholder="e.g., $285,000" className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Last Sale Price</label>
-            <input type="text" value={data.lastSalePrice || ''} onChange={(e) => updateField('lastSalePrice', e.target.value)} placeholder="e.g., $310,000" className={inputClass} />
+            <input type="text" value={formatCurrency(data.lastSalePrice)} onChange={(e) => updateField('lastSalePrice', e.target.value)} placeholder="e.g., $310,000" className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Last Sale Year</label>
@@ -239,7 +238,6 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
           </div>
         </div>
       </div>
-
       <div className="mt-8 flex justify-end">
         <button
           onClick={onNext}
