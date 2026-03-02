@@ -84,6 +84,11 @@ interface Props {
       assessedValue: string;
       lastSalePrice: string;
       lastSaleYear: string;
+      ownerName?: string;
+      justValue?: string;
+      landValue?: string;
+      buildingValue?: string;
+      taxableValue?: string;
     };
   }) => void;
 }
