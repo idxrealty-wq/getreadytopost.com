@@ -28,7 +28,6 @@ interface ParcelResult {
   feature_value: string;
   owner_name: string;
   taxing_jurisdiction: string;
-  property_link: string;
   search_key: string;
 }
 
