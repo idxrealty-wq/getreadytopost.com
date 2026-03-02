@@ -46,7 +46,7 @@ function DocumentViewContent() {
       {!unlocked ? (
         <div className="bg-white rounded-2xl p-8 shadow-2xl">
           <div className="text-center mb-6">
-            <div className="text-5xl mb-3">🔐</div>
+            <div className="text-5xl mb-3">🔒</div>
             <h2 className="text-xl font-bold text-[#1a2b4a]">Enter Access Code</h2>
             <p className="text-gray-500 text-sm mt-1">Enter the code provided by your agent to view documents</p>
           </div>
@@ -63,7 +63,7 @@ function DocumentViewContent() {
             </div>
             {error && <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-600 text-sm text-center">{error}</div>}
             <button type="submit" disabled={loading || !accessCode || !listingId} className="w-full bg-[#1a2b4a] hover:bg-[#243a63] text-white py-3 rounded-xl font-bold transition disabled:opacity-50">
-              {loading ? '🔄 Checking...' : '🔓 Access Documents'}
+              {loading ? 'Checking...' : 'Access Documents'}
             </button>
           </form>
         </div>
@@ -75,7 +75,7 @@ function DocumentViewContent() {
             {address && <p className="text-gray-500 text-sm mt-1">{address}</p>}
           </div>
           {documents.length === 0 ? (
-            <p className="text-center text-gray-500">No documents uploaded yet.</p>
+            <p className="text-center text-gray-500">No documents have been shared for this listing yet.</p>
           ) : (
             <div className="space-y-3">
               {documents.map((d) => {
@@ -114,8 +114,8 @@ function DocumentViewContent() {
                   <p className="text-xs text-gray-400">{viewingDoc.fileName}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <a href={url} download={viewingDoc.fileName} target="_blank" rel="noopener noreferrer" className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-2 rounded-lg text-sm font-bold transition">📥 Download</a>
-                  <button onClick={() => setViewingDoc(null)} className="text-gray-400 hover:text-gray-700 text-2xl">✕</button>
+                  <a href={url} download={viewingDoc.fileName} target="_blank" rel="noopener noreferrer" className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-2 rounded-lg text-sm font-bold transition">Download</a>
+                  <button onClick={() => setViewingDoc(null)} className="text-gray-400 hover:text-gray-700 text-2xl font-bold">X</button>
                 </div>
               </div>
               <div className="p-6">
@@ -125,9 +125,8 @@ function DocumentViewContent() {
                   <img src={url} alt={viewingDoc.label} className="max-w-full h-auto rounded-lg border border-gray-200 mx-auto" />
                 ) : (
                   <div className="text-center py-12">
-                    <div className="text-5xl mb-4">📎</div>
                     <p className="text-gray-500 mb-4">Preview not available for this file type</p>
-                    <a href={url} download={viewingDoc.fileName} target="_blank" rel="noopener noreferrer" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition">📥 Download File</a>
+                    <a href={url} download={viewingDoc.fileName} target="_blank" rel="noopener noreferrer" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition">Download File</a>
                   </div>
                 )}
               </div>
