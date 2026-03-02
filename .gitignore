@@ -6,3 +6,5 @@ node_modules/
 .DS_Store
 dist/
 build/
+src/data/NAL45.csv
+src/data/NAL58.csv
