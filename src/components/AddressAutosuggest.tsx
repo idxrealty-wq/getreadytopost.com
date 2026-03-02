@@ -21,7 +21,9 @@ interface ParcelResult {
   homestead: string;
   acres: string;
   taxable_value: string;
-  assessed_value: string;
+  assessed_value: string;legal_description: string;
+  owner_name: string;
+  property_link: string;
   land_value: string;
   building_value: string;
   feature_value: string;

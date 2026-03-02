@@ -238,6 +238,8 @@ function WorkspaceContent() {
                 zoning: prev.zoning || parcel.zoning || '',
                 homestead: prev.homestead || parcel.homestead || '',
                 propertyLink: (prev as any).propertyLink || parcel.property_link || '',
+                legalDescription: prev.legalDescription || parcel.legal_description || '',
+                ownerName: (prev as any).ownerName || parcel.owner_name || '',
               }));
             }}
           />
