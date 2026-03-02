@@ -14,6 +14,8 @@ interface ParcelResult {
   sale_price: string;
   sale_year: string;
   land_sqft: string;
+  dor_uc: string;
+  search_key: string;
 }
 
 interface Props {
@@ -122,6 +124,7 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
               <div className="text-sm text-gray-500">
                 {r.year_built ? 'Built ' + r.year_built : ''}
                 {r.sqft ? ' · ' + Number(r.sqft).toLocaleString() + ' sqft' : ''}
+                {r.beds ? ' · ' + r.beds + ' bed' : ''}
                 {r.just_value ? ' · Assessed $' + Number(r.just_value).toLocaleString() : ''}
               </div>
             </button>
@@ -141,6 +144,7 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
           <div className="text-sm text-gray-600 mb-4">
             {selected.year_built ? 'Built ' + selected.year_built : ''}
             {selected.sqft ? ' · ' + Number(selected.sqft).toLocaleString() + ' sqft' : ''}
+            {selected.beds ? ' · ' + selected.beds + ' bed' : ''}
             {selected.just_value ? ' · Assessed $' + Number(selected.just_value).toLocaleString() : ''}
             {selected.parcel_id ? ' · Parcel: ' + selected.parcel_id : ''}
           </div>
