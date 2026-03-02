@@ -225,7 +225,7 @@ function WorkspaceContent() {
                 baths: parcel.baths || '',
                 propertyType: parcel.property_type || '',
                 zoning: parcel.zoning || '',
-                homestead: parcel.homestead || '',
+                homestead: parcel.homestead || '',propertyLink: parcel.property_link || '',
               }));
             }}
           />

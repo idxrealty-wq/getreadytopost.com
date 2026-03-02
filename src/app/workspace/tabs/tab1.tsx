@@ -128,6 +128,14 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             <textarea value={data.features || ''} onChange={(e) => updateField('features', e.target.value)} placeholder="Updated kitchen, lake view, new roof..." rows={3} className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none resize-none bg-white text-gray-900" />
           </div>
           <div className="md:col-span-2">
+            {data.propertyLink && (
+              <div className="col-span-2 mb-2">
+                <a href={data.propertyLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm transition">
+                  🔗 View Full Parcel Details on Orange County Appraiser
+                </a>
+                <p className="text-gray-500 text-xs mt-1">Use this to find the legal description and other details</p>
+              </div>
+            )}
             <label className={labelClass}>Legal Description</label>
             <textarea value={data.legalDescription || ''} onChange={(e) => updateField('legalDescription', e.target.value)} placeholder="e.g., LOT 4, BLOCK 12, TAVARES HEIGHTS SUBDIVISION..." rows={3} className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none resize-none bg-white text-gray-900" />
           </div>
