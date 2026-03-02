@@ -147,8 +147,7 @@ export default function CSVImport({ onImport }: Props) {
         landValue: p.landValue !== 'working...' ? p.landValue.replace(/[^0-9.]/g, '') : '',
         buildingValue: p.buildingValue !== 'working...' ? p.buildingValue.replace(/[^0-9.]/g, '') : '',
         taxableValue: p.taxableValue !== 'working...' ? p.taxableValue.replace(/[^0-9.]/g, '') : '',
-        lastSaleYear: '',
-      },
+              },
     });
     setOpen(false);
     setProperties([]);
