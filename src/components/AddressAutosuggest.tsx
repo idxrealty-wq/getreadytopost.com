@@ -15,7 +15,6 @@ interface ParcelResult {
   sale_year: string;
   land_sqft: string;
   dor_uc: string;
-  search_key: string;
   baths: string;
   property_type: string;
   zoning: string;

@@ -226,8 +226,6 @@ function WorkspaceContent() {
                 propertyType: parcel.property_type || '',
                 zoning: parcel.zoning || '',
                 homestead: parcel.homestead || '',
-                lotSize: parcel.acres || parcel.land_sqft || '',
-                assessedValue: parcel.assessed_value || parcel.just_value || '',
               }));
             }}
           />
