@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -69,6 +69,28 @@ function WorkspaceContent() {
 
   const loadListingForEdit = async (id: string) => {
     setListingId(id);
+  useEffect(() => {
+    const saved = localStorage.getItem("grtp_property");
+    if (saved && !editId) {
+      try {
+        const p = JSON.parse(saved);
+        if (p.address) setAddress(p.address);
+        if (p.beds || p.baths || p.sqft || p.yearBuilt || p.price || p.hoa) {
+          setPropertyData((prev: any) => ({
+            ...prev,
+            beds: p.beds || prev.beds,
+            baths: p.baths || prev.baths,
+            sqft: p.sqft || prev.sqft,
+            yearBuilt: p.yearBuilt || prev.yearBuilt,
+            price: p.price || prev.price,
+            hoa: p.hoa || prev.hoa,
+            hoaAmount: p.hoaAmount || prev.hoaAmount,
+          }));
+        }
+        localStorage.removeItem("grtp_property");
+      } catch(e) { console.error("Failed to load grtp_property", e); }
+    }
+  }, [editId]);
     setLoadingListing(true);
     try {
       const listingRef = doc(db, 'listings', id);
@@ -134,12 +156,12 @@ function WorkspaceContent() {
   };
 
   const tabs = [
-    { num: 1, label: 'Property', icon: '🏠', done: !!address && !!propertyData.taxId },
-    { num: 2, label: 'Neighborhood', icon: '🗺️', done: !!nearby },
-    { num: 3, label: 'AI Listing', icon: '✨', done: !!listing },
-    { num: 4, label: 'Documents', icon: '📋', done: false },
-    { num: 5, label: 'Save', icon: '💾', done: saved },
-    { num: 6, label: 'Closing Costs', icon: '🧮', done: !!savedEstimate },
+    { num: 1, label: 'Property', icon: 'ðŸ ', done: !!address && !!propertyData.taxId },
+    { num: 2, label: 'Neighborhood', icon: 'ðŸ—ºï¸', done: !!nearby },
+    { num: 3, label: 'AI Listing', icon: 'âœ¨', done: !!listing },
+    { num: 4, label: 'Documents', icon: 'ðŸ“‹', done: false },
+    { num: 5, label: 'Save', icon: 'ðŸ’¾', done: saved },
+    { num: 6, label: 'Closing Costs', icon: 'ðŸ§®', done: !!savedEstimate },
   ];
 
   if (loadingListing) {
@@ -203,7 +225,7 @@ function WorkspaceContent() {
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {tabs.map((tab) => (
             <button key={tab.num} onClick={() => setActiveTab(tab.num)} className={'flex items-center gap-1 px-3 py-2 rounded-xl font-bold text-xs transition whitespace-nowrap ' + (activeTab === tab.num ? 'bg-[#c9a227] text-white shadow-lg' : tab.done ? 'bg-green-600/30 text-green-300 border border-green-500/40' : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20')}>
-              <span className="text-lg">{tab.done && activeTab !== tab.num ? '✅' : tab.icon}</span>
+              <span className="text-lg">{tab.done && activeTab !== tab.num ? 'âœ…' : tab.icon}</span>
               <span>{tab.num}. {tab.label}</span>
             </button>
           ))}
