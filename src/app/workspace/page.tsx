@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -134,12 +134,12 @@ function WorkspaceContent() {
   };
 
   const tabs = [
-    { num: 1, label: 'Property', icon: '🏠', done: !!address && !!propertyData.taxId },
-    { num: 2, label: 'Neighborhood', icon: '🗺️', done: !!nearby },
-    { num: 3, label: 'AI Listing', icon: '✨', done: !!listing },
-    { num: 4, label: 'Documents', icon: '📋', done: false },
-    { num: 5, label: 'Save', icon: '💾', done: saved },
-    { num: 6, label: 'Closing Costs', icon: '🧮', done: !!savedEstimate },
+    { num: 1, label: 'Property', icon: 'ðŸ ', done: !!address && !!propertyData.taxId },
+    { num: 2, label: 'Neighborhood', icon: 'ðŸ—ºï¸', done: !!nearby },
+    { num: 3, label: 'AI Listing', icon: 'âœ¨', done: !!listing },
+    { num: 4, label: 'Documents', icon: 'ðŸ“‹', done: false },
+    { num: 5, label: 'Save', icon: 'ðŸ’¾', done: saved },
+    { num: 6, label: 'Closing Costs', icon: 'ðŸ§®', done: !!savedEstimate },
   ];
 
   if (loadingListing) {
@@ -211,3 +211,4 @@ export default function WorkspacePage() {
     </Suspense>
   );
 }
+
