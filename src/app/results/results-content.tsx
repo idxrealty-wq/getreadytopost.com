@@ -300,6 +300,24 @@ export default function ResultsContent() {
           </div>
         )}
 
+        {/* Progression CTA */}
+        <div className="mt-10 bg-gradient-to-r from-blue-600/20 to-blue-700/20 border-2 border-blue-400/40 rounded-2xl p-8 mb-10">
+          <h3 className="text-xl font-bold text-white mb-3">Want the best version?</h3>
+          <p className="text-white/80 mb-4">Open this in Workspace to add:</p>
+          <ul className="list-disc list-inside text-white/80 mb-6 space-y-1">
+            <li>Neighborhood highlights</li>
+            <li>Property features & photos</li>
+            <li>Documents (disclosures, inspections)</li>
+          </ul>
+          <div className="flex gap-3 flex-wrap">
+            <a href="/workspace" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition">
+              Open in Workspace
+            </a>
+            <a href="/agent-vault" className="px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-semibold transition">
+              Save to Vault
+            </a>
+          </div>
+        </div>
         {/* Cross-sell section */}
         <div className="mt-10 bg-white/10 border border-white/20 rounded-2xl p-8">
           <div className="text-center mb-6">
