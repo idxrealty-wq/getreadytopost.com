@@ -1,5 +1,5 @@
 ﻿'use client';
-
+import { checkMissingInfo } from "./missing-info-checker";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -21,10 +21,10 @@ export default function RateMyListingPage() {
   const { user } = useUser();
   const [email, setEmail] = useState('');
   const [listing, setListing] = useState('');
+  const [missingInfo, setMissingInfo] = useState({ missingFields: [], percentToA: 0, suggestions: [] });
   const [showPayment, setShowPayment] = useState(false);
   const [submissionId, setSubmissionId] = useState('');
   const [loading, setLoading] = useState(false);
-
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('FL');
@@ -104,15 +104,14 @@ export default function RateMyListingPage() {
   const handleViewResults = () => {
     router.push(`/results?id=${submissionId}`);
   };
+
   return (
     <main className="pt-20 min-h-screen relative">
       <div className="fixed inset-0 z-0">
         <img src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/1c6b6e83-767a-4a5f-9cc4-ea33a9ca148a/image.png?w=1200&h=896" alt="Background" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-[#1a2b4a]/85"></div>
       </div>
-
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-10">
-        {/* Hero */}
         <section className="py-8 text-center text-white">
           <div className="inline-block bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-full mb-4">🔥 Instant Listing Analysis</div>
           <h1 className="text-3xl md:text-5xl font-bold mb-3">Rate My Listing</h1>
@@ -123,23 +122,12 @@ export default function RateMyListingPage() {
           </div>
         </section>
 
-        {/* Video */}
         <section className="mb-10">
           <div className="rounded-2xl overflow-hidden border border-white/20 shadow-2xl aspect-video">
-            <iframe
-              width="100%"
-              height="100%"
-              src="https://www.youtube.com/embed/cbfSoBk7hfI?rel=0&modestbranding=1&color=white"
-              title="Are You On The Fence? Your Listing Description Is Costing You Money"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="w-full h-full"
-            ></iframe>
+            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/cbfSoBk7hfI?rel=0&modestbranding=1&color=white" title="Are You On The Fence? Your Listing Description Is Costing You Money" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full h-full"></iframe>
           </div>
         </section>
 
-        {/* Agent Workspace Callout */}
         <section className="mb-10">
           <Link href="/workspace" className="block bg-gradient-to-r from-[#c9a227]/20 to-amber-600/10 border-2 border-[#c9a227]/40 rounded-2xl p-6 hover:border-[#c9a227]/70 transition group">
             <div className="flex items-center gap-4">
@@ -154,7 +142,6 @@ export default function RateMyListingPage() {
           </Link>
         </section>
 
-        {/* Grading Criteria */}
         <section className="mb-10">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-white mb-2">How We Grade Your Listing</h2>
@@ -177,8 +164,6 @@ export default function RateMyListingPage() {
             <p className="text-gray-400 text-sm">Each category is scored 1–10. Your total score determines your listing grade — and exactly what needs to be fixed.</p>
           </div>
         </section>
-
-        {/* Form or Payment */}
         {showPayment ? (
           <div className="bg-white rounded-2xl p-8 shadow-2xl text-center">
             <div className="text-6xl mb-4">💳</div>
@@ -211,7 +196,6 @@ export default function RateMyListingPage() {
           <div className="bg-white rounded-2xl p-6 shadow-2xl mb-6">
             <h2 className="text-xl font-bold text-[#1a2b4a] mb-4 text-center">📋 Paste Your Listing Below</h2>
             <div className="space-y-4">
-              {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                 <input
@@ -225,9 +209,10 @@ export default function RateMyListingPage() {
                 <p className="text-xs text-gray-500 mt-1">Your report will be sent here</p>
               </div>
 
-              {/* Property Details */}
               <div className="border-t border-gray-100 pt-4">
-                <label className="block text-sm font-bold text-gray-700 mb-3">Property Details <span className="text-gray-400 font-normal">(helps AI grade more accurately)</span></label>
+                <label className="block text-sm font-bold text-gray-700 mb-3">
+                  Property Details <span className="text-gray-400 font-normal">(helps AI grade more accurately)</span>
+                </label>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2">
                     <input
@@ -293,7 +278,6 @@ export default function RateMyListingPage() {
                 </div>
               </div>
 
-              {/* Listing Description */}
               <div className="border-t border-gray-100 pt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Listing Description *</label>
                 <textarea
@@ -301,13 +285,42 @@ export default function RateMyListingPage() {
                   placeholder="Paste your MLS listing description here... The more detail you include, the better your grade and rewrite will be."
                   rows={8}
                   value={listing}
-                  onChange={(e) => setListing(e.target.value)}
+                  onChange={(e) => {
+                    const text = e.target.value;
+                    setListing(text);
+                    setMissingInfo(checkMissingInfo(text));
+                  }}
                   required
                 />
                 <div className="flex justify-between mt-1">
                   <p className="text-xs text-gray-500">Aim for 140–160 words for best results</p>
                   <p className={`text-sm font-bold ${wordCount < 50 ? 'text-red-500' : wordCount < 140 ? 'text-amber-500' : 'text-green-500'}`}>{wordCount} words</p>
                 </div>
+
+                {listing.trim().length > 0 && (
+                  <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <p className="text-sm font-bold text-slate-800">A-Grade Readiness</p>
+                      <p className="text-sm font-bold text-slate-800">{missingInfo.percentToA}%</p>
+                    </div>
+
+                    {missingInfo.missingFields.length > 0 ? (
+                      <>
+                        <p className="text-xs text-slate-600 mb-2">Missing details that usually block an A:</p>
+                        <ul className="text-sm text-slate-700 list-disc list-inside space-y-1">
+                          {missingInfo.missingFields.slice(0, 6).map((f: string, idx: number) => (
+                            <li key={idx}>{f}</li>
+                          ))}
+                        </ul>
+                        <p className="text-xs text-slate-600 mt-2">
+                          Tip: add these now, or we’ll try to enhance what we can from the address.
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-green-700 font-semibold">Nice — this looks like it has enough detail to hit an A.</p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <button
@@ -317,14 +330,17 @@ export default function RateMyListingPage() {
               >
                 {loading ? '⏳ Checking...' : '🔥 Continue to Payment'}
               </button>
-                            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4">
-                <p className="text-sm text-slate-700"><strong>Next up:</strong> You�ll get a pro rewrite + clear fixes. Then you can level it up in Workspace with neighborhood details, photos, and client documents.</p>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4">
+                <p className="text-sm text-slate-700">
+                  <strong>Next up:</strong> You’ll get a pro rewrite + clear fixes. Then you can level it up in Workspace with neighborhood details, photos, and client documents.
+                </p>
               </div>
-<p className="text-xs text-gray-500 text-center">Secure payment via Square. See results instantly.</p>
+
+              <p className="text-xs text-gray-500 text-center">Secure payment via Square. See results instantly.</p>
             </div>
           </div>
         )}
-
         <div className="text-center mt-8">
           <Link href="/" className="text-white/70 hover:text-white font-semibold">← Back to Home</Link>
         </div>
