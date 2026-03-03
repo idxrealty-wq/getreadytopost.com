@@ -71,7 +71,7 @@ function WorkspaceContent() {
     setListingId(id);
   useEffect(() => {
     const saved = localStorage.getItem("grtp_property");
-    if (saved && !editId) {
+    if (saved) {
       try {
         const p = JSON.parse(saved);
         if (p.address) setAddress(p.address);
