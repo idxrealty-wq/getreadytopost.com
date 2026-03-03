@@ -26,7 +26,7 @@ function safeJsonParse(raw: string): any {
 }
 
 function countWords(text: string): number {
-  return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  return text.trim().split(/\s+/).filter((w) => w.length > 0).length;
 }
 
 function buildFactsBlock(propertyDetails: any): string {
@@ -38,6 +38,7 @@ function buildFactsBlock(propertyDetails: any): string {
     if (!s) return;
     lines.push(`${label}: ${s}`);
   };
+
   add("Address", pd.address);
   add("City", pd.city);
   add("State", pd.state);
@@ -50,6 +51,7 @@ function buildFactsBlock(propertyDetails: any): string {
   add("Year Built", pd.yearBuilt);
   add("Price", pd.price);
   add("Features", pd.features);
+
   return lines.length ? lines.join("\n") : "None provided.";
 }
 
@@ -59,9 +61,10 @@ async function ensureRewriteLength(
   factsBlock: string
 ): Promise<string> {
   let current = rewrite;
+
   for (let i = 0; i < 3; i++) {
     const wc = countWords(current);
-    if (wc >= 140 && wc <= 160) return current;
+    if (wc >= 145 && wc <= 165) return current;
 
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -75,11 +78,11 @@ async function ensureRewriteLength(
           {
             role: "system",
             content:
-              "You are an elite MLS listing copywriter. You MUST follow the facts. Do NOT invent beds, baths, square footage, upgrades, HOA, views, waterfront, or any features not explicitly provided. If facts are missing, use neutral phrasing (e.g., 'spacious layout') without adding numbers. Rewrite to exactly 150 words. MLS-safe, Fair Housing safe. Return ONLY the rewritten text.",
+              "You are an elite MLS listing copywriter. You MUST follow the facts. Do NOT invent beds, baths, square footage, upgrades, HOA, views, waterfront, or any features not explicitly provided. If facts are missing, use neutral phrasing (e.g., 'spacious layout') without adding numbers. Rewrite to 155 words (145–165 allowed). MLS-safe, Fair Housing safe. Return ONLY the rewritten text.",
           },
           {
             role: "user",
-            content: `FACTS (only use these; do not add new facts):\n${factsBlock}\n\nRewrite this to exactly 150 words:\n\n${current}`,
+            content: `FACTS (only use these; do not add new facts):\n${factsBlock}\n\nRewrite this to 155 words (145–165 allowed):\n\n${current}`,
           },
         ],
         temperature: 0.7,
@@ -90,6 +93,7 @@ async function ensureRewriteLength(
     const data = await res.json();
     current = String(data.choices?.[0]?.message?.content || current).trim();
   }
+
   return current;
 }
 
@@ -99,21 +103,16 @@ export async function POST(req: NextRequest) {
 
   try {
     const { submissionId } = await req.json();
+
     if (!submissionId) {
-      return NextResponse.json(
-        { error: "submissionId required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "submissionId required" }, { status: 400 });
     }
 
     const submissionRef = db.collection("submissions").doc(submissionId);
     const submissionDoc = await submissionRef.get();
 
     if (!submissionDoc.exists) {
-      return NextResponse.json(
-        { error: "Submission not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Submission not found" }, { status: 404 });
     }
 
     const data = submissionDoc.data() || {};
@@ -124,29 +123,53 @@ export async function POST(req: NextRequest) {
 
     await submissionRef.update({ status: "processing" });
 
+    const openaiKey = String(process.env.OPENAI_API_KEY || "");
+    if (!openaiKey) {
+      await submissionRef.update({ status: "error", error: "Missing OPENAI_API_KEY" });
+      return NextResponse.json({ error: "Missing OPENAI_API_KEY" }, { status: 500 });
+    }
+
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${openaiKey}`,
       },
       body: JSON.stringify({
         model: "gpt-4o",
         messages: [
           {
             role: "system",
-            content: `You are a strict real estate listing grader and rewriter. CRITICAL FACT RULE: You may ONLY use facts in the FACTS block and the user's original listing text. DO NOT invent beds, baths, square footage, lot size, year built, HOA, fees, views, waterfront, renovations, appliances, school zones, distances, or neighborhood claims. If a fact is missing, do NOT guess. Use neutral phrasing without numbers.
+            content: `You are a strict real estate listing grader and rewriter targeting A-grade output.
 
-Return ONLY valid JSON (no markdown, no commentary).
+CRITICAL FACT RULE: You may ONLY use facts in the FACTS block and the user's original listing text. DO NOT invent beds, baths, square footage, lot size, year built, HOA, fees, views, waterfront, renovations, appliances, school zones, distances, or neighborhood claims. If a fact is missing, do NOT guess. Use neutral phrasing without numbers.
 
 You MUST grade EXACTLY these 6 categories: 1) headline 2) length 3) emotion 4) keywords 5) cta 6) compliance
 
-GRADING SCALE: A, B, C, D, F (be strict).
+GRADING SCALE: A, B, C, D, F (be strict — only A if all criteria met).
+
+A-GRADE REWRITE REQUIREMENTS:
+- 145–165 words inclusive (count words before returning)
+- MLS-safe, Fair Housing safe
+- Use "primary bedroom" (not "master")
+- Clear CTA (schedule a showing / see it today)
+- Buyer-focused benefits + clean scan-friendly flow
+- Strong keyword coverage (location, property type, key features, amenities)
+
+A-GRADE STRUCTURE (use this every time):
+1) Hook (location + strongest differentiator + lifestyle benefit)
+2) Location perks (parks/transit/amenities if provided)
+3) Main level highlights (beds/baths + key features like fireplaces, decks, skylights, garage)
+4) Flex space (guest/office; note if unwarranted)
+5) Outdoor/entertaining (decks/patio/hot tub/etc. if provided)
+6) Build year (if provided) + CTA
+
+Return ONLY valid JSON (no markdown, no commentary).
 
 OUTPUT JSON SHAPE:
 {
   "overall": "A|B|C|D|F",
-  "rewrite": "140-160 word MLS-ready rewrite with PRIMARY bedroom and clear CTA (no invented facts).",
+  "rewrite": "145-165 word MLS-ready rewrite (no invented facts).",
   "categories": {
     "headline": { "grade": "A|B|C|D|F", "feedback": "..." },
     "length": { "grade": "A|B|C|D|F", "feedback": "..." },
@@ -156,9 +179,7 @@ OUTPUT JSON SHAPE:
     "compliance": { "grade": "A|B|C|D|F", "feedback": "..." }
   },
   "recommendations": ["...", "...", "..."]
-}
-
-MANDATORY REWRITE LENGTH: Rewrite MUST be 140–160 words inclusive. Count words before returning JSON. If under 140, expand using buyer-benefit language that does NOT add new facts. If over 160, trim.`,
+}`,
           },
           {
             role: "user",
@@ -203,10 +224,9 @@ MANDATORY REWRITE LENGTH: Rewrite MUST be 140–160 words inclusive. Count words
 
     analysis.rewrite = await ensureRewriteLength(
       String(analysis.rewrite || ""),
-      String(process.env.OPENAI_API_KEY || ""),
+      openaiKey,
       factsBlock
     );
-
     analysis.rewriteWordCount = countWords(String(analysis.rewrite || ""));
 
     await submissionRef.update({
@@ -216,11 +236,11 @@ MANDATORY REWRITE LENGTH: Rewrite MUST be 140–160 words inclusive. Count words
       email,
       propertyDetails,
     });
+
     // Email report (optional)
     if (email && process.env.RESEND_API_KEY) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY);
-
         const overall = String(analysis.overall || "");
         const rewrite = String(analysis.rewrite || "");
         const recs: string[] = Array.isArray(analysis.recommendations)
@@ -238,44 +258,32 @@ MANDATORY REWRITE LENGTH: Rewrite MUST be 140–160 words inclusive. Count words
             ? "#c0392b"
             : "#95a5a6";
 
-        const html = `<!DOCTYPE html>
-<html>
-<head>
+        const html = `<!DOCTYPE html><html><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="margin:0;padding:0;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;background-color:#f8f9fa;">
+</head><body style="margin:0;padding:0;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;background-color:#f8f9fa;">
   <div style="max-width:600px;margin:0 auto;background-color:#ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
     <div style="background:linear-gradient(135deg,#2c3e50 0%,#34495e 100%);padding:40px 20px;text-align:center;color:white;">
       <h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:0.5px;">GetReadyToPost</h1>
       <p style="margin:8px 0 0 0;font-size:14px;opacity:0.9;">Real Estate Listing Analysis Report</p>
     </div>
-
     <div style="background-color:#ecf0f1;padding:30px 20px;text-align:center;">
       <p style="margin:0 0 15px 0;color:#7f8c8d;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Overall Grade</p>
       <div style="display:inline-block;width:100px;height:100px;border-radius:50%;background-color:${gradeColor};display:flex;align-items:center;justify-content:center;">
         <span style="font-size:48px;font-weight:700;color:white;">${overall}</span>
       </div>
     </div>
-
     <div style="padding:30px 20px;">
       <div style="margin-bottom:30px;">
         <h2 style="margin:0 0 15px 0;color:#2c3e50;font-size:18px;font-weight:600;border-bottom:3px solid #3498db;padding-bottom:10px;">Professional Rewrite</h2>
         <p style="margin:0;color:#34495e;line-height:1.8;font-size:14px;white-space:pre-wrap;background-color:#f8f9fa;padding:15px;border-radius:6px;border-left:4px solid #3498db;">${rewrite}</p>
       </div>
-
       <div style="margin-bottom:30px;">
         <h2 style="margin:0 0 15px 0;color:#2c3e50;font-size:18px;font-weight:600;border-bottom:3px solid #e74c3c;padding-bottom:10px;">Key Recommendations</h2>
         <ol style="margin:0;padding-left:20px;color:#34495e;">
-          ${recs
-            .map(
-              (rec: string) =>
-                `<li style="margin:12px 0;color:#2c3e50;line-height:1.6;">${rec}</li>`
-            )
-            .join("")}
+          ${recs.map((rec: string) => `<li style="margin:12px 0;color:#2c3e50;line-height:1.6;">${rec}</li>`).join("")}
         </ol>
       </div>
-
       <div style="text-align:center;margin:30px 0;">
         <a href="https://getreadytopost.com/results?id=${submissionId}"
            style="display:inline-block;background:linear-gradient(135deg,#3498db 0%,#2980b9 100%);color:white;padding:14px 32px;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px;box-shadow:0 4px 6px rgba(52,152,219,0.3);">
@@ -283,25 +291,22 @@ MANDATORY REWRITE LENGTH: Rewrite MUST be 140–160 words inclusive. Count words
         </a>
       </div>
     </div>
-
     <div style="background-color:#ecf0f1;padding:20px;text-align:center;border-top:1px solid #bdc3c7;">
       <p style="margin:0;color:#7f8c8d;font-size:12px;">
-        <strong>GetReadyToPost</strong> — Real Estate Listing Analysis<br>
+        <strong>GetReadyToPost</strong> – Real Estate Listing Analysis<br>
         <span style="opacity:0.7;">Helping agents and sellers create winning listings</span>
       </p>
     </div>
   </div>
-</body>
-</html>`;
+</body></html>`;
 
         await resend.emails.send({
           from: "onboarding@resend.dev",
           to: email,
-          subject: `Your GetReadyToPost Report - Grade ${overall}`,
+          subject: `Your GetReadyToPost Report - Grade \${overall}`,
           html,
         });
       } catch (e) {
-        // Don't fail the request if email fails
         console.error("Email send failed:", e);
       }
     }
