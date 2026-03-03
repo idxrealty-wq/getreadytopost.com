@@ -55,37 +55,9 @@ function WorkspaceContent() {
 
   useEffect(() => {
     if (user && !editId && !listingId) {
-      (async () => {
-        try {
-          const draftId = 'listing_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-          await setDoc(doc(db, 'listings', draftId), {
-            id: draftId,
-            userId: user.uid,
-            status: 'draft',
-            address: '',
-            propertyData: {
-              taxId: '', yearBuilt: '', beds: '', baths: '', sqft: '', lotSize: '', price: '',
-              features: '', dateAdded: '', legalDescription: '', propertyType: '', zoning: '',
-              stories: '', garage: '', pool: '', construction: '', schoolDistrict: '', hoa: '',
-              hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '',
-              roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '',
-              lastSaleYear: '', homestead: ''
-            },
-            nearby: null,
-            aiListing: '',
-            checklistState: {},
-            notes: '',
-            photos: [],
-            documents: [],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          });
-          setListingId(draftId);
-          router.replace('/workspace?edit=' + draftId);
-        } catch (err) {
-          console.error('Failed to create draft listing:', err);
-        }
-      })();
+      const draftId = 'listing_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      setListingId(draftId);
+      router.replace('/workspace?edit=' + draftId);
     }
   }, [user, editId, listingId]);
 
@@ -95,11 +67,11 @@ function WorkspaceContent() {
     }
   }, [editId, user]);
 
-  const loadListingForEdit = async (listingId: string) => {
-    setListingId(listingId);
+  const loadListingForEdit = async (id: string) => {
+    setListingId(id);
     setLoadingListing(true);
     try {
-      const listingRef = doc(db, 'listings', listingId);
+      const listingRef = doc(db, 'listings', id);
       const listingSnap = await getDoc(listingRef);
       if (listingSnap.exists()) {
         const data = listingSnap.data() as Listing;
@@ -141,24 +113,21 @@ function WorkspaceContent() {
         } else {
           alert('You do not have permission to edit this listing.');
         }
-      } else {
-        alert('Listing not found.');
       }
     } catch (err: any) {
-      alert('Failed to load listing: ' + err.message);
+      console.error('Failed to load listing:', err);
     } finally {
       setLoadingListing(false);
     }
   };
+
   const handleCSVImport = (imported: any) => {
     if (!address) setAddress(imported.address);
     setPropertyData((prev: any) => {
       const merged: any = { ...prev };
       const incoming = imported.propertyData || {};
       Object.keys(incoming).forEach((key) => {
-        if (!prev[key] || prev[key] === '') {
-          merged[key] = incoming[key];
-        }
+        if (!prev[key] || prev[key] === '') merged[key] = incoming[key];
       });
       return merged;
     });
@@ -177,114 +146,14 @@ function WorkspaceContent() {
     return (
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
         <div className="max-w-7xl mx-auto px-6 py-20 text-center">
-          <div className="text-white text-xl">Loading listing for editing...</div>
+          <div className="text-white text-xl">Loading listing...</div>
         </div>
       </main>
     );
   }
-
-  return (
-    <main className="pt-20 min-h-screen relative">
-      <div className="fixed inset-0 z-0">
-        <img
-          src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/421a46ef-b52d-44e1-b33d-bf1d1492c0cd/image.png?w=1200&h=896"
-          alt="Background"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-[#1a2b4a]/85"></div>
-      </div>
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-10">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
-            {editId ? '✏️ Edit Listing' : '🏠 Agent Workspace'}
-          </h1>
-          <p className="text-gray-300 text-lg">
-            {editId ? 'Update your listing details' : 'Your complete pre-listing command center'}
-          </p>
-        </div>
-
-        {!authLoading && !user && (
-          <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6 text-center">
-            <h2 className="text-2xl font-bold text-white mb-3">⚠️ Sign In Required</h2>
-            <p className="text-gray-200 text-lg mb-4">
-              You must be signed in to save your work. Without an account, all data will be lost when you leave this page.
-            </p>
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="bg-white text-red-900 px-8 py-3 rounded-xl font-bold text-lg hover:bg-gray-100 transition"
-            >
-              Sign In / Create Account
-            </button>
-          </div>
-        )}
-
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
-          <AddressAutosuggest
-            value={address}
-            onChange={setAddress}
-            onSelect={(parcel) => {
-              setPropertyData((prev) => ({
-                ...prev,
-                taxId: prev.taxId || parcel.parcel_id || '',
-                yearBuilt: prev.yearBuilt || parcel.year_built || '',
-                sqft: prev.sqft || parcel.sqft || '',
-                beds: prev.beds || parcel.beds || '',
-                lotSize: prev.lotSize || parcel.land_sqft || '',
-                assessedValue: prev.assessedValue || parcel.just_value || '',
-                lastSalePrice: prev.lastSalePrice || parcel.sale_price || '',
-                lastSaleYear: prev.lastSaleYear || parcel.sale_year || '',
-                baths: prev.baths || parcel.baths || '',
-                propertyType: prev.propertyType || parcel.property_type || '',
-                zoning: prev.zoning || parcel.zoning || '',
-                homestead: prev.homestead || parcel.homestead || '',
-                propertyLink: (prev as any).propertyLink || parcel.property_link || '',
-                legalDescription: prev.legalDescription || parcel.legal_description || '',
-                ownerName: (prev as any).ownerName || parcel.owner_name || '',
-              }));
-            }}
-          />
-        </div>
-
-        <div className="flex justify-between items-center mb-4">
-          <div></div>
-          <button
-            onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/agent-vault", "_blank"), 600); }}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition"
-          >
-            🏦 View in Vault
-          </button>
-        </div>
-
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          {tabs.map((tab) => (
-            <button
-              key={tab.num}
-              onClick={() => setActiveTab(tab.num)}
-              className={'flex items-center gap-1 px-3 py-2 rounded-xl font-bold text-xs transition whitespace-nowrap ' + (
-                activeTab === tab.num
-                  ? 'bg-[#c9a227] text-white shadow-lg'
-                  : tab.done
-                  ? 'bg-green-600/30 text-green-300 border border-green-500/40'
-                  : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20'
-              )}
-            >
-              <span className="text-lg">{tab.done && activeTab !== tab.num ? '✅' : tab.icon}</span>
-              <span>{tab.num}. {tab.label}</span>
-            </button>
-          ))}
-        </div>
-        {activeTab === 1 && (
-          <>
-            <CSVImport onImport={handleCSVImport} />
-            <Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} />
-          </>
-        )}
-        {activeTab === 2 && (
-          <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />
-        )}
-        {activeTab === 3 && (
-          <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />
-        )}
+        {activeTab === 1 && (<><CSVImport onImport={handleCSVImport} /><Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} /></>)}
+        {activeTab === 2 && (<Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />)}
+        {activeTab === 3 && (<Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />)}
         {activeTab === 4 && (
           <Tab4Checklist
             listingId={listingId}
@@ -322,9 +191,7 @@ function WorkspaceContent() {
             saveNowNonce={saveNowNonce}
           />
         )}
-        {activeTab === 6 && (
-          <Tab6ClosingCosts listingId={listingId} address={address} propertyData={propertyData} savedEstimate={savedEstimate} />
-        )}
+        {activeTab === 6 && (<Tab6ClosingCosts listingId={listingId} address={address} propertyData={propertyData} savedEstimate={savedEstimate} />)}
       </div>
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onSuccess={() => setShowAuthModal(false)} />
     </main>
