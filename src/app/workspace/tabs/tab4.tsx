@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useEffect, useState } from "react";
 import { storage, db } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
@@ -274,7 +274,7 @@ export default function Tab4Checklist({
                   {uploads[docSlot.id].uploading ? (
                     <span className="text-yellow-400">Uploading...</span>
                   ) : (
-                    <span className="text-green-400">{uploads[docSlot.id].file?.name} — uploaded {uploads[docSlot.id].date}</span>
+                    <span className="text-green-400">{uploads[docSlot.id].file?.name} � uploaded {uploads[docSlot.id].date}</span>
                   )}
                 </div>
               ) : (
@@ -455,3 +455,4 @@ export default function Tab4Checklist({
     </div>
   );
 }
+
