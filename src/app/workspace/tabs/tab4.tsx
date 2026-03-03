@@ -52,8 +52,6 @@ export default function Tab4Checklist({
     return defaults;
   });
   const [savedPhotos, setSavedPhotos] = useState<any[]>([]);
-  const [daysOut, setDaysOut] = useState("120");
-  const [calculatedDate, setCalculatedDate] = useState("");
   const [deletingDoc, setDeletingDoc] = useState<string | null>(null);
   const [viewingDoc, setViewingDoc] = useState<string | null>(null);
   const [viewCodeInput, setViewCodeInput] = useState("");
@@ -68,15 +66,6 @@ export default function Tab4Checklist({
   useEffect(() => {
     if (listingId) setShareUrl("https://getreadytopost.com/documents/view?id=" + listingId);
   }, [listingId]);
-
-  useEffect(() => {
-    const days = parseInt(daysOut);
-    if (!isNaN(days) && days > 0) {
-      const future = new Date();
-      future.setDate(future.getDate() + days);
-      setCalculatedDate(future.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }));
-    } else { setCalculatedDate(""); }
-  }, [daysOut]);
 
   useEffect(() => {
     if (existingDocuments && existingDocuments.length > 0) {
@@ -129,40 +118,26 @@ export default function Tab4Checklist({
     else { handleSaveAccessCode().then(() => setCodeCopied(false)); }
   };
 
-   const handleSaveDocMeta = async (docId: string) => {
-    if (!listingId) { alert("No listing ID"); return; }
+  const handleSaveDocMeta = async (docId: string) => {
+    if (!listingId) { alert("No listing ID found."); return; }
     if (!window.confirm("Save settings for this document?")) return;
     try {
       const listingRef = doc(db, "listings", listingId);
       const snap = await getDoc(listingRef);
-      if (!snap.exists()) { alert("Listing not found in database"); return; }
+      if (!snap.exists()) { alert("Listing not found in Firestore."); return; }
       const allDocs = snap.data().documents || [];
       const meta = docMeta[docId] || {};
       let found = false;
       const updated = allDocs.map((d: any) => {
         if (d.docId !== docId) return d;
         found = true;
-        return {
-          ...d,
-          accessCode: meta.accessCode || "",
-          price: meta.price || "",
-          party: meta.party || "Buyer",
-          sharedWithBuyer: meta.sharedWithBuyer === true,
-        };
+        return { ...d, accessCode: meta.accessCode || "", price: meta.price || "", party: meta.party || "Buyer", sharedWithBuyer: meta.sharedWithBuyer === true };
       });
-      if (!found) { alert("Document not found in Firestore. Count: " + allDocs.length); return; }
+      if (!found) { alert("Doc not found in Firestore. Total docs: " + allDocs.length); return; }
       await updateDoc(listingRef, { documents: updated });
       setDocMeta((prev) => ({ ...prev, [docId]: { ...prev[docId], codeSaved: true } }));
       alert("Saved! sharedWithBuyer=" + (meta.sharedWithBuyer === true));
     } catch (e: any) { alert("Error: " + (e?.message || "unknown")); }
-  };
-
-        });
-        await updateDoc(doc(db, "listings", listingId), { documents: updated });
-        setDocMeta((prev) => ({ ...prev, [docId]: { ...prev[docId], codeSaved: true } }));
-        alert("Saved!");
-      }
-    } catch (e) { alert("Failed to save document settings"); }
   };
 
   const handleFileUpload = async (docId: string, file: File | null) => {
