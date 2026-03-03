@@ -317,7 +317,10 @@ export default function RateMyListingPage() {
               >
                 {loading ? '⏳ Checking...' : '🔥 Continue to Payment'}
               </button>
-              <p className="text-xs text-gray-500 text-center">Secure payment via Square. See results instantly.</p>
+                            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4">
+                <p className="text-sm text-slate-700"><strong>Next up:</strong> You�ll get a pro rewrite + clear fixes. Then you can level it up in Workspace with neighborhood details, photos, and client documents.</p>
+              </div>
+<p className="text-xs text-gray-500 text-center">Secure payment via Square. See results instantly.</p>
             </div>
           </div>
         )}
