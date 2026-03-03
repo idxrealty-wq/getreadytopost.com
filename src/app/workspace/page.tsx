@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -134,12 +134,12 @@ function WorkspaceContent() {
   };
 
   const tabs = [
-    { num: 1, label: 'Property', icon: 'ðŸ ', done: !!address && !!propertyData.taxId },
-    { num: 2, label: 'Neighborhood', icon: 'ðŸ—ºï¸', done: !!nearby },
-    { num: 3, label: 'AI Listing', icon: 'âœ¨', done: !!listing },
-    { num: 4, label: 'Documents', icon: 'ðŸ“‹', done: false },
-    { num: 5, label: 'Save', icon: 'ðŸ’¾', done: saved },
-    { num: 6, label: 'Closing Costs', icon: 'ðŸ§®', done: !!savedEstimate },
+    { num: 1, label: 'Property', icon: '🏠', done: !!address && !!propertyData.taxId },
+    { num: 2, label: 'Neighborhood', icon: '🗺️', done: !!nearby },
+    { num: 3, label: 'AI Listing', icon: '✨', done: !!listing },
+    { num: 4, label: 'Documents', icon: '📋', done: false },
+    { num: 5, label: 'Save', icon: '💾', done: saved },
+    { num: 6, label: 'Closing Costs', icon: '🧮', done: !!savedEstimate },
   ];
 
   if (loadingListing) {
@@ -151,6 +151,63 @@ function WorkspaceContent() {
       </main>
     );
   }
+  return (
+    <main className="pt-20 min-h-screen relative">
+      <div className="fixed inset-0 z-0">
+        <img src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/421a46ef-b52d-44e1-b33d-bf1d1492c0cd/image.png?w=1200&h=896" alt="Background" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-[#1a2b4a]/85"></div>
+      </div>
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-10">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">{editId ? 'Edit Listing' : 'Agent Workspace'}</h1>
+          <p className="text-gray-300 text-lg">{editId ? 'Update your listing details' : 'Your complete pre-listing command center'}</p>
+        </div>
+        {!authLoading && !user && (
+          <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6 text-center">
+            <h2 className="text-2xl font-bold text-white mb-3">Sign In Required</h2>
+            <p className="text-gray-200 text-lg mb-4">You must be signed in to save your work.</p>
+            <button onClick={() => setShowAuthModal(true)} className="bg-white text-red-900 px-8 py-3 rounded-xl font-bold text-lg hover:bg-gray-100 transition">Sign In / Create Account</button>
+          </div>
+        )}
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
+          <AddressAutosuggest
+            value={address}
+            onChange={setAddress}
+            onSelect={(parcel) => {
+              setPropertyData((prev) => ({
+                ...prev,
+                taxId: prev.taxId || parcel.parcel_id || '',
+                yearBuilt: prev.yearBuilt || parcel.year_built || '',
+                sqft: prev.sqft || parcel.sqft || '',
+                beds: prev.beds || parcel.beds || '',
+                lotSize: prev.lotSize || parcel.land_sqft || '',
+                assessedValue: prev.assessedValue || parcel.just_value || '',
+                lastSalePrice: prev.lastSalePrice || parcel.sale_price || '',
+                lastSaleYear: prev.lastSaleYear || parcel.sale_year || '',
+                baths: prev.baths || parcel.baths || '',
+                propertyType: prev.propertyType || parcel.property_type || '',
+                zoning: prev.zoning || parcel.zoning || '',
+                homestead: prev.homestead || parcel.homestead || '',
+                propertyLink: (prev as any).propertyLink || parcel.property_link || '',
+                legalDescription: prev.legalDescription || parcel.legal_description || '',
+                ownerName: (prev as any).ownerName || parcel.owner_name || '',
+              }));
+            }}
+          />
+        </div>
+        <div className="flex justify-end mb-4">
+          <button onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/agent-vault", "_blank"), 600); }} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition">
+            View in Vault
+          </button>
+        </div>
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          {tabs.map((tab) => (
+            <button key={tab.num} onClick={() => setActiveTab(tab.num)} className={'flex items-center gap-1 px-3 py-2 rounded-xl font-bold text-xs transition whitespace-nowrap ' + (activeTab === tab.num ? 'bg-[#c9a227] text-white shadow-lg' : tab.done ? 'bg-green-600/30 text-green-300 border border-green-500/40' : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20')}>
+              <span className="text-lg">{tab.done && activeTab !== tab.num ? '✅' : tab.icon}</span>
+              <span>{tab.num}. {tab.label}</span>
+            </button>
+          ))}
+        </div>
         {activeTab === 1 && (<><CSVImport onImport={handleCSVImport} /><Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} /></>)}
         {activeTab === 2 && (<Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />)}
         {activeTab === 3 && (<Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />)}
@@ -191,7 +248,14 @@ function WorkspaceContent() {
             saveNowNonce={saveNowNonce}
           />
         )}
-        {activeTab === 6 && (<Tab6ClosingCosts listingId={listingId} address={address} propertyData={propertyData} savedEstimate={savedEstimate} />)}
+        {activeTab === 6 && (
+          <Tab6ClosingCosts
+            listingId={listingId}
+            address={address}
+            propertyData={propertyData}
+            savedEstimate={savedEstimate}
+          />
+        )}
       </div>
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onSuccess={() => setShowAuthModal(false)} />
     </main>
@@ -211,4 +275,3 @@ export default function WorkspacePage() {
     </Suspense>
   );
 }
-
