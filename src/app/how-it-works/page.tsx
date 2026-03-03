@@ -128,8 +128,8 @@ export default function HowItWorksPage() {
       </section>
       <section className="px-6 pb-16">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-white text-center mb-3">Every Page, Explained</h2>
-          <p className="text-gray-400 text-center mb-10">A quick reference to every tool on the site</p>
+          <h2 className="text-3xl font-bold text-white text-center mb-3">Start Here. Level Up When You're Ready.</h2>
+          <p className="text-gray-400 text-center mb-10">From rough draft to a client-ready listing package.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
               { icon: '🏠', title: 'Home', desc: 'Overview of the service and how it works', link: '/' },
