@@ -21,7 +21,7 @@ export default function RateMyListingPage() {
   const { user } = useUser();
   const [email, setEmail] = useState('');
   const [listing, setListing] = useState('');
-  const [missingInfo, setMissingInfo] = useState({ missingFields: [], percentToA: 0, suggestions: [] });
+  const [missingInfo, setMissingInfo] = useState<{ missingFields: string[]; percentToA: number; suggestions: string[] }>({ missingFields: [], percentToA: 0, suggestions: [] });
   const [showPayment, setShowPayment] = useState(false);
   const [submissionId, setSubmissionId] = useState('');
   const [loading, setLoading] = useState(false);
@@ -164,6 +164,7 @@ export default function RateMyListingPage() {
             <p className="text-gray-400 text-sm">Each category is scored 1–10. Your total score determines your listing grade — and exactly what needs to be fixed.</p>
           </div>
         </section>
+
         {showPayment ? (
           <div className="bg-white rounded-2xl p-8 shadow-2xl text-center">
             <div className="text-6xl mb-4">💳</div>
@@ -210,9 +211,7 @@ export default function RateMyListingPage() {
               </div>
 
               <div className="border-t border-gray-100 pt-4">
-                <label className="block text-sm font-bold text-gray-700 mb-3">
-                  Property Details <span className="text-gray-400 font-normal">(helps AI grade more accurately)</span>
-                </label>
+                <label className="block text-sm font-bold text-gray-700 mb-3">Property Details <span className="text-gray-400 font-normal">(helps AI grade more accurately)</span></label>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2">
                     <input
@@ -222,59 +221,14 @@ export default function RateMyListingPage() {
                       onChange={(e) => setAddress(e.target.value)}
                     />
                   </div>
-                  <input
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                    placeholder="City"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                  />
-                  <input
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                    placeholder="FL"
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
-                  />
-                  <input
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                    placeholder="Zip"
-                    value={zip}
-                    onChange={(e) => setZip(e.target.value)}
-                  />
-                  <input
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                    placeholder="List Price ($)"
-                    type="number"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                  />
-                  <input
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                    placeholder="Beds"
-                    type="number"
-                    value={beds}
-                    onChange={(e) => setBeds(e.target.value)}
-                  />
-                  <input
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                    placeholder="Baths"
-                    type="number"
-                    value={baths}
-                    onChange={(e) => setBaths(e.target.value)}
-                  />
-                  <input
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                    placeholder="Sqft"
-                    type="number"
-                    value={sqft}
-                    onChange={(e) => setSqft(e.target.value)}
-                  />
-                  <input
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                    placeholder="Year Built"
-                    type="number"
-                    value={yearBuilt}
-                    onChange={(e) => setYearBuilt(e.target.value)}
-                  />
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} />
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="FL" value={state} onChange={(e) => setState(e.target.value)} />
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Zip" value={zip} onChange={(e) => setZip(e.target.value)} />
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="List Price ($)" type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Beds" type="number" value={beds} onChange={(e) => setBeds(e.target.value)} />
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Baths" type="number" value={baths} onChange={(e) => setBaths(e.target.value)} />
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Sqft" type="number" value={sqft} onChange={(e) => setSqft(e.target.value)} />
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Year Built" type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} />
                 </div>
               </div>
 
@@ -312,9 +266,7 @@ export default function RateMyListingPage() {
                             <li key={idx}>{f}</li>
                           ))}
                         </ul>
-                        <p className="text-xs text-slate-600 mt-2">
-                          Tip: add these now, or we’ll try to enhance what we can from the address.
-                        </p>
+                        <p className="text-xs text-slate-600 mt-2">Tip: add these now, or we'll try to enhance what we can from the address.</p>
                       </>
                     ) : (
                       <p className="text-sm text-green-700 font-semibold">Nice — this looks like it has enough detail to hit an A.</p>
@@ -333,7 +285,7 @@ export default function RateMyListingPage() {
 
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4">
                 <p className="text-sm text-slate-700">
-                  <strong>Next up:</strong> You’ll get a pro rewrite + clear fixes. Then you can level it up in Workspace with neighborhood details, photos, and client documents.
+                  <strong>Next up:</strong> You'll get a pro rewrite + clear fixes. Then you can level it up in Workspace with neighborhood details, photos, and client documents.
                 </p>
               </div>
 
@@ -341,6 +293,7 @@ export default function RateMyListingPage() {
             </div>
           </div>
         )}
+
         <div className="text-center mt-8">
           <Link href="/" className="text-white/70 hover:text-white font-semibold">← Back to Home</Link>
         </div>
