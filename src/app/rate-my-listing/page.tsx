@@ -49,6 +49,14 @@ export default function RateMyListingPage() {
     if (parcel.year_built) setYearBuilt(parcel.year_built);
     setState('FL');
     setParcelLoaded(true);
+setMissingInfo(checkMissingInfo(listing, {
+  beds: parcel.beds || beds,
+  baths: parcel.baths || baths,
+  sqft: parcel.sqft || sqft,
+  yearBuilt: parcel.year_built || yearBuilt,
+  price,
+}));
+
   };
 
   const saveToLocalStorage = () => {
