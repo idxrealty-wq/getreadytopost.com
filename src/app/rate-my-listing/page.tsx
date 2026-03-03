@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { useUser } from '@/contexts/UserContext';
 import { collection, addDoc } from 'firebase/firestore';
+import AddressAutosuggest from '@/components/AddressAutosuggest';
 
 const gradingCategories = [
   { icon: '🎣', title: 'Hook', description: 'Does your opening line stop a buyer mid-scroll? The first sentence is everything.', color: 'bg-blue-500/20 border-blue-400/40' },
@@ -37,11 +38,21 @@ export default function RateMyListingPage() {
 
   const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
 
+  const handleParcelSelect = (parcel: any) => {
+    if (parcel.address) setAddress(parcel.address + ', ' + parcel.city + ', FL ' + parcel.zip);
+    if (parcel.city) setCity(parcel.city);
+    if (parcel.zip) setZip(parcel.zip);
+    if (parcel.beds) setBeds(parcel.beds);
+    if (parcel.baths) setBaths(parcel.baths);
+    if (parcel.sqft) setSqft(parcel.sqft);
+    if (parcel.year_built) setYearBuilt(parcel.year_built);
+    setState('FL');
+  };
+
   const saveToLocalStorage = () => {
     const propertyData = {
       address, city, state, zip,
-      beds, baths, sqft, yearBuilt, price,
-      email,
+      beds, baths, sqft, yearBuilt, price, email,
       fullAddress: `${address}, ${city}, ${state} ${zip}`.trim(),
     };
     localStorage.setItem('grtp_property', JSON.stringify(propertyData));
@@ -60,12 +71,8 @@ export default function RateMyListingPage() {
         price: price ? parseFloat(price) : null,
       };
       const docRef = await addDoc(collection(db, 'submissions'), {
-        email,
-        listingText: listing,
-        wordCount,
-        propertyDetails,
-        status: 'pending_payment',
-        createdAt: new Date().toISOString(),
+        email, listingText: listing, wordCount, propertyDetails,
+        status: 'pending_payment', createdAt: new Date().toISOString(),
       });
       setSubmissionId(docRef.id);
       if (user?.uid) {
@@ -74,13 +81,11 @@ export default function RateMyListingPage() {
           const creditData = await creditRes.json();
           if (creditData.balance > 0) {
             await fetch('/api/credits/deduct', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ userId: user.uid, submissionId: docRef.id }),
             });
             await fetch('/api/submissions/run-analysis', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ submissionId: docRef.id }),
             });
             router.push('/results?id=' + docRef.id);
@@ -97,13 +102,8 @@ export default function RateMyListingPage() {
     }
   };
 
-  const handlePaymentClick = () => {
-    window.open('https://square.link/u/22tY4Rla', '_blank');
-  };
-
-  const handleViewResults = () => {
-    router.push(`/results?id=${submissionId}`);
-  };
+  const handlePaymentClick = () => { window.open('https://square.link/u/22tY4Rla', '_blank'); };
+  const handleViewResults = () => { router.push(`/results?id=${submissionId}`); };
 
   return (
     <main className="pt-20 min-h-screen relative">
@@ -135,7 +135,7 @@ export default function RateMyListingPage() {
               <div className="flex-1">
                 <div className="text-[#c9a227] font-bold text-sm uppercase tracking-widest mb-1">Having trouble writing it?</div>
                 <h3 className="text-white font-bold text-xl mb-1">Try the Agent Workspace</h3>
-                <p className="text-gray-300 text-sm">Pull your property details, neighborhood data, features, and photos into one place. No more blank screen — everything you need to write a great listing is right there waiting for you.</p>
+                <p className="text-gray-300 text-sm">Pull your property details, neighborhood data, features, and photos into one place.</p>
               </div>
               <div className="text-white/50 group-hover:text-[#c9a227] transition text-2xl">→</div>
             </div>
@@ -164,7 +164,6 @@ export default function RateMyListingPage() {
             <p className="text-gray-400 text-sm">Each category is scored 1–10. Your total score determines your listing grade — and exactly what needs to be fixed.</p>
           </div>
         </section>
-
         {showPayment ? (
           <div className="bg-white rounded-2xl p-8 shadow-2xl text-center">
             <div className="text-6xl mb-4">💳</div>
@@ -197,6 +196,7 @@ export default function RateMyListingPage() {
           <div className="bg-white rounded-2xl p-6 shadow-2xl mb-6">
             <h2 className="text-xl font-bold text-[#1a2b4a] mb-4 text-center">📋 Paste Your Listing Below</h2>
             <div className="space-y-4">
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                 <input
@@ -211,25 +211,43 @@ export default function RateMyListingPage() {
               </div>
 
               <div className="border-t border-gray-100 pt-4">
-                <label className="block text-sm font-bold text-gray-700 mb-3">Property Details <span className="text-gray-400 font-normal">(helps AI grade more accurately)</span></label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2">
-                    <input
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                      placeholder="Address"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                    />
+                <label className="block text-sm font-bold text-gray-700 mb-3">
+                  Property Address <span className="text-gray-400 font-normal">(Orange County FL — auto-fills details)</span>
+                </label>
+                <AddressAutosuggest
+                  value={address}
+                  onChange={setAddress}
+                  onSelect={handleParcelSelect}
+                />
+              </div>
+
+              {(beds || baths || sqft || yearBuilt) && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <p className="text-green-800 font-bold text-sm mb-2">✅ Property details auto-filled:</p>
+                  <div className="grid grid-cols-2 gap-2 text-sm text-green-700">
+                    {beds && <span>🛏 {beds} Beds</span>}
+                    {baths && <span>🚿 {baths} Baths</span>}
+                    {sqft && <span>📐 {Number(sqft).toLocaleString()} sqft</span>}
+                    {yearBuilt && <span>🏗 Built {yearBuilt}</span>}
                   </div>
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} />
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="FL" value={state} onChange={(e) => setState(e.target.value)} />
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Zip" value={zip} onChange={(e) => setZip(e.target.value)} />
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="List Price ($)" type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Beds" type="number" value={beds} onChange={(e) => setBeds(e.target.value)} />
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Baths" type="number" value={baths} onChange={(e) => setBaths(e.target.value)} />
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Sqft" type="number" value={sqft} onChange={(e) => setSqft(e.target.value)} />
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Year Built" type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} />
                 </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                  placeholder="List Price ($)"
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                />
+                <input
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
+                  placeholder="Year Built (if not auto-filled)"
+                  type="number"
+                  value={yearBuilt}
+                  onChange={(e) => setYearBuilt(e.target.value)}
+                />
               </div>
 
               <div className="border-t border-gray-100 pt-4">
@@ -257,7 +275,6 @@ export default function RateMyListingPage() {
                       <p className="text-sm font-bold text-slate-800">A-Grade Readiness</p>
                       <p className="text-sm font-bold text-slate-800">{missingInfo.percentToA}%</p>
                     </div>
-
                     {missingInfo.missingFields.length > 0 ? (
                       <>
                         <p className="text-xs text-slate-600 mb-2">Missing details that usually block an A:</p>
@@ -288,7 +305,6 @@ export default function RateMyListingPage() {
                   <strong>Next up:</strong> You'll get a pro rewrite + clear fixes. Then you can level it up in Workspace with neighborhood details, photos, and client documents.
                 </p>
               </div>
-
               <p className="text-xs text-gray-500 text-center">Secure payment via Square. See results instantly.</p>
             </div>
           </div>
@@ -301,3 +317,4 @@ export default function RateMyListingPage() {
     </main>
   );
 }
+
