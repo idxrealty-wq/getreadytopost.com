@@ -164,7 +164,7 @@ export default function HowItWorksPage() {
           <h2 className="text-3xl font-bold text-white mb-4">Ready to Get Started?</h2>
           <p className="text-gray-300 mb-8 text-lg">Pick your path and start creating better listings today.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/upload" className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-4 rounded-xl font-bold text-lg transition">Upload a Listing</Link>
+            <Link href="/rate-my-listing" className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-4 rounded-xl font-bold text-lg transition">Upload a Listing</Link>
           </div>
         </div>
       </section>
