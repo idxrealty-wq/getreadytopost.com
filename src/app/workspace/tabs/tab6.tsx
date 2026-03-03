@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from 'react';
 import { doc, updateDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
@@ -21,30 +21,35 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
   const defaultInputs: ClosingCostInputs = {
     salePrice: parseFloat(propertyData.price?.replace(/[^0-9.]/g, '')) || 0,
     address: address || '',
-    loanType: 'Conventional',
-    downPaymentPct: 20,
-    interestRate: 7.25,
-    loanTermYears: 30,
+    county: propertyData.county || 'Orange',
     closingDate: '',
-    titleInsuranceOwner: 0,
-    titleInsuranceLender: 0,
-    titleSearch: 350,
-    titleExam: 150,
-    settlement: 595,
-    docStamps: 0,
-    intangibleTax: 0,
-    annualTaxes: parseFloat(propertyData.assessedValue?.replace(/[^0-9.]/g, '')) * 0.015 || 0,
+    isFinanced: true,
+    loanAmount: 0,
+    interestRate: 7.25,
+    loanType: 'Conventional',
+    titleInsuranceProvider: 'Seller',
+    ownersTitleInsurance: true,
+    lendersTitleInsurance: true,
+    surveyRequired: true,
+    surveyAmount: 500,
+    annualPropertyTax: parseFloat(propertyData.assessedValue?.replace(/[^0-9.]/g, '')) * 0.015 || 0,
+    homesteadExemption: false,
+    taxesPaidThrough: '',
+    hasHOA: false,
     hoaMonthly: parseFloat(propertyData.hoaAmount?.replace(/[^0-9.]/g, '')) || 0,
-    hoaTransferFee: 0,
-    hoaCapitalContribution: 0,
+    hoaEstoppelFee: 250,
+    homeownersInsuranceAnnual: 2400,
+    floodInsuranceAnnual: 0,
+    listingAgentCommission: 3,
+    buyerAgentCommission: 3,
+    existingMortgagePayoff: 0,
+    sellerConcessions: 0,
+    earnestMoneyDeposit: 0,
+    escrowMonths: 3,
     homeInspection: 400,
-    wdoInspection: 125,
+    pestInspection: 125,
     windMitigation: 100,
     fourPointInspection: 150,
-    surveyFee: 500,
-    appraisalFee: 550,
-    homeWarranty: 0,
-    miscFees: 0,
   };
 
   const [step, setStep] = useState(0);
@@ -60,6 +65,7 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
   const set = (field: keyof ClosingCostInputs, value: any) => setInputs(prev => ({ ...prev, [field]: value }));
   const num = (field: keyof ClosingCostInputs) => (e: React.ChangeEvent<HTMLInputElement>) => set(field, parseFloat(e.target.value) || 0);
   const txt = (field: keyof ClosingCostInputs) => (e: React.ChangeEvent<HTMLInputElement>) => set(field, e.target.value);
+  const chk = (field: keyof ClosingCostInputs) => (e: React.ChangeEvent<HTMLInputElement>) => set(field, e.target.checked);
 
   const handleCalculate = async () => {
     const r = calculateClosingCosts(inputs);
@@ -112,17 +118,12 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label className={labelClass}>Property Address</label><input type="text" value={inputs.address} onChange={txt('address')} className={inputClass} /></div>
             <div><label className={labelClass}>Sale Price ($)</label><input type="number" value={inputs.salePrice} onChange={num('salePrice')} className={inputClass} /></div>
+            <div><label className={labelClass}>County</label><input type="text" value={inputs.county} onChange={txt('county')} className={inputClass} /></div>
             <div><label className={labelClass}>Closing Date</label><input type="date" value={inputs.closingDate} onChange={txt('closingDate')} className={inputClass} /></div>
-            <div><label className={labelClass}>Loan Type</label>
-              <select value={inputs.loanType} onChange={(e) => set('loanType', e.target.value)} className={inputClass}>
-                <option value="conventional">Conventional</option>
-                <option value="fha">FHA</option>
-                <option value="va">VA</option>
-                <option value="cash">Cash</option>
-              </select>
-            </div>
           </div>
-          <div className="flex justify-end mt-6"><button onClick={() => setStep(1)} className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition">Next</button></div>
+          <div className="flex justify-end mt-6">
+            <button onClick={() => setStep(1)} className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition">Next</button>
+          </div>
         </div>
       )}
 
@@ -131,9 +132,23 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
           <h2 className="text-2xl font-bold text-white mb-6">Loan Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className={labelClass}>Down Payment (%)</label><input type="number" value={inputs.downPaymentPct} onChange={num('downPaymentPct')} className={inputClass} /></div>
-            <div><label className={labelClass}>Interest Rate (%)</label><input type="number" step="0.01" value={inputs.interestRate} onChange={num('interestRate')} className={inputClass} /></div>
-            <div><label className={labelClass}>Loan Term (Years)</label><input type="number" value={inputs.loanTermYears} onChange={num('loanTermYears')} className={inputClass} /></div>
+            <div className="flex items-center gap-3 col-span-2">
+              <input type="checkbox" id="isFinanced" checked={inputs.isFinanced} onChange={chk('isFinanced')} className="w-5 h-5 accent-[#c9a227]" />
+              <label htmlFor="isFinanced" className="text-gray-300 font-semibold">Financed Purchase</label>
+            </div>
+            {inputs.isFinanced && (<>
+              <div><label className={labelClass}>Loan Amount ($)</label><input type="number" value={inputs.loanAmount} onChange={num('loanAmount')} className={inputClass} /></div>
+              <div><label className={labelClass}>Interest Rate (%)</label><input type="number" step="0.01" value={inputs.interestRate} onChange={num('interestRate')} className={inputClass} /></div>
+              <div><label className={labelClass}>Loan Type</label>
+                <select value={inputs.loanType} onChange={(e) => set('loanType', e.target.value)} className={inputClass}>
+                  <option value="Conventional">Conventional</option>
+                  <option value="FHA">FHA</option>
+                  <option value="VA">VA</option>
+                  <option value="USDA">USDA</option>
+                  <option value="Cash">Cash</option>
+                </select>
+              </div>
+            </>)}
           </div>
           <div className="flex justify-between mt-6">
             <button onClick={() => setStep(0)} className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-bold transition">Back</button>
@@ -147,13 +162,29 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
           <h2 className="text-2xl font-bold text-white mb-6">Title & Insurance</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className={labelClass}>Owner's Title Insurance ($)</label><input type="number" value={inputs.titleInsuranceOwner} onChange={num('titleInsuranceOwner')} className={inputClass} /></div>
-            <div><label className={labelClass}>Lender's Title Insurance ($)</label><input type="number" value={inputs.titleInsuranceLender} onChange={num('titleInsuranceLender')} className={inputClass} /></div>
-            <div><label className={labelClass}>Title Search ($)</label><input type="number" value={inputs.titleSearch} onChange={num('titleSearch')} className={inputClass} /></div>
-            <div><label className={labelClass}>Title Exam ($)</label><input type="number" value={inputs.titleExam} onChange={num('titleExam')} className={inputClass} /></div>
-            <div><label className={labelClass}>Settlement Fee ($)</label><input type="number" value={inputs.settlement} onChange={num('settlement')} className={inputClass} /></div>
-            <div><label className={labelClass}>Doc Stamps ($)</label><input type="number" value={inputs.docStamps} onChange={num('docStamps')} className={inputClass} /></div>
-            <div><label className={labelClass}>Intangible Tax ($)</label><input type="number" value={inputs.intangibleTax} onChange={num('intangibleTax')} className={inputClass} /></div>
+            <div><label className={labelClass}>Title Insurance Provider</label>
+              <select value={inputs.titleInsuranceProvider} onChange={(e) => set('titleInsuranceProvider', e.target.value)} className={inputClass}>
+                <option value="Seller">Seller</option>
+                <option value="Buyer">Buyer</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-3 mt-6">
+              <input type="checkbox" id="ownersTI" checked={inputs.ownersTitleInsurance} onChange={chk('ownersTitleInsurance')} className="w-5 h-5 accent-[#c9a227]" />
+              <label htmlFor="ownersTI" className="text-gray-300 font-semibold">Owner's Title Insurance</label>
+            </div>
+            <div className="flex items-center gap-3">
+              <input type="checkbox" id="lendersTI" checked={inputs.lendersTitleInsurance} onChange={chk('lendersTitleInsurance')} className="w-5 h-5 accent-[#c9a227]" />
+              <label htmlFor="lendersTI" className="text-gray-300 font-semibold">Lender's Title Insurance</label>
+            </div>
+            <div className="flex items-center gap-3">
+              <input type="checkbox" id="survey" checked={inputs.surveyRequired} onChange={chk('surveyRequired')} className="w-5 h-5 accent-[#c9a227]" />
+              <label htmlFor="survey" className="text-gray-300 font-semibold">Survey Required</label>
+            </div>
+            {inputs.surveyRequired && (
+              <div><label className={labelClass}>Survey Amount ($)</label><input type="number" value={inputs.surveyAmount} onChange={num('surveyAmount')} className={inputClass} /></div>
+            )}
+            <div><label className={labelClass}>Homeowners Insurance Annual ($)</label><input type="number" value={inputs.homeownersInsuranceAnnual} onChange={num('homeownersInsuranceAnnual')} className={inputClass} /></div>
+            <div><label className={labelClass}>Flood Insurance Annual ($)</label><input type="number" value={inputs.floodInsuranceAnnual} onChange={num('floodInsuranceAnnual')} className={inputClass} /></div>
           </div>
           <div className="flex justify-between mt-6">
             <button onClick={() => setStep(1)} className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-bold transition">Back</button>
@@ -165,12 +196,28 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
       {/* Step 3: Taxes & HOA */}
       {step === 3 && (
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-          <h2 className="text-2xl font-bold text-white mb-6">Taxes & HOA</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Taxes, HOA & Commission</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className={labelClass}>Annual Property Taxes ($)</label><input type="number" value={inputs.annualTaxes} onChange={num('annualTaxes')} className={inputClass} /></div>
-            <div><label className={labelClass}>HOA Monthly ($)</label><input type="number" value={inputs.hoaMonthly} onChange={num('hoaMonthly')} className={inputClass} /></div>
-            <div><label className={labelClass}>HOA Transfer Fee ($)</label><input type="number" value={inputs.hoaTransferFee} onChange={num('hoaTransferFee')} className={inputClass} /></div>
-            <div><label className={labelClass}>HOA Capital Contribution ($)</label><input type="number" value={inputs.hoaCapitalContribution} onChange={num('hoaCapitalContribution')} className={inputClass} /></div>
+            <div><label className={labelClass}>Annual Property Tax ($)</label><input type="number" value={inputs.annualPropertyTax} onChange={num('annualPropertyTax')} className={inputClass} /></div>
+            <div className="flex items-center gap-3 mt-6">
+              <input type="checkbox" id="homestead" checked={inputs.homesteadExemption} onChange={chk('homesteadExemption')} className="w-5 h-5 accent-[#c9a227]" />
+              <label htmlFor="homestead" className="text-gray-300 font-semibold">Homestead Exemption</label>
+            </div>
+            <div><label className={labelClass}>Taxes Paid Through</label><input type="text" value={inputs.taxesPaidThrough} onChange={txt('taxesPaidThrough')} placeholder="e.g. December 2024" className={inputClass} /></div>
+            <div className="flex items-center gap-3 mt-6">
+              <input type="checkbox" id="hasHOA" checked={inputs.hasHOA} onChange={chk('hasHOA')} className="w-5 h-5 accent-[#c9a227]" />
+              <label htmlFor="hasHOA" className="text-gray-300 font-semibold">Has HOA</label>
+            </div>
+            {inputs.hasHOA && (<>
+              <div><label className={labelClass}>HOA Monthly ($)</label><input type="number" value={inputs.hoaMonthly} onChange={num('hoaMonthly')} className={inputClass} /></div>
+              <div><label className={labelClass}>HOA Estoppel Fee ($)</label><input type="number" value={inputs.hoaEstoppelFee} onChange={num('hoaEstoppelFee')} className={inputClass} /></div>
+            </>)}
+            <div><label className={labelClass}>Listing Agent Commission (%)</label><input type="number" step="0.1" value={inputs.listingAgentCommission} onChange={num('listingAgentCommission')} className={inputClass} /></div>
+            <div><label className={labelClass}>Buyer Agent Commission (%)</label><input type="number" step="0.1" value={inputs.buyerAgentCommission} onChange={num('buyerAgentCommission')} className={inputClass} /></div>
+            <div><label className={labelClass}>Existing Mortgage Payoff ($)</label><input type="number" value={inputs.existingMortgagePayoff} onChange={num('existingMortgagePayoff')} className={inputClass} /></div>
+            <div><label className={labelClass}>Seller Concessions ($)</label><input type="number" value={inputs.sellerConcessions} onChange={num('sellerConcessions')} className={inputClass} /></div>
+            <div><label className={labelClass}>Earnest Money Deposit ($)</label><input type="number" value={inputs.earnestMoneyDeposit} onChange={num('earnestMoneyDeposit')} className={inputClass} /></div>
+            <div><label className={labelClass}>Escrow Months</label><input type="number" value={inputs.escrowMonths} onChange={num('escrowMonths')} className={inputClass} /></div>
           </div>
           <div className="flex justify-between mt-6">
             <button onClick={() => setStep(2)} className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-bold transition">Back</button>
@@ -182,16 +229,12 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
       {/* Step 4: Inspections */}
       {step === 4 && (
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-          <h2 className="text-2xl font-bold text-white mb-6">Inspections & Other</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Inspections</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label className={labelClass}>Home Inspection ($)</label><input type="number" value={inputs.homeInspection} onChange={num('homeInspection')} className={inputClass} /></div>
-            <div><label className={labelClass}>WDO/Pest Inspection ($)</label><input type="number" value={inputs.wdoInspection} onChange={num('wdoInspection')} className={inputClass} /></div>
+            <div><label className={labelClass}>Pest/WDO Inspection ($)</label><input type="number" value={inputs.pestInspection} onChange={num('pestInspection')} className={inputClass} /></div>
             <div><label className={labelClass}>Wind Mitigation ($)</label><input type="number" value={inputs.windMitigation} onChange={num('windMitigation')} className={inputClass} /></div>
             <div><label className={labelClass}>4-Point Inspection ($)</label><input type="number" value={inputs.fourPointInspection} onChange={num('fourPointInspection')} className={inputClass} /></div>
-            <div><label className={labelClass}>Survey Fee ($)</label><input type="number" value={inputs.surveyFee} onChange={num('surveyFee')} className={inputClass} /></div>
-            <div><label className={labelClass}>Appraisal Fee ($)</label><input type="number" value={inputs.appraisalFee} onChange={num('appraisalFee')} className={inputClass} /></div>
-            <div><label className={labelClass}>Home Warranty ($)</label><input type="number" value={inputs.homeWarranty} onChange={num('homeWarranty')} className={inputClass} /></div>
-            <div><label className={labelClass}>Misc Fees ($)</label><input type="number" value={inputs.miscFees} onChange={num('miscFees')} className={inputClass} /></div>
           </div>
           <div className="bg-[#c9a227]/10 border border-[#c9a227]/30 rounded-xl p-4 mt-4">
             <p className="text-[#c9a227] font-bold mb-1">Ready to Calculate</p>
@@ -213,57 +256,63 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
 
           {savedMsg && (
             <div className="bg-green-600/20 border border-green-400/30 rounded-xl p-4 text-green-300 font-semibold mb-4">
-              âœ… {savedMsg}
+              {savedMsg}
             </div>
           )}
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-[#c9a227]/20 border border-[#c9a227]/40 rounded-xl p-5 text-center">
-              <p className="text-gray-300 text-sm mb-1">Total Buyer Closing Costs</p>
-              <p className="text-3xl font-bold text-[#c9a227]">{fmt(results.buyerTotal)}</p>
+              <p className="text-gray-300 text-sm mb-1">Buyer Total</p>
+              <p className="text-2xl font-bold text-[#c9a227]">{fmt(results.buyerTotal)}</p>
             </div>
             <div className="bg-white/10 border border-white/20 rounded-xl p-5 text-center">
-              <p className="text-gray-300 text-sm mb-1">Total Seller Closing Costs</p>
-              <p className="text-3xl font-bold text-white">{fmt(results.sellerTotal)}</p>
+              <p className="text-gray-300 text-sm mb-1">Seller Total</p>
+              <p className="text-2xl font-bold text-white">{fmt(results.sellerTotal)}</p>
+            </div>
+            <div className="bg-green-600/20 border border-green-400/30 rounded-xl p-5 text-center">
+              <p className="text-gray-300 text-sm mb-1">Buyer Cash to Close</p>
+              <p className="text-2xl font-bold text-green-300">{fmt(results.buyerCashToClose)}</p>
             </div>
             <div className="bg-white/10 border border-white/20 rounded-xl p-5 text-center">
-              <p className="text-gray-300 text-sm mb-1">Est. Monthly Payment</p>
-              <p className="text-3xl font-bold text-white">{fmt(results.monthlyPayment)}</p>
+              <p className="text-gray-300 text-sm mb-1">Seller Net Proceeds</p>
+              <p className="text-2xl font-bold text-white">{fmt(results.sellerNetProceeds)}</p>
             </div>
           </div>
 
-          {/* Buyer Breakdown */}
+          {/* TRID Line Items */}
           <div className="mb-6">
-            <h3 className="text-lg font-bold text-[#c9a227] mb-3 border-b border-white/10 pb-2">Buyer Cost Breakdown</h3>
-            <div className="space-y-2">
-              {results.buyerLines.map((line: any, i: number) => (
-                <div key={i} className="flex justify-between items-center py-2 border-b border-white/5">
-                  <span className="text-gray-300 text-sm">{line.label}</span>
-                  <span className="text-white font-semibold">{fmt(line.amount)}</span>
-                </div>
-              ))}
-              <div className="flex justify-between items-center py-3 mt-2">
-                <span className="text-white font-bold text-lg">Total Buyer Costs</span>
-                <span className="text-[#c9a227] font-bold text-lg">{fmt(results.buyerTotal)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Seller Breakdown */}
-          <div className="mb-6">
-            <h3 className="text-lg font-bold text-[#c9a227] mb-3 border-b border-white/10 pb-2">Seller Cost Breakdown</h3>
-            <div className="space-y-2">
-              {results.sellerLines.map((line: any, i: number) => (
-                <div key={i} className="flex justify-between items-center py-2 border-b border-white/5">
-                  <span className="text-gray-300 text-sm">{line.label}</span>
-                  <span className="text-white font-semibold">{fmt(line.amount)}</span>
-                </div>
-              ))}
-              <div className="flex justify-between items-center py-3 mt-2">
-                <span className="text-white font-bold text-lg">Total Seller Costs</span>
-                <span className="text-[#c9a227] font-bold text-lg">{fmt(results.sellerTotal)}</span>
-              </div>
+            <h3 className="text-lg font-bold text-[#c9a227] mb-3 border-b border-white/10 pb-2">TRID Line Item Breakdown</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/20">
+                    <th className="text-left text-gray-400 py-2 pr-4">#</th>
+                    <th className="text-left text-gray-400 py-2 pr-4">Section</th>
+                    <th className="text-left text-gray-400 py-2 pr-4">Description</th>
+                    <th className="text-right text-gray-400 py-2 pr-4">Buyer</th>
+                    <th className="text-right text-gray-400 py-2">Seller</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.lineItems.map((line, i) => (
+                    <tr key={i} className="border-b border-white/5">
+                      <td className="text-gray-500 py-2 pr-4">{line.lineNumber}</td>
+                      <td className="text-gray-400 py-2 pr-4 text-xs">{line.section}</td>
+                      <td className="text-gray-300 py-2 pr-4">{line.label}</td>
+                      <td className="text-white py-2 pr-4 text-right font-mono">{line.buyerAmount ? fmt(line.buyerAmount) : '-'}</td>
+                      <td className="text-white py-2 text-right font-mono">{line.sellerAmount ? fmt(line.sellerAmount) : '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-[#c9a227]/40">
+                    <td colSpan={3} className="text-white font-bold py-3">TOTALS</td>
+                    <td className="text-[#c9a227] font-bold py-3 text-right font-mono">{fmt(results.buyerTotal)}</td>
+                    <td className="text-[#c9a227] font-bold py-3 text-right font-mono">{fmt(results.sellerTotal)}</td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           </div>
 
@@ -279,7 +328,6 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
         </div>
       )}
 
-      {/* No results yet on step 5 */}
       {step === 5 && !results && (
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center">
           <p className="text-gray-300 mb-4">No results yet. Complete the form and click Calculate.</p>
@@ -290,4 +338,3 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
     </div>
   );
 }
-
