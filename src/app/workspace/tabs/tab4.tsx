@@ -63,10 +63,10 @@ export default function Tab4Checklist({
   const [savingCode, setSavingCode] = useState(false);
   const [codeSaved, setCodeSaved] = useState(false);
   const [showShareConfirm, setShowShareConfirm] = useState(false);
-  const [shareUrl, setShareUrl] = useState('');
+  const [shareUrl, setShareUrl] = useState("");
 
   useEffect(() => {
-    if (listingId) setShareUrl(`https://getreadytopost.com/documents/view?id=${listingId}`);
+    if (listingId) setShareUrl("https://getreadytopost.com/documents/view?id=" + listingId);
   }, [listingId]);
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export default function Tab4Checklist({
       setUploads(loaded);
       const metaUpdate: Record<string, any> = {};
       existingDocuments.forEach((d: any) => {
-        metaUpdate[d.docId] = { price: d.price || "", party: d.party || "Buyer", accessCode: d.accessCode || "", codeSaved: !!d.accessCode, sharedWithBuyer: d.sharedWithBuyer || false };
+        metaUpdate[d.docId] = { price: d.price || "", party: d.party || "Buyer", accessCode: d.accessCode || "", codeSaved: !!d.accessCode, sharedWithBuyer: d.sharedWithBuyer === true };
       });
       setDocMeta((prev) => ({ ...prev, ...metaUpdate }));
     }
@@ -117,23 +117,47 @@ export default function Tab4Checklist({
     if (!listingId) return;
     setSavingCode(true);
     try {
-      await updateDoc(doc(db, 'listings', listingId), { documentAccessCode });
+      await updateDoc(doc(db, "listings", listingId), { documentAccessCode });
       setCodeSaved(true);
-    } catch (e) { alert('Failed to save access code'); }
+    } catch (e) { alert("Failed to save access code"); }
     finally { setSavingCode(false); }
   };
 
   const handleShareClick = () => {
-    if (!listingId) { alert('Save the listing first before sharing.'); return; }
+    if (!listingId) { alert("Save the listing first before sharing."); return; }
     if (!documentAccessCode) { setShowShareConfirm(true); }
     else { handleSaveAccessCode().then(() => setCodeCopied(false)); }
+  };
+
+  const handleSaveDocMeta = async (docId: string) => {
+    if (!listingId) return;
+    if (!window.confirm("Save settings for this document?")) return;
+    try {
+      const snap = await getDoc(doc(db, "listings", listingId));
+      if (snap.exists()) {
+        const meta = docMeta[docId] || {};
+        const updated = (snap.data().documents || []).map((d: any) => {
+          if (d.docId !== docId) return d;
+          return {
+            ...d,
+            accessCode: meta.accessCode || "",
+            price: meta.price || "",
+            party: meta.party || "Buyer",
+            sharedWithBuyer: meta.sharedWithBuyer === true,
+          };
+        });
+        await updateDoc(doc(db, "listings", listingId), { documents: updated });
+        setDocMeta((prev) => ({ ...prev, [docId]: { ...prev[docId], codeSaved: true } }));
+        alert("Saved!");
+      }
+    } catch (e) { alert("Failed to save document settings"); }
   };
 
   const handleFileUpload = async (docId: string, file: File | null) => {
     if (!file) { setUploads((prev) => ({ ...prev, [docId]: null })); return; }
     setUploads((prev) => ({ ...prev, [docId]: { file, date: new Date().toLocaleString(), uploading: true } }));
     try {
-      const storagePath = `documents/${listingId || "temp"}/${docId}/${file.name}`;
+      const storagePath = "documents/" + (listingId || "temp") + "/" + docId + "/" + file.name;
       const storageRef = ref(storage, storagePath);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
@@ -164,29 +188,6 @@ export default function Tab4Checklist({
     } catch (e) { console.error(e); }
     finally { setDeletingDoc(null); }
   };
-    const handleSaveDocMeta = async (docId: string) => {
-    if (!listingId) return;
-    try {
-      const snap = await getDoc(doc(db, "listings", listingId));
-      if (snap.exists()) {
-        const meta = docMeta[docId] || {};
-        const updated = (snap.data().documents || []).map((d: any) => {
-          if (d.docId !== docId) return d;
-          return {
-            ...d,
-            accessCode: meta.accessCode || "",
-            price: meta.price || "",
-            party: meta.party || "Buyer",
-            sharedWithBuyer: meta.sharedWithBuyer === true,
-          };
-        });
-        await updateDoc(doc(db, "listings", listingId), { documents: updated });
-        setDocMeta((prev) => ({ ...prev, [docId]: { ...prev[docId], codeSaved: true } }));
-        alert("Saved!");
-      }
-    } catch (e) { alert("Failed to save document settings"); }
-  };
-
 
   const handleDeleteSavedPhoto = async (photo: any) => {
     if (!window.confirm("Delete this photo?")) return;
@@ -218,7 +219,6 @@ export default function Tab4Checklist({
   const totalCount = CHECKLIST_ITEMS.length;
   const groupedChecklist = CHECKLIST_ITEMS.reduce((acc: any, item) => { if (!acc[item.category]) acc[item.category] = []; acc[item.category].push(item); return acc; }, {});
   const sharedCount = DOCUMENT_SLOTS.filter((slot) => docMeta[slot.id]?.sharedWithBuyer).length;
-
   return (
     <div className="space-y-8">
 
@@ -274,7 +274,7 @@ export default function Tab4Checklist({
                   {uploads[docSlot.id].uploading ? (
                     <span className="text-yellow-400">Uploading...</span>
                   ) : (
-                    <span className="text-green-400">{uploads[docSlot.id].file?.name} � uploaded {uploads[docSlot.id].date}</span>
+                    <span className="text-green-400">{uploads[docSlot.id].file?.name} — uploaded {uploads[docSlot.id].date}</span>
                   )}
                 </div>
               ) : (
@@ -282,13 +282,12 @@ export default function Tab4Checklist({
               )}
               {uploads[docSlot.id]?.url && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                  {/* Include in share link checkbox */}
                   <div className="col-span-2">
                     <label className="flex items-center gap-3 cursor-pointer bg-[#c9a227]/10 hover:bg-[#c9a227]/20 border border-[#c9a227]/40 p-3 rounded-xl transition">
                       <input
                         type="checkbox"
                         checked={docMeta[docSlot.id]?.sharedWithBuyer || false}
-                        onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], sharedWithBuyer: e.target.checked } }))}
+                        onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], sharedWithBuyer: e.target.checked, codeSaved: false } }))}
                         className="w-5 h-5 accent-[#c9a227]"
                       />
                       <span className="text-white font-semibold text-sm">Include in buyer share link</span>
@@ -301,7 +300,7 @@ export default function Tab4Checklist({
                   </div>
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Visible To</label>
-                    <select value={docMeta[docSlot.id]?.party || "Buyer"} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], party: e.target.value } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm">
+                    <select value={docMeta[docSlot.id]?.party || "Buyer"} onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], party: e.target.value, codeSaved: false } }))} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm">
                       <option>Buyer</option>
                       <option>Seller</option>
                       <option>Both</option>
@@ -405,7 +404,7 @@ export default function Tab4Checklist({
           <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-md p-8">
             <h3 className="text-white font-bold text-xl mb-4">Enter Access Code</h3>
             <p className="text-gray-400 text-sm mb-4">This document is protected. Enter the access code to view.</p>
-            <input type="text" value={viewCodeInput} onChange={(e) => { setViewCodeInput(e.target.value); setViewCodeError(false); }} placeholder="Enter access code" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black mb-3" onKeyDown={(e) => { if (e.key === 'Enter') handleViewCodeSubmit(); }} />
+            <input type="text" value={viewCodeInput} onChange={(e) => { setViewCodeInput(e.target.value); setViewCodeError(false); }} placeholder="Enter access code" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black mb-3" onKeyDown={(e) => { if (e.key === "Enter") handleViewCodeSubmit(); }} />
             {viewCodeError && <p className="text-red-400 text-sm mb-3">Incorrect code. Try again.</p>}
             <div className="flex gap-3">
               <button onClick={handleViewCodeSubmit} className="flex-1 bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-3 rounded-xl font-bold transition">Unlock</button>
@@ -427,7 +426,7 @@ export default function Tab4Checklist({
             <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-4xl max-h-[90vh] overflow-auto">
               <div className="sticky top-0 bg-gray-800 border-b border-white/20 p-4 flex justify-between items-center">
                 <h3 className="text-white font-bold">{title}</h3>
-                <button onClick={() => setViewingDoc(null)} className="text-gray-300 hover:text-white text-2xl">X</button>
+                <button onClick={() => setViewingDoc(null)} className="text-gray-300 hover:text-white text-2xl font-bold">X</button>
               </div>
               <div className="p-6">
                 {isPdf ? (
@@ -455,4 +454,3 @@ export default function Tab4Checklist({
     </div>
   );
 }
-
