@@ -236,7 +236,7 @@ export default function RateMyListingPage() {
               <div className="grid grid-cols-2 gap-3">
                 <input
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                  placeholder="List Price ($)"
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="$ List Price" type="text" value={price ? '$' + Number(price).toLocaleString() : ''}      onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))} />
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
