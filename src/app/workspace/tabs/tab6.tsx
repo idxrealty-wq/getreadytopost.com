@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from 'react';
 import { doc, updateDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
@@ -21,7 +21,7 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
   const defaultInputs: ClosingCostInputs = {
     salePrice: parseFloat(propertyData.price?.replace(/[^0-9.]/g, '')) || 0,
     address: address || '',
-    loanType: 'conventional',
+    loanType: 'Conventional',
     downPaymentPct: 20,
     interestRate: 7.25,
     loanTermYears: 30,
@@ -213,7 +213,7 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
 
           {savedMsg && (
             <div className="bg-green-600/20 border border-green-400/30 rounded-xl p-4 text-green-300 font-semibold mb-4">
-              ✅ {savedMsg}
+              âœ… {savedMsg}
             </div>
           )}
 
@@ -290,3 +290,4 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
     </div>
   );
 }
+
