@@ -11,9 +11,9 @@ const personas = [
     color: 'from-blue-600 to-blue-800',
     border: 'border-blue-500/40',
     cta: 'Start as an Agent',
-    ctaLink: '/upload',
+    ctaLink: '/rate-my-listing',
     steps: [
-      { number: '01', title: 'Upload Your Listing', description: 'Paste your raw listing notes or upload your document. Our AI reads everything — beds, baths, features, neighborhood highlights.', link: '/upload', linkText: 'Go to Upload →', icon: '📋' },
+      { number: '01', title: 'Upload Your Listing', description: 'Paste your raw listing notes or upload your document. Our AI reads everything — beds, baths, features, neighborhood highlights.', link: '/rate-my-listing', linkText: 'Go to Upload →', icon: '📋' },
       { number: '02', title: 'Get Your Grade', description: 'Instantly see how your listing scores across 6 categories: Hook, Features, Lifestyle, Compliance, Flow, and Call to Action.', link: '/rate-my-listing', linkText: 'See Rate My Listing →', icon: '📊' },
       { number: '03', title: 'Receive Polished Copy', description: 'Get a fully rewritten, buyer-focused, MLS-compliant description delivered to your inbox. 140–160 words, ready to paste.', link: '/pricing', linkText: 'See Pricing →', icon: '✍️' },
       { number: '04', title: 'Save to Agent Vault', description: 'Every listing you work on is saved in your personal Agent Vault. Edit, view, and manage all your listings in one place.', link: '/agent-vault', linkText: 'Open Agent Vault →', icon: '🗄️' },
@@ -133,7 +133,7 @@ export default function HowItWorksPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
               { icon: '🏠', title: 'Home', desc: 'Overview of the service and how it works', link: '/' },
-              { icon: '📋', title: 'Upload', desc: 'Submit your listing for AI grading and rewrite', link: '/upload' },
+              { icon: '📋', title: 'Upload', desc: 'Submit your listing for AI grading and rewrite', link: '/rate-my-listing' },
               { icon: '📊', title: 'Rate My Listing', desc: 'Instantly grade your listing across 6 categories', link: '/rate-my-listing' },
               { icon: '💰', title: 'Pricing', desc: 'Flat $19.99 for a full professional rewrite', link: '/pricing' },
               { icon: '🗄️', title: 'Agent Vault', desc: 'All your saved listings with photos and documents', link: '/agent-vault' },
