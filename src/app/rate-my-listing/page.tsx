@@ -35,6 +35,8 @@ export default function RateMyListingPage() {
   const [sqft, setSqft] = useState('');
   const [yearBuilt, setYearBuilt] = useState('');
   const [price, setPrice] = useState('');
+  const [hoa, setHoa] = useState('');
+  const [hoaAmount, setHoaAmount] = useState('');
   const [parcelLoaded, setParcelLoaded] = useState(false);
 
   const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
@@ -49,20 +51,19 @@ export default function RateMyListingPage() {
     if (parcel.year_built) setYearBuilt(parcel.year_built);
     setState('FL');
     setParcelLoaded(true);
-setMissingInfo(checkMissingInfo(listing, {
-  beds: parcel.beds || beds,
-  baths: parcel.baths || baths,
-  sqft: parcel.sqft || sqft,
-  yearBuilt: parcel.year_built || yearBuilt,
-  price,
-}));
-
+    setMissingInfo(checkMissingInfo(listing, {
+      beds: parcel.beds || beds,
+      baths: parcel.baths || baths,
+      sqft: parcel.sqft || sqft,
+      yearBuilt: parcel.year_built || yearBuilt,
+      price,
+    }));
   };
 
   const saveToLocalStorage = () => {
     const propertyData = {
       address, city, state, zip,
-      beds, baths, sqft, yearBuilt, price, email,
+      beds, baths, sqft, yearBuilt, price, hoa, hoaAmount, email,
       fullAddress: `${address}, ${city}, ${state} ${zip}`.trim(),
     };
     localStorage.setItem('grtp_property', JSON.stringify(propertyData));
@@ -79,6 +80,8 @@ setMissingInfo(checkMissingInfo(listing, {
         sqft: sqft ? parseInt(sqft) : null,
         yearBuilt: yearBuilt ? parseInt(yearBuilt) : null,
         price: price ? parseFloat(price) : null,
+        hoa: hoa || null,
+        hoaAmount: hoaAmount ? parseFloat(hoaAmount) : null,
       };
       const docRef = await addDoc(collection(db, 'submissions'), {
         email, listingText: listing, wordCount, propertyDetails,
@@ -174,195 +177,120 @@ setMissingInfo(checkMissingInfo(listing, {
             <p className="text-gray-400 text-sm">Each category is scored 1–10. Your total score determines your listing grade — and exactly what needs to be fixed.</p>
           </div>
         </section>
-        {showPayment ? (
-          <div className="bg-white rounded-2xl p-8 shadow-2xl text-center">
-            <div className="text-6xl mb-4">💳</div>
-            <h2 className="text-2xl font-bold text-[#1a2b4a] mb-4">Complete Your Payment</h2>
-            <p className="text-gray-600 mb-6">Complete these 2 steps:</p>
-            <div className="space-y-4 mb-6">
-              <div className="bg-gray-50 p-4 rounded-xl text-left">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 rounded-full bg-[#c9a227] text-white flex items-center justify-center font-bold">1</div>
-                  <h3 className="font-bold text-gray-800">Pay $19.99 via Square</h3>
-                </div>
-                <button onClick={handlePaymentClick} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition">
-                  Open Square Payment
-                </button>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-xl text-left">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 rounded-full bg-gray-300 text-white flex items-center justify-center font-bold">2</div>
-                  <h3 className="font-bold text-gray-800">View Your Results</h3>
-                </div>
-                <p className="text-sm text-gray-600 mb-3">After completing payment, click below to see your instant analysis</p>
-                <button onClick={handleViewResults} className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-semibold transition">
-                  ✨ View My Results
-                </button>
-              </div>
+        <section className="mb-10">
+          <h2 className="text-2xl font-bold text-white mb-6 text-center">Submit Your Listing</h2>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 space-y-6">
+            <div>
+              <label className="block text-white font-semibold mb-2">Email Address *</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com — we'll send your report here" className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c9a227]" required />
             </div>
-            <p className="text-xs text-gray-500">Your results will appear instantly after payment is processed (usually 30-60 seconds)</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl p-6 shadow-2xl mb-6">
-            <h2 className="text-xl font-bold text-[#1a2b4a] mb-4 text-center">📋 Paste Your Listing Below</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                <input
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                  placeholder="your@email.com"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">Your report will be sent here</p>
-              </div>
 
-              <div className="border-t border-gray-100 pt-4">
-                <label className="block text-sm font-bold text-gray-700 mb-3">
-                  Property Address <span className="text-gray-400 font-normal">(Orange County FL — auto-fills details)</span>
-                </label>
-                <AddressAutosuggest
-                  value={address}
-                  onChange={setAddress}
-                  onSelect={handleParcelSelect}
-                />
-              </div>
+            <div>
+              <label className="block text-white font-semibold mb-2">Property Address (Orange County, FL)</label>
+              <AddressAutosuggest value={address} onChange={setAddress} onSelect={handleParcelSelect} />
+            </div>
 
-              {parcelLoaded && (
-                <div className="border border-amber-200 bg-amber-50 rounded-xl p-4">
-                  <p className="text-amber-800 font-bold text-sm mb-3">✅ Auto-filled from county records — please verify and correct if needed:</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Beds</label>
-                      <input
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#c9a227] focus:outline-none"
-                        type="number"
-                        value={beds}
-                        onChange={(e) => setBeds(e.target.value)}
-                        placeholder="Beds"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Baths</label>
-                      <input
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#c9a227] focus:outline-none"
-                        type="number"
-                        value={baths}
-                        onChange={(e) => setBaths(e.target.value)}
-                        placeholder="Baths"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Sqft</label>
-                      <input
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#c9a227] focus:outline-none"
-                        type="number"
-                        value={sqft}
-                        onChange={(e) => setSqft(e.target.value)}
-                        placeholder="Sqft"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Year Built</label>
-                      <input
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#c9a227] focus:outline-none"
-                        type="number"
-                        value={yearBuilt}
-                        onChange={(e) => setYearBuilt(e.target.value)}
-                        placeholder="Year Built"
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <label className="block text-xs font-medium text-gray-600 mb-1">List Price</label>
-                      <input
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#c9a227] focus:outline-none"
-                        type="text"
-                        value={price ? '$' + Number(price).toLocaleString() : ''}
-                        onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))}
-                        placeholder="$ List Price"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {!parcelLoaded && (
+            {parcelLoaded && (
+              <div className="bg-green-500/10 border border-green-400/30 rounded-xl p-4">
+                <p className="text-green-400 font-semibold text-sm mb-3">✅ Auto-filled from county records — please verify and correct if needed:</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Beds" type="number" value={beds} onChange={(e) => setBeds(e.target.value)} />
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Baths" type="number" value={baths} onChange={(e) => setBaths(e.target.value)} />
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Sqft" type="number" value={sqft} onChange={(e) => setSqft(e.target.value)} />
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Year Built" type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} />
-                  <div className="col-span-2">
-                    <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="$ List Price" type="text" value={price ? '$' + Number(price).toLocaleString() : ''} onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))} />
+                  <div><label className="block text-gray-400 text-xs mb-1">Beds</label><input type="number" value={beds} onChange={e => setBeds(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm" /></div>
+                  <div><label className="block text-gray-400 text-xs mb-1">Baths</label><input type="number" value={baths} onChange={e => setBaths(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm" /></div>
+                  <div><label className="block text-gray-400 text-xs mb-1">Sqft</label><input type="number" value={sqft} onChange={e => setSqft(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm" /></div>
+                  <div><label className="block text-gray-400 text-xs mb-1">Year Built</label><input type="number" value={yearBuilt} onChange={e => setYearBuilt(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm" /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <div><label className="block text-gray-400 text-xs mb-1">List Price</label><input type="text" value={price} onChange={e => setPrice(e.target.value)} placeholder="$569,900" className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500" /></div>
+                  <div>
+                    <label className="block text-gray-400 text-xs mb-1">HOA</label>
+                    <select value={hoa} onChange={e => setHoa(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm">
+                      <option value="" className="bg-gray-800">Select...</option>
+                      <option value="yes" className="bg-gray-800">Yes</option>
+                      <option value="no" className="bg-gray-800">No</option>
+                    </select>
                   </div>
                 </div>
-              )}
-
-              <div className="border-t border-gray-100 pt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Listing Description *</label>
-                <textarea
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                  placeholder="Paste your MLS listing description here... The more detail you include, the better your grade and rewrite will be."
-                  rows={8}
-                  value={listing}
-                  onChange={(e) => {
-                    const text = e.target.value;
-                    setListing(text);
-                    setMissingInfo(checkMissingInfo(text, { beds, baths, sqft, yearBuilt, price }));
-                  }}
-                  required
-                />
-                <div className="flex justify-between mt-1">
-                  <p className="text-xs text-gray-500">Aim for 140–160 words for best results</p>
-                  <p className={`text-sm font-bold ${wordCount < 50 ? 'text-red-500' : wordCount < 140 ? 'text-amber-500' : 'text-green-500'}`}>{wordCount} words</p>
-                </div>
-
-                {listing.trim().length > 0 && (
-                  <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
-                    <div className="flex items-center justify-between gap-3 mb-2">
-                      <p className="text-sm font-bold text-slate-800">A-Grade Readiness</p>
-                      <p className="text-sm font-bold text-slate-800">{missingInfo.percentToA}%</p>
-                    </div>
-                    {missingInfo.missingFields.length > 0 ? (
-                      <>
-                        <p className="text-xs text-slate-600 mb-2">Missing details that usually block an A:</p>
-                        <ul className="text-sm text-slate-700 list-disc list-inside space-y-1">
-                          {missingInfo.missingFields.slice(0, 6).map((f: string, idx: number) => (
-                            <li key={idx}>{f}</li>
-                          ))}
-                        </ul>
-                        <p className="text-xs text-slate-600 mt-2">Tip: add these now, or we'll try to enhance what we can from the address.</p>
-                      </>
-                    ) : (
-                      <p className="text-sm text-green-700 font-semibold">Nice — this looks like it has enough detail to hit an A.</p>
-                    )}
+                {hoa === 'yes' && (
+                  <div className="mt-3">
+                    <label className="block text-gray-400 text-xs mb-1">HOA Amount ($/month)</label>
+                    <input type="text" value={hoaAmount} onChange={e => setHoaAmount(e.target.value)} placeholder="$150/month" className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500" />
                   </div>
                 )}
               </div>
+            )}
 
-              <button
-                onClick={handleSubmit}
-                className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50"
-                disabled={!email || !listing || loading}
-              >
-                {loading ? '⏳ Checking...' : '🔥 Continue to Payment'}
-              </button>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4">
-                <p className="text-sm text-slate-700">
-                  <strong>Next up:</strong> You'll get a pro rewrite + clear fixes. Then you can level it up in Workspace with neighborhood details, photos, and client documents.
-                </p>
+            {!parcelLoaded && (
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                <p className="text-gray-400 text-sm mb-3">Or enter property details manually:</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><input type="number" value={beds} onChange={e => setBeds(e.target.value)} placeholder="Beds" className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-400" /></div>
+                  <div><input type="number" value={baths} onChange={e => setBaths(e.target.value)} placeholder="Baths" className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-400" /></div>
+                  <div><input type="number" value={sqft} onChange={e => setSqft(e.target.value)} placeholder="Sqft" className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-400" /></div>
+                  <div><input type="number" value={yearBuilt} onChange={e => setYearBuilt(e.target.value)} placeholder="Year Built" className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-400" /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <div><input type="text" value={price} onChange={e => setPrice(e.target.value)} placeholder="List Price" className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-400" /></div>
+                  <div>
+                    <select value={hoa} onChange={e => setHoa(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm">
+                      <option value="" className="bg-gray-800">HOA?</option>
+                      <option value="yes" className="bg-gray-800">Yes</option>
+                      <option value="no" className="bg-gray-800">No</option>
+                    </select>
+                  </div>
+                </div>
+                {hoa === 'yes' && (
+                  <div className="mt-3">
+                    <input type="text" value={hoaAmount} onChange={e => setHoaAmount(e.target.value)} placeholder="HOA Amount ($/month)" className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-400" />
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-gray-500 text-center">Secure payment via Square. See results instantly.</p>
-            </div>
-          </div>
-        )}
+            )}
 
-        <div className="text-center mt-8">
-          <Link href="/" className="text-white/70 hover:text-white font-semibold">← Back to Home</Link>
-        </div>
+            <div>
+              <label className="block text-white font-semibold mb-2">Listing Description *</label>
+              <textarea value={listing} onChange={e => {
+                setListing(e.target.value);
+                setMissingInfo(checkMissingInfo(e.target.value, { beds, baths, sqft, yearBuilt, price }));
+              }} placeholder="Paste your MLS listing description here..." rows={8} className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c9a227] resize-y" required />
+              <div className="flex justify-between mt-2">
+                <p className="text-gray-400 text-sm">Aim for 140–160 words for best results</p>
+                <p className={`text-sm font-bold ${wordCount > 200 ? 'text-red-400' : wordCount >= 140 ? 'text-green-400' : 'text-[#c9a227]'}`}>{wordCount} words</p>
+              </div>
+            </div>
+
+            {listing.length > 20 && (
+              <div className={`rounded-xl p-4 border ${missingInfo.percentToA >= 90 ? 'bg-green-500/10 border-green-400/30' : missingInfo.percentToA >= 70 ? 'bg-yellow-500/10 border-yellow-400/30' : 'bg-red-500/10 border-red-400/30'}`}>
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-white font-bold">A-Grade Readiness</h4>
+                  <span className={`text-2xl font-bold ${missingInfo.percentToA >= 90 ? 'text-green-400' : missingInfo.percentToA >= 70 ? 'text-yellow-400' : 'text-red-400'}`}>{missingInfo.percentToA}%</span>
+                </div>
+                {missingInfo.missingFields.length > 0 && (
+                  <div>
+                    <p className="text-gray-400 text-sm mb-1">Missing details that usually block an A:</p>
+                    <ul className="list-disc list-inside text-gray-300 text-sm">
+                      {missingInfo.missingFields.map((f, i) => <li key={i}>{f}</li>)}
+                    </ul>
+                    <p className="text-gray-500 text-xs mt-2">Tip: add these now, or we&apos;ll try to enhance what we can from the address.</p>
+                  </div>
+                )}
+                {missingInfo.missingFields.length === 0 && <p className="text-green-400 text-sm">✅ All key details found — great shot at an A!</p>}
+              </div>
+            )}
+
+            {!showPayment ? (
+              <button onClick={handleSubmit} disabled={loading || !email || !listing} className="w-full bg-gradient-to-r from-[#c9a227] to-amber-600 text-white font-bold py-4 rounded-xl text-lg hover:shadow-lg hover:shadow-[#c9a227]/30 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                {loading ? '⏳ Submitting...' : '🔍 Analyze My Listing — $19.99'}
+              </button>
+            ) : (
+              <div className="bg-white/10 rounded-xl p-6 text-center space-y-4">
+                <p className="text-white font-semibold">Step 1: Complete Payment</p>
+                <button onClick={handlePaymentClick} className="bg-gradient-to-r from-[#c9a227] to-amber-600 text-white font-bold py-3 px-8 rounded-xl hover:shadow-lg transition">💳 Pay $19.99 via Square</button>
+                <p className="text-gray-400 text-sm">Step 2: After payment, click below to view your report</p>
+                <button onClick={handleViewResults} className="bg-white/20 text-white font-semibold py-3 px-8 rounded-xl hover:bg-white/30 transition">📊 View My Results</button>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </main>
   );
