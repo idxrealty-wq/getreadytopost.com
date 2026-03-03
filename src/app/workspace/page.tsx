@@ -165,11 +165,11 @@ function WorkspaceContent() {
   };
 
   const tabs = [
-    { num: 1, label: 'Property Basics', icon: '🏠', done: !!address && !!propertyData.taxId },
+    { num: 1, label: 'Property', icon: '🏠', done: !!address && !!propertyData.taxId },
     { num: 2, label: 'Neighborhood', icon: '🗺️', done: !!nearby },
     { num: 3, label: 'AI Listing', icon: '✨', done: !!listing },
-    { num: 4, label: 'Documents & Checklist', icon: '📋', done: false },
-    { num: 5, label: 'Save to Vault', icon: '💾', done: saved },
+    { num: 4, label: 'Documents', icon: '📋', done: false },
+    { num: 5, label: 'Save', icon: '💾', done: saved },
     { num: 6, label: 'Closing Costs', icon: '🧮', done: !!savedEstimate },
   ];
 
@@ -260,7 +260,7 @@ function WorkspaceContent() {
             <button
               key={tab.num}
               onClick={() => setActiveTab(tab.num)}
-              className={'flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition whitespace-nowrap ' + (
+              className={'flex items-center gap-1 px-3 py-2 rounded-xl font-bold text-xs transition whitespace-nowrap ' + (
                 activeTab === tab.num
                   ? 'bg-[#c9a227] text-white shadow-lg'
                   : tab.done
