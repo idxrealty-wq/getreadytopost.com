@@ -302,7 +302,7 @@ export default function RateMyListingPage() {
                   onChange={(e) => {
                     const text = e.target.value;
                     setListing(text);
-                    setMissingInfo(checkMissingInfo(text));
+                    setMissingInfo(checkMissingInfo(text, { beds, baths, sqft, yearBuilt, price }));
                   }}
                   required
                 />
