@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from "react";
 import { storage, db } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
@@ -120,7 +120,7 @@ export default function Tab4Checklist({
 
   const handleSaveDocMeta = async (docId: string) => {
     if (!listingId) { alert("No listing ID found."); return; }
-    if (!window.confirm("Save settings for this document?")) return;
+    
     try {
       const listingRef = doc(db, "listings", listingId);
       const snap = await getDoc(listingRef);
@@ -136,7 +136,7 @@ export default function Tab4Checklist({
       if (!found) { alert("Doc not found in Firestore. Total docs: " + allDocs.length); return; }
       await updateDoc(listingRef, { documents: updated });
       setDocMeta((prev) => ({ ...prev, [docId]: { ...prev[docId], codeSaved: true } }));
-      alert("Saved! sharedWithBuyer=" + (meta.sharedWithBuyer === true));
+      
     } catch (e: any) { alert("Error: " + (e?.message || "unknown")); }
   };
 
@@ -261,7 +261,7 @@ export default function Tab4Checklist({
                   {uploads[docSlot.id].uploading ? (
                     <span className="text-yellow-400">Uploading...</span>
                   ) : (
-                    <span className="text-green-400">{uploads[docSlot.id].file?.name} — uploaded {uploads[docSlot.id].date}</span>
+                    <span className="text-green-400">{uploads[docSlot.id].file?.name} â€” uploaded {uploads[docSlot.id].date}</span>
                   )}
                 </div>
               ) : (
@@ -454,3 +454,4 @@ export default function Tab4Checklist({
     </div>
   );
 }
+
