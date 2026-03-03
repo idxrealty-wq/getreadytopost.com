@@ -129,22 +129,34 @@ export default function Tab4Checklist({
     else { handleSaveAccessCode().then(() => setCodeCopied(false)); }
   };
 
-  const handleSaveDocMeta = async (docId: string) => {
-    if (!listingId) return;
+   const handleSaveDocMeta = async (docId: string) => {
+    if (!listingId) { alert("No listing ID"); return; }
     if (!window.confirm("Save settings for this document?")) return;
     try {
-      const snap = await getDoc(doc(db, "listings", listingId));
-      if (snap.exists()) {
-        const meta = docMeta[docId] || {};
-        const updated = (snap.data().documents || []).map((d: any) => {
-          if (d.docId !== docId) return d;
-          return {
-            ...d,
-            accessCode: meta.accessCode || "",
-            price: meta.price || "",
-            party: meta.party || "Buyer",
-            sharedWithBuyer: meta.sharedWithBuyer === true,
-          };
+      const listingRef = doc(db, "listings", listingId);
+      const snap = await getDoc(listingRef);
+      if (!snap.exists()) { alert("Listing not found in database"); return; }
+      const allDocs = snap.data().documents || [];
+      const meta = docMeta[docId] || {};
+      let found = false;
+      const updated = allDocs.map((d: any) => {
+        if (d.docId !== docId) return d;
+        found = true;
+        return {
+          ...d,
+          accessCode: meta.accessCode || "",
+          price: meta.price || "",
+          party: meta.party || "Buyer",
+          sharedWithBuyer: meta.sharedWithBuyer === true,
+        };
+      });
+      if (!found) { alert("Document not found in Firestore. Count: " + allDocs.length); return; }
+      await updateDoc(listingRef, { documents: updated });
+      setDocMeta((prev) => ({ ...prev, [docId]: { ...prev[docId], codeSaved: true } }));
+      alert("Saved! sharedWithBuyer=" + (meta.sharedWithBuyer === true));
+    } catch (e: any) { alert("Error: " + (e?.message || "unknown")); }
+  };
+
         });
         await updateDoc(doc(db, "listings", listingId), { documents: updated });
         setDocMeta((prev) => ({ ...prev, [docId]: { ...prev[docId], codeSaved: true } }));
