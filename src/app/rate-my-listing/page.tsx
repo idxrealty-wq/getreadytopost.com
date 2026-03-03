@@ -35,6 +35,7 @@ export default function RateMyListingPage() {
   const [sqft, setSqft] = useState('');
   const [yearBuilt, setYearBuilt] = useState('');
   const [price, setPrice] = useState('');
+  const [parcelLoaded, setParcelLoaded] = useState(false);
 
   const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
 
@@ -47,6 +48,7 @@ export default function RateMyListingPage() {
     if (parcel.sqft) setSqft(parcel.sqft);
     if (parcel.year_built) setYearBuilt(parcel.year_built);
     setState('FL');
+    setParcelLoaded(true);
   };
 
   const saveToLocalStorage = () => {
@@ -220,34 +222,75 @@ export default function RateMyListingPage() {
                 />
               </div>
 
-              {(beds || baths || sqft || yearBuilt) && (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                  <p className="text-green-800 font-bold text-sm mb-2">✅ Property details auto-filled:</p>
-                  <div className="grid grid-cols-2 gap-2 text-sm text-green-700">
-                    {beds && <span>🛏 {beds} Beds</span>}
-                    {baths && <span>🚿 {baths} Baths</span>}
-                    {sqft && <span>📐 {Number(sqft).toLocaleString()} sqft</span>}
-                    {yearBuilt && <span>🏗 Built {yearBuilt}</span>}
+              {parcelLoaded && (
+                <div className="border border-amber-200 bg-amber-50 rounded-xl p-4">
+                  <p className="text-amber-800 font-bold text-sm mb-3">✅ Auto-filled from county records — please verify and correct if needed:</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Beds</label>
+                      <input
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#c9a227] focus:outline-none"
+                        type="number"
+                        value={beds}
+                        onChange={(e) => setBeds(e.target.value)}
+                        placeholder="Beds"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Baths</label>
+                      <input
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#c9a227] focus:outline-none"
+                        type="number"
+                        value={baths}
+                        onChange={(e) => setBaths(e.target.value)}
+                        placeholder="Baths"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Sqft</label>
+                      <input
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#c9a227] focus:outline-none"
+                        type="number"
+                        value={sqft}
+                        onChange={(e) => setSqft(e.target.value)}
+                        placeholder="Sqft"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Year Built</label>
+                      <input
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#c9a227] focus:outline-none"
+                        type="number"
+                        value={yearBuilt}
+                        onChange={(e) => setYearBuilt(e.target.value)}
+                        placeholder="Year Built"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">List Price</label>
+                      <input
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#c9a227] focus:outline-none"
+                        type="text"
+                        value={price ? '$' + Number(price).toLocaleString() : ''}
+                        onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="$ List Price"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                  placeholder="$ List Price"
-                  type="text"
-                  value={price ? '$' + Number(price).toLocaleString() : ''}
-                  onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))}
-                />
-                <input
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                  placeholder="Year Built (if not auto-filled)"
-                  type="number"
-                  value={yearBuilt}
-                  onChange={(e) => setYearBuilt(e.target.value)}
-                />
-              </div>
+              {!parcelLoaded && (
+                <div className="grid grid-cols-2 gap-3">
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Beds" type="number" value={beds} onChange={(e) => setBeds(e.target.value)} />
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Baths" type="number" value={baths} onChange={(e) => setBaths(e.target.value)} />
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Sqft" type="number" value={sqft} onChange={(e) => setSqft(e.target.value)} />
+                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="Year Built" type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} />
+                  <div className="col-span-2">
+                    <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="$ List Price" type="text" value={price ? '$' + Number(price).toLocaleString() : ''} onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))} />
+                  </div>
+                </div>
+              )}
 
               <div className="border-t border-gray-100 pt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Listing Description *</label>
