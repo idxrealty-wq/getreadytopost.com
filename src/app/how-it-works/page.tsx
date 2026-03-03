@@ -82,6 +82,7 @@ export default function HowItWorksPage() {
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">Whether you are an agent, broker, FSBO seller, or homeowner — here is exactly how to use every feature to its fullest.</p>
         </div>
       </section>
+
       <section className="px-6 pb-8">
         <div className="max-w-5xl mx-auto">
           <p className="text-center text-gray-400 mb-6 font-semibold uppercase tracking-widest text-sm">I am a...</p>
@@ -95,6 +96,7 @@ export default function HowItWorksPage() {
           </div>
         </div>
       </section>
+
       <section className="px-6 pb-16">
         <div className="max-w-5xl mx-auto">
           <div className={`bg-gradient-to-br ${current.color} rounded-3xl p-8 border-2 ${current.border} mb-10`}>
@@ -126,6 +128,7 @@ export default function HowItWorksPage() {
           </div>
         </div>
       </section>
+
       <section className="px-6 pb-16">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-white text-center mb-3">Start Here. Level Up When You're Ready.</h2>
@@ -133,7 +136,6 @@ export default function HowItWorksPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
               { icon: '🏠', title: 'Home', desc: 'Overview of the service and how it works', link: '/' },
-              { icon: '📋', 
               { icon: '📊', title: 'Rate My Listing', desc: 'Instantly grade your listing across 6 categories', link: '/rate-my-listing' },
               { icon: '💰', title: 'Pricing', desc: 'Flat $19.99 for a full professional rewrite', link: '/pricing' },
               { icon: '🗄️', title: 'Agent Vault', desc: 'All your saved listings with photos and documents', link: '/agent-vault' },
@@ -158,6 +160,7 @@ export default function HowItWorksPage() {
           </div>
         </div>
       </section>
+
       <section className="px-6 pb-20">
         <div className="max-w-3xl mx-auto text-center bg-white/10 backdrop-blur-md rounded-3xl p-12 border border-white/20">
           <div className="text-5xl mb-4">🚀</div>
