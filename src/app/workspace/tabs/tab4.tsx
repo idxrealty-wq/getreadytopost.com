@@ -274,7 +274,20 @@ export default function Tab4Checklist({
                       <input
                         type="checkbox"
                         checked={docMeta[docSlot.id]?.sharedWithBuyer || false}
-                        onChange={(e) => setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], sharedWithBuyer: e.target.checked, codeSaved: false } }))}
+                        onChange={async (e) => {
+                        const checked = e.target.checked;
+                        setDocMeta((prev) => ({ ...prev, [docSlot.id]: { ...prev[docSlot.id], sharedWithBuyer: checked, codeSaved: false } }));
+                        if (listingId) {
+                          try {
+                            const listingRef = doc(db, "listings", listingId);
+                            const snap = await getDoc(listingRef);
+                            if (snap.exists()) {
+                              const updated = (snap.data().documents || []).map((d: any) => d.docId !== docSlot.id ? d : { ...d, sharedWithBuyer: checked });
+                              await updateDoc(listingRef, { documents: updated });
+                            }
+                          } catch (err) { console.error(err); }
+                        }
+                      }}
                         className="w-5 h-5 accent-[#c9a227]"
                       />
                       <span className="text-white font-semibold text-sm">Include in buyer share link</span>
