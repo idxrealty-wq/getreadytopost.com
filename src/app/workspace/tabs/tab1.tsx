@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect } from 'react';
 export default function Tab1PropertyBasics({ data, setData, onNext, address }: any) {
   useEffect(() => {
@@ -24,9 +24,9 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
   };
   return (
     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-      <h2 className="text-2xl font-bold text-white mb-6">🏠 Property Basics</h2>
+      <h2 className="text-2xl font-bold text-white mb-6">ðŸ  Property Basics</h2>
       <div className={sectionClass}>
-        <h3 className={sectionTitle}>📋 Core Property Info</h3>
+        <h3 className={sectionTitle}>ðŸ“‹ Core Property Info</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className={labelClass}>Date Added</label>
@@ -59,7 +59,7 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
           </div>
           <div>
             <label className={labelClass}>List Price</label>
-            <input type="text" value={data.price || ''} onChange={(e) => updateField('price', e.target.value)} placeholder="e.g., 350,000" className={inputClass} />
+            <input type="text" value={formatCurrency(data.price)} onChange={(e) => updateField('price', e.target.value)} placeholder="e.g., 350,000" className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Bedrooms</label>
@@ -130,7 +130,7 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             {data.propertyLink && (
               <div className="mb-2">
                 <a href={data.propertyLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm transition">
-                  🔗 View Full Parcel Details on Orange County Appraiser
+                  ðŸ”— View Full Parcel Details on Orange County Appraiser
                 </a>
                 <p className="text-gray-500 text-xs mt-1">Use this to find the legal description and other details</p>
               </div>
@@ -141,7 +141,7 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
         </div>
       </div>
       <div className={sectionClass}>
-        <h3 className={sectionTitle}>🏘️ HOA & Community</h3>
+        <h3 className={sectionTitle}>ðŸ˜ï¸ HOA & Community</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className={labelClass}>HOA</label>
@@ -154,7 +154,7 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
           </div>
           <div>
             <label className={labelClass}>HOA Monthly Amount</label>
-            <input type="text" value={data.hoaAmount || ''} onChange={(e) => updateField('hoaAmount', e.target.value)} placeholder="e.g., $150/month" className={inputClass} />
+            <input type="text" value={formatCurrency(data.hoaAmount)} onChange={(e) => updateField('hoaAmount', e.target.value)} placeholder="e.g., $150/month" className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>HOA Name</label>
@@ -167,7 +167,7 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
         </div>
       </div>
       <div className={sectionClass}>
-        <h3 className={sectionTitle}>🌴 Florida-Specific Details</h3>
+        <h3 className={sectionTitle}>ðŸŒ´ Florida-Specific Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className={labelClass}>Flood Zone</label>
@@ -227,6 +227,23 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             <label className={labelClass}>Last Sale Year</label>
             <input type="text" value={data.lastSaleYear || ''} onChange={(e) => updateField('lastSaleYear', e.target.value)} placeholder="e.g., 2021" className={inputClass} />
           </div>
+            <div>
+              <label className={labelClass}>Just / Market Value</label>
+              <input type="text" value={formatCurrency((data as any).justValue)} onChange={(e) => updateField('justValue', e.target.value)} placeholder="e.g., $350,000" className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Land Value</label>
+              <input type="text" value={formatCurrency((data as any).landValue)} onChange={(e) => updateField('landValue', e.target.value)} placeholder="e.g., $85,000" className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Building Value</label>
+              <input type="text" value={formatCurrency((data as any).buildingValue)} onChange={(e) => updateField('buildingValue', e.target.value)} placeholder="e.g., $265,000" className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Taxable Value</label>
+              <input type="text" value={formatCurrency((data as any).taxableValue)} onChange={(e) => updateField('taxableValue', e.target.value)} placeholder="e.g., $300,000" className={inputClass} />
+            </div>
+
           <div>
             <label className={labelClass}>Homestead Exemption</label>
             <select value={data.homestead || ''} onChange={(e) => updateField('homestead', e.target.value)} className={selectClass}>
@@ -244,9 +261,10 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
           disabled={!canProceed}
           className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition disabled:opacity-50"
         >
-          Next: Neighborhood →
+          Next: Neighborhood â†’
         </button>
       </div>
     </div>
   );
 }
+
