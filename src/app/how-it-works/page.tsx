@@ -133,7 +133,7 @@ export default function HowItWorksPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
               { icon: '🏠', title: 'Home', desc: 'Overview of the service and how it works', link: '/' },
-              { icon: '📋', title: 'Upload', desc: 'Submit your listing for AI grading and rewrite', link: '/rate-my-listing' },
+              { icon: '📋', 
               { icon: '📊', title: 'Rate My Listing', desc: 'Instantly grade your listing across 6 categories', link: '/rate-my-listing' },
               { icon: '💰', title: 'Pricing', desc: 'Flat $19.99 for a full professional rewrite', link: '/pricing' },
               { icon: '🗄️', title: 'Agent Vault', desc: 'All your saved listings with photos and documents', link: '/agent-vault' },
