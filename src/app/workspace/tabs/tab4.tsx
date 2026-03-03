@@ -164,25 +164,29 @@ export default function Tab4Checklist({
     } catch (e) { console.error(e); }
     finally { setDeletingDoc(null); }
   };
-  const handleSaveDocMeta = async (docId: string) => {
+    const handleSaveDocMeta = async (docId: string) => {
     if (!listingId) return;
     try {
       const snap = await getDoc(doc(db, "listings", listingId));
       if (snap.exists()) {
-        const updated = (snap.data().documents || []).map((d: any) =>
-          d.docId === docId ? {
+        const meta = docMeta[docId] || {};
+        const updated = (snap.data().documents || []).map((d: any) => {
+          if (d.docId !== docId) return d;
+          return {
             ...d,
-            accessCode: docMeta[docId]?.accessCode || "",
-            price: docMeta[docId]?.price || "",
-            party: docMeta[docId]?.party || "Buyer",
-            sharedWithBuyer: docMeta[docId]?.sharedWithBuyer || false,
-          } : d
-        );
+            accessCode: meta.accessCode || "",
+            price: meta.price || "",
+            party: meta.party || "Buyer",
+            sharedWithBuyer: meta.sharedWithBuyer === true,
+          };
+        });
         await updateDoc(doc(db, "listings", listingId), { documents: updated });
         setDocMeta((prev) => ({ ...prev, [docId]: { ...prev[docId], codeSaved: true } }));
+        alert("Saved!");
       }
     } catch (e) { alert("Failed to save document settings"); }
   };
+
 
   const handleDeleteSavedPhoto = async (photo: any) => {
     if (!window.confirm("Delete this photo?")) return;
