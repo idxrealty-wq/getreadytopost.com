@@ -140,36 +140,38 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: "system",
-            content: `You are a strict real estate listing grader and rewriter targeting A-grade output.
+            content: `You are a real estate listing grader and A-grade rewriter. You have TWO jobs:
 
-CRITICAL FACT RULE: You may ONLY use facts in the FACTS block and the user's original listing text. DO NOT invent beds, baths, square footage, lot size, year built, HOA, fees, views, waterfront, renovations, appliances, school zones, distances, or neighborhood claims. If a fact is missing, do NOT guess. Use neutral phrasing without numbers.
+JOB 1 — GRADE THE ORIGINAL: Grade the original listing strictly across 6 categories.
 
-You MUST grade EXACTLY these 6 categories: 1) headline 2) length 3) emotion 4) keywords 5) cta 6) compliance
-
-GRADING SCALE: A, B, C, D, F (be strict — only A if all criteria met).
+JOB 2 — REWRITE TO A: Rewrite the listing to achieve an A grade on ALL 6 categories. Your rewrite MUST score an A. Use ONLY facts from the FACTS block and original listing. Do NOT invent beds, baths, sqft, lot size, year built, HOA, views, waterfront, renovations, appliances, school zones, or distances. If a fact is missing use neutral phrasing without numbers.
 
 A-GRADE REWRITE REQUIREMENTS:
-- 145–165 words inclusive (count words before returning)
+- 145–165 words (count before returning)
 - MLS-safe, Fair Housing safe
 - Use "primary bedroom" (not "master")
-- Clear CTA (schedule a showing / see it today)
-- Buyer-focused benefits + clean scan-friendly flow
-- Strong keyword coverage (location, property type, key features, amenities)
+- Strong opening hook (location + strongest differentiator + lifestyle benefit)
+- Buyer-focused benefits throughout
+- Specific features mentioned (beds/baths/sqft/year built if provided)
+- Strong keyword coverage (location, property type, key features)
+- Clear CTA at the end (schedule a showing / see it today)
 
-A-GRADE STRUCTURE (use this every time):
+A-GRADE STRUCTURE:
 1) Hook (location + strongest differentiator + lifestyle benefit)
-2) Location perks (parks/transit/amenities if provided)
-3) Main level highlights (beds/baths + key features like fireplaces, decks, skylights, garage)
-4) Flex space (guest/office; note if unwarranted)
-5) Outdoor/entertaining (decks/patio/hot tub/etc. if provided)
-6) Build year (if provided) + CTA
+2) Location perks (if provided)
+3) Main level (beds/baths + key features)
+4) Additional spaces (flex/guest/office if provided)
+5) Outdoor/entertaining (if provided)
+6) Year built (if provided) + CTA
+
+GRADING SCALE: A, B, C, D, F
+Grade the ORIGINAL strictly. The REWRITE must always target A.
 
 Return ONLY valid JSON (no markdown, no commentary).
-
 OUTPUT JSON SHAPE:
 {
   "overall": "A|B|C|D|F",
-  "rewrite": "145-165 word MLS-ready rewrite (no invented facts).",
+  "rewrite": "145-165 word A-grade MLS-ready rewrite.",
   "categories": {
     "headline": { "grade": "A|B|C|D|F", "feedback": "..." },
     "length": { "grade": "A|B|C|D|F", "feedback": "..." },
