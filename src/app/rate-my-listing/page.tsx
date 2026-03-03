@@ -88,7 +88,7 @@ export default function RateMyListingPage() {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ submissionId: docRef.id }),
             });
-            router.push('/results?id=' + docRef.id);
+            router.push(`/results?id=${docRef.id}`);
             return;
           }
         } catch(e) { console.error('Credit check failed', e); }
@@ -196,7 +196,6 @@ export default function RateMyListingPage() {
           <div className="bg-white rounded-2xl p-6 shadow-2xl mb-6">
             <h2 className="text-xl font-bold text-[#1a2b4a] mb-4 text-center">📋 Paste Your Listing Below</h2>
             <div className="space-y-4">
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                 <input
@@ -236,10 +235,10 @@ export default function RateMyListingPage() {
               <div className="grid grid-cols-2 gap-3">
                 <input
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
-                  <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none" placeholder="$ List Price" type="text" value={price ? '$' + Number(price).toLocaleString() : ''}      onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))} />
-                  type="number"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="$ List Price"
+                  type="text"
+                  value={price ? '$' + Number(price).toLocaleString() : ''}
+                  onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))}
                 />
                 <input
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none"
@@ -317,4 +316,3 @@ export default function RateMyListingPage() {
     </main>
   );
 }
-
