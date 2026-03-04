@@ -10,6 +10,8 @@ interface ParcelResult {
   year_built: string;
   sqft: string;
   beds: string;
+  NO_BDRMS: string;
+  NO_BATHS: string;
   just_value: string;
   sale_price: string;
   sale_year: string;
@@ -65,7 +67,12 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
       try {
         const res = await fetch('/api/parcel-search?q=' + encodeURIComponent(val.toLowerCase()));
         const data = await res.json();
-        setResults(data.results || []);
+        const mapped = (data.results || []).map((p: any) => ({
+          ...p,
+          beds: p.beds || p.NO_BDRMS || '',
+          baths: p.baths || p.NO_BATHS || '',
+        }));
+        setResults(mapped);
         setShowResults(true);
       } catch {
         setResults([]);
@@ -74,7 +81,6 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
       }
     }, 500);
   };
-
   const handleInputChange = (val: string) => {
     onChange(val);
     setSelected(null);
@@ -112,6 +118,7 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
     if (parcel.year_built) parts.push('Built ' + parcel.year_built);
     if (parcel.sqft) parts.push(Number(parcel.sqft).toLocaleString() + ' sqft');
     if (parcel.beds) parts.push(parcel.beds + ' bed');
+    if (parcel.baths) parts.push(parcel.baths + ' bath');
     if (parcel.just_value) parts.push('Assessed $' + Number(parcel.just_value).toLocaleString());
     return parts.join(' | ');
   };
@@ -121,6 +128,7 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
     if (parcel.year_built) parts.push('Built ' + parcel.year_built);
     if (parcel.sqft) parts.push(Number(parcel.sqft).toLocaleString() + ' sqft');
     if (parcel.beds) parts.push(parcel.beds + ' bed');
+    if (parcel.baths) parts.push(parcel.baths + ' bath');
     if (parcel.just_value) parts.push('Assessed $' + Number(parcel.just_value).toLocaleString());
     if (parcel.parcel_id) parts.push('Parcel: ' + parcel.parcel_id);
     return parts.join(' | ');
