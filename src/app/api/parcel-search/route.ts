@@ -1,60 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const ATTOM_API_KEY = '343bc00b6e80a125e9a2ad10a53aabd1';
-const ATTOM_BASE_URL = 'https://api.attomdata.com/propertyapi/v1.0.0';
+const ATTOM_BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const q = searchParams.get('q') || '';
+  const q = (searchParams.get('q') || '').trim();
 
-  if (!q || q.length < 3) {
-    return NextResponse.json({ results: [] });
-  }
+  if (!q || q.length < 3) return NextResponse.json({ results: [] });
 
   try {
-    // Parse address components
-    const parts = q.split(',').map(p => p.trim());
-    const address1 = parts[0];
-    const address2 = parts.length > 1 ? parts.slice(1).join(', ') : 'Florida';
+    const parts = q.split(',').map(p => p.trim()).filter(Boolean);
+    const address1 = parts[0] || '';
+    const address2 = parts.slice(1).join(', ') || 'FL';
 
-    // Call ATTOM API
-    const attomUrl = new URL(`${ATTOM_BASE_URL}/property/address`);
-    attomUrl.searchParams.append('address1', address1);
-    attomUrl.searchParams.append('address2', address2);
-    attomUrl.searchParams.append('apikey', ATTOM_API_KEY);
+    const url = `${ATTOM_BASE}/property/address?address1=${encodeURIComponent(address1)}&address2=${encodeURIComponent(address2)}`;
 
-    const response = await fetch(attomUrl.toString());
-    const data = await response.json();
+    const res = await fetch(url, {
+      headers: {
+        apikey: ATTOM_API_KEY,
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    const data = await res.json();
 
     if (!data.property || data.property.length === 0) {
       return NextResponse.json({ results: [] });
     }
 
-    // Map ATTOM response to our format
     const results = data.property.map((prop: any) => ({
-      parcel_id: prop.parcelNumber || '',
-      address: prop.address?.streetAddress || '',
-      city: prop.address?.city || '',
-      zip: prop.address?.postalCode || '',
+      parcel_id: prop.identifier?.apn || '',
+      address: prop.address?.line1 || '',
+      city: prop.address?.locality || '',
+      zip: prop.address?.postal1 || '',
       county: 'Orange',
-      year_built: prop.building?.yearBuilt?.toString() || '',
-      sqft: prop.building?.livingArea?.toString() || '',
-      beds: prop.building?.bedrooms?.toString() || '',
-      baths: prop.building?.bathrooms?.toString() || '',
-      just_value: prop.assessment?.assessedValue?.toString() || '',
-      sale_price: prop.sale?.salePrice?.toString() || '',
-      sale_year: prop.sale?.saleTransDate ? new Date(prop.sale.saleTransDate).getFullYear().toString() : '',
+      year_built: String(prop.summary?.yearbuilt || ''),
+      sqft: String(prop.building?.size?.livingsize || ''),
+      beds: String(prop.building?.rooms?.beds || ''),
+      baths: String(prop.building?.rooms?.bathstotal || ''),
+      just_value: '',
+      sale_price: '',
+      sale_year: '',
       dor_uc: '',
-      land_sqft: prop.lot?.lotSize?.toString() || '',
-      legal_description: prop.lot?.legalDescription || '',
-      owner_name: prop.owner?.ownerOccupied ? 'Owner Occupied' : '',
+      land_sqft: String(prop.lot?.lotsize2 || ''),
+      legal_description: String(prop.summary?.legal1 || ''),
+      owner_name: '',
       homestead: '',
       search_key: q.toLowerCase(),
     }));
 
     return NextResponse.json({ results });
-  } catch (error) {
-    console.error('[parcel-search] error:', error);
-    return NextResponse.json({ results: [], error: 'Search failed' }, { status: 500 });
+  } catch (e: any) {
+    return NextResponse.json({ results: [], error: e?.message }, { status: 200 });
   }
 }
