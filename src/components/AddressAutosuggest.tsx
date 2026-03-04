@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useRef, useEffect } from 'react';
 
 interface ParcelResult {
@@ -21,7 +21,8 @@ interface ParcelResult {
   homestead: string;
   acres: string;
   taxable_value: string;
-  assessed_value: string;legal_description: string;
+  assessed_value: string;
+  legal_description: string;
   property_link: string;
   land_value: string;
   building_value: string;
@@ -106,6 +107,25 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
     setShowResults(false);
   };
 
+  const formatDetail = (parcel: ParcelResult) => {
+    const parts: string[] = [];
+    if (parcel.year_built) parts.push('Built ' + parcel.year_built);
+    if (parcel.sqft) parts.push(Number(parcel.sqft).toLocaleString() + ' sqft');
+    if (parcel.beds) parts.push(parcel.beds + ' bed');
+    if (parcel.just_value) parts.push('Assessed $' + Number(parcel.just_value).toLocaleString());
+    return parts.join(' | ');
+  };
+
+  const formatConfirmDetail = (parcel: ParcelResult) => {
+    const parts: string[] = [];
+    if (parcel.year_built) parts.push('Built ' + parcel.year_built);
+    if (parcel.sqft) parts.push(Number(parcel.sqft).toLocaleString() + ' sqft');
+    if (parcel.beds) parts.push(parcel.beds + ' bed');
+    if (parcel.just_value) parts.push('Assessed $' + Number(parcel.just_value).toLocaleString());
+    if (parcel.parcel_id) parts.push('Parcel: ' + parcel.parcel_id);
+    return parts.join(' | ');
+  };
+
   return (
     <div ref={wrapperRef} className="relative">
       {!selected && (
@@ -117,11 +137,9 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
           className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-lg text-gray-900"
         />
       )}
-
       {loading && !selected && (
         <div className="absolute right-4 top-4 text-gray-400 text-sm">Searching...</div>
       )}
-
       {showResults && results.length > 0 && !selected && (
         <div
           className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-80 overflow-y-auto"
@@ -134,61 +152,38 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
               className="w-full text-left px-4 py-3 hover:bg-[#c9a227]/10 border-b border-gray-100 last:border-0 transition"
             >
               <div className="font-semibold text-gray-900">{r.address}, {r.city}, FL {r.zip}</div>
-              <div className="text-sm text-gray-500">
-                {r.year_built ? 'Built ' + r.year_built : ''}
-                {r.sqft ? ' Â· ' + Number(r.sqft).toLocaleString() + ' sqft' : ''}
-                {r.beds ? ' Â· ' + r.beds + ' bed' : ''}
-                {r.just_value ? ' Â· Assessed $' + Number(r.just_value).toLocaleString() : ''}
-              </div>
+              <div className="text-sm text-gray-500">{formatDetail(r)}</div>
             </button>
           ))}
         </div>
       )}
-
       {showResults && results.length === 0 && !loading && value.length >= 3 && !selected && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl p-4 text-gray-500 text-sm">
           No matches found. Try a different address.
         </div>
       )}
-
       {selected && !confirmed && (
         <div className="bg-white border-2 border-[#c9a227] rounded-xl p-5 shadow-lg">
           <div className="text-lg font-bold text-gray-900 mb-1">{selected.address}, {selected.city}, FL {selected.zip}</div>
-          <div className="text-sm text-gray-600 mb-4">
-            {selected.year_built ? 'Built ' + selected.year_built : ''}
-            {selected.sqft ? ' Â· ' + Number(selected.sqft).toLocaleString() + ' sqft' : ''}
-            {selected.beds ? ' Â· ' + selected.beds + ' bed' : ''}
-            {selected.just_value ? ' Â· Assessed $' + Number(selected.just_value).toLocaleString() : ''}
-            {selected.parcel_id ? ' Â· Parcel: ' + selected.parcel_id : ''}
-          </div>
+          <div className="text-sm text-gray-600 mb-4">{formatConfirmDetail(selected)}</div>
           <p className="text-gray-700 font-semibold mb-3">Is this your property?</p>
           <div className="flex gap-3">
-            <button
-              onClick={handleConfirm}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold transition"
-            >
-              âœ… Yes, this is it
+            <button onClick={handleConfirm} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold transition">
+              Yes, this is it
             </button>
-            <button
-              onClick={handleClear}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-bold transition"
-            >
-              âŒ No, search again
+            <button onClick={handleClear} className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-bold transition">
+              No, search again
             </button>
           </div>
         </div>
       )}
-
       {confirmed && selected && (
         <div className="bg-green-50 border-2 border-green-500 rounded-xl p-4 flex items-center justify-between">
           <div>
             <div className="text-lg font-bold text-green-800">{selected.address}, {selected.city}, FL {selected.zip}</div>
-            <div className="text-sm text-green-600">âœ… Property confirmed â€” details auto-filled below</div>
+            <div className="text-sm text-green-600">Property confirmed - details auto-filled below</div>
           </div>
-          <button
-            onClick={handleClear}
-            className="text-gray-500 hover:text-red-500 text-sm font-bold transition"
-          >
+          <button onClick={handleClear} className="text-gray-500 hover:text-red-500 text-sm font-bold transition">
             Change
           </button>
         </div>
