@@ -45,7 +45,7 @@ export default function VaultPage() {
   const fetchCreditBalance = async () => {
     if (!user) return;
     try {
-      const res = await fetch(`/api/credits/balance?userId=${user.uid}`);
+      const res = await fetch('/api/credits/balance?userId=' + user.uid);
       const data = await res.json();
       setCreditBalance(data.balance || 0);
     } catch (err) {
@@ -108,14 +108,11 @@ export default function VaultPage() {
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-white mb-4">Sign in to access your vault</h1>
-          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
-            â† Back to Home
-          </Link>
+          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">Back to Home</Link>
         </div>
       </main>
     );
   }
-
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c]">
       <div className="max-w-6xl mx-auto px-6 py-12">
@@ -128,44 +125,29 @@ export default function VaultPage() {
                 <p className="text-gray-300 text-sm mb-1">Credit Balance</p>
                 <div className="flex items-center justify-between gap-4">
                   <p className="text-3xl font-bold text-[#c9a227]">{creditBalance}</p>
-                  <Link href="/checkout" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-4 py-2 rounded-lg font-bold text-sm transition">
-                    Buy More
-                  </Link>
+                  <Link href="/checkout" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-4 py-2 rounded-lg font-bold text-sm transition">Buy More</Link>
                 </div>
               </div>
             )}
           </div>
         </div>
-
         {error && (
-          <div className="mb-6 bg-red-500/20 border border-red-400/50 rounded-xl p-4 text-red-200">
-            {error}
-          </div>
+          <div className="mb-6 bg-red-500/20 border border-red-400/50 rounded-xl p-4 text-red-200">{error}</div>
         )}
-
         <div className="flex gap-4 mb-8 border-b border-white/20">
           <button
             onClick={() => setTab('listings')}
-            className={`px-6 py-3 font-bold transition ${
-              tab === 'listings'
-                ? 'text-[#c9a227] border-b-2 border-[#c9a227]'
-                : 'text-gray-400 hover:text-white'
-            }`}
+            className={'px-6 py-3 font-bold transition ' + (tab === 'listings' ? 'text-[#c9a227] border-b-2 border-[#c9a227]' : 'text-gray-400 hover:text-white')}
           >
             Listings ({listings.length})
           </button>
           <button
             onClick={() => setTab('reports')}
-            className={`px-6 py-3 font-bold transition ${
-              tab === 'reports'
-                ? 'text-[#c9a227] border-b-2 border-[#c9a227]'
-                : 'text-gray-400 hover:text-white'
-            }`}
+            className={'px-6 py-3 font-bold transition ' + (tab === 'reports' ? 'text-[#c9a227] border-b-2 border-[#c9a227]' : 'text-gray-400 hover:text-white')}
           >
             Reports ({reports.length})
           </button>
         </div>
-
         {tab === 'listings' && (
           <div>
             {loading ? (
@@ -173,9 +155,7 @@ export default function VaultPage() {
             ) : listings.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-400 mb-4">No listings yet</p>
-                <Link href="/workspace" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
-                  Create your first listing â†’
-                </Link>
+                <Link href="/workspace" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">Create your first listing</Link>
               </div>
             ) : (
               <div className="grid gap-4">
@@ -200,7 +180,6 @@ export default function VaultPage() {
             )}
           </div>
         )}
-
         {tab === 'reports' && (
           <div>
             {loading ? (
@@ -208,14 +187,12 @@ export default function VaultPage() {
             ) : reports.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-400 mb-4">No reports yet</p>
-                <Link href="/rate-my-listing" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
-                  Rate your first listing â†’
-                </Link>
+                <Link href="/rate-my-listing" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">Rate your first listing</Link>
               </div>
             ) : (
               <div className="grid gap-4">
                 {reports.map((report) => (
-                  <div key={report.id} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:border-[#c9a227]/50 transition cursor-pointer" onClick={() => router.push(`/results?id=${report.id}`)}>
+                  <div key={report.id} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:border-[#c9a227]/50 transition cursor-pointer" onClick={() => router.push('/results?id=' + report.id)}>
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-grow">
                         <h3 className="text-white font-bold text-lg mb-2">{report.email}</h3>
@@ -237,11 +214,8 @@ export default function VaultPage() {
             )}
           </div>
         )}
-
         <div className="text-center mt-12">
-          <Link href="/" className="text-white/70 hover:text-white font-semibold">
-            â† Back to Home
-          </Link>
+          <Link href="/" className="text-white/70 hover:text-white font-semibold">Back to Home</Link>
         </div>
       </div>
     </main>
