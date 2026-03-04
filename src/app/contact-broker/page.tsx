@@ -1,5 +1,4 @@
 ﻿'use client';
-
 import ShareButtons from '@/components/ShareButtons';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -23,14 +22,12 @@ export default function ContactBrokerPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const response = await fetch('/api/contact-broker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
       if (response.ok) {
         setSuccess(true);
         setFormData({ name: '', email: '', company: '', phone: '', message: '' });
@@ -45,17 +42,12 @@ export default function ContactBrokerPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] pt-32 pb-16">
-      <ShareButtons
-        url="https://getreadytopost.com/contact-broker"
-        title="Broker Solutions - GetReadyToPost"
-      />
-
+      <ShareButtons url="https://getreadytopost.com/contact-broker" title="Broker Solutions - GetReadyToPost" />
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">Broker Solutions</h1>
           <p className="text-2xl text-gray-200">Scale your team's listing quality with GetReadyToPost.</p>
         </div>
-
         <div className="mb-16 rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
           <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
             <iframe
@@ -68,37 +60,24 @@ export default function ContactBrokerPage() {
             />
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8">
-            <h3 className="text-2xl font-bold text-white mb-4">âœ“ Team Efficiency</h3>
-            <p className="text-gray-300">
-              Agents grade and rewrite listings in seconds. No back-and-forth. No delays. Faster listings to market.
-            </p>
+            <h3 className="text-2xl font-bold text-white mb-4">Team Efficiency</h3>
+            <p className="text-gray-300">Agents grade and rewrite listings in seconds. No back-and-forth. No delays. Faster listings to market.</p>
           </div>
-
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8">
-            <h3 className="text-2xl font-bold text-white mb-4">âœ“ Quality Control</h3>
-            <p className="text-gray-300">
-              Consistent, MLS-compliant descriptions across your entire portfolio. Fair Housing safe. Every time.
-            </p>
+            <h3 className="text-2xl font-bold text-white mb-4">Quality Control</h3>
+            <p className="text-gray-300">Consistent, MLS-compliant descriptions across your entire portfolio. Fair Housing safe. Every time.</p>
           </div>
-
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8">
-            <h3 className="text-2xl font-bold text-white mb-4">âœ“ Buyer Psychology</h3>
-            <p className="text-gray-300">
-              Listings optimized for search, readability, and conversion. Better descriptions = more showings.
-            </p>
+            <h3 className="text-2xl font-bold text-white mb-4">Buyer Psychology</h3>
+            <p className="text-gray-300">Listings optimized for search, readability, and conversion. Better descriptions = more showings.</p>
           </div>
-
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8">
-            <h3 className="text-2xl font-bold text-white mb-4">âœ“ Flexible Pricing</h3>
-            <p className="text-gray-300">
-              Monthly, 6-month, and annual plans. Bulk discounts available. Fits any team size or budget.
-            </p>
+            <h3 className="text-2xl font-bold text-white mb-4">Flexible Pricing</h3>
+            <p className="text-gray-300">Monthly, 6-month, and annual plans. Bulk discounts available. Fits any team size or budget.</p>
           </div>
         </div>
-
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-12 mb-16">
           <h2 className="text-3xl font-bold text-white mb-8 text-center">Get Started Today</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -122,7 +101,6 @@ export default function ContactBrokerPage() {
                 className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-[#c9a227]"
               />
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <input
                 type="text"
@@ -141,7 +119,6 @@ export default function ContactBrokerPage() {
                 className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-[#c9a227]"
               />
             </div>
-
             <textarea
               name="message"
               placeholder="Tell us about your team and how we can help..."
@@ -150,7 +127,6 @@ export default function ContactBrokerPage() {
               rows={6}
               className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-[#c9a227]"
             />
-
             <button
               type="submit"
               disabled={loading}
@@ -158,27 +134,21 @@ export default function ContactBrokerPage() {
             >
               {loading ? 'Sending...' : 'Send Inquiry'}
             </button>
-
             {success && (
               <div className="bg-green-500/20 border border-green-500 text-green-300 px-4 py-3 rounded-lg text-center">
-                âœ“ Thank you! We'll be in touch soon.
+                Thank you! We will be in touch soon.
               </div>
             )}
           </form>
         </div>
-
         <div className="text-center">
           <h2 className="text-3xl font-bold text-white mb-6">Ready to Scale Your Team?</h2>
           <p className="text-xl text-gray-300 mb-8">
             Or check out our <Link href="/pricing" className="text-[#c9a227] hover:text-[#e8c547] underline">pricing</Link> for individual agents.
           </p>
         </div>
-
         <div className="mt-16">
-          <ShareButtons
-            url="https://getreadytopost.com/contact-broker"
-            title="Broker Solutions - GetReadyToPost"
-          />
+          <ShareButtons url="https://getreadytopost.com/contact-broker" title="Broker Solutions - GetReadyToPost" />
         </div>
       </div>
     </main>
