@@ -20,7 +20,6 @@ export default function Tab2Neighborhood({ address, nearby, setNearby, onNext }:
   );
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
-
   const mapKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
   const toggleMap = (id: string) => {
@@ -31,7 +30,6 @@ export default function Tab2Neighborhood({ address, nearby, setNearby, onNext }:
     if (!address) return;
     setLoading(true);
     setLoaded(true);
-
     fetch('/api/workspace/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -104,7 +102,7 @@ export default function Tab2Neighborhood({ address, nearby, setNearby, onNext }:
                       <div key={i} className="flex items-center justify-between text-sm">
                         <span className="text-white">{place.name}</span>
                         <span className="text-gray-300 ml-2 whitespace-nowrap">
-                          {place.distance || ''} {place.rating ? `â­${place.rating}` : ''}
+                          {place.distance || ''} {place.rating ? '\u2B50' + place.rating : ''}
                         </span>
                       </div>
                     ))}

@@ -1,4 +1,4 @@
-﻿const admin = require('firebase-admin');
+const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 
@@ -60,7 +60,7 @@ async function upload() {
         county: 'Orange',
         year_built: record.ACT_YR_BLT || '',
         sqft: record.TOT_LVG_AREA || '',
-        beds: record.NO_RES_UNTS || '',
+        beds: record.NO_BDRMS || '',
         just_value: record.JV || '',
         sale_price: record.SALE_PRC1 || '',
         sale_year: record.SALE_YR1 || '',
