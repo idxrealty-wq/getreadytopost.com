@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -22,9 +22,9 @@ interface Submission {
 }
 
 const steps = [
-  { number: 1, label: "Grades", icon: "📊" },
-  { number: 2, label: "Rewrite", icon: "✍️" },
-  { number: 3, label: "Next Steps", icon: "🚀" },
+  { number: 1, label: "Grades", icon: "ðŸ“Š" },
+  { number: 2, label: "Rewrite", icon: "âœï¸" },
+  { number: 3, label: "Next Steps", icon: "ðŸš€" },
 ];
 
 const gradeColor = (grade: string) => {
@@ -105,7 +105,7 @@ export default function ResultsContent() {
       const docRef = doc(db, "submissions", submissionId);
       await updateDoc(docRef, { saved: true, savedAt: new Date().toISOString() });
       setSubmission((prev) => prev ? { ...prev, saved: true } : null);
-      alert("✓ Saved to Vault!");
+      alert("âœ“ Saved to Vault!");
     } catch (e) {
       console.error("Save error:", e);
       alert("Error saving to vault");
@@ -168,7 +168,7 @@ export default function ResultsContent() {
     );
   }
 
-  const overall = String(analysis.overall || "");
+  const overall = String(analysis.rewriteGrade || analysis.overall || "");
   const overallColor = gradeColor(overall);
   const rewriteGrade = String(analysis.rewriteGrade || "B");
   const rewriteGradeColor = gradeColor(rewriteGrade);
@@ -214,7 +214,7 @@ export default function ResultsContent() {
         {overall !== "A" && missingForA.length > 0 && (
           <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-6 mb-10">
             <div className="flex items-start gap-3">
-              <div className="text-2xl">⚠️</div>
+              <div className="text-2xl">âš ï¸</div>
               <div className="flex-1">
                 <h3 className="text-yellow-900 font-bold text-lg mb-2">To reach an A grade:</h3>
                 <ul className="space-y-2">
@@ -224,7 +224,7 @@ export default function ResultsContent() {
                     </li>
                   ))}
                 </ul>
-                <p className="text-yellow-700 text-sm mt-3">💡 Add more details to your listing or refine your description to improve these areas.</p>
+                <p className="text-yellow-700 text-sm mt-3">ðŸ’¡ Add more details to your listing or refine your description to improve these areas.</p>
               </div>
             </div>
           </div>
@@ -268,7 +268,7 @@ export default function ResultsContent() {
                   disabled={reanalyzing}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition disabled:opacity-50"
                 >
-                  {reanalyzing ? "⟳ Analyzing..." : "⟳ Refresh"}
+                  {reanalyzing ? "âŸ³ Analyzing..." : "âŸ³ Refresh"}
                 </button>
               </div>
             </div>
@@ -282,14 +282,14 @@ export default function ResultsContent() {
                 onClick={handleCopyRewrite}
                 className="px-6 py-3 bg-[#c9a227] hover:bg-[#b8911f] text-white rounded-lg font-semibold transition"
               >
-                {copied ? "✓ Copied!" : "📋 Copy Rewrite"}
+                {copied ? "âœ“ Copied!" : "ðŸ“‹ Copy Rewrite"}
               </button>
 
               <button
                 onClick={handleDownloadRewrite}
                 className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
               >
-                ⬇️ Download
+                â¬‡ï¸ Download
               </button>
 
               <button
@@ -301,14 +301,14 @@ export default function ResultsContent() {
                     : "bg-green-500 hover:bg-green-600 text-white"
                 }`}
               >
-                {saving ? "💾 Saving..." : submission.saved ? "✓ Saved to Vault" : "💾 Save to Vault"}
+                {saving ? "ðŸ’¾ Saving..." : submission.saved ? "âœ“ Saved to Vault" : "ðŸ’¾ Save to Vault"}
               </button>
 
               <button
                 onClick={() => (window.location.href = `/agent-vault?submissionId=${submissionId}`)}
                 className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/30 rounded-lg font-semibold transition"
               >
-                🔍 View in Vault
+                ðŸ” View in Vault
               </button>
             </div>
 
@@ -380,7 +380,7 @@ export default function ResultsContent() {
         {/* Cross-sell section */}
         <div className="mt-10 bg-white/10 border border-white/20 rounded-2xl p-8">
           <div className="text-center mb-6">
-            <p className="text-[#c9a227] font-bold text-lg mb-1">🎉 Your description has been upgraded!</p>
+            <p className="text-[#c9a227] font-bold text-lg mb-1">ðŸŽ‰ Your description has been upgraded!</p>
             <p className="text-white/80">Take these tools for a spin with your listing data already loaded:</p>
           </div>
 
@@ -389,30 +389,30 @@ export default function ResultsContent() {
               href="/property-tax"
               className="bg-[#1e3a5f] hover:bg-[#2a4f7a] border border-white/20 rounded-xl p-5 text-center transition group"
             >
-              <div className="text-4xl mb-2">🛠️</div>
+              <div className="text-4xl mb-2">ðŸ› ï¸</div>
               <h3 className="text-white font-bold mb-1">Property Tax Estimator</h3>
               <p className="text-gray-400 text-sm">Estimate 2025 Orange County taxes for this property</p>
-              <p className="text-[#c9a227] text-sm mt-2 font-semibold group-hover:underline">Open Estimator →</p>
+              <p className="text-[#c9a227] text-sm mt-2 font-semibold group-hover:underline">Open Estimator â†’</p>
             </a>
 
             <a
               href="/closing-costs"
               className="bg-[#1e3a5f] hover:bg-[#2a4f7a] border border-white/20 rounded-xl p-5 text-center transition group"
             >
-              <div className="text-4xl mb-2">🧮</div>
+              <div className="text-4xl mb-2">ðŸ§®</div>
               <h3 className="text-white font-bold mb-1">Closing Cost Calculator</h3>
               <p className="text-gray-400 text-sm">Full TRID-style buyer & seller cost breakdown</p>
-              <p className="text-[#c9a227] text-sm mt-2 font-semibold group-hover:underline">Open Calculator →</p>
+              <p className="text-[#c9a227] text-sm mt-2 font-semibold group-hover:underline">Open Calculator â†’</p>
             </a>
 
             <a
               href="/workspace"
               className="bg-[#1e3a5f] hover:bg-[#2a4f7a] border border-white/20 rounded-xl p-5 text-center transition group"
             >
-              <div className="text-4xl mb-2">🗂️</div>
+              <div className="text-4xl mb-2">ðŸ—‚ï¸</div>
               <h3 className="text-white font-bold mb-1">Agent Workspace</h3>
               <p className="text-gray-400 text-sm">Build your full listing package with AI assistance</p>
-              <p className="text-[#c9a227] text-sm mt-2 font-semibold group-hover:underline">Open Workspace →</p>
+              <p className="text-[#c9a227] text-sm mt-2 font-semibold group-hover:underline">Open Workspace â†’</p>
             </a>
           </div>
         </div>

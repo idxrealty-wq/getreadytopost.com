@@ -168,6 +168,51 @@ OUTPUT JSON SHAPE:
     }
     analysis.rewrite = await ensureRewriteLength(String(analysis.rewrite || ""), openaiKey, factsBlock);
     analysis.rewriteWordCount = countWords(String(analysis.rewrite || ""));
+    // Second pass: grade the rewrite independently
+    const gradeRewriteRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${openaiKey}` },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a strict MLS listing grader. Grade ONLY the listing text provided. Do not reference any original listing.
+A-GRADE CRITERIA (all must be met for A):
+- 145-165 words
+- Starts with a strong hook about the HOME (not location)
+- At least 50% of content describes interior features
+- Includes beds, baths, or key interior details
+- Has emotional/lifestyle language
+- Ends with a clear CTA (schedule, tour, showing, call, contact)
+- Uses "primary bedroom" not "master"
+- Fair Housing compliant
+- No invented facts
+
+Return ONLY valid JSON:
+{"rewriteGrade":"A|B|C|D|F","rewriteReason":"one sentence explaining the grade — if not A, state exactly what is missing"}`,
+          },
+          {
+            role: "user",
+            content: `Grade this listing rewrite:\n\n${analysis.rewrite}`,
+          },
+        ],
+        temperature: 0.3,
+      }),
+    });
+    if (gradeRewriteRes.ok) {
+      const gradeRewriteData = await gradeRewriteRes.json();
+      const rawGrade = String(gradeRewriteData.choices?.[0]?.message?.content || "{}");
+      const unfencedGrade = rawGrade.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
+      const gradeJson = safeJsonParse(unfencedGrade);
+      if (gradeJson) {
+        analysis.rewriteGrade = gradeJson.rewriteGrade || "B";
+        analysis.rewriteReason = gradeJson.rewriteReason || "";
+        analysis.overall = analysis.rewriteGrade;
+        analysis.originalGrade = analysis.originalGrade || analysis.overall;
+      }
+    }
+
     await submissionRef.update({ status: "completed", analysis, completedAt: new Date().toISOString(), email, propertyDetails });
     if (email && process.env.RESEND_API_KEY) {
       try {
