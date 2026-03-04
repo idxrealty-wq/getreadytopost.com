@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 
 type Grade = { label: string; score: string };
 
@@ -19,65 +19,45 @@ function GradeRow({ grades }: { grades: Grade[] }) {
 }
 
 function ExampleBlock({
-  tag,
-  before,
-  after,
-  gradesBefore,
-  gradesAfter,
+  tag, before, after, gradesBefore, gradesAfter,
 }: {
-  tag: string;
-  before: string;
-  after: string;
-  gradesBefore: Grade[];
-  gradesAfter: Grade[];
+  tag: string; before: string; after: string; gradesBefore: Grade[]; gradesAfter: Grade[];
 }) {
   return (
     <section className="py-14 bg-transparent">
       <div className="max-w-5xl mx-auto px-6">
         <div className="mb-6">
-          <span className="bg-[#c9a227]/10 text-[#c9a227] px-3 py-1 rounded-full text-sm font-semibold">
-            {tag}
-          </span>
+          <span className="bg-[#c9a227]/10 text-[#c9a227] px-3 py-1 rounded-full text-sm font-semibold">{tag}</span>
         </div>
-
         <div className="grid md:grid-cols-2 gap-6">
           <div className="rounded-2xl p-6 border bg-red-50 border-red-200">
-            <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded mb-4 inline-block">
-              BEFORE
-            </span>
+            <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded mb-4 inline-block">BEFORE</span>
             <p className="text-gray-800 leading-relaxed">{before}</p>
             <div className="mt-5">
               <p className="text-sm font-semibold text-gray-700">Typical issues:</p>
               <ul className="text-sm text-gray-700 list-disc pl-5 mt-2 space-y-1">
-                <li>Generic adjectives (â€œbeautifulâ€, â€œgreatâ€) with no proof</li>
+                <li>Generic adjectives with no proof</li>
                 <li>No buyer story or lifestyle framing</li>
                 <li>Weak CTA and no urgency based on facts</li>
               </ul>
             </div>
           </div>
-
           <div className="rounded-2xl p-6 border bg-green-50 border-green-200">
-            <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded mb-4 inline-block">
-              AFTER
-            </span>
+            <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded mb-4 inline-block">AFTER</span>
             <p className="text-gray-800 leading-relaxed">{after}</p>
             <div className="mt-5">
               <p className="text-sm font-semibold text-gray-700">What improved:</p>
               <ul className="text-sm text-gray-700 list-disc pl-5 mt-2 space-y-1">
-                <li>Clear layout + concrete features (not fluff)</li>
-                <li>MLS-safe, Fair Housingâ€“aware language</li>
+                <li>Clear layout and concrete features</li>
+                <li>MLS-safe, Fair Housing-aware language</li>
                 <li>Buyer-focused CTA that drives showings</li>
               </ul>
             </div>
           </div>
         </div>
-
         <div className="mt-8 rounded-2xl bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] p-6 border border-white/10">
           <p className="text-white font-bold text-lg">6-Category Grade Snapshot</p>
-          <p className="text-gray-200 text-sm mt-1">
-            This is the kind of breakdown GetReadyToPost generates so you know exactly what to fix.
-          </p>
-
+          <p className="text-gray-200 text-sm mt-1">This is the kind of breakdown GetReadyToPost generates so you know exactly what to fix.</p>
           <div className="grid md:grid-cols-2 gap-6 mt-6">
             <div>
               <p className="text-white/80 text-sm font-semibold">Before</p>
@@ -93,65 +73,41 @@ function ExampleBlock({
     </section>
   );
 }
-
 export default function ExamplesPage() {
   return (
-    <main style={{backgroundImage: "url('https://images.unsplash.com/photo-1557821552-17105176677c?w=1200<main>h=800<main>fit=crop')", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed", minHeight: "100vh"}}>
-    <div style={{position: "absolute", inset: 0, backgroundColor: "rgba(255, 255, 255, 0.85)"}}></div>
-    <div style={{position: "relative", zIndex: 10}}>
-      {/* Hero */}
+    <main>
       <section className="bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] text-white py-16 pt-32">
         <div className="max-w-5xl mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            Real Before & After Examples
-          </h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">Real Before & After Examples</h1>
           <p className="text-xl text-gray-200 max-w-3xl mx-auto">
-            See exactly how better listing copy earns more clicks, more saves, and more showings â€” without risking MLS or Fair Housing compliance.
+            See exactly how better listing copy earns more clicks, more saves, and more showings - without risking MLS or Fair Housing compliance.
           </p>
-
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
-            <Link
-              href="/rate-my-listing"
-              className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg"
-            >
+            <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg">
               Rate My Listing
             </Link>
-            <Link
-              href="/how-it-works"
-              className="inline-block border-2 border-[#c9a227] text-[#c9a227] hover:bg-[#c9a227]/10 px-8 py-4 rounded-lg font-semibold text-lg transition"
-            >
+            <Link href="/how-it-works" className="inline-block border-2 border-[#c9a227] text-[#c9a227] hover:bg-[#c9a227]/10 px-8 py-4 rounded-lg font-semibold text-lg transition">
               See How It Works
             </Link>
           </div>
-
-          <p className="text-gray-200 mt-6">
-            Full rewrite + report: <span className="font-bold text-[#c9a227]">$19.99</span> (one-time)
-          </p>
+          <p className="text-gray-200 mt-6">Full rewrite + report: <span className="font-bold text-[#c9a227]">$19.99</span> (one-time)</p>
         </div>
       </section>
-
-      {/* Video */}
       <section className="py-14 bg-[#faf8f5]">
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-10 items-start">
             <div>
-              <h2 className="text-3xl font-bold text-[#1a2b4a] mb-3">
-                Why Listing Copy Matters (Watch This)
-              </h2>
-              <p className="text-gray-700 text-lg">
-                Photos get the click. Words get the showing. This quick walkthrough explains why most listings get ignored â€” and what to do instead.
-              </p>
-
+              <h2 className="text-3xl font-bold text-[#1a2b4a] mb-3">Why Listing Copy Matters (Watch This)</h2>
+              <p className="text-gray-700 text-lg">Photos get the click. Words get the showing. This quick walkthrough explains why most listings get ignored - and what to do instead.</p>
               <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-6">
-                <p className="font-semibold text-gray-900">What youâ€™ll learn:</p>
+                <p className="font-semibold text-gray-900">What you will learn:</p>
                 <ul className="list-disc pl-5 mt-3 space-y-2 text-gray-700">
-                  <li>Why â€œbeautiful homeâ€ copy doesnâ€™t convert</li>
-                  <li>How to hit the MLS-friendly sweet spot (about 140â€“160 words)</li>
+                  <li>Why generic copy does not convert</li>
+                  <li>How to hit the MLS-friendly sweet spot (about 140-160 words)</li>
                   <li>How GetReadyToPost grades and rewrites in seconds</li>
                 </ul>
               </div>
             </div>
-
             <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-xl bg-black">
               <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                 <iframe
@@ -167,8 +123,6 @@ export default function ExamplesPage() {
           </div>
         </div>
       </section>
-
-      {/* Examples */}
       <ExampleBlock
         tag="Residential Lakefront"
         before="Beautiful lakefront home in a great neighborhood. 3 bedroom 2 bath with open floor plan and lots of updates. Big backyard and amazing views. Must see, won't last!"
@@ -190,7 +144,6 @@ export default function ExamplesPage() {
           { label: "Impact", score: "A-" },
         ]}
       />
-
       <div className="bg-[#faf8f5]">
         <ExampleBlock
           tag="Starter Home / First-Time Buyer"
@@ -214,7 +167,6 @@ export default function ExamplesPage() {
           ]}
         />
       </div>
-
       <ExampleBlock
         tag="Condo / Low-Maintenance Living"
         before="Great condo with amenities. Close to downtown. Spacious and bright. Perfect for anyone. Won't last!"
@@ -236,7 +188,6 @@ export default function ExamplesPage() {
           { label: "Impact", score: "A-" },
         ]}
       />
-
       <div className="bg-[#faf8f5]">
         <ExampleBlock
           tag="Vacant Land"
@@ -260,18 +211,16 @@ export default function ExamplesPage() {
           ]}
         />
       </div>
-
-      {/* Compliance note + CTA */}
       <section className="py-16 bg-[#1a2b4a] text-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-10 items-start">
             <div>
               <h2 className="text-3xl font-bold mb-4">MLS + Fair Housing Safe</h2>
               <p className="text-gray-200 text-lg">
-                GetReadyToPost is built for real estate. We avoid protected-class language, keep descriptions MLS-friendly, and focus on property facts + buyer psychology.
+                GetReadyToPost is built for real estate. We avoid protected-class language, keep descriptions MLS-friendly, and focus on property facts and buyer psychology.
               </p>
               <p className="text-gray-200 mt-4">
-                Youâ€™ll get a clean rewrite plus a breakdown of what to fix â€” so you can improve the listing without guessing.
+                You will get a clean rewrite plus a breakdown of what to fix - so you can improve the listing without guessing.
               </p>
             </div>
             <div className="bg-white/10 border border-white/15 rounded-2xl p-8">
@@ -294,7 +243,6 @@ export default function ExamplesPage() {
           </div>
         </div>
       </section>
-    </div>
-  </main>
+    </main>
   );
 }
