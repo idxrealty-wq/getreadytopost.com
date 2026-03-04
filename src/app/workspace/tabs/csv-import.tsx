@@ -68,27 +68,12 @@ interface Props {
   onImport: (data: {
     address: string;
     propertyData: {
-      taxId: string;
-      beds: string;
-      baths: string;
-      sqft: string;
-      lotSize: string;
-      price: string;
-      propertyType: string;
-      legalDescription: string;
-      yearBuilt: string;
-      features: string;
-      dateAdded: string;
-      zoning: string;
-      homestead: string;
-      assessedValue: string;
-      lastSalePrice: string;
-      lastSaleYear: string;
-      ownerName?: string;
-      justValue?: string;
-      landValue?: string;
-      buildingValue?: string;
-      taxableValue?: string;
+      taxId: string; beds: string; baths: string; sqft: string; lotSize: string;
+      price: string; propertyType: string; legalDescription: string; yearBuilt: string;
+      features: string; dateAdded: string; zoning: string; homestead: string;
+      assessedValue: string; lastSalePrice: string; lastSaleYear: string;
+      ownerName?: string; justValue?: string; landValue?: string;
+      buildingValue?: string; taxableValue?: string;
     };
   }) => void;
 }
@@ -122,7 +107,8 @@ export default function CSVImport({ onImport }: Props) {
   };
 
   const handleSelect = (p: ParsedProperty) => {
-    const fullAddress = `${p.streetNumber} ${p.streetDirection} ${p.streetName} ${p.streetType} ${p.unit}`.replace(/\s+/g, ' ').trim() + `, ${p.city}, ${p.state} ${p.zip}`;
+    const parts = [p.streetNumber, p.streetDirection, p.streetName, p.streetType, p.unit].filter(Boolean).join(' ');
+    const fullAddress = parts + ', ' + p.city + ', ' + p.state + ' ' + p.zip;
     onImport({
       address: fullAddress,
       propertyData: {
@@ -147,7 +133,7 @@ export default function CSVImport({ onImport }: Props) {
         landValue: p.landValue !== 'working...' ? p.landValue.replace(/[^0-9.]/g, '') : '',
         buildingValue: p.buildingValue !== 'working...' ? p.buildingValue.replace(/[^0-9.]/g, '') : '',
         taxableValue: p.taxableValue !== 'working...' ? p.taxableValue.replace(/[^0-9.]/g, '') : '',
-              },
+      },
     });
     setOpen(false);
     setProperties([]);
@@ -162,11 +148,8 @@ export default function CSVImport({ onImport }: Props) {
 
   return (
     <div className="mb-6">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-5 py-3 bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 rounded-xl text-blue-200 font-bold transition"
-      >
-        ðŸ“‚ Import from Orange County Appraiser CSV
+      <button onClick={() => setOpen(!open)} className="flex items-center gap-2 px-5 py-3 bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 rounded-xl text-blue-200 font-bold transition">
+        Import from Orange County Appraiser CSV
       </button>
       {open && (
         <div className="mt-4 bg-white/10 border border-white/20 rounded-2xl p-6">
@@ -174,40 +157,22 @@ export default function CSVImport({ onImport }: Props) {
             <div>
               <p className="text-gray-300 text-sm mb-3">
                 Download your property export from{' '}
-                <a href="https://ocpaweb.ocpafl.org" target="_blank" rel="noopener noreferrer" className="text-blue-300 underline">
-                  ocpaweb.ocpafl.org
-                </a>{' '}
+                <a href="https://ocpaweb.ocpafl.org" target="_blank" rel="noopener noreferrer" className="text-blue-300 underline">ocpaweb.ocpafl.org</a>{' '}
                 and upload it here.
               </p>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".csv"
-                onChange={handleFile}
-                className="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#c9a227] file:text-white file:font-bold hover:file:bg-[#b8911f] cursor-pointer"
-              />
+              <input ref={fileRef} type="file" accept=".csv" onChange={handleFile} className="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#c9a227] file:text-white file:font-bold hover:file:bg-[#b8911f] cursor-pointer" />
               {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
             </div>
           ) : (
             <div>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-green-300 font-bold">{properties.length} properties loaded</p>
-                <button onClick={() => setProperties([])} className="text-gray-400 hover:text-white text-sm">â† Upload different file</button>
+                <button onClick={() => setProperties([])} className="text-gray-400 hover:text-white text-sm">Upload different file</button>
               </div>
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search by address, parcel ID, or owner name..."
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black mb-4"
-              />
+              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by address, parcel ID, or owner name..." className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black mb-4" />
               <div className="max-h-72 overflow-y-auto space-y-2">
                 {filtered.slice(0, 50).map((p, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleSelect(p)}
-                    className="w-full text-left bg-white/5 hover:bg-white/15 border border-white/10 rounded-xl p-4 transition"
-                  >
+                  <button key={i} onClick={() => handleSelect(p)} className="w-full text-left bg-white/5 hover:bg-white/15 border border-white/10 rounded-xl p-4 transition">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-white font-bold text-sm">{p.address}, {p.city} {p.zip}</p>
@@ -222,7 +187,7 @@ export default function CSVImport({ onImport }: Props) {
                   </button>
                 ))}
                 {filtered.length === 0 && <p className="text-gray-400 text-sm text-center py-4">No matching properties</p>}
-                {filtered.length > 50 && <p className="text-gray-400 text-sm text-center py-2">Showing first 50 â€” refine your search</p>}
+                {filtered.length > 50 && <p className="text-gray-400 text-sm text-center py-2">Showing first 50 - refine your search</p>}
               </div>
             </div>
           )}
