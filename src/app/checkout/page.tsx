@@ -93,7 +93,7 @@ function CheckoutContent() {
 
       <div className="relative z-10 max-w-3xl mx-auto">
         <button onClick={() => router.back()} className="mb-8 text-gray-300 hover:text-white transition">
-          â† Back
+          ← Back
         </button>
 
         <div className="bg-slate-900/55 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-2xl">
