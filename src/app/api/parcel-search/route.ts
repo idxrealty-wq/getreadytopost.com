@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const ATTOM_API_KEY = 'a82acb1b1062891301dcab519babbb68';
+const ATTOM_API_KEY = '343bc00b6e80a125e9a2ad10a53aabd1';
 const ATTOM_BASE_URL = 'https://api.attomdata.com/propertyapi/v1.0.0';
 
 export async function GET(req: NextRequest) {
