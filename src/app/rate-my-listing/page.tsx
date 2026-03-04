@@ -34,18 +34,13 @@ export default function RateMyListingPage() {
   const [hoa, setHoa] = useState('');
   const [hoaAmount, setHoaAmount] = useState('');
   const [parcelLoaded, setParcelLoaded] = useState(false);
-
   const wordCount = listing.trim().split(/\s+/).filter(w => w).length;
 
   const rerunChecker = (text: string, ov?: any) => {
     setMissingInfo(checkMissingInfo(text, {
-      beds: ov?.beds ?? beds,
-      baths: ov?.baths ?? baths,
-      sqft: ov?.sqft ?? sqft,
-      yearBuilt: ov?.yearBuilt ?? yearBuilt,
-      price: ov?.price ?? price,
-      hoa: ov?.hoa ?? hoa,
-      hoaAmount: ov?.hoaAmount ?? hoaAmount,
+      beds: ov?.beds ?? beds, baths: ov?.baths ?? baths, sqft: ov?.sqft ?? sqft,
+      yearBuilt: ov?.yearBuilt ?? yearBuilt, price: ov?.price ?? price,
+      hoa: ov?.hoa ?? hoa, hoaAmount: ov?.hoaAmount ?? hoaAmount,
     }));
   };
 
