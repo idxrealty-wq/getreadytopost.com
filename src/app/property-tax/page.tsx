@@ -7,10 +7,10 @@ const COUNTY_RATES = [
   { label: 'General County', mills: 4.4347, group: 'county' },
   { label: 'Unincorporated County Fire', mills: 2.8437, group: 'county' },
   { label: 'Unincorporated Taxing District', mills: 1.8043, group: 'county' },
-  { label: 'Library â€” Operating Budget', mills: 0.3748, group: 'county' },
+  { label: 'Library - Operating Budget', mills: 0.3748, group: 'county' },
   { label: 'St Johns Water Management District', mills: 0.1793, group: 'county' },
-  { label: 'Public Schools â€” By State Law (RLE)', mills: 3.2010, group: 'school' },
-  { label: 'Public Schools â€” By Local Board', mills: 3.2480, group: 'school' },
+  { label: 'Public Schools - By State Law (RLE)', mills: 3.2010, group: 'school' },
+  { label: 'Public Schools - By Local Board', mills: 3.2480, group: 'school' },
 ];
 
 function PropertyTaxContent() {
@@ -34,7 +34,6 @@ function PropertyTaxContent() {
   const [cityMillage, setCityMillage] = useState(6.75);
   const [calculated, setCalculated] = useState(false);
 
-  // Read from localStorage on mount
   useState(() => {
     try {
       const saved = localStorage.getItem('grtp_property');
@@ -45,6 +44,7 @@ function PropertyTaxContent() {
       }
     } catch(e) {}
   });
+
   const otherExemptions = (seniorExemption ? 5000 : 0) + (disabilityExemption ? 5000 : 0) + (veteranExemption ? 5000 : 0) + (widowExemption ? 500 : 0) + (blindExemption ? 500 : 0);
   const baseHomestead = 25000;
   const schoolExemption = hasHomestead ? baseHomestead + otherExemptions : 0;
@@ -65,19 +65,19 @@ function PropertyTaxContent() {
   const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black bg-white";
   const labelClass = "block text-sm font-semibold text-gray-300 mb-2";
   const cardClass = "bg-[#1e3a5f] rounded-2xl p-8 border border-white/20";
+
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">ðŸ›ï¸ Property Tax Estimator</h1>
-            <p className="text-gray-300">Orange County, FL â€” 2025 Millage Rates</p>
+            <h1 className="text-4xl font-bold text-white mb-2">Property Tax Estimator</h1>
+            <p className="text-gray-300">Orange County, FL - 2025 Millage Rates</p>
           </div>
-          <Link href={`/closing-costs?address=${encodeURIComponent(address)}&price=${marketValue}&tax=${Math.round(annualTax)}`} className="bg-green-600/30 hover:bg-green-600/50 text-green-300 px-5 py-3 rounded-xl font-bold transition border border-green-500/40">
-            ðŸ§® Closing Costs â†’
+          <Link href={'/closing-costs?address=' + encodeURIComponent(address) + '&price=' + marketValue + '&tax=' + Math.round(annualTax)} className="bg-green-600/30 hover:bg-green-600/50 text-green-300 px-5 py-3 rounded-xl font-bold transition border border-green-500/40">
+            Closing Costs
           </Link>
         </div>
-
         <div className={cardClass + " mb-6"}>
           <h2 className="text-xl font-bold text-white mb-6">Property Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -102,7 +102,7 @@ function PropertyTaxContent() {
             {hasHomestead && (
               <div className="ml-8 space-y-4 max-w-sm">
                 <div>
-                  <label className={labelClass}>Additional Homestead (Hx) / SOH Cap <span className="text-gray-400 font-normal text-xs">default $25,722 â€” verify at ocpafl.org</span></label>
+                  <label className={labelClass}>Additional Homestead (Hx) / SOH Cap <span className="text-gray-400 font-normal text-xs">default $25,722 - verify at ocpafl.org</span></label>
                   <input type="number" value={sohCap || ''} onChange={e => setSohCap(parseFloat(e.target.value) || 0)} className={inputClass} />
                   <p className="text-gray-400 text-xs mt-1">County gets $25,000 + this amount. Schools get $25,000 + other exemptions only.</p>
                 </div>
@@ -144,12 +144,12 @@ function PropertyTaxContent() {
               <div className="ml-8 max-w-xs">
                 <label className={labelClass}>City Millage Rate</label>
                 <input type="number" step="0.001" value={cityMillage} onChange={e => setCityMillage(parseFloat(e.target.value) || 0)} className={inputClass} />
-                <p className="text-gray-400 text-xs mt-1">Orlando: 6.75 Â· Winter Park: 3.8 Â· Winter Garden: 4.8565 Â· Kissimmee: 6.5</p>
+                <p className="text-gray-400 text-xs mt-1">Orlando: 6.75 · Winter Park: 3.8 · Winter Garden: 4.8565 · Kissimmee: 6.5</p>
               </div>
             )}
           </div>
           <div className="mt-6 border-t border-white/20 pt-6">
-            <h3 className="text-white font-bold mb-4">ðŸ§¾ Non-Ad Valorem Assessments <span className="text-gray-400 font-normal text-sm">(flat fees â€” garbage, stormwater, etc.)</span></h3>
+            <h3 className="text-white font-bold mb-4">Non-Ad Valorem Assessments <span className="text-gray-400 font-normal text-sm">(flat fees - garbage, stormwater, etc.)</span></h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Assessment 1 Description</label>
@@ -184,18 +184,18 @@ function PropertyTaxContent() {
               <div className="bg-green-600/20 border border-green-400/30 rounded-2xl p-6 text-center">
                 <p className="text-green-300 text-sm font-semibold mb-1">Monthly Escrow</p>
                 <p className="text-3xl font-bold text-white">{fmt(monthlyTax)}</p>
-                <p className="text-green-300 text-xs mt-1">Annual Ã· 12</p>
+                <p className="text-green-300 text-xs mt-1">Annual / 12</p>
               </div>
               <div className="bg-red-600/20 border border-red-400/30 rounded-2xl p-6 text-center">
-                <p className="text-red-300 text-sm font-semibold mb-1">ðŸ§¾ Gross Tax Total</p>
+                <p className="text-red-300 text-sm font-semibold mb-1">Gross Tax Total</p>
                 <p className="text-3xl font-bold text-white">{fmt(grandTotal)}</p>
                 <p className="text-red-300 text-xs mt-1">Ad Valorem + {fmt(totalNonAdValorem)} non-ad valorem</p>
               </div>
             </div>
             <div className={cardClass}>
-              <h2 className="text-xl font-bold text-[#c9a227] mb-6">ðŸ“ How We Arrived at This Figure</h2>
+              <h2 className="text-xl font-bold text-[#c9a227] mb-6">How We Arrived at This Figure</h2>
               <div className="mb-6">
-                <h3 className="text-white font-bold mb-3">Step 1 â€” Assessed Value</h3>
+                <h3 className="text-white font-bold mb-3">Step 1 - Assessed Value</h3>
                 <div className="bg-white/5 rounded-xl p-4 space-y-2 text-sm">
                   <div className="flex justify-between text-white"><span>Market / Sale Price</span><span>{fmt(marketValue)}</span></div>
                   <div className="flex justify-between text-gray-400 text-xs"><span className="italic">County may assess below market. Verify at ocpafl.org</span></div>
@@ -203,7 +203,7 @@ function PropertyTaxContent() {
                 </div>
               </div>
               <div className="mb-6">
-                <h3 className="text-white font-bold mb-3">Step 2 â€” Exemptions (Split by Authority)</h3>
+                <h3 className="text-white font-bold mb-3">Step 2 - Exemptions (Split by Authority)</h3>
                 <div className="bg-white/5 rounded-xl p-4 space-y-2 text-sm">
                   {hasHomestead ? (
                     <>
@@ -217,7 +217,7 @@ function PropertyTaxContent() {
                 </div>
               </div>
               <div className="mb-6">
-                <h3 className="text-white font-bold mb-3">Step 3 â€” Millage Rate Breakdown</h3>
+                <h3 className="text-white font-bold mb-3">Step 3 - Millage Rate Breakdown</h3>
                 <div className="bg-white/5 rounded-xl p-4 text-sm">
                   <div className="grid grid-cols-4 gap-2 text-gray-400 text-xs mb-2 font-semibold">
                     <span>Taxing Authority</span><span className="text-right">Taxable</span><span className="text-right">Mills</span><span className="text-right">Tax</span>
@@ -240,7 +240,7 @@ function PropertyTaxContent() {
               </div>
               {totalNonAdValorem > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-white font-bold mb-3">Step 4 â€” Non-Ad Valorem Assessments</h3>
+                  <h3 className="text-white font-bold mb-3">Step 4 - Non-Ad Valorem Assessments</h3>
                   <div className="bg-white/5 rounded-xl p-4 text-sm">
                     {nonAdValorem1 > 0 && (
                       <div className="flex justify-between py-2 border-b border-white/10">
@@ -273,12 +273,12 @@ function PropertyTaxContent() {
                   </div>
                 )}
                 <div className="flex justify-between items-center border-t border-red-500/40 pt-3 mt-2">
-                  <span className="text-red-300 font-bold text-xl">ðŸ§¾ 2025 Gross Tax Total</span>
+                  <span className="text-red-300 font-bold text-xl">2025 Gross Tax Total</span>
                   <span className="text-white font-bold text-3xl">{fmt(grandTotal)}</span>
                 </div>
               </div>
               <div className="mt-6 bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4">
-                <p className="text-yellow-300 text-xs font-semibold mb-1">âš ï¸ Estimate Only</p>
+                <p className="text-yellow-300 text-xs font-semibold mb-1">Estimate Only</p>
                 <p className="text-gray-400 text-xs">Based on 2025 Orange County millage rates. Actual taxes may vary. Verify at <a href="https://www.ocpafl.org" target="_blank" rel="noopener noreferrer" className="text-blue-300 underline">ocpafl.org</a>.</p>
               </div>
             </div>
@@ -288,7 +288,7 @@ function PropertyTaxContent() {
                 <p className="text-gray-300 text-sm">Use <strong className="text-white">{fmt(annualTax)}/year</strong> as the Annual Property Tax in the calculator.</p>
               </div>
               <Link href="/closing-costs" className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold transition whitespace-nowrap">
-                Open Calculator â†’
+                Open Calculator
               </Link>
             </div>
           </div>
