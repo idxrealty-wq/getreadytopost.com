@@ -1,40 +1,30 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 
 export default function PrivacyPage() {
   return (
-    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        <div className="bg-black/45 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-2xl">
-          <h1 className="text-4xl font-bold text-white mb-2">Privacy Policy</h1>
-          <p className="text-gray-200 mb-8">Last updated: February 2026</p>
-
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">Information We Collect</h2>
-              <p className="text-gray-100">We collect information you provide directly to us, including name, email, phone number, and listing content when you submit a rewrite request.</p>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">How We Use Your Information</h2>
-              <p className="text-gray-100">We use the information we collect to provide, maintain, and improve our services, process your requests, and communicate with you.</p>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">Information Sharing</h2>
-              <p className="text-gray-100">We do not sell or share your personal information with third parties except as necessary to provide our services or as required by law.</p>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">Contact Us</h2>
-              <p className="text-gray-100">If you have questions about this Privacy Policy, please contact us at privacy@getreadytopost.com</p>
-            </div>
-          </div>
+    <main className="pt-24 min-h-screen bg-white">
+      <div className="max-w-3xl mx-auto px-6 py-12">
+        <h1 className="text-4xl font-bold text-[#1a2b4a] mb-8">Privacy Policy</h1>
+        <div className="prose prose-lg text-gray-700 space-y-6">
+          <p>Last updated: January 2025</p>
+          <h2 className="text-2xl font-bold text-[#1a2b4a]">Information We Collect</h2>
+          <p>We collect information you provide directly to us, such as your email address when you submit a listing or create an account.</p>
+          <h2 className="text-2xl font-bold text-[#1a2b4a]">How We Use Your Information</h2>
+          <p>We use the information we collect to provide, maintain, and improve our services, process transactions, and send you technical notices and support messages.</p>
+          <h2 className="text-2xl font-bold text-[#1a2b4a]">Information Sharing</h2>
+          <p>We do not sell, trade, or otherwise transfer your personally identifiable information to outside parties except as described in this policy.</p>
+          <h2 className="text-2xl font-bold text-[#1a2b4a]">Data Security</h2>
+          <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
+          <h2 className="text-2xl font-bold text-[#1a2b4a]">Contact Us</h2>
+          <p>If you have questions about this Privacy Policy, please contact us through our website.</p>
         </div>
-
-        <div className="mt-12 text-center">
-          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">â† Back to Home</Link>
+        <div className="mt-12">
+          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
+            Back to Home
+          </Link>
         </div>
       </div>
     </main>
   );
 }
+
