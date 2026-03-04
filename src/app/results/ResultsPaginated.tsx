@@ -1,5 +1,4 @@
 ﻿"use client";
-
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -147,21 +146,17 @@ export default function ResultsPaginated() {
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
         <div className="text-center text-white">
           <h1 className="text-2xl font-bold mb-4">No submission found</h1>
-          <Link className="text-[#c9a227] hover:underline" href="/rate-my-listing">
-            Go to Rate My Listing
-          </Link>
+          <Link className="text-[#c9a227] hover:underline" href="/rate-my-listing">Go to Rate My Listing</Link>
         </div>
       </main>
     );
   }
-
   return (
     <>
       <main
         className="pt-20 min-h-screen relative"
         style={{
-          backgroundImage:
-            "url(https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000)",
+          backgroundImage: "url(https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000)",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundAttachment: "fixed",
@@ -192,13 +187,13 @@ export default function ResultsPaginated() {
               </div>
             </div>
           ) : submission?.analysis ? (
-            <div className={`transition-all duration-1000 ${revealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
+            <div className={'transition-all duration-1000 ' + (revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10')}>
               {!user && showSignUpBanner && !submission.savedToVault && (
                 <div className="fixed bottom-6 left-0 right-0 z-50 px-6">
                   <div className="max-w-2xl mx-auto bg-gradient-to-r from-[#c9a227] to-[#b8911f] rounded-2xl p-5 shadow-2xl border-2 border-white/20">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <div className="text-3xl">ðŸŽ‰</div>
+                        <div className="text-3xl">🎉</div>
                         <div>
                           <p className="text-white font-bold">Your report is ready! Save it to your vault.</p>
                           <p className="text-white/80 text-sm">Create a free account to access it anytime.</p>
@@ -208,19 +203,16 @@ export default function ResultsPaginated() {
                         <button onClick={() => setShowAuthModal(true)} className="bg-white text-[#c9a227] px-5 py-2 rounded-xl font-bold text-sm hover:bg-gray-100 transition whitespace-nowrap">
                           Save to Vault
                         </button>
-                        <button onClick={() => setShowSignUpBanner(false)} className="text-white/60 hover:text-white text-xl px-2">
-                          X
-                        </button>
+                        <button onClick={() => setShowSignUpBanner(false)} className="text-white/60 hover:text-white text-xl px-2">X</button>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
-
               {!submission.savedToVault ? (
                 <div className="bg-gradient-to-r from-[#1a2b4a] to-[#2d4a7c] border-2 border-[#c9a227]/60 rounded-2xl p-6 mb-8 shadow-2xl">
                   <div className="flex flex-col md:flex-row items-center gap-4">
-                    <div className="text-5xl">ðŸ’¼</div>
+                    <div className="text-5xl">💼</div>
                     <div className="flex-1 text-center md:text-left">
                       <h3 className="text-xl font-bold text-white mb-1">{user ? "Save This Report to Your Vault" : "Your Report is Ready - Save It!"}</h3>
                       <p className="text-gray-300 text-sm">{user ? "Add this analysis to your Agent Vault to access it anytime." : "Create your free Agent Vault account to save this report and store all future listings."}</p>
@@ -239,13 +231,9 @@ export default function ResultsPaginated() {
                 </div>
               ) : (
                 <div className="bg-green-500/20 border-2 border-green-500/40 rounded-xl p-4 mb-8 text-center">
-                  <p className="text-green-300 font-semibold">
-                    Saved to your Agent Vault! <Link className="underline hover:text-white" href="/agent-vault">View Vault</Link>
-                  </p>
+                  <p className="text-green-300 font-semibold">Saved to your Agent Vault! <Link className="underline hover:text-white" href="/agent-vault">View Vault</Link></p>
                 </div>
               )}
-
-              {/* Pagination Controls */}
               <div className="flex items-center justify-between gap-3 mb-8">
                 <div className="text-white/80 text-sm">
                   Page <span className="text-white font-bold">{currentPage}</span> of <span className="text-white font-bold">3</span>
@@ -267,26 +255,23 @@ export default function ResultsPaginated() {
                   </button>
                 </div>
               </div>
-
-              {/* PAGE 1: Grade + Categories */}
               {currentPage === 1 && (
                 <div>
                   <div className="text-center mb-10">
                     <p className="text-[#c9a227] font-semibold text-sm uppercase tracking-widest mb-2">Your Listing Grade</p>
-                    <div className={`inline-flex w-32 h-32 rounded-full shadow-2xl items-center justify-center mb-4 bg-gradient-to-br ${gradeColors[submission.analysis.overall] || gradeColors["A"]}`}>
+                    <div className={'inline-flex w-32 h-32 rounded-full shadow-2xl items-center justify-center mb-4 bg-gradient-to-br ' + (gradeColors[submission.analysis.overall] || gradeColors["A"])}>
                       <span className="text-6xl font-black text-white">{submission.analysis.overall}</span>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
                     {Object.entries(submission.analysis.categories).map(([key, val], i) => (
-                      <div key={key} className="bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/20 shadow-xl" style={{ opacity: revealed ? 1 : 0, transitionDelay: `${i * 150}ms`, transition: "opacity 1000ms" }}>
+                      <div key={key} className="bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/20 shadow-xl" style={{ opacity: revealed ? 1 : 0, transitionDelay: (i * 150) + 'ms', transition: "opacity 1000ms" }}>
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-white font-semibold">{categoryLabels[key] || key}</span>
-                          <span className={`text-lg font-black px-3 py-1 rounded-lg text-white ${gradeBg[val.grade]}`}>{val.grade}</span>
+                          <span className={'text-lg font-black px-3 py-1 rounded-lg text-white ' + (gradeBg[val.grade])}>{val.grade}</span>
                         </div>
                         <div className="w-full bg-white/10 rounded-full h-2 mb-3">
-                          <div className={`h-2 rounded-full transition-all duration-1000 ${gradeBarWidth[val.grade]} ${gradeBg[val.grade]}`}></div>
+                          <div className={'h-2 rounded-full transition-all duration-1000 ' + (gradeBarWidth[val.grade]) + ' ' + (gradeBg[val.grade])}></div>
                         </div>
                         <p className="text-gray-300 text-sm">{val.feedback}</p>
                       </div>
@@ -294,8 +279,6 @@ export default function ResultsPaginated() {
                   </div>
                 </div>
               )}
-
-              {/* PAGE 2: Rewrite + Recommendations */}
               {currentPage === 2 && (
                 <div>
                   <div className="bg-gradient-to-br from-emerald-900/60 to-green-900/40 backdrop-blur-md rounded-2xl p-8 border-2 border-emerald-500/40 shadow-2xl mb-10 relative">
@@ -315,7 +298,6 @@ export default function ResultsPaginated() {
                       <span className="bg-emerald-600/40 text-emerald-200 text-xs font-semibold px-3 py-1 rounded-full">SEO Optimized</span>
                     </div>
                   </div>
-
                   <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-xl mb-10">
                     <h2 className="text-2xl font-bold text-white mb-6">Key Recommendations</h2>
                     <div className="space-y-4">
@@ -331,11 +313,9 @@ export default function ResultsPaginated() {
                   </div>
                 </div>
               )}
-
-              {/* PAGE 3: Action Buttons */}
               {currentPage === 3 && (
                 <div className="text-center mb-20">
-                  <h2 className="text-3xl font-bold text-white mb-6">You're All Set!</h2>
+                  <h2 className="text-3xl font-bold text-white mb-6">You are All Set!</h2>
                   <p className="text-gray-300 text-lg mb-8">Your report has been sent to <strong className="text-white">{submission?.email}</strong>. Check your inbox!</p>
                   <div className="flex flex-col md:flex-row gap-4 justify-center">
                     <Link className="inline-block bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-xl" href="/rate-my-listing">
@@ -357,3 +337,4 @@ export default function ResultsPaginated() {
     </>
   );
 }
+
