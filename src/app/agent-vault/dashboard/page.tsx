@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { getUserListings, type Listing } from '@/lib/listings';
@@ -109,7 +109,7 @@ export default function VaultPage() {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-white mb-4">Sign in to access your vault</h1>
           <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
-            ← Back to Home
+            â† Back to Home
           </Link>
         </div>
       </main>
@@ -174,7 +174,7 @@ export default function VaultPage() {
               <div className="text-center py-12">
                 <p className="text-gray-400 mb-4">No listings yet</p>
                 <Link href="/workspace" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
-                  Create your first listing →
+                  Create your first listing â†’
                 </Link>
               </div>
             ) : (
@@ -209,7 +209,7 @@ export default function VaultPage() {
               <div className="text-center py-12">
                 <p className="text-gray-400 mb-4">No reports yet</p>
                 <Link href="/rate-my-listing" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">
-                  Rate your first listing →
+                  Rate your first listing â†’
                 </Link>
               </div>
             ) : (
@@ -240,7 +240,7 @@ export default function VaultPage() {
 
         <div className="text-center mt-12">
           <Link href="/" className="text-white/70 hover:text-white font-semibold">
-            ← Back to Home
+            â† Back to Home
           </Link>
         </div>
       </div>

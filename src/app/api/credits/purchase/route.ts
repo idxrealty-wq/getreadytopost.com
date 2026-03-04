@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+﻿import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, setDoc, getDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { NextRequest, NextResponse } from 'next/server';
 

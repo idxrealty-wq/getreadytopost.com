@@ -1,4 +1,4 @@
-import type { ClosingCostInputs, ClosingCostResults, LineItem } from './types';
+﻿import type { ClosingCostInputs, ClosingCostResults, LineItem } from './types';
 
 // Florida Documentary Stamp Tax rates
 const DOC_STAMP_DEED_RATE = 0.007; // $0.70 per $100 on deed

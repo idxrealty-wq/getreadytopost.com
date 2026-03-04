@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import ShareButtons from '@/components/ShareButtons';
 import { useState } from 'react';
@@ -71,28 +71,28 @@ export default function ContactBrokerPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8">
-            <h3 className="text-2xl font-bold text-white mb-4">✓ Team Efficiency</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">âœ“ Team Efficiency</h3>
             <p className="text-gray-300">
               Agents grade and rewrite listings in seconds. No back-and-forth. No delays. Faster listings to market.
             </p>
           </div>
 
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8">
-            <h3 className="text-2xl font-bold text-white mb-4">✓ Quality Control</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">âœ“ Quality Control</h3>
             <p className="text-gray-300">
               Consistent, MLS-compliant descriptions across your entire portfolio. Fair Housing safe. Every time.
             </p>
           </div>
 
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8">
-            <h3 className="text-2xl font-bold text-white mb-4">✓ Buyer Psychology</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">âœ“ Buyer Psychology</h3>
             <p className="text-gray-300">
               Listings optimized for search, readability, and conversion. Better descriptions = more showings.
             </p>
           </div>
 
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-8">
-            <h3 className="text-2xl font-bold text-white mb-4">✓ Flexible Pricing</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">âœ“ Flexible Pricing</h3>
             <p className="text-gray-300">
               Monthly, 6-month, and annual plans. Bulk discounts available. Fits any team size or budget.
             </p>
@@ -161,7 +161,7 @@ export default function ContactBrokerPage() {
 
             {success && (
               <div className="bg-green-500/20 border border-green-500 text-green-300 px-4 py-3 rounded-lg text-center">
-                ✓ Thank you! We'll be in touch soon.
+                âœ“ Thank you! We'll be in touch soon.
               </div>
             )}
           </form>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useRef, useEffect } from 'react';
 
 interface ParcelResult {
@@ -136,9 +136,9 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
               <div className="font-semibold text-gray-900">{r.address}, {r.city}, FL {r.zip}</div>
               <div className="text-sm text-gray-500">
                 {r.year_built ? 'Built ' + r.year_built : ''}
-                {r.sqft ? ' · ' + Number(r.sqft).toLocaleString() + ' sqft' : ''}
-                {r.beds ? ' · ' + r.beds + ' bed' : ''}
-                {r.just_value ? ' · Assessed $' + Number(r.just_value).toLocaleString() : ''}
+                {r.sqft ? ' Â· ' + Number(r.sqft).toLocaleString() + ' sqft' : ''}
+                {r.beds ? ' Â· ' + r.beds + ' bed' : ''}
+                {r.just_value ? ' Â· Assessed $' + Number(r.just_value).toLocaleString() : ''}
               </div>
             </button>
           ))}
@@ -156,10 +156,10 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
           <div className="text-lg font-bold text-gray-900 mb-1">{selected.address}, {selected.city}, FL {selected.zip}</div>
           <div className="text-sm text-gray-600 mb-4">
             {selected.year_built ? 'Built ' + selected.year_built : ''}
-            {selected.sqft ? ' · ' + Number(selected.sqft).toLocaleString() + ' sqft' : ''}
-            {selected.beds ? ' · ' + selected.beds + ' bed' : ''}
-            {selected.just_value ? ' · Assessed $' + Number(selected.just_value).toLocaleString() : ''}
-            {selected.parcel_id ? ' · Parcel: ' + selected.parcel_id : ''}
+            {selected.sqft ? ' Â· ' + Number(selected.sqft).toLocaleString() + ' sqft' : ''}
+            {selected.beds ? ' Â· ' + selected.beds + ' bed' : ''}
+            {selected.just_value ? ' Â· Assessed $' + Number(selected.just_value).toLocaleString() : ''}
+            {selected.parcel_id ? ' Â· Parcel: ' + selected.parcel_id : ''}
           </div>
           <p className="text-gray-700 font-semibold mb-3">Is this your property?</p>
           <div className="flex gap-3">
@@ -167,13 +167,13 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
               onClick={handleConfirm}
               className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold transition"
             >
-              ✅ Yes, this is it
+              âœ… Yes, this is it
             </button>
             <button
               onClick={handleClear}
               className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-bold transition"
             >
-              ❌ No, search again
+              âŒ No, search again
             </button>
           </div>
         </div>
@@ -183,7 +183,7 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
         <div className="bg-green-50 border-2 border-green-500 rounded-xl p-4 flex items-center justify-between">
           <div>
             <div className="text-lg font-bold text-green-800">{selected.address}, {selected.city}, FL {selected.zip}</div>
-            <div className="text-sm text-green-600">✅ Property confirmed — details auto-filled below</div>
+            <div className="text-sm text-green-600">âœ… Property confirmed â€” details auto-filled below</div>
           </div>
           <button
             onClick={handleClear}

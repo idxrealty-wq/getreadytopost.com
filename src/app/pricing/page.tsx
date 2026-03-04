@@ -1,4 +1,4 @@
-import ShareButtons from '@/components/ShareButtons';
+﻿import ShareButtons from '@/components/ShareButtons';
 import Link from 'next/link';
 
 export const metadata = {
@@ -36,11 +36,11 @@ export default function PricingPage() {
               <p className="text-gray-300 mt-2">per listing</p>
             </div>
             <ul className="space-y-3 mb-8 text-gray-200">
-              <li>✓ 6-category grade</li>
-              <li>✓ Professional rewrite</li>
-              <li>✓ Actionable recommendations</li>
-              <li>✓ Instant delivery</li>
-              <li>✓ MLS compliant</li>
+              <li>âœ“ 6-category grade</li>
+              <li>âœ“ Professional rewrite</li>
+              <li>âœ“ Actionable recommendations</li>
+              <li>âœ“ Instant delivery</li>
+              <li>âœ“ MLS compliant</li>
             </ul>
             <Link href="/rate-my-listing" className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-lg font-bold text-center transition">
               Grade My Listing
@@ -58,11 +58,11 @@ export default function PricingPage() {
               <p className="text-gray-300 mt-2">$17 per listing</p>
             </div>
             <ul className="space-y-3 mb-8 text-gray-200">
-              <li>✓ 5 reports</li>
-              <li>✓ 15% savings</li>
-              <li>✓ Use anytime</li>
-              <li>✓ Never expires</li>
-              <li>✓ Full features</li>
+              <li>âœ“ 5 reports</li>
+              <li>âœ“ 15% savings</li>
+              <li>âœ“ Use anytime</li>
+              <li>âœ“ Never expires</li>
+              <li>âœ“ Full features</li>
             </ul>
             <Link href="/checkout?package=5pack" className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-lg font-bold text-center transition">
               Buy 5-Pack
@@ -77,11 +77,11 @@ export default function PricingPage() {
               <p className="text-gray-300 mt-2">per month</p>
             </div>
             <ul className="space-y-3 mb-8 text-gray-200">
-              <li>✓ Unlimited reports</li>
-              <li>✓ Cancel anytime</li>
-              <li>✓ Priority support</li>
-              <li>✓ Full features</li>
-              <li>✓ Best for teams</li>
+              <li>âœ“ Unlimited reports</li>
+              <li>âœ“ Cancel anytime</li>
+              <li>âœ“ Priority support</li>
+              <li>âœ“ Full features</li>
+              <li>âœ“ Best for teams</li>
             </ul>
             <Link href="/checkout?package=monthly" className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-lg font-bold text-center transition">
               Start Monthly
@@ -98,11 +98,11 @@ export default function PricingPage() {
               <p className="text-gray-300 mt-2">$82.50/month (17% off)</p>
             </div>
             <ul className="space-y-3 mb-8 text-gray-200">
-              <li>✓ Unlimited reports</li>
-              <li>✓ 6 months access</li>
-              <li>✓ Priority support</li>
-              <li>✓ Full features</li>
-              <li>✓ Best for brokers</li>
+              <li>âœ“ Unlimited reports</li>
+              <li>âœ“ 6 months access</li>
+              <li>âœ“ Priority support</li>
+              <li>âœ“ Full features</li>
+              <li>âœ“ Best for brokers</li>
             </ul>
             <Link href="/checkout?package=6month" className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-lg font-bold text-center transition">
               Start 6-Month
@@ -117,11 +117,11 @@ export default function PricingPage() {
               <p className="text-gray-300 mt-2">$74.92/month (24% off)</p>
             </div>
             <ul className="space-y-3 mb-8 text-gray-200">
-              <li>✓ Unlimited reports</li>
-              <li>✓ Full year access</li>
-              <li>✓ Priority support</li>
-              <li>✓ Full features</li>
-              <li>✓ Best value</li>
+              <li>âœ“ Unlimited reports</li>
+              <li>âœ“ Full year access</li>
+              <li>âœ“ Priority support</li>
+              <li>âœ“ Full features</li>
+              <li>âœ“ Best value</li>
             </ul>
             <Link href="/checkout?package=annual" className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-lg font-bold text-center transition">
               Start Annual
@@ -133,42 +133,42 @@ export default function PricingPage() {
           <h2 className="text-3xl font-bold text-white mb-8 text-center">What's Included</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="flex gap-4">
-              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">✓</div>
+              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">âœ“</div>
               <div>
                 <h3 className="text-white font-bold text-lg mb-2">6-Category Grade</h3>
                 <p className="text-gray-300">Title, Description, Keywords, Emotion, CTA, Compliance</p>
               </div>
             </div>
             <div className="flex gap-4">
-              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">✓</div>
+              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">âœ“</div>
               <div>
                 <h3 className="text-white font-bold text-lg mb-2">Professional Rewrite</h3>
-                <p className="text-gray-300">140–160 word optimized description</p>
+                <p className="text-gray-300">140â€“160 word optimized description</p>
               </div>
             </div>
             <div className="flex gap-4">
-              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">✓</div>
+              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">âœ“</div>
               <div>
                 <h3 className="text-white font-bold text-lg mb-2">Actionable Recommendations</h3>
                 <p className="text-gray-300">Specific steps to improve your listing</p>
               </div>
             </div>
             <div className="flex gap-4">
-              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">✓</div>
+              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">âœ“</div>
               <div>
                 <h3 className="text-white font-bold text-lg mb-2">MLS Compliant</h3>
                 <p className="text-gray-300">Fair Housing safe. NAR guidelines followed.</p>
               </div>
             </div>
             <div className="flex gap-4">
-              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">✓</div>
+              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">âœ“</div>
               <div>
                 <h3 className="text-white font-bold text-lg mb-2">Instant Delivery</h3>
                 <p className="text-gray-300">Grade and rewrite in seconds</p>
               </div>
             </div>
             <div className="flex gap-4">
-              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">✓</div>
+              <div className="text-[#c9a227] text-2xl font-bold flex-shrink-0">âœ“</div>
               <div>
                 <h3 className="text-white font-bold text-lg mb-2">Buyer Psychology</h3>
                 <p className="text-gray-300">Optimized for search and readability</p>

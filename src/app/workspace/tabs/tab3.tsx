@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from 'react';
 
 export default function Tab3Listing({ address, propertyData, nearby, listing, setListing, onNext }: any) {
@@ -38,14 +38,14 @@ export default function Tab3Listing({ address, propertyData, nearby, listing, se
   return (
     <div className="space-y-6">
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-4">✨ AI Listing Builder</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">âœ¨ AI Listing Builder</h2>
         <p className="text-gray-300 mb-6">Generate a professional, MLS-ready listing description using all your property and neighborhood data.</p>
         <button
           onClick={generateListing}
           disabled={loading || !address}
           className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition disabled:opacity-50"
         >
-          {loading ? '⏳ Generating...' : listing ? '🔄 Regenerate Listing' : '✨ Generate A+ Listing'}
+          {loading ? 'â³ Generating...' : listing ? 'ðŸ”„ Regenerate Listing' : 'âœ¨ Generate A+ Listing'}
         </button>
       </div>
 
@@ -70,7 +70,7 @@ export default function Tab3Listing({ address, propertyData, nearby, listing, se
               onClick={copyListing}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold transition"
             >
-              {copied ? '✓ Copied!' : '📋 Copy to Clipboard'}
+              {copied ? 'âœ“ Copied!' : 'ðŸ“‹ Copy to Clipboard'}
             </button>
           </div>
         </div>
@@ -82,7 +82,7 @@ export default function Tab3Listing({ address, propertyData, nearby, listing, se
           disabled={!listing}
           className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition disabled:opacity-50"
         >
-          Next: Documents & Checklist →
+          Next: Documents & Checklist â†’
         </button>
       </div>
     </div>

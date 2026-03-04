@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 
 export default function PrivacyPage() {
   return (
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
         </div>
 
         <div className="mt-12 text-center">
-          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">← Back to Home</Link>
+          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">â† Back to Home</Link>
         </div>
       </div>
     </main>

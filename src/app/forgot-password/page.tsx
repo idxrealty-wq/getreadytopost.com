@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -24,7 +24,7 @@ export default function ForgotPasswordPage() {
 
     try {
       await sendPasswordResetEmail(auth, email);
-      setMessage("✅ Password reset link sent! Check your email (and spam folder).");
+      setMessage("âœ… Password reset link sent! Check your email (and spam folder).");
       setEmail("");
     } catch (err: any) {
       if (err.code === "auth/user-not-found") {
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
             disabled={loading}
             className="w-full rounded-lg bg-[#c9a227] hover:bg-[#b8911f] text-white font-bold py-2 transition disabled:opacity-60"
           >
-            {loading ? "Sending…" : "Send Reset Link"}
+            {loading ? "Sendingâ€¦" : "Send Reset Link"}
           </button>
 
           <div className="flex items-center justify-between pt-4 text-sm">

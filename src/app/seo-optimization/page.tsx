@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 
 export default function SEOPage() {
   return (
@@ -47,23 +47,23 @@ export default function SEOPage() {
               <h3 className="text-xl font-bold text-[#1a2b4a] mb-4">SEO Checklist</h3>
               <ul className="space-y-3 text-gray-700">
                 <li className="flex items-start gap-2">
-                  <span className="text-[#c9a227] font-bold">✓</span>
+                  <span className="text-[#c9a227] font-bold">âœ“</span>
                   <span>Neighborhood name in first sentence</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#c9a227] font-bold">✓</span>
+                  <span className="text-[#c9a227] font-bold">âœ“</span>
                   <span>Key features (bedrooms, baths, square footage)</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#c9a227] font-bold">✓</span>
+                  <span className="text-[#c9a227] font-bold">âœ“</span>
                   <span>Lifestyle keywords (waterfront, golf course, downtown)</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#c9a227] font-bold">✓</span>
+                  <span className="text-[#c9a227] font-bold">âœ“</span>
                   <span>Natural language (no keyword stuffing)</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#c9a227] font-bold">✓</span>
+                  <span className="text-[#c9a227] font-bold">âœ“</span>
                   <span>140-160 words for optimal length</span>
                 </li>
               </ul>
@@ -78,7 +78,7 @@ export default function SEOPage() {
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6">
               <div className="flex items-center gap-2 mb-4">
-                <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">❌ NO SEO</span>
+                <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">âŒ NO SEO</span>
               </div>
               <p className="text-gray-700">Beautiful home with lots of upgrades. Great location near everything. Must see!</p>
               <div className="mt-4 text-sm text-red-600">
@@ -87,7 +87,7 @@ export default function SEOPage() {
             </div>
             <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6">
               <div className="flex items-center gap-2 mb-4">
-                <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">✓ SEO OPTIMIZED</span>
+                <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">âœ“ SEO OPTIMIZED</span>
               </div>
               <p className="text-gray-700">Discover this 3-bedroom, 2-bath home in the heart of downtown Orlando, offering modern updates and walkable access to dining, shopping, and entertainment. The open-concept living area flows into a chef's kitchen with granite countertops and stainless appliances.</p>
               <div className="mt-4 text-sm text-green-600">
@@ -101,7 +101,7 @@ export default function SEOPage() {
       <section className="py-16 bg-[#1a2b4a] text-white text-center">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-4">Get SEO-Ready Listings</h2>
-          <p className="text-gray-300 mb-8">Every rewrite includes SEO optimization by default — no extra charge</p>
+          <p className="text-gray-300 mb-8">Every rewrite includes SEO optimization by default â€” no extra charge</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/upload" className="bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg inline-block">Submit Your Listing</Link>
             <Link href="/pricing" className="border-2 border-white/30 hover:border-white/60 text-white px-8 py-4 rounded-lg font-semibold text-lg inline-block">View Pricing</Link>

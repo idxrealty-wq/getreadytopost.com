@@ -1,4 +1,4 @@
-import ShareButtons from '@/components/ShareButtons';
+﻿import ShareButtons from '@/components/ShareButtons';
 import Link from 'next/link';
 
 export const metadata = {
@@ -69,7 +69,7 @@ export default function HomeSellersPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
               <div className="flex gap-4">
-                <div className="text-[#c9a227] text-2xl font-bold">✓</div>
+                <div className="text-[#c9a227] text-2xl font-bold">âœ“</div>
                 <div>
                   <h3 className="text-black font-bold text-lg mb-2">6-Category Grade</h3>
                   <p className="text-black">
@@ -79,7 +79,7 @@ export default function HomeSellersPage() {
               </div>
 
               <div className="flex gap-4">
-                <div className="text-[#c9a227] text-2xl font-bold">✓</div>
+                <div className="text-[#c9a227] text-2xl font-bold">âœ“</div>
                 <div>
                   <h3 className="text-black font-bold text-lg mb-2">Instant Feedback</h3>
                   <p className="text-black">See exactly what's working and what needs improvement in your listing copy.</p>
@@ -87,7 +87,7 @@ export default function HomeSellersPage() {
               </div>
 
               <div className="flex gap-4">
-                <div className="text-[#c9a227] text-2xl font-bold">✓</div>
+                <div className="text-[#c9a227] text-2xl font-bold">âœ“</div>
                 <div>
                   <h3 className="text-black font-bold text-lg mb-2">Professional Rewrite</h3>
                   <p className="text-black">
@@ -99,7 +99,7 @@ export default function HomeSellersPage() {
 
             <div className="space-y-4">
               <div className="flex gap-4">
-                <div className="text-[#c9a227] text-2xl font-bold">✓</div>
+                <div className="text-[#c9a227] text-2xl font-bold">âœ“</div>
                 <div>
                   <h3 className="text-black font-bold text-lg mb-2">Actionable Recommendations</h3>
                   <p className="text-black">Specific, step-by-step guidance on how to improve your listing's appeal.</p>
@@ -107,7 +107,7 @@ export default function HomeSellersPage() {
               </div>
 
               <div className="flex gap-4">
-                <div className="text-[#c9a227] text-2xl font-bold">✓</div>
+                <div className="text-[#c9a227] text-2xl font-bold">âœ“</div>
                 <div>
                   <h3 className="text-black font-bold text-lg mb-2">MLS Compliant</h3>
                   <p className="text-black">All recommendations follow Fair Housing guidelines and MLS best practices.</p>
@@ -115,7 +115,7 @@ export default function HomeSellersPage() {
               </div>
 
               <div className="flex gap-4">
-                <div className="text-[#c9a227] text-2xl font-bold">✓</div>
+                <div className="text-[#c9a227] text-2xl font-bold">âœ“</div>
                 <div>
                   <h3 className="text-black font-bold text-lg mb-2">Instant Delivery</h3>
                   <p className="text-black">Get your grade and rewrite in seconds. No waiting, no back-and-forth.</p>

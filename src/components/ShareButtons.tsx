@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 
@@ -38,7 +38,7 @@ export default function ShareButtons({ url, title }: ShareButtonsProps) {
         onClick={copyToClipboard}
         className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-sm transition"
       >
-        {copied ? '✓ Copied' : '📋 Copy Link'}
+        {copied ? 'âœ“ Copied' : 'ðŸ“‹ Copy Link'}
       </button>
       <button
         onClick={shareOnFacebook}
@@ -50,7 +50,7 @@ export default function ShareButtons({ url, title }: ShareButtonsProps) {
         onClick={shareOnX}
         className="flex items-center gap-2 px-4 py-2 bg-black hover:bg-gray-800 text-white rounded-lg font-semibold text-sm transition"
       >
-        𝕏 X
+        ð• X
       </button>
       <button
         onClick={shareOnLinkedIn}

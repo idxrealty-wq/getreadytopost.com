@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { signOut } from "firebase/auth";
@@ -132,7 +132,7 @@ export default function Header() {
                       className="text-gray-700 hover:text-[#c9a227] font-medium transition flex items-center gap-2"
                     >
                       {item.label}
-                      <span className="text-xs">▼</span>
+                      <span className="text-xs">â–¼</span>
                     </button>
                     <div className="absolute left-0 mt-2 w-60 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 py-2 z-50">
                       {item.dropdown.map((link) => (
@@ -165,7 +165,7 @@ export default function Header() {
               (user ? (
                 <div className="flex items-center gap-4">
                   <p className="text-sm font-bold text-gray-800">
-                    Welcome, {getFirstName()}! 👋
+                    Welcome, {getFirstName()}! ðŸ‘‹
                   </p>
                   <button
                     onClick={handleSignOut}
@@ -203,7 +203,7 @@ export default function Header() {
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Open menu"
           >
-            ☰
+            â˜°
           </button>
         </div>
 
@@ -213,7 +213,7 @@ export default function Header() {
               {!loading && user && (
                 <div className="border-b border-gray-200 pb-4 mb-4">
                   <p className="text-base font-bold text-gray-900">
-                    Welcome, {getFirstName()}! 👋
+                    Welcome, {getFirstName()}! ðŸ‘‹
                   </p>
                   <div className="flex items-center justify-between gap-3 mt-3">
                     {creditBalance !== null && (
@@ -265,7 +265,7 @@ export default function Header() {
                             openDropdown === item.label ? "rotate-180" : ""
                           }`}
                         >
-                          ▼
+                          â–¼
                         </span>
                       </button>
                       {openDropdown === item.label && (

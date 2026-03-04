@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useRef } from 'react';
 
 interface ParsedProperty {
@@ -166,7 +166,7 @@ export default function CSVImport({ onImport }: Props) {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 px-5 py-3 bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 rounded-xl text-blue-200 font-bold transition"
       >
-        📂 Import from Orange County Appraiser CSV
+        ðŸ“‚ Import from Orange County Appraiser CSV
       </button>
       {open && (
         <div className="mt-4 bg-white/10 border border-white/20 rounded-2xl p-6">
@@ -192,7 +192,7 @@ export default function CSVImport({ onImport }: Props) {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-green-300 font-bold">{properties.length} properties loaded</p>
-                <button onClick={() => setProperties([])} className="text-gray-400 hover:text-white text-sm">← Upload different file</button>
+                <button onClick={() => setProperties([])} className="text-gray-400 hover:text-white text-sm">â† Upload different file</button>
               </div>
               <input
                 type="text"
@@ -222,7 +222,7 @@ export default function CSVImport({ onImport }: Props) {
                   </button>
                 ))}
                 {filtered.length === 0 && <p className="text-gray-400 text-sm text-center py-4">No matching properties</p>}
-                {filtered.length > 50 && <p className="text-gray-400 text-sm text-center py-2">Showing first 50 — refine your search</p>}
+                {filtered.length > 50 && <p className="text-gray-400 text-sm text-center py-2">Showing first 50 â€” refine your search</p>}
               </div>
             </div>
           )}

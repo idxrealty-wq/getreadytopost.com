@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 export default function AIAdvantagePage() {
   return (
@@ -18,7 +18,7 @@ export default function AIAdvantagePage() {
             <img src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/0c804318-6a54-4f23-8664-7b2df3eff115/image.png" alt="Professional" className="w-20 h-20 inline-block mr-3" /> Why Our AI Is Different
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Not all AI is created equal. Here's why GetReadyToPost delivers A+ listings every time — and ChatGPT doesn't.
+            Not all AI is created equal. Here's why GetReadyToPost delivers A+ listings every time â€” and ChatGPT doesn't.
           </p>
         </div>
 
@@ -39,42 +39,42 @@ export default function AIAdvantagePage() {
           <h2 className="text-3xl font-bold text-white mb-8">What Makes Our AI Special</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <div className="text-4xl mb-3">🏠</div>
+              <div className="text-4xl mb-3">ðŸ </div>
               <h3 className="text-xl font-bold text-white mb-2">Real Estate Training</h3>
               <p className="text-gray-300">
                 Our AI is trained on thousands of A+ listings, MLS guidelines, NAR best practices, and Fair Housing compliance rules.
               </p>
             </div>
             <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <div className="text-4xl mb-3">📍</div>
+              <div className="text-4xl mb-3">ðŸ“</div>
               <h3 className="text-xl font-bold text-white mb-2">Real Neighborhood Data</h3>
               <p className="text-gray-300">
-                We pull live data from Google Maps — actual schools, parks, restaurants, golf courses — with real distances. No generic fluff.
+                We pull live data from Google Maps â€” actual schools, parks, restaurants, golf courses â€” with real distances. No generic fluff.
               </p>
             </div>
             <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <div className="text-4xl mb-3">⚖️</div>
+              <div className="text-4xl mb-3">âš–ï¸</div>
               <h3 className="text-xl font-bold text-white mb-2">MLS & Fair Housing Safe</h3>
               <p className="text-gray-300">
                 Every listing follows Fair Housing laws and MLS compliance rules. No risky language, no violations, no rejections.
               </p>
             </div>
             <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <div className="text-4xl mb-3">🔍</div>
+              <div className="text-4xl mb-3">ðŸ”</div>
               <h3 className="text-xl font-bold text-white mb-2">SEO Optimized</h3>
               <p className="text-gray-300">
-                140–160 words, keyword-rich, structured for search engines. Your listings get found by the right buyers.
+                140â€“160 words, keyword-rich, structured for search engines. Your listings get found by the right buyers.
               </p>
             </div>
             <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <div className="text-4xl mb-3">💰</div>
+              <div className="text-4xl mb-3">ðŸ’°</div>
               <h3 className="text-xl font-bold text-white mb-2">Conversion-Focused</h3>
               <p className="text-gray-300">
-                Written to sell. Emotional hooks, benefit-driven language, buyer psychology — not just feature lists.
+                Written to sell. Emotional hooks, benefit-driven language, buyer psychology â€” not just feature lists.
               </p>
             </div>
             <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <div className="text-4xl mb-3">✅</div>
+              <div className="text-4xl mb-3">âœ…</div>
               <h3 className="text-xl font-bold text-white mb-2">Always A+ Quality</h3>
               <p className="text-gray-300">
                 Every listing is graded in 6 categories before delivery. If it's not A+, we rewrite it until it is.
@@ -97,38 +97,38 @@ export default function AIAdvantagePage() {
               <tbody className="text-gray-300">
                 <tr className="border-b border-white/10">
                   <td className="py-4">Real estate-specific training</td>
-                  <td className="py-4 text-center">❌</td>
-                  <td className="py-4 text-center text-[#c9a227]">✅</td>
+                  <td className="py-4 text-center">âŒ</td>
+                  <td className="py-4 text-center text-[#c9a227]">âœ…</td>
                 </tr>
                 <tr className="border-b border-white/10">
                   <td className="py-4">Live neighborhood data (schools, parks, etc.)</td>
-                  <td className="py-4 text-center">❌</td>
-                  <td className="py-4 text-center text-[#c9a227]">✅</td>
+                  <td className="py-4 text-center">âŒ</td>
+                  <td className="py-4 text-center text-[#c9a227]">âœ…</td>
                 </tr>
                 <tr className="border-b border-white/10">
                   <td className="py-4">MLS & Fair Housing compliance</td>
-                  <td className="py-4 text-center">❌</td>
-                  <td className="py-4 text-center text-[#c9a227]">✅</td>
+                  <td className="py-4 text-center">âŒ</td>
+                  <td className="py-4 text-center text-[#c9a227]">âœ…</td>
                 </tr>
                 <tr className="border-b border-white/10">
-                  <td className="py-4">SEO optimization (140–160 words)</td>
-                  <td className="py-4 text-center">❌</td>
-                  <td className="py-4 text-center text-[#c9a227]">✅</td>
+                  <td className="py-4">SEO optimization (140â€“160 words)</td>
+                  <td className="py-4 text-center">âŒ</td>
+                  <td className="py-4 text-center text-[#c9a227]">âœ…</td>
                 </tr>
                 <tr className="border-b border-white/10">
                   <td className="py-4">6-category grading system</td>
-                  <td className="py-4 text-center">❌</td>
-                  <td className="py-4 text-center text-[#c9a227]">✅</td>
+                  <td className="py-4 text-center">âŒ</td>
+                  <td className="py-4 text-center text-[#c9a227]">âœ…</td>
                 </tr>
                 <tr className="border-b border-white/10">
                   <td className="py-4">Conversion-focused writing</td>
-                  <td className="py-4 text-center">⚠️ Generic</td>
-                  <td className="py-4 text-center text-[#c9a227]">✅ Always</td>
+                  <td className="py-4 text-center">âš ï¸ Generic</td>
+                  <td className="py-4 text-center text-[#c9a227]">âœ… Always</td>
                 </tr>
                 <tr>
                   <td className="py-4">Guaranteed A+ quality</td>
-                  <td className="py-4 text-center">❌</td>
-                  <td className="py-4 text-center text-[#c9a227]">✅</td>
+                  <td className="py-4 text-center">âŒ</td>
+                  <td className="py-4 text-center text-[#c9a227]">âœ…</td>
                 </tr>
               </tbody>
             </table>
@@ -166,7 +166,7 @@ export default function AIAdvantagePage() {
             href="/workspace"
             className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-10 py-4 rounded-xl font-bold text-xl transition shadow-2xl"
           >
-            Try Agent Workspace →
+            Try Agent Workspace â†’
           </a>
           <p className="text-gray-400 mt-4">Build your next A+ listing in minutes</p>
         </div>

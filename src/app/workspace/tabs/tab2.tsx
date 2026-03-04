@@ -1,17 +1,17 @@
-"use client";
+﻿"use client";
 import { useState } from 'react';
 
 const NEIGHBORHOOD_OPTIONS = [
-  { id: 'schools', label: '🏫 Schools', query: 'schools', key: 'Schools', default: true },
-  { id: 'grocery', label: '🛒 Grocery Stores', query: 'grocery+stores', key: 'Grocery', default: true },
-  { id: 'utilities', label: '⚡ Utilities', query: 'utility+company+office', key: 'Utilities', default: true },
-  { id: 'golf', label: '⛳ Golf Courses', query: 'golf+courses', key: 'Golf', default: false },
-  { id: 'restaurants', label: '🍽️ Restaurants', query: 'restaurants', key: 'Restaurants', default: false },
-  { id: 'parks', label: '🌳 Parks', query: 'parks', key: 'Parks', default: false },
-  { id: 'medical', label: '🏥 Medical', query: 'hospitals+medical', key: 'Medical', default: false },
-  { id: 'entertainment', label: '🎭 Entertainment', query: 'entertainment', key: 'Entertainment', default: false },
-  { id: 'gas', label: '⛽ Gas Stations', query: 'gas+stations', key: 'Gas', default: false },
-  { id: 'shopping', label: '🏬 Shopping Centers', query: 'shopping+mall', key: 'Shopping', default: false },
+  { id: 'schools', label: 'ðŸ« Schools', query: 'schools', key: 'Schools', default: true },
+  { id: 'grocery', label: 'ðŸ›’ Grocery Stores', query: 'grocery+stores', key: 'Grocery', default: true },
+  { id: 'utilities', label: 'âš¡ Utilities', query: 'utility+company+office', key: 'Utilities', default: true },
+  { id: 'golf', label: 'â›³ Golf Courses', query: 'golf+courses', key: 'Golf', default: false },
+  { id: 'restaurants', label: 'ðŸ½ï¸ Restaurants', query: 'restaurants', key: 'Restaurants', default: false },
+  { id: 'parks', label: 'ðŸŒ³ Parks', query: 'parks', key: 'Parks', default: false },
+  { id: 'medical', label: 'ðŸ¥ Medical', query: 'hospitals+medical', key: 'Medical', default: false },
+  { id: 'entertainment', label: 'ðŸŽ­ Entertainment', query: 'entertainment', key: 'Entertainment', default: false },
+  { id: 'gas', label: 'â›½ Gas Stations', query: 'gas+stations', key: 'Gas', default: false },
+  { id: 'shopping', label: 'ðŸ¬ Shopping Centers', query: 'shopping+mall', key: 'Shopping', default: false },
 ];
 
 export default function Tab2Neighborhood({ address, nearby, setNearby, onNext }: any) {
@@ -50,7 +50,7 @@ export default function Tab2Neighborhood({ address, nearby, setNearby, onNext }:
   return (
     <div className="space-y-6">
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-4">📍 Select Neighborhood Data</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">ðŸ“ Select Neighborhood Data</h2>
         <p className="text-gray-300 mb-6">Choose which categories matter for this listing:</p>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {NEIGHBORHOOD_OPTIONS.map((opt) => (
@@ -71,7 +71,7 @@ export default function Tab2Neighborhood({ address, nearby, setNearby, onNext }:
             disabled={!address || loading}
             className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition disabled:opacity-50"
           >
-            {loading ? '⏳ Loading Maps...' : loaded ? '🔄 Reload Maps' : '🗺️ Load Maps & Data'}
+            {loading ? 'â³ Loading Maps...' : loaded ? 'ðŸ”„ Reload Maps' : 'ðŸ—ºï¸ Load Maps & Data'}
           </button>
         </div>
       </div>
@@ -79,7 +79,7 @@ export default function Tab2Neighborhood({ address, nearby, setNearby, onNext }:
       {loaded && (
         <>
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-            <h2 className="text-2xl font-bold text-white mb-4">📍 Property Location</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">ðŸ“ Property Location</h2>
             <iframe
               className="w-full h-96 rounded-xl"
               style={{ border: 0 }}
@@ -104,7 +104,7 @@ export default function Tab2Neighborhood({ address, nearby, setNearby, onNext }:
                       <div key={i} className="flex items-center justify-between text-sm">
                         <span className="text-white">{place.name}</span>
                         <span className="text-gray-300 ml-2 whitespace-nowrap">
-                          {place.distance || ''} {place.rating ? `⭐${place.rating}` : ''}
+                          {place.distance || ''} {place.rating ? `â­${place.rating}` : ''}
                         </span>
                       </div>
                     ))}
@@ -122,7 +122,7 @@ export default function Tab2Neighborhood({ address, nearby, setNearby, onNext }:
           disabled={!loaded}
           className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition disabled:opacity-50"
         >
-          Next: Generate Listing →
+          Next: Generate Listing â†’
         </button>
       </div>
     </div>

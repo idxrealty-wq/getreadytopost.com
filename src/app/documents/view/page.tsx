@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -46,7 +46,7 @@ function DocumentViewContent() {
       {!unlocked ? (
         <div className="bg-white rounded-2xl p-8 shadow-2xl">
           <div className="text-center mb-6">
-            <div className="text-5xl mb-3">🔒</div>
+            <div className="text-5xl mb-3">ðŸ”’</div>
             <h2 className="text-xl font-bold text-[#1a2b4a]">Enter Access Code</h2>
             <p className="text-gray-500 text-sm mt-1">Enter the code provided by your agent to view documents</p>
           </div>
@@ -59,7 +59,7 @@ function DocumentViewContent() {
             )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Access Code</label>
-              <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none text-center text-xl tracking-widest font-bold" placeholder="••••••••" value={accessCode} onChange={(e) => setAccessCode(e.target.value)} required />
+              <input className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#c9a227] focus:outline-none text-center text-xl tracking-widest font-bold" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" value={accessCode} onChange={(e) => setAccessCode(e.target.value)} required />
             </div>
             {error && <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-600 text-sm text-center">{error}</div>}
             <button type="submit" disabled={loading || !accessCode || !listingId} className="w-full bg-[#1a2b4a] hover:bg-[#243a63] text-white py-3 rounded-xl font-bold transition disabled:opacity-50">
@@ -70,7 +70,7 @@ function DocumentViewContent() {
       ) : (
         <div className="bg-white rounded-2xl p-8 shadow-2xl">
           <div className="text-center mb-6">
-            <div className="text-5xl mb-3">✅</div>
+            <div className="text-5xl mb-3">âœ…</div>
             <h2 className="text-xl font-bold text-[#1a2b4a]">Documents Unlocked</h2>
             {address && <p className="text-gray-500 text-sm mt-1">{address}</p>}
           </div>
@@ -84,12 +84,12 @@ function DocumentViewContent() {
                 return (
                   <div key={d.docId} className="border-2 border-gray-100 rounded-xl hover:border-[#c9a227] transition">
                     <button onClick={() => setViewingDoc(d)} className="w-full flex items-center gap-4 p-4 text-left">
-                      <div className="text-3xl">{isPdf ? '📄' : isImage ? '🖼️' : '📎'}</div>
+                      <div className="text-3xl">{isPdf ? 'ðŸ“„' : isImage ? 'ðŸ–¼ï¸' : 'ðŸ“Ž'}</div>
                       <div className="flex-1">
                         <p className="font-bold text-[#1a2b4a]">{d.label}</p>
                         <p className="text-xs text-gray-400">{d.fileName}</p>
                       </div>
-                      <div className="text-[#c9a227] font-bold text-sm">View →</div>
+                      <div className="text-[#c9a227] font-bold text-sm">View â†’</div>
                     </button>
                   </div>
                 );

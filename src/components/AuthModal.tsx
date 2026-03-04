@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from 'react';
 import Link from "next/link";
@@ -96,7 +96,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
             className="text-gray-500 hover:text-gray-800 font-bold text-xl"
             style={{ pointerEvents: 'auto' }}
           >
-            ✕
+            âœ•
           </button>
         </div>
 
@@ -150,7 +150,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
             disabled={loading}
             className="w-full rounded-lg bg-[#c9a227] hover:bg-[#b8911f] text-white font-bold py-2 transition disabled:opacity-60"
           >
-            {loading ? 'Please wait…' : mode === 'signup' ? 'Create Account' : 'Sign In'}
+            {loading ? 'Please waitâ€¦' : mode === 'signup' ? 'Create Account' : 'Sign In'}
           </button>
 
           <Link

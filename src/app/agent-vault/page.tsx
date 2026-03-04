@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useUser } from "@/contexts/UserContext";
@@ -167,7 +167,7 @@ export default function VaultPage() {
             href="/"
             className="text-[#c9a227] hover:text-[#e8c547] font-semibold"
           >
-            ← Back to Home
+            â† Back to Home
           </Link>
         </div>
       </main>
@@ -179,7 +179,7 @@ export default function VaultPage() {
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            🗄️ Agent Vault
+            ðŸ—„ï¸ Agent Vault
           </h1>
           <p className="text-gray-300 mb-6">All your saved listings and reports</p>
 
@@ -239,7 +239,7 @@ export default function VaultPage() {
               <p className="text-gray-300">Loading listings...</p>
             ) : listings.length === 0 ? (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20 text-center">
-                <div className="text-6xl mb-4">📋</div>
+                <div className="text-6xl mb-4">ðŸ“‹</div>
                 <h2 className="text-2xl font-bold text-white mb-3">
                   No Listings Yet
                 </h2>
@@ -283,19 +283,19 @@ export default function VaultPage() {
                         <div className="bg-white/5 rounded p-2">
                           <p className="text-gray-400 text-xs">Beds</p>
                           <p className="text-white font-bold">
-                            {listing.propertyData?.beds || "—"}
+                            {listing.propertyData?.beds || "â€”"}
                           </p>
                         </div>
                         <div className="bg-white/5 rounded p-2">
                           <p className="text-gray-400 text-xs">Baths</p>
                           <p className="text-white font-bold">
-                            {listing.propertyData?.baths || "—"}
+                            {listing.propertyData?.baths || "â€”"}
                           </p>
                         </div>
                         <div className="bg-white/5 rounded p-2">
                           <p className="text-gray-400 text-xs">Sqft</p>
                           <p className="text-white font-bold text-xs">
-                            {listing.propertyData?.sqft || "—"}
+                            {listing.propertyData?.sqft || "â€”"}
                           </p>
                         </div>
                       </div>
@@ -320,7 +320,7 @@ export default function VaultPage() {
                           disabled={deleting === listing.id}
                           className="bg-red-600/30 hover:bg-red-600/50 text-red-300 px-3 py-2 rounded-lg text-sm font-bold transition border border-red-500/40 disabled:opacity-50"
                         >
-                          {deleting === listing.id ? "..." : "✕"}
+                          {deleting === listing.id ? "..." : "âœ•"}
                         </button>
                       </div>
                     </div>
@@ -367,7 +367,7 @@ export default function VaultPage() {
           <>
             {reports.length === 0 ? (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20 text-center">
-                <div className="text-6xl mb-4">📊</div>
+                <div className="text-6xl mb-4">ðŸ“Š</div>
                 <h2 className="text-2xl font-bold text-white mb-3">
                   No Reports Yet
                 </h2>

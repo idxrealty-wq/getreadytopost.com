@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 
 export default function FSBOPage() {
   return (
@@ -7,7 +7,7 @@ export default function FSBOPage() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <span className="bg-[#c9a227] text-white text-sm font-bold px-4 py-1 rounded-full mb-4 inline-block">FOR SALE BY OWNER</span>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">FSBO Listing Analysis</h1>
-          <p className="text-xl text-gray-300">Compete with agent listings — without paying commission</p>
+          <p className="text-xl text-gray-300">Compete with agent listings â€” without paying commission</p>
         </div>
       </section>
 
@@ -20,7 +20,7 @@ export default function FSBOPage() {
             <div>
               <h2 className="text-2xl font-bold text-[#1a2b4a] mb-4">What We Do</h2>
               <p className="text-gray-600 mb-4">We analyze and polish FSBO listings so they read professional, buyer-friendly, and competitive with agent listings.</p>
-              <p className="text-gray-600 mb-6">Many FSBOs struggle with generic language or missing key details — our AI-powered system fixes that instantly.</p>
+              <p className="text-gray-600 mb-6">Many FSBOs struggle with generic language or missing key details â€” our AI-powered system fixes that instantly.</p>
               <div className="bg-[#faf8f5] rounded-xl p-6">
                 <p className="text-4xl font-bold text-[#c9a227] mb-2">$19.99</p>
                 <p className="text-gray-600 mb-4">Instant analysis & professional rewrite</p>
@@ -111,7 +111,7 @@ export default function FSBOPage() {
       <section className="py-16 bg-[#1a2b4a] text-white text-center">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-4">Ready to Submit Your FSBO Listing?</h2>
-          <p className="text-gray-300 mb-8">Get professional copy that helps you sell faster — for just $19.99</p>
+          <p className="text-gray-300 mb-8">Get professional copy that helps you sell faster â€” for just $19.99</p>
           <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Get Started Now</Link>
         </div>
       </section>

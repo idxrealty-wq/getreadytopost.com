@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 
 type Grade = { label: string; score: string };
 
@@ -49,7 +49,7 @@ function ExampleBlock({
             <div className="mt-5">
               <p className="text-sm font-semibold text-gray-700">Typical issues:</p>
               <ul className="text-sm text-gray-700 list-disc pl-5 mt-2 space-y-1">
-                <li>Generic adjectives (“beautiful”, “great”) with no proof</li>
+                <li>Generic adjectives (â€œbeautifulâ€, â€œgreatâ€) with no proof</li>
                 <li>No buyer story or lifestyle framing</li>
                 <li>Weak CTA and no urgency based on facts</li>
               </ul>
@@ -65,7 +65,7 @@ function ExampleBlock({
               <p className="text-sm font-semibold text-gray-700">What improved:</p>
               <ul className="text-sm text-gray-700 list-disc pl-5 mt-2 space-y-1">
                 <li>Clear layout + concrete features (not fluff)</li>
-                <li>MLS-safe, Fair Housing–aware language</li>
+                <li>MLS-safe, Fair Housingâ€“aware language</li>
                 <li>Buyer-focused CTA that drives showings</li>
               </ul>
             </div>
@@ -106,7 +106,7 @@ export default function ExamplesPage() {
             Real Before & After Examples
           </h1>
           <p className="text-xl text-gray-200 max-w-3xl mx-auto">
-            See exactly how better listing copy earns more clicks, more saves, and more showings — without risking MLS or Fair Housing compliance.
+            See exactly how better listing copy earns more clicks, more saves, and more showings â€” without risking MLS or Fair Housing compliance.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
@@ -139,14 +139,14 @@ export default function ExamplesPage() {
                 Why Listing Copy Matters (Watch This)
               </h2>
               <p className="text-gray-700 text-lg">
-                Photos get the click. Words get the showing. This quick walkthrough explains why most listings get ignored — and what to do instead.
+                Photos get the click. Words get the showing. This quick walkthrough explains why most listings get ignored â€” and what to do instead.
               </p>
 
               <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-6">
-                <p className="font-semibold text-gray-900">What you’ll learn:</p>
+                <p className="font-semibold text-gray-900">What youâ€™ll learn:</p>
                 <ul className="list-disc pl-5 mt-3 space-y-2 text-gray-700">
-                  <li>Why “beautiful home” copy doesn’t convert</li>
-                  <li>How to hit the MLS-friendly sweet spot (about 140–160 words)</li>
+                  <li>Why â€œbeautiful homeâ€ copy doesnâ€™t convert</li>
+                  <li>How to hit the MLS-friendly sweet spot (about 140â€“160 words)</li>
                   <li>How GetReadyToPost grades and rewrites in seconds</li>
                 </ul>
               </div>
@@ -271,7 +271,7 @@ export default function ExamplesPage() {
                 GetReadyToPost is built for real estate. We avoid protected-class language, keep descriptions MLS-friendly, and focus on property facts + buyer psychology.
               </p>
               <p className="text-gray-200 mt-4">
-                You’ll get a clean rewrite plus a breakdown of what to fix — so you can improve the listing without guessing.
+                Youâ€™ll get a clean rewrite plus a breakdown of what to fix â€” so you can improve the listing without guessing.
               </p>
             </div>
             <div className="bg-white/10 border border-white/15 rounded-2xl p-8">

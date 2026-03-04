@@ -1,4 +1,4 @@
-export interface ClosingCostInputs {
+﻿export interface ClosingCostInputs {
   // Property
   salePrice: number;
   address: string;

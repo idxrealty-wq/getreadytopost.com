@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -89,7 +89,7 @@ export default function SignInPage() {
             disabled={loading}
             className="w-full rounded-lg bg-[#c9a227] hover:bg-[#b8911f] text-white font-bold py-2 transition disabled:opacity-60"
           >
-            {loading ? (isSignUp ? "Creating account…" : "Signing in…") : (isSignUp ? "Create Account" : "Sign In")}
+            {loading ? (isSignUp ? "Creating accountâ€¦" : "Signing inâ€¦") : (isSignUp ? "Create Account" : "Sign In")}
           </button>
           <button
             onClick={handleGoogle}

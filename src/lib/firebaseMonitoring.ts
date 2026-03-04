@@ -1,4 +1,4 @@
-import { db } from '@/lib/firebase';
+﻿import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 
 export async function getUserCount(): Promise<number> {

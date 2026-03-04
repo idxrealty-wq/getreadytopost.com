@@ -1,4 +1,4 @@
-import ShareButtons from '@/components/ShareButtons';
+﻿import ShareButtons from '@/components/ShareButtons';
 import Link from 'next/link';
 
 export const metadata = {
@@ -118,20 +118,20 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-white p-8 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold text-black mb-4">✓ MLS Compliant</h3>
+              <h3 className="text-2xl font-bold text-black mb-4">âœ“ MLS Compliant</h3>
               <p className="text-gray-700">All rewrites follow Fair Housing guidelines and NAR best practices. No prohibited language. Ever.</p>
             </div>
             <div className="bg-white p-8 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold text-black mb-4">✓ Buyer Psychology</h3>
-              <p className="text-gray-700">Descriptions optimized for how buyers actually search and read. Keywords, emotion, urgency — all balanced.</p>
+              <h3 className="text-2xl font-bold text-black mb-4">âœ“ Buyer Psychology</h3>
+              <p className="text-gray-700">Descriptions optimized for how buyers actually search and read. Keywords, emotion, urgency â€” all balanced.</p>
             </div>
             <div className="bg-white p-8 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold text-black mb-4">✓ Instant Results</h3>
+              <h3 className="text-2xl font-bold text-black mb-4">âœ“ Instant Results</h3>
               <p className="text-gray-700">Grade and rewrite in seconds. No waiting. No back-and-forth. Ready to use immediately.</p>
             </div>
             <div className="bg-white p-8 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold text-black mb-4">✓ Actionable Feedback</h3>
-              <p className="text-gray-700">Not just a grade — specific, step-by-step recommendations on what to improve and why.</p>
+              <h3 className="text-2xl font-bold text-black mb-4">âœ“ Actionable Feedback</h3>
+              <p className="text-gray-700">Not just a grade â€” specific, step-by-step recommendations on what to improve and why.</p>
             </div>
           </div>
         </div>

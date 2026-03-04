@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { ReactNode } from 'react';
 import Header from '@/components/Header';
 import { UserProvider } from '@/contexts/UserContext';

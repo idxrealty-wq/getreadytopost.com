@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 
 export default function BrokersPage() {
   return (
@@ -22,7 +22,7 @@ export default function BrokersPage() {
           <h2 className="text-3xl font-bold text-[#1a2b4a] mb-8 text-center">Broker Program</h2>
           <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
             <p className="text-5xl font-bold text-[#c9a227] mb-2">$19.99</p>
-            <p className="text-gray-600 mb-6">per listing — instant results for all agents</p>
+            <p className="text-gray-600 mb-6">per listing â€” instant results for all agents</p>
             <Link href="/contact-broker" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Contact Us</Link>
           </div>
         </div>
