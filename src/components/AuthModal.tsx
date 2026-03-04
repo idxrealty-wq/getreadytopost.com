@@ -1,5 +1,4 @@
 ﻿"use client";
-
 import { useEffect, useState } from 'react';
 import Link from "next/link";
 import { signUpWithEmail, signInWithEmail, signInWithGooglePopup } from '@/lib/auth';
@@ -36,7 +35,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     setLoading(true);
     try {
       let user: any;
-
       if (mode === 'signup') {
         user = await signUpWithEmail(email, password);
         if (!user || !user.uid) throw new Error('Sign up failed');
@@ -45,7 +43,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
         user = await signInWithEmail(email, password);
         if (!user || !user.uid) throw new Error('Sign in failed');
       }
-
       onSuccess?.(user);
       onClose();
     } catch (err: any) {
@@ -61,15 +58,12 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     try {
       const user: any = await signInWithGooglePopup();
       if (!user || !user.uid) throw new Error('Google sign-in failed');
-
       const userEmail = user.email || '';
       const userName = user.displayName || '';
-
       const existing = await getUserProfile(user.uid);
       if (!existing) {
         await createUserProfile(user.uid, userEmail, userName, '', '');
       }
-
       onSuccess?.(user);
       onClose();
     } catch (err: any) {
@@ -79,11 +73,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 px-4"
       style={{ pointerEvents: 'auto' }}
     >
-      <div 
+      <div
         className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
         style={{ pointerEvents: 'auto' }}
       >
@@ -96,16 +90,14 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
             className="text-gray-500 hover:text-gray-800 font-bold text-xl"
             style={{ pointerEvents: 'auto' }}
           >
-            âœ•
+            &times;
           </button>
         </div>
-
         {error && (
           <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
             {error}
           </div>
         )}
-
         <div className="space-y-3">
           {mode === 'signup' && (
             <>
@@ -129,7 +121,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
               />
             </>
           )}
-
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -144,15 +135,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
             type="password"
             className="w-full rounded-lg border border-gray-300 px-3 py-2"
           />
-
           <button
             onClick={handleAuth}
             disabled={loading}
             className="w-full rounded-lg bg-[#c9a227] hover:bg-[#b8911f] text-white font-bold py-2 transition disabled:opacity-60"
           >
-            {loading ? 'Please waitâ€¦' : mode === 'signup' ? 'Create Account' : 'Sign In'}
+            {loading ? 'Please wait...' : mode === 'signup' ? 'Create Account' : 'Sign In'}
           </button>
-
           <Link
             href="/auth/google"
             onClick={onClose}
@@ -160,7 +149,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
           >
             Continue with Google
           </Link>
-
           <p className="text-sm text-gray-600 text-center pt-2">
             {mode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
             <button
@@ -176,3 +164,4 @@ export default function AuthModal({ isOpen, onClose, onSuccess, mode: initialMod
     </div>
   );
 }
+
