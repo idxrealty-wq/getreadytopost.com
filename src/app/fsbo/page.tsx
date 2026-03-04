@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 
 export default function FSBOPage() {
   return (
@@ -7,10 +7,9 @@ export default function FSBOPage() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <span className="bg-[#c9a227] text-white text-sm font-bold px-4 py-1 rounded-full mb-4 inline-block">FOR SALE BY OWNER</span>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">FSBO Listing Analysis</h1>
-          <p className="text-xl text-gray-300">Compete with agent listings â€” without paying commission</p>
+          <p className="text-xl text-gray-300">Compete with agent listings - without paying commission</p>
         </div>
       </section>
-
       <section className="py-12 bg-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-10 items-center">
@@ -20,17 +19,16 @@ export default function FSBOPage() {
             <div>
               <h2 className="text-2xl font-bold text-[#1a2b4a] mb-4">What We Do</h2>
               <p className="text-gray-600 mb-4">We analyze and polish FSBO listings so they read professional, buyer-friendly, and competitive with agent listings.</p>
-              <p className="text-gray-600 mb-6">Many FSBOs struggle with generic language or missing key details â€” our AI-powered system fixes that instantly.</p>
+              <p className="text-gray-600 mb-6">Many FSBOs struggle with generic language or missing key details - our AI-powered system fixes that instantly.</p>
               <div className="bg-[#faf8f5] rounded-xl p-6">
                 <p className="text-4xl font-bold text-[#c9a227] mb-2">$19.99</p>
-                <p className="text-gray-600 mb-4">Instant analysis & professional rewrite</p>
+                <p className="text-gray-600 mb-4">Instant analysis and professional rewrite</p>
                 <Link href="/rate-my-listing" className="block bg-[#c9a227] hover:bg-[#e8c547] text-white py-3 rounded-lg font-semibold text-center">Get Started Now</Link>
               </div>
             </div>
           </div>
         </div>
       </section>
-
       <section className="py-12 bg-[#faf8f5]">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-2xl font-bold text-[#1a2b4a] mb-6 text-center">What You Get</h2>
@@ -86,11 +84,10 @@ export default function FSBOPage() {
           </div>
         </div>
       </section>
-
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-2xl font-bold text-[#1a2b4a] mb-4">Why FSBO Sellers Choose Us</h2>
-          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">You're already saving thousands by selling yourself. Don't let a weak listing description cost you buyers. For less than the price of a yard sign, get professional copy that competes with agent listings.</p>
+          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">You are already saving thousands by selling yourself. Do not let a weak listing description cost you buyers. For less than the price of a yard sign, get professional copy that competes with agent listings.</p>
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="bg-[#faf8f5] p-6 rounded-xl">
               <p className="text-3xl font-bold text-[#c9a227] mb-2">$19.99</p>
@@ -107,11 +104,10 @@ export default function FSBOPage() {
           </div>
         </div>
       </section>
-
       <section className="py-16 bg-[#1a2b4a] text-white text-center">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-4">Ready to Submit Your FSBO Listing?</h2>
-          <p className="text-gray-300 mb-8">Get professional copy that helps you sell faster â€” for just $19.99</p>
+          <p className="text-gray-300 mb-8">Get professional copy that helps you sell faster - for just $19.99</p>
           <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-white px-8 py-4 rounded-lg font-semibold text-lg">Get Started Now</Link>
         </div>
       </section>
