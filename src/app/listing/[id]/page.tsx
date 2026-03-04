@@ -51,7 +51,6 @@ export default function ListingViewPage() {
   const totalChecklist = listing ? Object.keys(listing.checklistState).length : 0;
   const photos = listing?.photos || [];
   const hasPhotos = photos.length > 0;
-
   const nextPhoto = () => { if (hasPhotos) setCurrentPhotoIndex((prev) => (prev + 1) % photos.length); };
   const prevPhoto = () => { if (hasPhotos) setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length); };
 
@@ -70,7 +69,7 @@ export default function ListingViewPage() {
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
         <div className="max-w-4xl mx-auto px-6 py-20 text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20">
-            <div className="text-6xl mb-4">âš ï¸</div>
+            <div className="text-6xl mb-4">⚠️</div>
             <h1 className="text-3xl font-bold text-white mb-4">{error || 'Listing Not Found'}</h1>
             <Link href="/agent-vault" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition">
               Back to Vault
@@ -83,15 +82,12 @@ export default function ListingViewPage() {
 
   const mapEmbedUrl = `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(listing.address)}`;
   const closingEstimate = (listing as any).closingCostEstimate;
-
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
       <div className="max-w-6xl mx-auto px-6 py-10">
-
-        {/* Header */}
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">ðŸ  {listing.address}</h1>
+            <h1 className="text-4xl font-bold text-white mb-2">🏠 {listing.address}</h1>
             <p className="text-gray-300">Tax ID: {listing.propertyData.taxId}</p>
           </div>
           <div className="flex gap-3 flex-wrap">
@@ -99,34 +95,32 @@ export default function ListingViewPage() {
               href={`/workspace?edit=${listing.id}`}
               className="bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 px-5 py-3 rounded-xl font-bold transition border border-amber-500/40"
             >
-              âœï¸ Edit
+              ✏️ Edit
             </Link>
             <Link
               href={`/workspace?edit=${listing.id}`}
               className="bg-green-600/30 hover:bg-green-600/50 text-green-300 px-5 py-3 rounded-xl font-bold transition border border-green-500/40"
             >
-              ðŸ§® Closing Costs
+              🧮 Closing Costs
             </Link>
             <Link
               href={`/property-tax?address=${encodeURIComponent(listing.address)}&price=${encodeURIComponent(listing.propertyData.price || '')}`}
               className="bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 px-5 py-3 rounded-xl font-bold transition border border-blue-500/40"
             >
-              ðŸ›ï¸ Tax Estimate
+              🏛️ Tax Estimate
             </Link>
             <Link
               href="/agent-vault"
               className="bg-white/20 hover:bg-white/30 text-white px-5 py-3 rounded-xl font-bold transition"
             >
-              â† Vault
+              ← Vault
             </Link>
           </div>
         </div>
         <div className="space-y-6">
-
-          {/* Closing Cost Summary Card (if saved) */}
           {closingEstimate && closingEstimate.results && (
             <div className="bg-gradient-to-r from-green-900/40 to-blue-900/40 backdrop-blur-md rounded-2xl p-8 border border-green-500/30">
-              <h2 className="text-2xl font-bold text-white mb-4">ðŸ§® Closing Cost Estimate</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">🧮 Closing Cost Estimate</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <p className="text-blue-300 text-sm">Buyer Cash to Close</p>
@@ -148,11 +142,9 @@ export default function ListingViewPage() {
               <p className="text-gray-400 text-xs mt-4">Calculated: {new Date(closingEstimate.calculatedAt).toLocaleString()}</p>
             </div>
           )}
-
-          {/* Photo Gallery */}
           {hasPhotos ? (
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-6">ðŸ“¸ Property Photos</h2>
+              <h2 className="text-2xl font-bold text-white mb-6">📸 Property Photos</h2>
               <div className="relative">
                 <div className="aspect-video bg-black rounded-xl overflow-hidden">
                   <img
@@ -163,8 +155,8 @@ export default function ListingViewPage() {
                 </div>
                 {photos.length > 1 && (
                   <>
-                    <button onClick={prevPhoto} className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition">â†</button>
-                    <button onClick={nextPhoto} className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition">â†’</button>
+                    <button onClick={prevPhoto} className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition">←</button>
+                    <button onClick={nextPhoto} className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition">→</button>
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm">
                       {currentPhotoIndex + 1} / {photos.length}
                     </div>
@@ -187,20 +179,18 @@ export default function ListingViewPage() {
             </div>
           ) : (
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center">
-              <div className="text-6xl mb-4">ðŸ“·</div>
+              <div className="text-6xl mb-4">📷</div>
               <p className="text-gray-300">No photos uploaded yet</p>
             </div>
           )}
-
-          {/* Documents Grid */}
           {listing.documents && listing.documents.length > 0 ? (
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-6">ðŸ“„ Documents</h2>
+              <h2 className="text-2xl font-bold text-white mb-6">📄 Documents</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {listing.documents.map((d: any, idx: number) => (
                   <a key={idx} href={d.downloadURL} target="_blank" rel="noopener noreferrer"
                     className="bg-white/15 hover:bg-white/25 rounded-xl p-4 border border-white/30 transition flex flex-col items-center justify-center text-center cursor-pointer">
-                    <div className="text-4xl mb-2">ðŸ“Ž</div>
+                    <div className="text-4xl mb-2">🔎</div>
                     <p className="text-white font-semibold text-sm line-clamp-2">{d.label}</p>
                     <p className="text-gray-200 text-xs mt-2">{d.fileName}</p>
                     {d.required && <span className="text-red-400 text-xs mt-2">Required</span>}
@@ -211,13 +201,12 @@ export default function ListingViewPage() {
             </div>
           ) : (
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center">
-              <div className="text-6xl mb-4">ðŸ“„</div>
+              <div className="text-6xl mb-4">📄</div>
               <p className="text-gray-300">No documents uploaded yet</p>
             </div>
           )}
-          {/* Map */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-            <h2 className="text-2xl font-bold text-white mb-6">ðŸ“ Location</h2>
+            <h2 className="text-2xl font-bold text-white mb-6">📍 Location</h2>
             <div className="aspect-video rounded-xl overflow-hidden">
               <iframe
                 src={mapEmbedUrl}
@@ -230,10 +219,8 @@ export default function ListingViewPage() {
               />
             </div>
           </div>
-
-          {/* Property Details */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-            <h2 className="text-2xl font-bold text-white mb-6">ðŸ“‹ Property Details</h2>
+            <h2 className="text-2xl font-bold text-white mb-6">📋 Property Details</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <p className="text-gray-200 text-sm">Year Built</p>
@@ -271,17 +258,15 @@ export default function ListingViewPage() {
               </div>
             )}
           </div>
-
-          {/* AI Listing */}
           {listing.aiListing && (
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">âœ¨ AI-Generated Listing</h2>
+                <h2 className="text-2xl font-bold text-white">✨ AI-Generated Listing</h2>
                 <button
                   onClick={() => navigator.clipboard.writeText(listing.aiListing)}
                   className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-2 rounded-lg font-bold transition text-sm"
                 >
-                  ðŸ“‹ Copy
+                  📋 Copy
                 </button>
               </div>
               <div className="bg-white/15 rounded-xl p-6 border border-white/20">
@@ -289,32 +274,27 @@ export default function ListingViewPage() {
               </div>
             </div>
           )}
-
-          {/* Checklist */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
             <h2 className="text-2xl font-bold text-white mb-6">
-              âœ… Pre-Listing Checklist ({completedChecklist}/{totalChecklist} complete)
+              ✅ Pre-Listing Checklist ({completedChecklist}/{totalChecklist} complete)
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {Object.entries(listing.checklistState).map(([key, checked]) => (
                 <div key={key} className="flex items-center gap-3 bg-white/5 p-3 rounded-lg">
-                  <span className="text-2xl">{checked ? 'âœ…' : 'â¬œ'}</span>
+                  <span className="text-2xl">{checked ? '✅' : '⬜'}</span>
                   <span className={checked ? 'text-green-300' : 'text-gray-200'}>{key}</span>
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Notes */}
           {listing.notes && (
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-6">ðŸ“ Notes</h2>
+              <h2 className="text-2xl font-bold text-white mb-6">📝 Notes</h2>
               <div className="bg-white/15 rounded-xl p-6 border border-white/20">
                 <p className="text-white whitespace-pre-wrap">{listing.notes}</p>
               </div>
             </div>
           )}
-
         </div>
       </div>
     </main>
