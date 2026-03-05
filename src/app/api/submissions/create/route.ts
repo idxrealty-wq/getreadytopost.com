@@ -6,17 +6,12 @@ export const dynamic = 'force-dynamic';
 
 function initAdmin() {
   if (getApps().length > 0) return;
-
   const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n');
-
   if (!projectId || !clientEmail || !privateKey) {
-    throw new Error(
-      `Firebase Admin init failed. Missing: ${!projectId ? 'PROJECT_ID ' : ''}${!clientEmail ? 'CLIENT_EMAIL ' : ''}${!privateKey ? 'PRIVATE_KEY' : ''}`
-    );
+    throw new Error('Firebase Admin init failed: missing credentials');
   }
-
   initializeApp({
     credential: cert({ projectId, clientEmail, privateKey }),
   });
@@ -57,15 +52,14 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     };
 
-    const docRef = await db.collection('submissions').add(submission);console.error('FIRESTORE_WRITE_SUCCESS:', docRef.id);
+    const docRef = await db.collection('submissions').add(submission);
 
     return NextResponse.json({ submissionId: docRef.id, ok: true });
   } catch (e: any) {
-    const errorMsg = `CREATE_ERROR: ${e?.message || 'Unknown'} | Code: ${e?.code || 'N/A'}`;
-console.error(errorMsg, e?.stack);
-return NextResponse.json(
-  { error: errorMsg },
-  { status: 500 }
-);
-}
+    console.error('CREATE_ERROR:', e?.message);
+    return NextResponse.json(
+      { error: `Create failed: ${e?.message || 'Unknown error'}` },
+      { status: 500 }
+    );
+  }
 }
