@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
@@ -99,29 +98,30 @@ function WorkspaceContent() {
   };
 
   useEffect(() => {
-  const saved = localStorage.getItem('grtp_property');
-  if (saved && !editId) {
-    try {
-      const p = JSON.parse(saved);
-      if (p.address) setAddress(p.address);
-      if (p.beds || p.baths || p.sqft || p.yearBuilt || p.price || p.hoa) {
-        setPropertyData((prev: any) => ({
-          ...prev,
-          beds: p.beds || prev.beds,
-          baths: p.baths || prev.baths,
-          sqft: p.sqft || prev.sqft,
-          yearBuilt: p.yearBuilt || prev.yearBuilt,
-          price: p.price || prev.price,
-          hoa: p.hoa || prev.hoa,
-          hoaAmount: p.hoaAmount || prev.hoaAmount,
-        }));
+    const saved = localStorage.getItem('grtp_property');
+    if (saved && !editId) {
+      try {
+        const p = JSON.parse(saved);
+        if (p.address) setAddress(p.address);
+        if (p.beds || p.baths || p.sqft || p.yearBuilt || p.price || p.hoa) {
+          setPropertyData((prev: any) => ({
+            ...prev,
+            beds: p.beds || prev.beds,
+            baths: p.baths || prev.baths,
+            sqft: p.sqft || prev.sqft,
+            yearBuilt: p.yearBuilt || prev.yearBuilt,
+            price: p.price || prev.price,
+            hoa: p.hoa || prev.hoa,
+            hoaAmount: p.hoaAmount || prev.hoaAmount,
+          }));
+        }
+        localStorage.removeItem('grtp_property');
+      } catch (e) {
+        console.error('Failed to load grtp_property', e);
       }
-      localStorage.removeItem('grtp_property');
-    } catch (e) {
-      console.error('Failed to load grtp_property', e);
     }
-  }
-}, []);
+  }, []);
+
   const handleCSVImport = (imported: any) => {
     if (!address) setAddress(imported.address);
     setPropertyData((prev: any) => {
@@ -172,92 +172,20 @@ function WorkspaceContent() {
           </div>
         )}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
-          <AddressAutosuggest
-            value={address}
-            onChange={setAddress}
-            onSelect={(parcel) => {
-              setPropertyData((prev) => ({
-                ...prev,
-                taxId: prev.taxId || parcel.parcel_id || '',
-                yearBuilt: prev.yearBuilt || parcel.year_built || '',
-                sqft: prev.sqft || parcel.sqft || '',
-                beds: prev.beds || parcel.beds || '',
-                lotSize: prev.lotSize || parcel.land_sqft || '',
-                assessedValue: prev.assessedValue || parcel.just_value || '',
-                lastSalePrice: prev.lastSalePrice || parcel.sale_price || '',
-                lastSaleYear: prev.lastSaleYear || parcel.sale_year || '',
-                baths: prev.baths || parcel.baths || '',
-                propertyType: prev.propertyType || parcel.property_type || '',
-                zoning: prev.zoning || parcel.zoning || '',
-                homestead: prev.homestead || parcel.homestead || '',
-                propertyLink: (prev as any).propertyLink || parcel.property_link || '',
-                legalDescription: prev.legalDescription || parcel.legal_description || '',
-                ownerName: (prev as any).ownerName || parcel.owner_name || '',
-              }));
-            }}
-          />
+          <AddressAutosuggest value={address} onChange={setAddress} onSelect={(parcel) => { setPropertyData((prev) => ({ ...prev, taxId: prev.taxId || parcel.parcel_id || '', yearBuilt: prev.yearBuilt || parcel.year_built || '', sqft: prev.sqft || parcel.sqft || '', beds: prev.beds || parcel.beds || '', lotSize: prev.lotSize || parcel.land_sqft || '', assessedValue: prev.assessedValue || parcel.just_value || '', lastSalePrice: prev.lastSalePrice || parcel.sale_price || '', lastSaleYear: prev.lastSaleYear || parcel.sale_year || '', baths: prev.baths || parcel.baths || '', propertyType: prev.propertyType || parcel.property_type || '', zoning: prev.zoning || parcel.zoning || '', homestead: prev.homestead || parcel.homestead || '', propertyLink: (prev as any).propertyLink || parcel.property_link || '', legalDescription: prev.legalDescription || parcel.legal_description || '', ownerName: (prev as any).ownerName || parcel.owner_name || '', })); }} />
         </div>
         <div className="flex justify-end mb-4">
-          <button onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/agent-vault", "_blank"), 600); }} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition">
-            View in Vault
-          </button>
+          <button onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/agent-vault", "_blank"), 600); }} className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition">View in Vault</button>
         </div>
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          {tabs.map((tab) => (
-            <button key={tab.num} onClick={() => setActiveTab(tab.num)} className={'flex items-center gap-1 px-3 py-2 rounded-xl font-bold text-xs transition whitespace-nowrap ' + (activeTab === tab.num ? 'bg-[#c9a227] text-white shadow-lg' : tab.done ? 'bg-green-600/30 text-green-300 border border-green-500/40' : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20')}>
-              <span className="text-lg">{tab.done && activeTab !== tab.num ? '[v]' : tab.icon}</span>
-              <span>{tab.num}. {tab.label}</span>
-            </button>
-          ))}
+          {tabs.map((tab) => (<button key={tab.num} onClick={() => setActiveTab(tab.num)} className={'flex items-center gap-1 px-3 py-2 rounded-xl font-bold text-xs transition whitespace-nowrap ' + (activeTab === tab.num ? 'bg-[#c9a227] text-white shadow-lg' : tab.done ? 'bg-green-600/30 text-green-300 border border-green-500/40' : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20')}><span className="text-lg">{tab.done && activeTab !== tab.num ? '[v]' : tab.icon}</span><span>{tab.num}. {tab.label}</span></button>))}
         </div>
         {activeTab === 1 && (<><CSVImport onImport={handleCSVImport} /><Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} /></>)}
         {activeTab === 2 && (<Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />)}
         {activeTab === 3 && (<Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />)}
-        {activeTab === 4 && (
-          <Tab4Checklist
-            listingId={listingId}
-            checklistState={checklistState}
-            setChecklistState={setChecklistState}
-            notes={notes}
-            setNotes={setNotes}
-            photos={photos}
-            setPhotos={setPhotos}
-            existingPhotos={existingPhotos}
-            existingDocuments={existingDocuments}
-            setExistingDocuments={setExistingDocuments}
-            onNext={() => setActiveTab(5)}
-            documentAccessCode={documentAccessCode}
-            setDocumentAccessCode={setDocumentAccessCode}
-          />
-        )}
-        {activeTab === 5 && (
-          <Tab5Save
-            address={address}
-            propertyData={propertyData}
-            nearby={nearby}
-            listing={listing}
-            checklistState={checklistState}
-            notes={notes}
-            saved={saved}
-            setSaved={setSaved}
-            user={user}
-            editId={editId}
-            photos={photos}
-            existingPhotos={existingPhotos}
-            documents={existingDocuments}
-            existingDocuments={existingDocuments}
-            documentAccessCode={documentAccessCode}
-            saveNowNonce={saveNowNonce}
-          />
-        )}
-        {activeTab === 6 && (
-          <Tab6ClosingCosts
-            listingId={listingId}
-            address={address}
-            propertyData={propertyData}
-            savedEstimate={savedEstimate}
-          />
-        )}
+        {activeTab === 4 && (<Tab4Checklist listingId={listingId} checklistState={checklistState} setChecklistState={setChecklistState} notes={notes} setNotes={setNotes} photos={photos} setPhotos={setPhotos} existingPhotos={existingPhotos} existingDocuments={existingDocuments} setExistingDocuments={setExistingDocuments} onNext={() => setActiveTab(5)} documentAccessCode={documentAccessCode} setDocumentAccessCode={setDocumentAccessCode} />)}
+        {activeTab === 5 && (<Tab5Save address={address} propertyData={propertyData} nearby={nearby} listing={listing} checklistState={checklistState} notes={notes} saved={saved} setSaved={setSaved} user={user} editId={editId} photos={photos} existingPhotos={existingPhotos} documents={existingDocuments} existingDocuments={existingDocuments} documentAccessCode={documentAccessCode} saveNowNonce={saveNowNonce} />)}
+        {activeTab === 6 && (<Tab6ClosingCosts listingId={listingId} address={address} propertyData={propertyData} savedEstimate={savedEstimate} />)}
       </div>
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onSuccess={() => setShowAuthModal(false)} />
     </main>
@@ -266,13 +194,7 @@ function WorkspaceContent() {
 
 export default function WorkspacePage() {
   return (
-    <Suspense fallback={
-      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
-        <div className="max-w-7xl mx-auto px-6 py-20 text-center">
-          <div className="text-white text-xl">Loading workspace...</div>
-        </div>
-      </main>
-    }>
+    <Suspense fallback={<main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]"><div className="max-w-7xl mx-auto px-6 py-20 text-center"><div className="text-white text-xl">Loading workspace...</div></div></main>}>
       <WorkspaceContent />
     </Suspense>
   );
