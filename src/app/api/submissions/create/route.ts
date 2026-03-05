@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     initAdmin();
     console.log('STEP_2: Firebase Admin initialized');
 
-    const db = getFirestore(getApp(), 'default');
+    const db = getFirestore();
     console.log('STEP_3: Firestore instance obtained');
 
     const body = await req.json();
