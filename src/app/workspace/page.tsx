@@ -77,7 +77,15 @@ function WorkspaceContent() {
         const data = listingSnap.data() as Listing;
         if (data.userId === user?.uid) {
           setAddress(data.address);
-          setPropertyData(data.propertyData);
+          const pd: any = data.propertyData || {};
+       setPropertyData({
+       ...pd,
+      beds: Number(pd.beds) || 0,
+      baths: Number(pd.baths) || 0,
+       sqft: Number(pd.sqft) || 0,
+     lotSize: Number(pd.lotSize) || 0,
+      price: Number(pd.price) || 0,
+    });
           setNearby(data.nearby);
           setListing(data.aiListing);
           setChecklistState(data.checklistState);
