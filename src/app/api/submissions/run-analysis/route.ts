@@ -10,7 +10,7 @@ function initAdmin() {
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n');
   if (!projectId || !clientEmail || !privateKey) {
-    throw new Error('Firebase Admin init failed: missing credentials');
+    throw new Error('Firebase Admin init failed');
   }
   initializeApp({
     credential: cert({ projectId, clientEmail, privateKey }),
@@ -167,9 +167,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
     }
 
-    // STEP 1: Grade original
-    const originalSystem = `Grade ONLY the ORIGINAL listing across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY valid JSON with this exact shape: {"categories":{"headline":{"grade":"A|B|C|D|F","feedback":"one sentence"},"length":{"grade":"A|B|C|D|F","feedback":"one sentence"},"emotion":{"grade":"A|B|C|D|F","feedback":"one sentence"},"keywords":{"grade":"A|B|C|D|F","feedback":"one sentence"},"cta":{"grade":"A|B|C|D|F","feedback":"one sentence"},"compliance":{"grade":"A|B|C|D|F","feedback":"one sentence"}},"recommendations":["fix 1","fix 2","fix 3"]}`;
-    const originalUser = `FACTS:\n${factsBlock}\n\nORIGINAL LISTING:\n${listingText}`;
+    // Grade original
+    const originalSystem = `Grade the ORIGINAL listing across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY JSON: {"categories":{"headline":{"grade":"A|B|C|D|F","feedback":"one sentence"},"length":{"grade":"A|B|C|D|F","feedback":"one sentence"},"emotion":{"grade":"A|B|C|D|F","feedback":"one sentence"},"keywords":{"grade":"A|B|C|D|F","feedback":"one sentence"},"cta":{"grade":"A|B|C|D|F","feedback":"one sentence"},"compliance":{"grade":"A|B|C|D|F","feedback":"one sentence"}},"recommendations":["fix 1","fix 2","fix 3"]}`;
+    const originalUser = `FACTS:\n${factsBlock}\n\nORIGINAL:\n${listingText}`;
 
     let original: any;
     try {
@@ -181,8 +181,8 @@ export async function POST(req: NextRequest) {
 
     const originalOverall = computeOverallFromCategories(original.categories);
 
-    // STEP 2: Generate rewrite (plain text only)
-    const rewriteSystem = `You are an elite MLS listing rewriter. Use ONLY facts from FACTS block. Do NOT invent. WORD COUNT: 145-165 words. Return ONLY the rewritten text, nothing else. No JSON. Just text.`;
+    // Generate rewrite (plain text)
+    const rewriteSystem = `You are an elite MLS listing rewriter. Use ONLY facts from FACTS block. Do NOT invent. WORD COUNT: 145-165 words. Return ONLY the rewritten text.`;
     const rewriteUser = `FACTS:\n${factsBlock}\n\nORIGINAL:\n${listingText}`;
 
     let rewriteText: string;
@@ -196,8 +196,8 @@ export async function POST(req: NextRequest) {
     rewriteText = await ensureRewriteLength(rewriteText, openaiKey, factsBlock);
     const rewriteWordCount = countWords(rewriteText);
 
-    // STEP 3: Grade rewrite
-    const rewriteGradeSystem = `Grade ONLY the REWRITE across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY valid JSON with this exact shape: {"categories":{"headline":{"grade":"A|B|C|D|F","feedback":"one sentence"},"length":{"grade":"A|B|C|D|F","feedback":"one sentence"},"emotion":{"grade":"A|B|C|D|F","feedback":"one sentence"},"keywords":{"grade":"A|B|C|D|F","feedback":"one sentence"},"cta":{"grade":"A|B|C|D|F","feedback":"one sentence"},"compliance":{"grade":"A|B|C|D|F","feedback":"one sentence"}}}`;
+    // Grade rewrite
+    const rewriteGradeSystem = `Grade the REWRITE across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY JSON: {"categories":{"headline":{"grade":"A|B|C|D|F","feedback":"one sentence"},"length":{"grade":"A|B|C|D|F","feedback":"one sentence"},"emotion":{"grade":"A|B|C|D|F","feedback":"one sentence"},"keywords":{"grade":"A|B|C|D|F","feedback":"one sentence"},"cta":{"grade":"A|B|C|D|F","feedback":"one sentence"},"compliance":{"grade":"A|B|C|D|F","feedback":"one sentence"}}}`;
     const rewriteGradeUser = `FACTS:\n${factsBlock}\n\nREWRITE:\n${rewriteText}`;
 
     let rewriteGradeObj: any;
@@ -210,7 +210,6 @@ export async function POST(req: NextRequest) {
 
     const rewriteOverall = computeOverallFromCategories(rewriteGradeObj.categories);
 
-    // STEP 4: Save to Firestore
     const analysis = {
       original: {
         overall: originalOverall,
@@ -233,7 +232,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, submissionId });
   } catch (e: any) {
-    console.error('RUN_ANALYSIS_FATAL:', e?.message);
-    return NextResponse.json({ error: `Fatal error: ${e?.message || 'Unknown'}` }, { status: 500 });
+    console.error('RUN_ANALYSIS_ERROR:', e?.message);
+    return NextResponse.json({ error: `Analysis failed: ${e?.message}` }, { status: 500 });
   }
 }
