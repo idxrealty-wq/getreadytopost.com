@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
+
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { Listing } from '@/lib/listings';
@@ -62,35 +63,13 @@ function WorkspaceContent() {
   }, [user, editId, listingId]);
 
   useEffect(() => {
-    if (editId && user && !loadingListing) {
+    if (editId && user) {
       loadListingForEdit(editId);
     }
   }, [editId, user]);
 
   const loadListingForEdit = async (id: string) => {
     setListingId(id);
-  useEffect(() => {
-    const saved = localStorage.getItem("grtp_property");
-    if (saved) {
-      try {
-        const p = JSON.parse(saved);
-        if (p.address) setAddress(p.address);
-        if (p.beds || p.baths || p.sqft || p.yearBuilt || p.price || p.hoa) {
-          setPropertyData((prev: any) => ({
-            ...prev,
-            beds: p.beds || prev.beds,
-            baths: p.baths || prev.baths,
-            sqft: p.sqft || prev.sqft,
-            yearBuilt: p.yearBuilt || prev.yearBuilt,
-            price: p.price || prev.price,
-            hoa: p.hoa || prev.hoa,
-            hoaAmount: p.hoaAmount || prev.hoaAmount,
-          }));
-        }
-        localStorage.removeItem("grtp_property");
-      } catch(e) { console.error("Failed to load grtp_property", e); }
-    }
-  }, [editId]);
     setLoadingListing(true);
     try {
       const listingRef = doc(db, 'listings', id);
@@ -99,31 +78,7 @@ function WorkspaceContent() {
         const data = listingSnap.data() as Listing;
         if (data.userId === user?.uid) {
           setAddress(data.address);
-          setPropertyData({
-            ...data.propertyData,
-            legalDescription: (data.propertyData as any).legalDescription || '',
-            propertyType: (data.propertyData as any).propertyType || '',
-            zoning: (data.propertyData as any).zoning || '',
-            stories: (data.propertyData as any).stories || '',
-            garage: (data.propertyData as any).garage || '',
-            pool: (data.propertyData as any).pool || '',
-            construction: (data.propertyData as any).construction || '',
-            schoolDistrict: (data.propertyData as any).schoolDistrict || '',
-            hoa: (data.propertyData as any).hoa || '',
-            hoaAmount: (data.propertyData as any).hoaAmount || '',
-            hoaName: (data.propertyData as any).hoaName || '',
-            amenities: (data.propertyData as any).amenities || '',
-            floodZone: (data.propertyData as any).floodZone || '',
-            water: (data.propertyData as any).water || '',
-            sewer: (data.propertyData as any).sewer || '',
-            roofYear: (data.propertyData as any).roofYear || '',
-            acYear: (data.propertyData as any).acYear || '',
-            waterHeaterYear: (data.propertyData as any).waterHeaterYear || '',
-            assessedValue: (data.propertyData as any).assessedValue || '',
-            lastSalePrice: (data.propertyData as any).lastSalePrice || '',
-            lastSaleYear: (data.propertyData as any).lastSaleYear || '',
-            homestead: (data.propertyData as any).homestead || '',
-          });
+          setPropertyData(data.propertyData);
           setNearby(data.nearby);
           setListing(data.aiListing);
           setChecklistState(data.checklistState);
@@ -142,6 +97,31 @@ function WorkspaceContent() {
       setLoadingListing(false);
     }
   };
+
+  useEffect(() => {
+    const saved = localStorage.getItem('grtp_property');
+    if (saved) {
+      try {
+        const p = JSON.parse(saved);
+        if (p.address) setAddress(p.address);
+        if (p.beds || p.baths || p.sqft || p.yearBuilt || p.price || p.hoa) {
+          setPropertyData((prev: any) => ({
+            ...prev,
+            beds: p.beds || prev.beds,
+            baths: p.baths || prev.baths,
+            sqft: p.sqft || prev.sqft,
+            yearBuilt: p.yearBuilt || prev.yearBuilt,
+            price: p.price || prev.price,
+            hoa: p.hoa || prev.hoa,
+            hoaAmount: p.hoaAmount || prev.hoaAmount,
+          }));
+        }
+        localStorage.removeItem('grtp_property');
+      } catch (e) {
+        console.error('Failed to load grtp_property', e);
+      }
+    }
+  }, [editId]);
 
   const handleCSVImport = (imported: any) => {
     if (!address) setAddress(imported.address);
@@ -173,6 +153,7 @@ function WorkspaceContent() {
       </main>
     );
   }
+
   return (
     <main className="pt-20 min-h-screen relative">
       <div className="fixed inset-0 z-0">
