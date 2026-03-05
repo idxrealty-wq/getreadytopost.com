@@ -11,3 +11,5 @@ src/data/NAL58.csv
 src/data/serviceAccount.json
 src/data/NAL45.csv
 src/data/NAL58.csv
+# Local Netlify folder
+.netlify
