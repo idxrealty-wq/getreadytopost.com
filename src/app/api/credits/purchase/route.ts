@@ -1,6 +1,8 @@
-﻿import { initializeApp } from 'firebase/app';
+import { getApps, initializeApp, getApp } from 'firebase/app';
 import { getFirestore, doc, setDoc, getDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,7 +13,7 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 
 export async function POST(req: NextRequest) {
@@ -25,10 +27,8 @@ export async function POST(req: NextRequest) {
     const userCreditsRef = doc(db, 'users', userId, 'credits', 'balance');
     const transactionsRef = collection(db, 'users', userId, 'transactions');
 
-    // Add credits to user balance
     await setDoc(userCreditsRef, { balance: increment(creditsAmount) }, { merge: true });
 
-    // Log transaction
     await addDoc(transactionsRef, {
       type: 'purchase',
       creditsAdded: creditsAmount,
