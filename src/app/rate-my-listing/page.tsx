@@ -8,9 +8,9 @@ export default function RateMyListingPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('');
   const [state, setState] = useState('Florida');
-  const [city, setCity] = useState('');
+  const [city, setCity] = useState('Orlando');
+  const [address, setAddress] = useState('');
   const [beds, setBeds] = useState('');
   const [baths, setBaths] = useState('');
   const [sqft, setSqft] = useState('');
@@ -21,17 +21,12 @@ export default function RateMyListingPage() {
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [overrides, setOverrides] = useState<any>({});
 
   const handleAddressSelect = (parcel: any) => {
     if (parcel.beds) setBeds(parcel.beds);
     if (parcel.baths) setBaths(parcel.baths);
     if (parcel.sqft) setSqft(parcel.sqft);
     if (parcel.year_built) setYearBuilt(parcel.year_built);
-  };
-
-  const rerunChecker = (listing: any, overrides: any) => {
-    setOverrides(overrides);
   };
 
   const handleSubmit = async () => {
@@ -110,11 +105,6 @@ export default function RateMyListingPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-gray-400 text-xs mb-1">Property Address (United States)</label>
-              <AddressAutosuggest value={address} onChange={setAddress} onSelect={handleAddressSelect} state={state} city={city} />
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-gray-400 text-xs mb-1">State</label>
@@ -136,6 +126,12 @@ export default function RateMyListingPage() {
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-400 text-xs mb-1">Property Address (United States)</label>
+              <p className="text-gray-500 text-xs mb-2">Tip: Add City + State above for faster, accurate results.</p>
+              <AddressAutosuggest value={address} onChange={setAddress} onSelect={handleAddressSelect} state={state} city={city} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
