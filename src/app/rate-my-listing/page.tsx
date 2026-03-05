@@ -208,13 +208,16 @@ export default function RateMyListingPage() {
 
             <div>
               <label className="block text-gray-400 text-xs mb-1">List Price</label>
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="450000"
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
-              />
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                <input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="450000"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
+                />
+              </div>
             </div>
 
             <div>
@@ -224,7 +227,7 @@ export default function RateMyListingPage() {
                 onChange={(e) => setHoa(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
               >
-                <option value="">Select...</option>
+                <option value="">Do you have an HOA?</option>
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
               </select>
@@ -233,13 +236,16 @@ export default function RateMyListingPage() {
             {hoa === 'yes' && (
               <div>
                 <label className="block text-gray-400 text-xs mb-1">HOA Amount (Monthly)</label>
-                <input
-                  type="number"
-                  value={hoaAmount}
-                  onChange={(e) => setHoaAmount(e.target.value)}
-                  placeholder="250"
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
-                />
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                  <input
+                    type="number"
+                    value={hoaAmount}
+                    onChange={(e) => setHoaAmount(e.target.value)}
+                    placeholder="250"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
+                  />
+                </div>
               </div>
             )}
 
