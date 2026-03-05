@@ -99,30 +99,29 @@ function WorkspaceContent() {
   };
 
   useEffect(() => {
-    const saved = localStorage.getItem('grtp_property');
-    if (saved) {
-      try {
-        const p = JSON.parse(saved);
-        if (p.address) setAddress(p.address);
-        if (p.beds || p.baths || p.sqft || p.yearBuilt || p.price || p.hoa) {
-          setPropertyData((prev: any) => ({
-            ...prev,
-            beds: p.beds || prev.beds,
-            baths: p.baths || prev.baths,
-            sqft: p.sqft || prev.sqft,
-            yearBuilt: p.yearBuilt || prev.yearBuilt,
-            price: p.price || prev.price,
-            hoa: p.hoa || prev.hoa,
-            hoaAmount: p.hoaAmount || prev.hoaAmount,
-          }));
-        }
-        localStorage.removeItem('grtp_property');
-      } catch (e) {
-        console.error('Failed to load grtp_property', e);
+  const saved = localStorage.getItem('grtp_property');
+  if (saved && !editId) {
+    try {
+      const p = JSON.parse(saved);
+      if (p.address) setAddress(p.address);
+      if (p.beds || p.baths || p.sqft || p.yearBuilt || p.price || p.hoa) {
+        setPropertyData((prev: any) => ({
+          ...prev,
+          beds: p.beds || prev.beds,
+          baths: p.baths || prev.baths,
+          sqft: p.sqft || prev.sqft,
+          yearBuilt: p.yearBuilt || prev.yearBuilt,
+          price: p.price || prev.price,
+          hoa: p.hoa || prev.hoa,
+          hoaAmount: p.hoaAmount || prev.hoaAmount,
+        }));
       }
+      localStorage.removeItem('grtp_property');
+    } catch (e) {
+      console.error('Failed to load grtp_property', e);
     }
-  }, [editId]);
-
+  }
+}, []);
   const handleCSVImport = (imported: any) => {
     if (!address) setAddress(imported.address);
     setPropertyData((prev: any) => {
