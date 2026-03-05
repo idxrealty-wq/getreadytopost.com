@@ -61,10 +61,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ submissionId: docRef.id, ok: true });
   } catch (e: any) {
-    console.error('CREATE_CATCH_ERROR:', JSON.stringify({ message: e?.message, code: e?.code, stack: e?.stack }, null, 2));
-    return NextResponse.json(
-      { error: `Create failed: ${e?.message || 'Unknown error'}` },
-      { status: 500 }
+    const errorMsg = `CREATE_ERROR: ${e?.message || 'Unknown'} | Code: ${e?.code || 'N/A'}`;
+console.error(errorMsg, e?.stack);
+return NextResponse.json(
+  { error: errorMsg },
+  { status: 500 }
+);
     );
   }
 }
