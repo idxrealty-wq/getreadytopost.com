@@ -7,6 +7,7 @@ import AddressAutosuggest from '@/components/AddressAutosuggest';
 export default function RateMyListingPage() {
   const router = useRouter();
 
+  const [listingDescription, setListingDescription] = useState('');
   const [email, setEmail] = useState('');
   const [state, setState] = useState('Florida');
   const [city, setCity] = useState('Orlando');
@@ -30,14 +31,15 @@ export default function RateMyListingPage() {
   };
 
   const handleSubmit = async () => {
-    if (!email || !address) {
-      alert('Email and address are required');
+    if (!listingDescription || !email || !address) {
+      alert('Listing description, email, and address are required');
       return;
     }
 
     setLoading(true);
     try {
       const pd = {
+        listingDescription,
         address,
         city,
         state,
@@ -94,6 +96,18 @@ export default function RateMyListingPage() {
           <p className="text-gray-300 mb-8">Get an instant AI-powered analysis of your listing description</p>
 
           <div className="space-y-6">
+            <div>
+              <label className="block text-gray-400 text-xs mb-1">Listing Description</label>
+              <p className="text-gray-500 text-xs mb-2">Paste your current MLS or listing description here</p>
+              <textarea
+                value={listingDescription}
+                onChange={(e) => setListingDescription(e.target.value)}
+                placeholder="Paste your listing description here..."
+                rows={6}
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900 resize-none"
+              />
+            </div>
+
             <div>
               <label className="block text-gray-400 text-xs mb-1">Email Address</label>
               <input
