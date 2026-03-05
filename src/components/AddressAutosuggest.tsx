@@ -1,5 +1,6 @@
 "use client";
-import { useState, useRef, useEffect } from 'react';
+
+import { useState, useRef, useEffect } from "react";
 
 interface ParcelResult {
   parcel_id: string;
@@ -10,14 +11,12 @@ interface ParcelResult {
   year_built: string;
   sqft: string;
   beds: string;
-  NO_BDRMS: string;
-  NO_BATHS: string;
+  baths: string;
   just_value: string;
   sale_price: string;
   sale_year: string;
   land_sqft: string;
   dor_uc: string;
-  baths: string;
   property_type: string;
   zoning: string;
   homestead: string;
@@ -38,14 +37,23 @@ interface Props {
   value: string;
   onChange: (value: string) => void;
   onSelect: (parcel: ParcelResult) => void;
+  state?: string;
+  city?: string;
 }
 
-export default function AddressAutosuggest({ value, onChange, onSelect }: Props) {
+export default function AddressAutosuggest({
+  value,
+  onChange,
+  onSelect,
+  state = "Florida",
+  city = "",
+}: Props) {
   const [results, setResults] = useState<ParcelResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [selected, setSelected] = useState<ParcelResult | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -55,32 +63,42 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
         setShowResults(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const doSearch = (val: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (val.length < 3) { setResults([]); setShowResults(false); return; }
+
+    // Nationwide search needs more than "701" to be useful.
+    if (val.length < 5) {
+      setResults([]);
+      setShowResults(false);
+      return;
+    }
+
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch('/api/parcel-search?q=' + encodeURIComponent(val.toLowerCase()));
+        const params = new URLSearchParams();
+        params.set("q", val);
+
+        if (state && state.trim()) params.set("state", state.trim());
+        if (city && city.trim()) params.set("city", city.trim());
+
+        const res = await fetch("/api/parcel-search?" + params.toString());
         const data = await res.json();
-        const mapped = (data.results || []).map((p: any) => ({
-          ...p,
-          beds: p.beds || p.NO_BDRMS || '',
-          baths: p.baths || p.NO_BATHS || '',
-        }));
-        setResults(mapped);
+
+        setResults(data.results || []);
         setShowResults(true);
       } catch {
         setResults([]);
       } finally {
         setLoading(false);
       }
-    }, 500);
+    }, 450);
   };
+
   const handleInputChange = (val: string) => {
     onChange(val);
     setSelected(null);
@@ -90,7 +108,10 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
 
   const handlePick = (parcel: ParcelResult) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    const fullAddress = parcel.address + ', ' + parcel.city + ', FL ' + parcel.zip;
+
+    const fullAddressParts = [parcel.address, parcel.city, parcel.zip].filter(Boolean);
+    const fullAddress = fullAddressParts.join(", ");
+
     onChange(fullAddress);
     setSelected(parcel);
     setConfirmed(false);
@@ -106,7 +127,7 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
   };
 
   const handleClear = () => {
-    onChange('');
+    onChange("");
     setSelected(null);
     setConfirmed(false);
     setResults([]);
@@ -115,25 +136,24 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
 
   const formatDetail = (parcel: ParcelResult) => {
     const parts: string[] = [];
-    if (parcel.year_built) parts.push('Built ' + parcel.year_built);
-    if (parcel.sqft) parts.push(Number(parcel.sqft).toLocaleString() + ' sqft');
-    if (parcel.beds) parts.push(parcel.beds + ' bed');
-    if (parcel.baths) parts.push(parcel.baths + ' bath');
-    if (parcel.just_value) parts.push('Assessed $' + Number(parcel.just_value).toLocaleString());
-    return parts.join(' | ');
+    if (parcel.year_built) parts.push("Built " + parcel.year_built);
+    if (parcel.sqft) parts.push(Number(parcel.sqft).toLocaleString() + " sqft");
+    if (parcel.beds) parts.push(parcel.beds + " bed");
+    if (parcel.baths) parts.push(parcel.baths + " bath");
+    if (parcel.just_value) parts.push("Assessed $" + Number(parcel.just_value).toLocaleString());
+    return parts.join(" | ");
   };
 
   const formatConfirmDetail = (parcel: ParcelResult) => {
     const parts: string[] = [];
-    if (parcel.year_built) parts.push('Built ' + parcel.year_built);
-    if (parcel.sqft) parts.push(Number(parcel.sqft).toLocaleString() + ' sqft');
-    if (parcel.beds) parts.push(parcel.beds + ' bed');
-    if (parcel.baths) parts.push(parcel.baths + ' bath');
-    if (parcel.just_value) parts.push('Assessed $' + Number(parcel.just_value).toLocaleString());
-    if (parcel.parcel_id) parts.push('Parcel: ' + parcel.parcel_id);
-    return parts.join(' | ');
+    if (parcel.year_built) parts.push("Built " + parcel.year_built);
+    if (parcel.sqft) parts.push(Number(parcel.sqft).toLocaleString() + " sqft");
+    if (parcel.beds) parts.push(parcel.beds + " bed");
+    if (parcel.baths) parts.push(parcel.baths + " bath");
+    if (parcel.just_value) parts.push("Assessed $" + Number(parcel.just_value).toLocaleString());
+    if (parcel.parcel_id) parts.push("Parcel: " + parcel.parcel_id);
+    return parts.join(" | ");
   };
-
   return (
     <div ref={wrapperRef} className="relative">
       {!selected && (
@@ -141,57 +161,82 @@ export default function AddressAutosuggest({ value, onChange, onSelect }: Props)
           type="text"
           value={value}
           onChange={(e) => handleInputChange(e.target.value)}
-          placeholder="Start typing an address... (Orange County FL)"
+          placeholder="Start typing an address..."
           className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-lg text-gray-900"
         />
       )}
+
       {loading && !selected && (
         <div className="absolute right-4 top-4 text-gray-400 text-sm">Searching...</div>
       )}
+
       {showResults && results.length > 0 && !selected && (
         <div
           className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-80 overflow-y-auto"
-          onMouseEnter={() => { if (debounceRef.current) clearTimeout(debounceRef.current); }}
+          onMouseEnter={() => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+          }}
         >
           {results.map((r, i) => (
             <button
               key={i}
-              onMouseDown={(e) => { e.preventDefault(); handlePick(r); }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handlePick(r);
+              }}
               className="w-full text-left px-4 py-3 hover:bg-[#c9a227]/10 border-b border-gray-100 last:border-0 transition"
             >
-              <div className="font-semibold text-gray-900">{r.address}, {r.city}, FL {r.zip}</div>
+              <div className="font-semibold text-gray-900">
+                {r.address}, {r.city}, {r.zip}
+              </div>
               <div className="text-sm text-gray-500">{formatDetail(r)}</div>
             </button>
           ))}
         </div>
       )}
-      {showResults && results.length === 0 && !loading && value.length >= 3 && !selected && (
+
+      {showResults && results.length === 0 && !loading && value.length >= 5 && !selected && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl p-4 text-gray-500 text-sm">
           No matches found. Try a different address.
         </div>
       )}
+
       {selected && !confirmed && (
         <div className="bg-white border-2 border-[#c9a227] rounded-xl p-5 shadow-lg">
-          <div className="text-lg font-bold text-gray-900 mb-1">{selected.address}, {selected.city}, FL {selected.zip}</div>
+          <div className="text-lg font-bold text-gray-900 mb-1">
+            {selected.address}, {selected.city}, {selected.zip}
+          </div>
           <div className="text-sm text-gray-600 mb-4">{formatConfirmDetail(selected)}</div>
           <p className="text-gray-700 font-semibold mb-3">Is this your property?</p>
           <div className="flex gap-3">
-            <button onClick={handleConfirm} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold transition">
+            <button
+              onClick={handleConfirm}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold transition"
+            >
               Yes, this is it
             </button>
-            <button onClick={handleClear} className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-bold transition">
+            <button
+              onClick={handleClear}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-bold transition"
+            >
               No, search again
             </button>
           </div>
         </div>
       )}
+
       {confirmed && selected && (
         <div className="bg-green-50 border-2 border-green-500 rounded-xl p-4 flex items-center justify-between">
           <div>
-            <div className="text-lg font-bold text-green-800">{selected.address}, {selected.city}, FL {selected.zip}</div>
+            <div className="text-lg font-bold text-green-800">
+              {selected.address}, {selected.city}, {selected.zip}
+            </div>
             <div className="text-sm text-green-600">Property confirmed - details auto-filled below</div>
           </div>
-          <button onClick={handleClear} className="text-gray-500 hover:text-red-500 text-sm font-bold transition">
+          <button
+            onClick={handleClear}
+            className="text-gray-500 hover:text-red-500 text-sm font-bold transition"
+          >
             Change
           </button>
         </div>
