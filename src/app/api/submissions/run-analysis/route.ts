@@ -214,14 +214,12 @@ Return ONLY valid JSON with this shape:
     const originalOverall = computeOverallFromCategories(original.categories);
 
     // Generate rewrite
-    const rewriteSystem = `You are an elite MLS listing rewriter. Use ONLY facts from FACTS block. Do NOT invent.
-WORD COUNT: 145-165 words.
-Return ONLY valid JSON: { "rewrite": "text" }`;
+    const rewriteSystem = `You are an elite MLS listing rewriter. Use ONLY facts from FACTS block. Do NOT invent. WORD COUNT: 145-165 words. Return ONLY the rewritten text, nothing else.`;
 
     const rewriteUser = `FACTS:\n${factsBlock}\n\nORIGINAL:\n${listingText}`;
     const rewriteObj = await callOpenAI(openaiKey, rewriteSystem, rewriteUser);
 
-    let rewriteText = String(rewriteObj.rewrite || '').trim();
+    let rewriteTelet rewriteText = String(rewriteObj || '').trim();xt = String(rewriteObj.rewrite || '').trim();
     rewriteText = await ensureRewriteLength(rewriteText, openaiKey, factsBlock);
     const rewriteWordCount = countWords(rewriteText);
 
