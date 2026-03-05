@@ -20,7 +20,7 @@ function initAdmin() {
 export async function POST(req: NextRequest) {
   try {
     console.log('STEP_1: POST called');
-    initAdmin();
+    initAdmin();console.log('DEBUG_PROJECT_ID:', process.env.FIREBASE_ADMIN_PROJECT_ID);
     console.log('STEP_2: Firebase Admin initialized');
 
     const db = getFirestore();
