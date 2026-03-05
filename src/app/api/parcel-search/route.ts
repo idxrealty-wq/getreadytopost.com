@@ -4,20 +4,39 @@ const KEY = '343bc00b6e80a125e9a2ad10a53aabd1';
 const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
 
 export async function GET(req: NextRequest) {
-  const q = (new URL(req.url).searchParams.get('q') || '').trim();
-  if (!q || q.length < 3) return NextResponse.json({ results: [] });
+  const { searchParams } = new URL(req.url);
+  const q = (searchParams.get('q') || '').trim();
+  const stateParam = (searchParams.get('state') || '').trim();
+  const cityParam = (searchParams.get('city') || '').trim();
 
-  const parts = q.split(',').map(p => p.trim()).filter(Boolean);
-  const addr1 = parts[0] || q;
-  const addr2 = parts.slice(1).join(', ') || '';
+  if (!q || q.length < 5) return NextResponse.json({ results: [] });
+
+  const addr1 = q;
+  const addr2Parts = [];
+  if (cityParam) addr2Parts.push(cityParam);
+  if (stateParam) addr2Parts.push(stateParam);
+  const addr2 = addr2Parts.join(', ') || '';
 
   try {
-    const r1 = await fetch(`${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`, {
-      headers: { apikey: KEY, Accept: 'application/json' },
-      cache: 'no-store',
-    });
+    const r1 = await fetch(
+      `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
+      {
+        headers: { apikey: KEY, Accept: 'application/json' },
+        cache: 'no-store',
+      }
+    );
     const d1 = await r1.json();
-    const matches = Array.isArray(d1?.property) ? d1.property.slice(0, 3) : [];
+    let matches = Array.isArray(d1?.property) ? d1.property : [];
+
+    if (stateParam) {
+      const stateUpper = stateParam.toUpperCase();
+      matches = matches.filter((m) => {
+        const st = (m?.address?.countrySubd || '').toUpperCase();
+        return st === stateUpper || st === stateUpper.substring(0, 2);
+      });
+    }
+
+    matches = matches.slice(0, 3);
     if (!matches.length) return NextResponse.json({ results: [] });
 
     const results = [];
