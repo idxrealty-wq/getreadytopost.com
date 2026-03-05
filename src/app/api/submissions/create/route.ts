@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     };
 
-    const docRef = await db.collection('submissions').add(submission);
+    const docRef = await db.collection('submissions').add(submission);wait db.collection('submissions').doc(docRef.id).update({ "debug.createConfirmed": true, "debug.createConfirmedAt": new Date().toISOString(), "debug.projectId": process.env.FIREBASE_ADMIN_PROJECT_ID });
 
     return NextResponse.json({ submissionId: docRef.id, ok: true });
   } catch (e: any) {
