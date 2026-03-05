@@ -6,11 +6,10 @@ export const dynamic = 'force-dynamic';
 
 function initAdmin() {
   if (getApps().length > 0) return;
-  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n');
-  if (!projectId || !clientEmail || !privateKey) throw new Error('Firebase Admin init failed');
-  initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
+  const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (!json) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON missing');
+  const sa = JSON.parse(json);
+  initializeApp({ credential: cert(sa) });
 }
 
 function countWords(text: string): number {
@@ -34,8 +33,7 @@ function pointsToGrade(avg: number): 'A' | 'B' | 'C' | 'D' | 'F' {
   return 'F';
 }
 
-function buildFactsBlock(propertyDetails: any): string {
-  const pd = propertyDetails || {};
+function buildFactsBlock(pd: any): string {
   const lines: string[] = [];
   const add = (label: string, val: any) => {
     if (val === undefined || val === null) return;
@@ -46,14 +44,12 @@ function buildFactsBlock(propertyDetails: any): string {
   add('Address', pd.address);
   add('City', pd.city);
   add('State', pd.state);
-  add('ZIP', pd.zip);
   add('Bedrooms', pd.beds);
   add('Bathrooms', pd.baths);
   add('Square Feet', pd.sqft);
   add('Year Built', pd.yearBuilt);
   add('Price', pd.price);
   add('HOA', pd.hoa);
-  add('HOA Amount', pd.hoaAmount);
   return lines.length ? lines.join('\n') : 'None provided.';
 }
 
@@ -63,20 +59,16 @@ async function callOpenAI(key: string, system: string, user: string): Promise<st
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
     body: JSON.stringify({
       model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: user },
-      ],
+      messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
       temperature: 0.7,
     }),
   });
-  if (!res.ok) throw new Error(`OpenAI API error: ${res.status}`);
+  if (!res.ok) throw new Error(`OpenAI error: ${res.status}`);
   const data = await res.json();
   return String(data.choices?.[0]?.message?.content || '').trim();
 }
 
-function parseGradingResponse(text: string): { categories: any; recommendations: string[] } {
-  const lines = text.split('\n').filter((l) => l.trim().length > 0);
+function parseGrading(text: string): { categories: any; recommendations: string[] } {
   const categories: any = {
     headline: { grade: 'F', feedback: '' },
     length: { grade: 'F', feedback: '' },
@@ -86,10 +78,9 @@ function parseGradingResponse(text: string): { categories: any; recommendations:
     compliance: { grade: 'F', feedback: '' },
   };
   const recommendations: string[] = [];
-
-  for (const line of lines) {
+  for (const line of text.split('\n').filter((l) => l.trim())) {
     const trimmed = line.trim();
-    if (trimmed.startsWith('recommendation:') || trimmed.startsWith('recommendation |')) {
+    if (trimmed.toLowerCase().startsWith('recommendation')) {
       const rec = trimmed.replace(/^recommendation[:|]\s*/i, '').trim();
       if (rec) recommendations.push(rec);
     } else {
@@ -99,32 +90,13 @@ function parseGradingResponse(text: string): { categories: any; recommendations:
         const grade = parts[1].toUpperCase().charAt(0);
         const feedback = parts.slice(2).join(' ').trim() || 'No feedback';
         if (categories[key]) {
-          categories[key].grade = ['A', 'B', 'C', 'D', 'F'].includes(grade) ? grade : 'F';
+          categories[key].grade = ['A','B','C','D','F'].includes(grade) ? grade : 'F';
           categories[key].feedback = feedback;
         }
       }
     }
   }
-
   return { categories, recommendations };
-}
-
-async function ensureRewriteLength(rewrite: string, key: string, factsBlock: string): Promise<string> {
-  let current = rewrite;
-  for (let i = 0; i < 3; i++) {
-    const wc = countWords(current);
-    if (wc >= 145 && wc <= 165) return current;
-    try {
-      current = await callOpenAI(
-        key,
-        'Rewrite to exactly 155 words (145-165 allowed). Return ONLY the text.',
-        `FACTS:\n${factsBlock}\n\nRewrite to 155 words:\n\n${current}`
-      );
-    } catch {
-      return current;
-    }
-  }
-  return current;
 }
 
 export async function POST(req: NextRequest) {
@@ -133,126 +105,53 @@ export async function POST(req: NextRequest) {
     const db = getFirestore();
     const { submissionId } = await req.json();
 
-    if (!submissionId) {
-      return NextResponse.json({ error: 'submissionId required' }, { status: 400 });
-    }
+    if (!submissionId) return NextResponse.json({ error: 'submissionId required' }, { status: 400 });
 
-    const submissionRef = db.collection('submissions').doc(submissionId);
-    const submissionDoc = await submissionRef.get();
+    const ref = db.collection('submissions').doc(submissionId);
+    const snap = await ref.get();
+    if (!snap.exists) return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
 
-    if (!submissionDoc.exists) {
-      return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
-    }
-
-    const data = submissionDoc.data() || {};
+    const data = snap.data() || {};
     const listingText = String(data.listingText || '');
-    const propertyDetails = data.propertyDetails || {};
-    const factsBlock = buildFactsBlock(propertyDetails);
+    const factsBlock = buildFactsBlock(data.propertyDetails || {});
+    const openaiKey = process.env.OPENAI_API_KEY || '';
+    if (!openaiKey) return NextResponse.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
 
-    await submissionRef.update({
-      status: 'processing',
-      debug: { stage: 'processing', updatedAt: new Date().toISOString(), projectId: process.env.FIREBASE_ADMIN_PROJECT_ID },
-    });
+    await ref.update({ status: 'processing' });
 
-    const openaiKey = String(process.env.OPENAI_API_KEY || '');
-    if (!openaiKey) {
-      await submissionRef.update({
-        status: 'error',
-        debug: { stage: 'error', errorStage: 'missing_openai_key', errorMessage: 'Missing OPENAI_API_KEY', updatedAt: new Date().toISOString() },
-      });
-      return NextResponse.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
-    }
+    // Grade original
+    const originalText = await callOpenAI(openaiKey,
+      `Grade this MLS listing across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY plain text, one line per category: category|grade|feedback. Then list recommendations as: recommendation|text`,
+      `FACTS:\n${factsBlock}\n\nLISTING:\n${listingText}`
+    );
+    const originalParsed = parseGrading(originalText);
+    const originalOverall = pointsToGrade(Object.values(originalParsed.categories).reduce((s: number, c: any) => s + gradeToPoints(c.grade), 0) / 6);
 
-    // Grade original (plain text response)
-    const originalSystem = `Grade the ORIGINAL listing across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY plain text, one category per line, format: category|grade|feedback. Example: headline|A|Strong opening. Then list recommendations starting with "recommendation|".`;
-    const originalUser = `FACTS:\n${factsBlock}\n\nORIGINAL:\n${listingText}`;
-
-    let originalText: string;
-    try {
-      originalText = await callOpenAI(openaiKey, originalSystem, originalUser);
-    } catch (e: any) {
-      await submissionRef.update({
-        status: 'error',
-        debug: { stage: 'error', errorStage: 'original_grading', errorMessage: e?.message, updatedAt: new Date().toISOString() },
-      });
-      return NextResponse.json({ error: `Original grading failed: ${e?.message}` }, { status: 500 });
-    }
-
-    const originalParsed = parseGradingResponse(originalText);
-    const originalOverall = pointsToGrade(
-      Object.values(originalParsed.categories).reduce((sum: number, cat: any) => sum + gradeToPoints(cat.grade), 0) / 6
+    // Generate rewrite
+    const rewriteText = await callOpenAI(openaiKey,
+      `You are an elite MLS listing rewriter. Use ONLY facts provided. Write 145-165 words. Return ONLY the rewritten listing text.`,
+      `FACTS:\n${factsBlock}\n\nORIGINAL:\n${listingText}`
     );
 
-    await submissionRef.update({
-      debug: { stage: 'original_graded', updatedAt: new Date().toISOString() },
-    });
-
-    // Generate rewrite (plain text)
-    const rewriteSystem = `You are an elite MLS listing rewriter. Use ONLY facts from FACTS block. Do NOT invent. WORD COUNT: 145-165 words. Return ONLY the rewritten text.`;
-    const rewriteUser = `FACTS:\n${factsBlock}\n\nORIGINAL:\n${listingText}`;
-
-    let rewriteText: string;
-    try {
-      rewriteText = await callOpenAI(openaiKey, rewriteSystem, rewriteUser);
-    } catch (e: any) {
-      await submissionRef.update({
-        status: 'error',
-        debug: { stage: 'error', errorStage: 'rewrite_generation', errorMessage: e?.message, updatedAt: new Date().toISOString() },
-      });
-      return NextResponse.json({ error: `Rewrite generation failed: ${e?.message}` }, { status: 500 });
-    }
-
-    rewriteText = await ensureRewriteLength(rewriteText, openaiKey, factsBlock);
-    const rewriteWordCount = countWords(rewriteText);
-
-    await submissionRef.update({
-      debug: { stage: 'rewrite_generated', updatedAt: new Date().toISOString() },
-    });
-
-    // Grade rewrite (plain text response)
-    const rewriteGradeSystem = `Grade the REWRITE across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY plain text, one category per line, format: category|grade|feedback. Example: headline|A|Strong opening.`;
-    const rewriteGradeUser = `FACTS:\n${factsBlock}\n\nREWRITE:\n${rewriteText}`;
-
-    let rewriteGradeText: string;
-    try {
-      rewriteGradeText = await callOpenAI(openaiKey, rewriteGradeSystem, rewriteGradeUser);
-    } catch (e: any) {
-      await submissionRef.update({
-        status: 'error',
-        debug: { stage: 'error', errorStage: 'rewrite_grading', errorMessage: e?.message, updatedAt: new Date().toISOString() },
-      });
-      return NextResponse.json({ error: `Rewrite grading failed: ${e?.message}` }, { status: 500 });
-    }
-
-    const rewriteParsed = parseGradingResponse(rewriteGradeText);
-    const rewriteOverall = pointsToGrade(
-      Object.values(rewriteParsed.categories).reduce((sum: number, cat: any) => sum + gradeToPoints(cat.grade), 0) / 6
+    // Grade rewrite
+    const rewriteGradeText = await callOpenAI(openaiKey,
+      `Grade this rewritten MLS listing across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY plain text, one line per category: category|grade|feedback.`,
+      `FACTS:\n${factsBlock}\n\nREWRITE:\n${rewriteText}`
     );
+    const rewriteParsed = parseGrading(rewriteGradeText);
+    const rewriteOverall = pointsToGrade(Object.values(rewriteParsed.categories).reduce((s: number, c: any) => s + gradeToPoints(c.grade), 0) / 6);
 
-    const analysis = {
-      original: {
-        overall: originalOverall,
-        categories: originalParsed.categories,
-        recommendations: originalParsed.recommendations,
-      },
-      rewrite: {
-        overall: rewriteOverall,
-        categories: rewriteParsed.categories,
-        text: rewriteText,
-        wordCount: rewriteWordCount,
-      },
-    };
-
-    await submissionRef.update({
+    await ref.update({
       status: 'completed',
-      analysis,
       completedAt: new Date().toISOString(),
-      debug: { stage: 'completed', updatedAt: new Date().toISOString() },
+      analysis: {
+        original: { overall: originalOverall, categories: originalParsed.categories, recommendations: originalParsed.recommendations },
+        rewrite: { overall: rewriteOverall, categories: rewriteParsed.categories, text: rewriteText, wordCount: countWords(rewriteText) },
+      },
     });
 
     return NextResponse.json({ ok: true, submissionId });
   } catch (e: any) {
-    console.error('RUN_ANALYSIS_FATAL:', e?.message);
-    return NextResponse.json({ error: `Fatal error: ${e?.message}` }, { status: 500 });
+    return NextResponse.json({ error: `Fatal: ${e?.message}` }, { status: 500 });
   }
 }
