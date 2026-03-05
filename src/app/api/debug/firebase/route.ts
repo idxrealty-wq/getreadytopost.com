@@ -15,8 +15,9 @@ export async function GET(req: NextRequest) {
 
     if (!getApps().length) {
       initializeApp({
-        credential: cert({ projectId, clientEmail, privateKey }),
-      });
+  credential: cert({ projectId, clientEmail, privateKey }),
+  databaseURL: `https://${projectId}-default-rtdb.firebaseio.com`,
+});
     }
 
     const db = getFirestore();
