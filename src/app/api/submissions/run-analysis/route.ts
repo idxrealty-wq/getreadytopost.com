@@ -10,15 +10,11 @@ function initAdmin() {
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n');
   if (!projectId || !clientEmail || !privateKey) {
-    throw new Error(`Firebase Admin init failed`);
+    throw new Error('Firebase Admin init failed: missing credentials');
   }
   initializeApp({
     credential: cert({ projectId, clientEmail, privateKey }),
   });
-}
-
-function safeJsonParse(raw: string): any {
-  try { return JSON.parse(raw); } catch { return null; }
 }
 
 function countWords(text: string): number {
@@ -72,7 +68,19 @@ function buildFactsBlock(propertyDetails: any): string {
   return lines.length ? lines.join('\n') : 'None provided.';
 }
 
-async function callOpenAI(key: string, system: string, user: string): Promise<any> {
+function extractJSON(text: string): any {
+  const cleaned = text.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+  const start = cleaned.indexOf('{');
+  const end = cleaned.lastIndexOf('}');
+  if (start === -1 || end === -1 || end <= start) return null;
+  try {
+    return JSON.parse(cleaned.slice(start, end + 1));
+  } catch {
+    return null;
+  }
+}
+
+async function callOpenAIForJSON(key: string, system: string, user: string): Promise<any> {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
@@ -85,16 +93,30 @@ async function callOpenAI(key: string, system: string, user: string): Promise<an
       temperature: 0.7,
     }),
   });
-  if (!res.ok) throw new Error(`OpenAI error: ${await res.text()}`);
+  if (!res.ok) throw new Error(`OpenAI API error: ${res.status}`);
   const data = await res.json();
-  const rawContent = String(data.choices?.[0]?.message?.content || '{}');
-  const unfenced = rawContent.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
-  const firstBrace = unfenced.indexOf('{');
-  const lastBrace = unfenced.lastIndexOf('}');
-  const candidate = firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace ? unfenced.slice(firstBrace, lastBrace + 1) : unfenced;
-  const parsed = safeJsonParse(candidate);
-  if (!parsed) throw new Error(`Failed to parse OpenAI JSON`);
+  const content = String(data.choices?.[0]?.message?.content || '');
+  const parsed = extractJSON(content);
+  if (!parsed) throw new Error(`Failed to extract JSON from response`);
   return parsed;
+}
+
+async function callOpenAIForText(key: string, system: string, user: string): Promise<string> {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: user },
+      ],
+      temperature: 0.7,
+    }),
+  });
+  if (!res.ok) throw new Error(`OpenAI API error: ${res.status}`);
+  const data = await res.json();
+  return String(data.choices?.[0]?.message?.content || '').trim();
 }
 
 async function ensureRewriteLength(rewrite: string, key: string, factsBlock: string): Promise<string> {
@@ -102,21 +124,15 @@ async function ensureRewriteLength(rewrite: string, key: string, factsBlock: str
   for (let i = 0; i < 3; i++) {
     const wc = countWords(current);
     if (wc >= 145 && wc <= 165) return current;
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: 'Rewrite to exactly 155 words (145-165 allowed). Return ONLY the text.' },
-          { role: 'user', content: `FACTS:\n${factsBlock}\n\nRewrite to 155 words:\n\n${current}` },
-        ],
-        temperature: 0.7,
-      }),
-    });
-    if (!res.ok) return current;
-    const data = await res.json();
-    current = String(data.choices?.[0]?.message?.content || current).trim();
+    try {
+      current = await callOpenAIForText(
+        key,
+        'Rewrite to exactly 155 words (145-165 allowed). Return ONLY the text.',
+        `FACTS:\n${factsBlock}\n\nRewrite to 155 words:\n\n${current}`
+      );
+    } catch {
+      return current;
+    }
   }
   return current;
 }
@@ -126,57 +142,98 @@ export async function POST(req: NextRequest) {
     initAdmin();
     const db = getFirestore();
     const { submissionId } = await req.json();
-    if (!submissionId) return NextResponse.json({ error: 'submissionId required' }, { status: 400 });
+
+    if (!submissionId) {
+      return NextResponse.json({ error: 'submissionId required' }, { status: 400 });
+    }
+
     const submissionRef = db.collection('submissions').doc(submissionId);
     const submissionDoc = await submissionRef.get();
-    if (!submissionDoc.exists) return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
+
+    if (!submissionDoc.exists) {
+      return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
+    }
+
     const data = submissionDoc.data() || {};
     const listingText = String(data.listingText || '');
     const propertyDetails = data.propertyDetails || {};
     const factsBlock = buildFactsBlock(propertyDetails);
+
     await submissionRef.update({ status: 'processing' });
+
     const openaiKey = String(process.env.OPENAI_API_KEY || '');
     if (!openaiKey) {
       await submissionRef.update({ status: 'error', error: 'Missing OPENAI_API_KEY' });
       return NextResponse.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
     }
 
-    // Grade original
-    const originalSystem = `Grade ONLY the ORIGINAL listing across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY valid JSON: {"categories":{"headline":{"grade":"A|B|C|D|F","feedback":"one sentence"},"length":{"grade":"A|B|C|D|F","feedback":"one sentence"},"emotion":{"grade":"A|B|C|D|F","feedback":"one sentence"},"keywords":{"grade":"A|B|C|D|F","feedback":"one sentence"},"cta":{"grade":"A|B|C|D|F","feedback":"one sentence"},"compliance":{"grade":"A|B|C|D|F","feedback":"one sentence"}},"recommendations":["fix 1","fix 2","fix 3"]}`;
+    // STEP 1: Grade original
+    const originalSystem = `Grade ONLY the ORIGINAL listing across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY valid JSON with this exact shape: {"categories":{"headline":{"grade":"A|B|C|D|F","feedback":"one sentence"},"length":{"grade":"A|B|C|D|F","feedback":"one sentence"},"emotion":{"grade":"A|B|C|D|F","feedback":"one sentence"},"keywords":{"grade":"A|B|C|D|F","feedback":"one sentence"},"cta":{"grade":"A|B|C|D|F","feedback":"one sentence"},"compliance":{"grade":"A|B|C|D|F","feedback":"one sentence"}},"recommendations":["fix 1","fix 2","fix 3"]}`;
     const originalUser = `FACTS:\n${factsBlock}\n\nORIGINAL LISTING:\n${listingText}`;
-    const original = await callOpenAI(openaiKey, originalSystem, originalUser);
+
+    let original: any;
+    try {
+      original = await callOpenAIForJSON(openaiKey, originalSystem, originalUser);
+    } catch (e: any) {
+      await submissionRef.update({ status: 'error', error: `Original grading failed: ${e?.message}` });
+      return NextResponse.json({ error: `Original grading failed: ${e?.message}` }, { status: 500 });
+    }
+
     const originalOverall = computeOverallFromCategories(original.categories);
 
-    // Generate rewrite (plain text, no JSON)
-    const rewriteSystem = `You are an elite MLS listing rewriter. Use ONLY facts from FACTS block. Do NOT invent. WORD COUNT: 145-165 words. Return ONLY the rewritten text, nothing else.`;
-const rewriteUser = `FACTS:\n${factsBlock}\n\nORIGINAL:\n${listingText}`;
-const rewriteRes = await fetch('https://api.openai.com/v1/chat/completions', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${openaiKey}` },
-  body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'system', content: rewriteSystem }, { role: 'user', content: rewriteUser }], temperature: 0.7 }),
-});
-if (!rewriteRes.ok) throw new Error('Rewrite API failed');
-const rewriteData = await rewriteRes.json();
-let rewriteText = String(rewriteData.choices?.[0]?.message?.content || '').trim();
+    // STEP 2: Generate rewrite (plain text only)
+    const rewriteSystem = `You are an elite MLS listing rewriter. Use ONLY facts from FACTS block. Do NOT invent. WORD COUNT: 145-165 words. Return ONLY the rewritten text, nothing else. No JSON. Just text.`;
+    const rewriteUser = `FACTS:\n${factsBlock}\n\nORIGINAL:\n${listingText}`;
+
+    let rewriteText: string;
+    try {
+      rewriteText = await callOpenAIForText(openaiKey, rewriteSystem, rewriteUser);
+    } catch (e: any) {
+      await submissionRef.update({ status: 'error', error: `Rewrite generation failed: ${e?.message}` });
+      return NextResponse.json({ error: `Rewrite generation failed: ${e?.message}` }, { status: 500 });
+    }
 
     rewriteText = await ensureRewriteLength(rewriteText, openaiKey, factsBlock);
     const rewriteWordCount = countWords(rewriteText);
 
-    // Grade rewrite
-    const rewriteGradeSystem = `Grade ONLY the REWRITE across 6 categories. Return ONLY valid JSON: {"categories":{"headline":{"grade":"A|B|C|D|F","feedback":"one sentence"},"length":{"grade":"A|B|C|D|F","feedback":"one sentence"},"emotion":{"grade":"A|B|C|D|F","feedback":"one sentence"},"keywords":{"grade":"A|B|C|D|F","feedback":"one sentence"},"cta":{"grade":"A|B|C|D|F","feedback":"one sentence"},"compliance":{"grade":"A|B|C|D|F","feedback":"one sentence"}}}`;
+    // STEP 3: Grade rewrite
+    const rewriteGradeSystem = `Grade ONLY the REWRITE across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY valid JSON with this exact shape: {"categories":{"headline":{"grade":"A|B|C|D|F","feedback":"one sentence"},"length":{"grade":"A|B|C|D|F","feedback":"one sentence"},"emotion":{"grade":"A|B|C|D|F","feedback":"one sentence"},"keywords":{"grade":"A|B|C|D|F","feedback":"one sentence"},"cta":{"grade":"A|B|C|D|F","feedback":"one sentence"},"compliance":{"grade":"A|B|C|D|F","feedback":"one sentence"}}}`;
     const rewriteGradeUser = `FACTS:\n${factsBlock}\n\nREWRITE:\n${rewriteText}`;
-    const rewriteGradeObj = await callOpenAI(openaiKey, rewriteGradeSystem, rewriteGradeUser);
+
+    let rewriteGradeObj: any;
+    try {
+      rewriteGradeObj = await callOpenAIForJSON(openaiKey, rewriteGradeSystem, rewriteGradeUser);
+    } catch (e: any) {
+      await submissionRef.update({ status: 'error', error: `Rewrite grading failed: ${e?.message}` });
+      return NextResponse.json({ error: `Rewrite grading failed: ${e?.message}` }, { status: 500 });
+    }
+
     const rewriteOverall = computeOverallFromCategories(rewriteGradeObj.categories);
 
+    // STEP 4: Save to Firestore
     const analysis = {
-      original: { overall: originalOverall, categories: original.categories || {}, recommendations: Array.isArray(original.recommendations) ? original.recommendations : [] },
-      rewrite: { overall: rewriteOverall, categories: rewriteGradeObj.categories || {}, text: rewriteText, wordCount: rewriteWordCount },
+      original: {
+        overall: originalOverall,
+        categories: original.categories || {},
+        recommendations: Array.isArray(original.recommendations) ? original.recommendations : [],
+      },
+      rewrite: {
+        overall: rewriteOverall,
+        categories: rewriteGradeObj.categories || {},
+        text: rewriteText,
+        wordCount: rewriteWordCount,
+      },
     };
 
-    await submissionRef.update({ status: 'completed', analysis, completedAt: new Date().toISOString() });
+    await submissionRef.update({
+      status: 'completed',
+      analysis,
+      completedAt: new Date().toISOString(),
+    });
+
     return NextResponse.json({ ok: true, submissionId });
   } catch (e: any) {
-    console.error('RUN_ANALYSIS_ERROR:', e?.message);
-    return NextResponse.json({ error: `Analysis failed: ${e?.message || 'Unknown'}` }, { status: 500 });
+    console.error('RUN_ANALYSIS_FATAL:', e?.message);
+    return NextResponse.json({ error: `Fatal error: ${e?.message || 'Unknown'}` }, { status: 500 });
   }
 }
