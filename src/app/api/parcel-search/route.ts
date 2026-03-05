@@ -3,6 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 const KEY = '343bc00b6e80a125e9a2ad10a53aabd1';
 const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
 
+type ParcelMatch = {
+  address?: {
+    countrySubd?: string | null;
+  } | null;
+  identifier?: {
+    attomId?: number | string | null;
+    Id?: number | string | null;
+  } | null;
+};
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get('q') || '').trim();
@@ -26,11 +36,11 @@ export async function GET(req: NextRequest) {
       }
     );
     const d1 = await r1.json();
-    let matches = Array.isArray(d1?.property) ? d1.property : [];
+    let matches: ParcelMatch[] = Array.isArray(d1?.property) ? (d1.property as ParcelMatch[]) : [];
 
     if (stateParam) {
       const stateUpper = stateParam.toUpperCase();
-      matches = matches.filter((m) => {
+      matches = matches.filter((m: ParcelMatch) => {
         const st = (m?.address?.countrySubd || '').toUpperCase();
         return st === stateUpper || st === stateUpper.substring(0, 2);
       });
