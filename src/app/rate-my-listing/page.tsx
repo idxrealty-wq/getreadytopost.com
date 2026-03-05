@@ -38,37 +38,49 @@ export default function RateMyListingPage() {
 
     setLoading(true);
     try {
-      const pd = {
-        listingDescription,
-        address,
-        city,
-        state,
-        zip: '',
-        beds: beds ? parseInt(beds) : null,
-        baths: baths ? parseFloat(baths) : null,
-        sqft: sqft ? parseInt(sqft) : null,
-        yearBuilt: yearBuilt ? parseInt(yearBuilt) : null,
-        price: price ? parseInt(price) : null,
-        hoa: hoa === 'yes' ? true : false,
-        hoaAmount: hoaAmount ? parseFloat(hoaAmount) : null,
-        email,
-      };
-
-      localStorage.setItem('grtp_property', JSON.stringify(pd));
-
-      const res = await fetch('/api/submissions/run-analysis', {
+      // Step 1: Create submission
+      const createRes = await fetch('/api/submissions/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pd),
+        body: JSON.stringify({
+          listingDescription,
+          email,
+          address,
+          city,
+          state,
+          zip: '',
+          beds: beds ? parseInt(beds) : null,
+          baths: baths ? parseFloat(baths) : null,
+          sqft: sqft ? parseInt(sqft) : null,
+          yearBuilt: yearBuilt ? parseInt(yearBuilt) : null,
+          price: price ? parseInt(price) : null,
+          hoa: hoa === 'yes' ? true : false,
+          hoaAmount: hoaAmount ? parseFloat(hoaAmount) : null,
+        }),
       });
 
-      const result = await res.json();
-      if (result.success) {
+      const createResult = await createRes.json();
+      if (!createResult.submissionId) {
+        alert('Failed to create submission: ' + (createResult.error || 'Unknown error'));
+        setLoading(false);
+        return;
+      }
+
+      const submissionId = createResult.submissionId;
+
+      // Step 2: Run analysis
+      const analysisRes = await fetch('/api/submissions/run-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ submissionId }),
+      });
+
+      const analysisResult = await analysisRes.json();
+      if (analysisResult.ok) {
         setSubmitted(true);
-        setListing(result.listing);
-        setTimeout(() => router.push('/results'), 2000);
+        setTimeout(() => router.push(`/results?id=${submissionId}`), 2000);
       } else {
-        alert('Analysis failed: ' + (result.error || 'Unknown error'));
+        alert('Analysis failed: ' + (analysisResult.error || 'Unknown error'));
       }
     } catch (e) {
       alert('Error: ' + (e instanceof Error ? e.message : 'Unknown'));
