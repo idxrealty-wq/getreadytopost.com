@@ -149,9 +149,16 @@ export async function POST(req: NextRequest) {
 
     // Generate rewrite (plain text, no JSON)
     const rewriteSystem = `You are an elite MLS listing rewriter. Use ONLY facts from FACTS block. Do NOT invent. WORD COUNT: 145-165 words. Return ONLY the rewritten text, nothing else.`;
-    const rewriteUser = `FACTS:\n${factsBlock}\n\nORIGINAL:\n${listingText}`;
-    const rewriteObj = await callOpenAI(openaiKey, rewriteSystem, rewriteUser);
-    let rewriteText = String(rewriteObj || '').trim();
+const rewriteUser = `FACTS:\n${factsBlock}\n\nORIGINAL:\n${listingText}`;
+const rewriteRes = await fetch('https://api.openai.com/v1/chat/completions', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${openaiKey}` },
+  body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'system', content: rewriteSystem }, { role: 'user', content: rewriteUser }], temperature: 0.7 }),
+});
+if (!rewriteRes.ok) throw new Error('Rewrite API failed');
+const rewriteData = await rewriteRes.json();
+let rewriteText = String(rewriteData.choices?.[0]?.message?.content || '').trim();
+
     rewriteText = await ensureRewriteLength(rewriteText, openaiKey, factsBlock);
     const rewriteWordCount = countWords(rewriteText);
 
