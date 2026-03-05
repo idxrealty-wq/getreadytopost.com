@@ -67,6 +67,5 @@ return NextResponse.json(
   { error: errorMsg },
   { status: 500 }
 );
-    );
-  }
+}
 }
