@@ -57,11 +57,11 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     };
 
-    const docRef = await db.collection('submissions').add(submission);
+    const docRef = await db.collection('submissions').add(submission);console.error('FIRESTORE_WRITE_SUCCESS:', docRef.id);
 
     return NextResponse.json({ submissionId: docRef.id, ok: true });
   } catch (e: any) {
-    console.error('CREATE_ERROR:', JSON.stringify({ message: e?.message, stack: e?.stack }, null, 2));
+    cconsole.error('CREATE_CATCH_ERROR:', JSON.stringify({ message: e?.message, code: e?.code, stack: e?.stack }, null, 2));
     return NextResponse.json(
       { error: `Create failed: ${e?.message || 'Unknown error'}` },
       { status: 500 }
