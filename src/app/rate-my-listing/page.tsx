@@ -40,7 +40,6 @@ export default function RateMyListingPage() {
     setLoading(true);
 
     try {
-      // 1) Create submission
       const createRes = await fetch('/api/submissions/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -63,20 +62,23 @@ export default function RateMyListingPage() {
 
       const createText = await createRes.text();
       let createJson: any = null;
-      try { createJson = JSON.parse(createText); } catch {}
+      try {
+        createJson = JSON.parse(createText);
+      } catch {}
 
       if (!createRes.ok) {
         alert(createJson?.error || createText || 'Create failed');
+        setLoading(false);
         return;
       }
 
       const submissionId = createJson?.submissionId;
       if (!submissionId) {
         alert('Create failed: missing submissionId');
+        setLoading(false);
         return;
       }
 
-      // 2) Run analysis
       const analysisRes = await fetch('/api/submissions/run-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,10 +87,13 @@ export default function RateMyListingPage() {
 
       const analysisText = await analysisRes.text();
       let analysisJson: any = null;
-      try { analysisJson = JSON.parse(analysisText); } catch {}
+      try {
+        analysisJson = JSON.parse(analysisText);
+      } catch {}
 
       if (!analysisRes.ok) {
         alert(analysisJson?.error || analysisText || 'Analysis failed');
+        setLoading(false);
         return;
       }
 
