@@ -101,7 +101,7 @@ export default function RateMyListingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] py-12 px-4">
+    <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] py-6 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
           <h1 className="text-3xl font-bold text-white mb-2">Rate My Listing</h1>
