@@ -19,7 +19,6 @@ export default function RateMyListingPage() {
   const [price, setPrice] = useState('');
   const [hoa, setHoa] = useState('');
   const [hoaAmount, setHoaAmount] = useState('');
-  const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -38,7 +37,6 @@ export default function RateMyListingPage() {
 
     setLoading(true);
     try {
-      // Step 1: Create submission
       const createRes = await fetch('/api/submissions/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -68,7 +66,6 @@ export default function RateMyListingPage() {
 
       const submissionId = createResult.submissionId;
 
-      // Step 2: Run analysis
       const analysisRes = await fetch('/api/submissions/run-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -101,8 +98,16 @@ export default function RateMyListingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] py-6 px-4">
-      <div className="max-w-2xl mx-auto">
+    <main
+      className="min-h-screen bg-cover bg-center bg-fixed pt-16 pb-10 px-4 relative"
+      style={{
+        backgroundImage:
+          'url("https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1600&h=1000&fit=crop")',
+      }}
+    >
+      <div className="absolute inset-0 bg-black/45"></div>
+
+      <div className="max-w-2xl mx-auto relative z-10">
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
           <h1 className="text-3xl font-bold text-white mb-2">Rate My Listing</h1>
           <p className="text-gray-300 mb-8">Get an instant AI-powered analysis of your listing description</p>
@@ -157,7 +162,13 @@ export default function RateMyListingPage() {
             <div>
               <label className="block text-gray-400 text-xs mb-1">Property Address (United States)</label>
               <p className="text-gray-500 text-xs mb-2">Tip: Add City + State above for faster, accurate results.</p>
-              <AddressAutosuggest value={address} onChange={setAddress} onSelect={handleAddressSelect} state={state} city={city} />
+              <AddressAutosuggest
+                value={address}
+                onChange={setAddress}
+                onSelect={handleAddressSelect}
+                state={state}
+                city={city}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
