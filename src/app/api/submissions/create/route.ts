@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ submissionId: docRef.id, ok: true });
   } catch (e: any) {
-    cconsole.error('CREATE_CATCH_ERROR:', JSON.stringify({ message: e?.message, code: e?.code, stack: e?.stack }, null, 2));
+    console.error('CREATE_CATCH_ERROR:', JSON.stringify({ message: e?.message, code: e?.code, stack: e?.stack }, null, 2));
     return NextResponse.json(
       { error: `Create failed: ${e?.message || 'Unknown error'}` },
       { status: 500 }
