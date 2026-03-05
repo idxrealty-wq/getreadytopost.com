@@ -53,9 +53,9 @@ export default function RateMyListingPage() {
           baths: baths ? parseFloat(baths) : null,
           sqft: sqft ? parseInt(sqft) : null,
           yearBuilt: yearBuilt ? parseInt(yearBuilt) : null,
-          price: price ? parseInt(price) : null,
+          price: price ? parseInt(price.replace(/,/g, '')) : null,
           hoa: hoa === 'yes' ? true : false,
-          hoaAmount: hoaAmount ? parseFloat(hoaAmount) : null,
+          hoaAmount: hoaAmount ? parseFloat(hoaAmount.replace(/,/g, '')) : null,
         }),
       });
 
@@ -211,9 +211,9 @@ export default function RateMyListingPage() {
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
                 <input
-                  type="number"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  type="text"
+                  value={price ? Number(price).toLocaleString() : ''}
+                  onChange={(e) => setPrice(e.target.value.replace(/,/g, ''))}
                   placeholder="450000"
                   className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
                 />
@@ -239,9 +239,9 @@ export default function RateMyListingPage() {
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
                   <input
-                    type="number"
-                    value={hoaAmount}
-                    onChange={(e) => setHoaAmount(e.target.value)}
+                    type="text"
+                    value={hoaAmount ? Number(hoaAmount).toLocaleString() : ''}
+                    onChange={(e) => setHoaAmount(e.target.value.replace(/,/g, ''))}
                     placeholder="250"
                     className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
                   />
