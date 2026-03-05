@@ -12,6 +12,7 @@ export default function RateMyListingPage() {
   const [state, setState] = useState('Florida');
   const [city, setCity] = useState('Orlando');
   const [address, setAddress] = useState('');
+
   const [beds, setBeds] = useState('');
   const [baths, setBaths] = useState('');
   const [sqft, setSqft] = useState('');
@@ -19,24 +20,27 @@ export default function RateMyListingPage() {
   const [price, setPrice] = useState('');
   const [hoa, setHoa] = useState('');
   const [hoaAmount, setHoaAmount] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const handleAddressSelect = (parcel: any) => {
-    if (parcel.beds) setBeds(parcel.beds);
-    if (parcel.baths) setBaths(parcel.baths);
-    if (parcel.sqft) setSqft(parcel.sqft);
-    if (parcel.year_built) setYearBuilt(parcel.year_built);
+    if (parcel?.beds) setBeds(String(parcel.beds));
+    if (parcel?.baths) setBaths(String(parcel.baths));
+    if (parcel?.sqft) setSqft(String(parcel.sqft));
+    if (parcel?.year_built) setYearBuilt(String(parcel.year_built));
   };
 
   const handleSubmit = async () => {
-    if (!listingDescription || !email || !address) {
-      alert('Listing description, email, and address are required');
+    if (!listingDescription.trim() || !email.trim() || !address.trim()) {
+      alert('Listing description, email, and address are required.');
       return;
     }
 
     setLoading(true);
+
     try {
+      // 1) Create submission
       const createRes = await fetch('/api/submissions/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -52,35 +56,51 @@ export default function RateMyListingPage() {
           sqft: sqft ? parseInt(sqft) : null,
           yearBuilt: yearBuilt ? parseInt(yearBuilt) : null,
           price: price ? parseInt(price.replace(/,/g, '')) : null,
-          hoa: hoa === 'yes' ? true : false,
+          hoa: hoa === 'yes' ? 'yes' : 'no',
           hoaAmount: hoaAmount ? parseFloat(hoaAmount.replace(/,/g, '')) : null,
         }),
       });
 
-      const createResult = await createRes.json();
-      if (!createResult.submissionId) {
-        alert('Failed to create submission: ' + (createResult.error || 'Unknown error'));
-        setLoading(false);
+      const createText = await createRes.text();
+      let createJson: any = null;
+      try { createJson = JSON.parse(createText); } catch {}
+
+      if (!createRes.ok) {
+        alert(createJson?.error || createText || 'Create failed');
         return;
       }
 
-      const submissionId = createResult.submissionId;
+      const submissionId = createJson?.submissionId;
+      if (!submissionId) {
+        alert('Create failed: missing submissionId');
+        return;
+      }
 
+      // 2) Run analysis
       const analysisRes = await fetch('/api/submissions/run-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ submissionId }),
       });
 
-      const analysisResult = await analysisRes.json();
-      if (analysisResult.ok) {
-        setSubmitted(true);
-        setTimeout(() => router.push(`/results?id=${submissionId}`), 2000);
-      } else {
-        alert('Analysis failed: ' + (analysisResult.error || 'Unknown error'));
+      const analysisText = await analysisRes.text();
+      let analysisJson: any = null;
+      try { analysisJson = JSON.parse(analysisText); } catch {}
+
+      if (!analysisRes.ok) {
+        alert(analysisJson?.error || analysisText || 'Analysis failed');
+        return;
       }
-    } catch (e) {
-      alert('Error: ' + (e instanceof Error ? e.message : 'Unknown'));
+
+      if (analysisJson?.ok) {
+        setSubmitted(true);
+        setTimeout(() => router.push(`/results/original/${submissionId}`), 800);
+        return;
+      }
+
+      alert('Analysis failed: unknown response');
+    } catch (e: any) {
+      alert(`Error: ${e?.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -91,7 +111,7 @@ export default function RateMyListingPage() {
       <div className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white mb-4">Analysis Complete!</h1>
-          <p className="text-gray-300 mb-8">Redirecting to results...</p>
+          <p className="text-gray-300 mb-8">Redirecting to your report...</p>
         </div>
       </div>
     );
@@ -115,7 +135,6 @@ export default function RateMyListingPage() {
           <div className="space-y-6">
             <div>
               <label className="block text-gray-400 text-xs mb-1">Listing Description</label>
-              <p className="text-gray-500 text-xs mb-2">Paste your current MLS or listing description here</p>
               <textarea
                 value={listingDescription}
                 onChange={(e) => setListingDescription(e.target.value)}
@@ -143,7 +162,6 @@ export default function RateMyListingPage() {
                   type="text"
                   value={state}
                   onChange={(e) => setState(e.target.value)}
-                  placeholder="Florida"
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
                 />
               </div>
@@ -153,7 +171,6 @@ export default function RateMyListingPage() {
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="Orlando"
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
                 />
               </div>
@@ -161,7 +178,6 @@ export default function RateMyListingPage() {
 
             <div>
               <label className="block text-gray-400 text-xs mb-1">Property Address (United States)</label>
-              <p className="text-gray-500 text-xs mb-2">Tip: Add City + State above for faster, accurate results.</p>
               <AddressAutosuggest
                 value={address}
                 onChange={setAddress}
@@ -178,7 +194,6 @@ export default function RateMyListingPage() {
                   type="number"
                   value={beds}
                   onChange={(e) => setBeds(e.target.value)}
-                  placeholder="3"
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
                 />
               </div>
@@ -188,7 +203,6 @@ export default function RateMyListingPage() {
                   type="number"
                   value={baths}
                   onChange={(e) => setBaths(e.target.value)}
-                  placeholder="2"
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
                 />
               </div>
@@ -201,7 +215,6 @@ export default function RateMyListingPage() {
                   type="number"
                   value={sqft}
                   onChange={(e) => setSqft(e.target.value)}
-                  placeholder="2000"
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
                 />
               </div>
@@ -211,7 +224,6 @@ export default function RateMyListingPage() {
                   type="number"
                   value={yearBuilt}
                   onChange={(e) => setYearBuilt(e.target.value)}
-                  placeholder="2015"
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
                 />
               </div>
@@ -219,16 +231,12 @@ export default function RateMyListingPage() {
 
             <div>
               <label className="block text-gray-400 text-xs mb-1">List Price</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
-                <input
-                  type="text"
-                  value={price ? Number(price).toLocaleString() : ''}
-                  onChange={(e) => setPrice(e.target.value.replace(/,/g, ''))}
-                  placeholder="450000"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
-                />
-              </div>
+              <input
+                type="text"
+                value={price ? Number(price).toLocaleString() : ''}
+                onChange={(e) => setPrice(e.target.value.replace(/,/g, ''))}
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
+              />
             </div>
 
             <div>
@@ -247,16 +255,12 @@ export default function RateMyListingPage() {
             {hoa === 'yes' && (
               <div>
                 <label className="block text-gray-400 text-xs mb-1">HOA Amount (Monthly)</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
-                  <input
-                    type="text"
-                    value={hoaAmount ? Number(hoaAmount).toLocaleString() : ''}
-                    onChange={(e) => setHoaAmount(e.target.value.replace(/,/g, ''))}
-                    placeholder="250"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={hoaAmount ? Number(hoaAmount).toLocaleString() : ''}
+                  onChange={(e) => setHoaAmount(e.target.value.replace(/,/g, ''))}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-gray-900"
+                />
               </div>
             )}
 
