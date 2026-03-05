@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { initializeApp, cert, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
 export const dynamic = 'force-dynamic';
@@ -12,31 +12,26 @@ function initAdmin() {
   if (!projectId || !clientEmail || !privateKey) {
     throw new Error('Firebase Admin credentials missing');
   }
-  initializeApp({
-    credential: cert({ projectId, clientEmail, privateKey }),
-  });
+  initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
 }
 
 export async function POST(req: NextRequest) {
   try {
     console.log('STEP_1: POST called');
-    initAdmin();console.log('DEBUG_PROJECT_ID:', process.env.FIREBASE_ADMIN_PROJECT_ID);
+    initAdmin();
     console.log('STEP_2: Firebase Admin initialized');
 
-    const db = getFirestore();
+    const db = getFirestore(getApp(), 'default');
     console.log('STEP_3: Firestore instance obtained');
 
     const body = await req.json();
     console.log('STEP_4: Request body parsed', { email: body?.email, hasListing: !!body?.listingDescription });
+    console.log('DEBUG_PROJECT_ID:', process.env.FIREBASE_ADMIN_PROJECT_ID);
 
     const { listingDescription, email, address, city, state, zip, beds, baths, sqft, yearBuilt, price, hoa, hoaAmount } = body;
 
     if (!listingDescription?.trim() || !email?.trim()) {
-      console.log('STEP_5: Validation failed - missing required fields');
-      return NextResponse.json(
-        { error: 'listingDescription and email are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'listingDescription and email are required' }, { status: 400 });
     }
     console.log('STEP_5: Validation passed');
 
@@ -62,11 +57,11 @@ export async function POST(req: NextRequest) {
     console.log('STEP_6: Submission object built');
 
     const docRef = await db.collection('submissions').add(submission);
-    console.log('STEP_7: Document written to Firestore', { docId: docRef.id, projectId: process.env.FIREBASE_ADMIN_PROJECT_ID });
+    console.log('STEP_7: Document written', { docId: docRef.id, projectId: process.env.FIREBASE_ADMIN_PROJECT_ID });
 
     await docRef.update({
       'debug.createConfirmed': true,
-      'debug.createConfirmedAt': new Date().toISOString(),
+      'debug.createdAt': new Date().toISOString(),
       'debug.projectId': process.env.FIREBASE_ADMIN_PROJECT_ID,
     });
     console.log('STEP_8: Debug breadcrumb written');
@@ -74,9 +69,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ submissionId: docRef.id, ok: true });
   } catch (e: any) {
     console.error('CREATE_ERROR_FATAL:', { message: e?.message, code: e?.code });
-    return NextResponse.json(
-      { error: `Create failed: ${e?.message || 'Unknown error'}` },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: `Create failed: ${e?.message || 'Unknown error'}` }, { status: 500 });
   }
 }
