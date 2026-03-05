@@ -220,7 +220,7 @@ Return ONLY valid JSON with this shape:
     const rewriteObj = await callOpenAI(openaiKey, rewriteSystem, rewriteUser);
 
     let rewriteTelet rewriteText = String(rewriteObj || '').trim();xt = String(rewriteObj.rewrite || '').trim();
-    rewriteText = await ensureRewriteLength(rewriteText, openaiKey, factsBlock);
+    let rewriteText = String(rewriteObj || '').trim();
     const rewriteWordCount = countWords(rewriteText);
 
     // Grade rewrite
