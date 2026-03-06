@@ -43,13 +43,16 @@ export function scoreKeywords(text: string): KeywordResult {
         points += bonus;
         totalPoints += points;
 
-        keywordsFound.push({
+        const item: KeywordFound = {
           keyword,
           tier: 1,
           location: `Instance ${i + 1}`,
           points,
-          bonus: bonus > 0 ? bonus : undefined,
-        });
+        };
+
+        if (bonus > 0) item.bonus = bonus;
+
+        keywordsFound.push(item);
       }
     }
   }
@@ -62,12 +65,15 @@ export function scoreKeywords(text: string): KeywordResult {
       for (let i = 0; i < matches.length; i++) {
         const points = 3;
         totalPoints += points;
-        keywordsFound.push({
+
+        const item: KeywordFound = {
           keyword,
           tier: 2,
           location: `Instance ${i + 1}`,
           points,
-        });
+        };
+
+        keywordsFound.push(item);
       }
     }
   }
@@ -80,12 +86,15 @@ export function scoreKeywords(text: string): KeywordResult {
       for (let i = 0; i < matches.length; i++) {
         const points = 2;
         totalPoints += points;
-        keywordsFound.push({
+
+        const item: KeywordFound = {
           keyword,
           tier: 3,
           location: `Instance ${i + 1}`,
           points,
-        });
+        };
+
+        keywordsFound.push(item);
       }
     }
   }
