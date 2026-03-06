@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
+import { checkCompliance } from '@/lib/grading/complianceDb';
+import { scoreLength } from '@/lib/grading/lengthScoring';
+import { scoreKeywords } from '@/lib/grading/keywordScoring';
+import { scoreStructure } from '@/lib/grading/structureScoring';
+
 export const dynamic = 'force-dynamic';
 
 function initAdmin() {
@@ -10,27 +15,6 @@ function initAdmin() {
   if (!json) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON missing');
   const sa = JSON.parse(json);
   initializeApp({ credential: cert(sa) });
-}
-
-function countWords(text: string): number {
-  return text.trim().split(/\s+/).filter((w) => w.length > 0).length;
-}
-
-function gradeToPoints(g: string): number {
-  const x = String(g || '').toUpperCase().trim();
-  if (x === 'A') return 4;
-  if (x === 'B') return 3;
-  if (x === 'C') return 2;
-  if (x === 'D') return 1;
-  return 0;
-}
-
-function pointsToGrade(avg: number): 'A' | 'B' | 'C' | 'D' | 'F' {
-  if (avg >= 3.6) return 'A';
-  if (avg >= 2.6) return 'B';
-  if (avg >= 1.6) return 'C';
-  if (avg >= 0.6) return 'D';
-  return 'F';
 }
 
 function buildFactsBlock(pd: any): string {
@@ -60,45 +44,154 @@ async function callOpenAI(key: string, system: string, user: string): Promise<st
     body: JSON.stringify({
       model: 'gpt-4o',
       messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
-      temperature: 0.7,
+      temperature: 0.4,
     }),
   });
+
   if (!res.ok) throw new Error(`OpenAI error: ${res.status}`);
   const data = await res.json();
   return String(data.choices?.[0]?.message?.content || '').trim();
 }
 
-function parseGrading(text: string): { categories: any; recommendations: string[] } {
-  const categories: any = {
-    headline: { grade: 'F', feedback: '' },
-    length: { grade: 'F', feedback: '' },
-    emotion: { grade: 'F', feedback: '' },
-    keywords: { grade: 'F', feedback: '' },
-    cta: { grade: 'F', feedback: '' },
-    compliance: { grade: 'F', feedback: '' },
-  };
-  const recommendations: string[] = [];
-  for (const line of text.split('\n').filter((l) => l.trim())) {
-    const trimmed = line.trim();
-    if (trimmed.toLowerCase().startsWith('recommendation')) {
-      const rec = trimmed.replace(/^recommendation[:|]\s*/i, '').trim();
-      if (rec) recommendations.push(rec);
-    } else {
-      const parts = trimmed.split('|').map((p) => p.trim());
-      if (parts.length >= 2) {
-        const key = parts[0].toLowerCase();
-        const grade = parts[1].toUpperCase().charAt(0);
-        const feedback = parts.slice(2).join(' ').trim() || 'No feedback';
-        if (categories[key]) {
-          categories[key].grade = ['A','B','C','D','F'].includes(grade) ? grade : 'F';
-          categories[key].feedback = feedback;
-        }
-      }
-    }
-  }
-  return { categories, recommendations };
+type AiRubricResult = {
+  score: number;
+  grade: 'A' | 'B' | 'C' | 'D' | 'F';
+  evidence: string[];
+  feedback: string;
+};
+
+function clampScore(x: any): number {
+  const n = Number(x);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(100, n));
 }
 
+function normalizeGrade(g: any): 'A' | 'B' | 'C' | 'D' | 'F' {
+  const x = String(g || '').toUpperCase().trim();
+  if (x === 'A' || x === 'B' || x === 'C' || x === 'D' || x === 'F') return x;
+  return 'F';
+}
+
+async function scoreWithAI(
+  key: string,
+  category: 'emotional_appeal' | 'clarity' | 'buyer_focus',
+  listing: string,
+  factsBlock: string
+): Promise<AiRubricResult> {
+  const rubrics: Record<string, string> = {
+    emotional_appeal: `
+A (90–100): Paints vivid picture, sensory language, creates desire
+B (75–89): Mentions lifestyle benefits, some emotional language
+C (60–74): Factual with minimal emotional appeal
+D (45–59): Dry, no lifestyle language
+F (0–44): Negative or off-putting tone
+`,
+    clarity: `
+A (90–100): Crystal clear, easy to scan, strong message hierarchy
+B (75–89): Clear with minor awkward phrasing
+C (60–74): Understandable but dense or wordy
+D (45–59): Confusing or unclear in places
+F (0–44): Incomprehensible or misleading
+`,
+    buyer_focus: `
+A (90–100): Addresses buyer pain points / desires with specific benefits
+B (75–89): Mentions some buyer benefits
+C (60–74): Generic buyer language
+D (45–59): Minimal buyer focus
+F (0–44): Buyer-hostile or off-putting
+`,
+  };
+
+  const prompt = `
+Grade this listing on ${category.toUpperCase()} using the rubric below.
+
+Return ONLY valid JSON (no markdown, no extra text):
+{
+  "score": <0-100>,
+  "grade": "<A|B|C|D|F>",
+  "evidence": ["quote 1", "quote 2"],
+  "feedback": "explanation tied to the rubric"
+}
+
+RUBRIC:
+${rubrics[category]}
+
+FACTS:
+${factsBlock}
+
+LISTING:
+${listing}
+`.trim();
+
+  const response = await callOpenAI(key, 'You are an expert MLS listing grader. Return ONLY valid JSON.', prompt);
+
+  try {
+    const parsed = JSON.parse(response);
+    return {
+      score: clampScore(parsed.score),
+      grade: normalizeGrade(parsed.grade),
+      evidence: Array.isArray(parsed.evidence) ? parsed.evidence.map((x: any) => String(x)).slice(0, 4) : [],
+      feedback: String(parsed.feedback || ''),
+    };
+  } catch {
+    return { score: 60, grade: 'C', evidence: [], feedback: 'AI scoring returned invalid JSON.' };
+  }
+}
+
+async function generateRewrite(key: string, listing: string, factsBlock: string): Promise<string> {
+  const prompt = `
+You are an elite MLS listing rewriter optimizing for conversion.
+
+CONSTRAINTS:
+- Use ONLY facts provided
+- 145-165 words
+- NO prohibited phrases (master bedroom → primary bedroom, great schools → remove)
+- Open with emotional trigger + property benefit
+- Close with a clear CTA (Schedule, Contact, Don't miss, etc.)
+- Avoid ALL CAPS and excessive punctuation
+
+PROPERTY FACTS:
+${factsBlock}
+
+ORIGINAL:
+${listing}
+
+Return ONLY the rewritten listing text. No explanation, no markdown.
+`.trim();
+
+  return await callOpenAI(key, 'You are an elite MLS listing rewriter. Return ONLY the rewritten listing text.', prompt);
+}
+
+function scoreToLetter(score: number): 'A' | 'B' | 'C' | 'D' | 'F' {
+  if (score >= 90) return 'A';
+  if (score >= 80) return 'B';
+  if (score >= 70) return 'C';
+  if (score >= 60) return 'D';
+  return 'F';
+}
+
+function computeOverallScore(parts: {
+  compliance: number;
+  length: number;
+  keywords: number; // note: 0-50 scale in our keyword scorer
+  structure: number;
+  emotionalAppeal: number;
+  clarity: number;
+  buyerFocus: number;
+}): number {
+  // Normalize keywords to 0-100
+  const keywords100 = Math.max(0, Math.min(100, (parts.keywords / 50) * 100));
+
+  return (
+    parts.compliance * 0.25 +
+    parts.length * 0.15 +
+    keywords100 * 0.1 +
+    parts.structure * 0.1 +
+    parts.emotionalAppeal * 0.15 +
+    parts.clarity * 0.15 +
+    parts.buyerFocus * 0.1
+  );
+}
 export async function POST(req: NextRequest) {
   try {
     initAdmin();
@@ -115,43 +208,194 @@ export async function POST(req: NextRequest) {
     const listingText = String(data.listingText || '');
     const factsBlock = buildFactsBlock(data.propertyDetails || {});
     const openaiKey = process.env.OPENAI_API_KEY || '';
+
     if (!openaiKey) return NextResponse.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
 
     await ref.update({ status: 'processing' });
 
-    // Grade original
-    const originalText = await callOpenAI(openaiKey,
-      `Grade this MLS listing across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY plain text, one line per category: category|grade|feedback. Then list recommendations as: recommendation|text`,
-      `FACTS:\n${factsBlock}\n\nLISTING:\n${listingText}`
-    );
-    const originalParsed = parseGrading(originalText);
-    const originalOverall = pointsToGrade(Object.values(originalParsed.categories).reduce((s: number, c: any) => s + gradeToPoints(c.grade), 0) / 6);
+    // ===== ORIGINAL LISTING: LAYER 1 (DETERMINISTIC) =====
+    const complianceResult = checkCompliance(listingText);
+    const lengthResult = scoreLength(listingText);
+    const keywordsResult = scoreKeywords(listingText);
+    const structureResult = scoreStructure(listingText);
 
-    // Generate rewrite
-    const rewriteText = await callOpenAI(openaiKey,
-      `You are an elite MLS listing rewriter. Use ONLY facts provided. Write 145-165 words. Return ONLY the rewritten listing text.`,
-      `FACTS:\n${factsBlock}\n\nORIGINAL:\n${listingText}`
-    );
+    // ===== ORIGINAL LISTING: LAYER 2 (LLM RUBRIC-BOUND) =====
+    const emotionalAppeal = await scoreWithAI(openaiKey, 'emotional_appeal', listingText, factsBlock);
+    const clarity = await scoreWithAI(openaiKey, 'clarity', listingText, factsBlock);
+    const buyerFocus = await scoreWithAI(openaiKey, 'buyer_focus', listingText, factsBlock);
 
-    // Grade rewrite
-    const rewriteGradeText = await callOpenAI(openaiKey,
-      `Grade this rewritten MLS listing across 6 categories: headline, length, emotion, keywords, cta, compliance. Return ONLY plain text, one line per category: category|grade|feedback.`,
-      `FACTS:\n${factsBlock}\n\nREWRITE:\n${rewriteText}`
-    );
-    const rewriteParsed = parseGrading(rewriteGradeText);
-    const rewriteOverall = pointsToGrade(Object.values(rewriteParsed.categories).reduce((s: number, c: any) => s + gradeToPoints(c.grade), 0) / 6);
+    // ===== ORIGINAL LISTING: CALCULATE OVERALL =====
+    const originalScore = computeOverallScore({
+      compliance: complianceResult.score,
+      length: lengthResult.score,
+      keywords: keywordsResult.score,
+      structure: structureResult.score,
+      emotionalAppeal: emotionalAppeal.score,
+      clarity: clarity.score,
+      buyerFocus: buyerFocus.score,
+    });
 
+    let originalGrade = scoreToLetter(originalScore);
+    if (complianceResult.grade === 'F') {
+      originalGrade = 'D'; // Compliance override: cap at D
+    }
+
+    // ===== GENERATE REWRITE =====
+    const rewriteText = await generateRewrite(openaiKey, listingText, factsBlock);
+
+    // ===== REWRITE: LAYER 1 (DETERMINISTIC) =====
+    const rewriteComplianceResult = checkCompliance(rewriteText);
+    const rewriteLengthResult = scoreLength(rewriteText);
+    const rewriteKeywordsResult = scoreKeywords(rewriteText);
+    const rewriteStructureResult = scoreStructure(rewriteText);
+
+    // ===== REWRITE: LAYER 2 (LLM RUBRIC-BOUND) =====
+    const rewriteEmotionalAppeal = await scoreWithAI(openaiKey, 'emotional_appeal', rewriteText, factsBlock);
+    const rewriteClarity = await scoreWithAI(openaiKey, 'clarity', rewriteText, factsBlock);
+    const rewriteBuyerFocus = await scoreWithAI(openaiKey, 'buyer_focus', rewriteText, factsBlock);
+
+    // ===== REWRITE: CALCULATE OVERALL =====
+    const rewriteScore = computeOverallScore({
+      compliance: rewriteComplianceResult.score,
+      length: rewriteLengthResult.score,
+      keywords: rewriteKeywordsResult.score,
+      structure: rewriteStructureResult.score,
+      emotionalAppeal: rewriteEmotionalAppeal.score,
+      clarity: rewriteClarity.score,
+      buyerFocus: rewriteBuyerFocus.score,
+    });
+
+    let rewriteGrade = scoreToLetter(rewriteScore);
+    if (rewriteComplianceResult.grade === 'F') {
+      rewriteGrade = 'D'; // Compliance override: cap at D
+    }
+    // ===== SAVE TO FIRESTORE =====
     await ref.update({
       status: 'completed',
       completedAt: new Date().toISOString(),
+      rubricVersion: '2.0.0',
+      scoringWeights: {
+        compliance: 0.25,
+        length: 0.15,
+        keywords: 0.1,
+        structure: 0.1,
+        emotionalAppeal: 0.15,
+        clarity: 0.15,
+        buyerFocus: 0.1,
+      },
       analysis: {
-        original: { overall: originalOverall, categories: originalParsed.categories, recommendations: originalParsed.recommendations },
-        rewrite: { overall: rewriteOverall, categories: rewriteParsed.categories, text: rewriteText, wordCount: countWords(rewriteText) },
+        original: {
+          overall: {
+            grade: originalGrade,
+            score: Math.round(originalScore),
+            complianceOverride: complianceResult.grade === 'F',
+          },
+          breakdown: {
+            compliance: {
+              grade: complianceResult.grade,
+              score: complianceResult.score,
+              violations: complianceResult.violations,
+              auditTrail: complianceResult.auditTrail,
+            },
+            length: {
+              grade: lengthResult.grade,
+              score: lengthResult.score,
+              metrics: lengthResult.metrics,
+              auditTrail: lengthResult.auditTrail,
+            },
+            keywords: {
+              grade: keywordsResult.grade,
+              score: keywordsResult.score,
+              keywordsFound: keywordsResult.keywordsFound,
+              auditTrail: keywordsResult.auditTrail,
+            },
+            structure: {
+              grade: structureResult.grade,
+              score: structureResult.score,
+              openingHook: structureResult.openingHook,
+              callToAction: structureResult.callToAction,
+              auditTrail: structureResult.auditTrail,
+            },
+            emotionalAppeal: {
+              grade: emotionalAppeal.grade,
+              score: emotionalAppeal.score,
+              evidence: emotionalAppeal.evidence,
+              feedback: emotionalAppeal.feedback,
+            },
+            clarity: {
+              grade: clarity.grade,
+              score: clarity.score,
+              evidence: clarity.evidence,
+              feedback: clarity.feedback,
+            },
+            buyerFocus: {
+              grade: buyerFocus.grade,
+              score: buyerFocus.score,
+              evidence: buyerFocus.evidence,
+              feedback: buyerFocus.feedback,
+            },
+          },
+        },
+        rewrite: {
+          text: rewriteText,
+          wordCount: rewriteText.trim().split(/\s+/).length,
+          overall: {
+            grade: rewriteGrade,
+            score: Math.round(rewriteScore),
+            complianceOverride: rewriteComplianceResult.grade === 'F',
+          },
+          breakdown: {
+            compliance: {
+              grade: rewriteComplianceResult.grade,
+              score: rewriteComplianceResult.score,
+              violations: rewriteComplianceResult.violations,
+              auditTrail: rewriteComplianceResult.auditTrail,
+            },
+            length: {
+              grade: rewriteLengthResult.grade,
+              score: rewriteLengthResult.score,
+              metrics: rewriteLengthResult.metrics,
+              auditTrail: rewriteLengthResult.auditTrail,
+            },
+            keywords: {
+              grade: rewriteKeywordsResult.grade,
+              score: rewriteKeywordsResult.score,
+              keywordsFound: rewriteKeywordsResult.keywordsFound,
+              auditTrail: rewriteKeywordsResult.auditTrail,
+            },
+            structure: {
+              grade: rewriteStructureResult.grade,
+              score: rewriteStructureResult.score,
+              openingHook: rewriteStructureResult.openingHook,
+              callToAction: rewriteStructureResult.callToAction,
+              auditTrail: rewriteStructureResult.auditTrail,
+            },
+            emotionalAppeal: {
+              grade: rewriteEmotionalAppeal.grade,
+              score: rewriteEmotionalAppeal.score,
+              evidence: rewriteEmotionalAppeal.evidence,
+              feedback: rewriteEmotionalAppeal.feedback,
+            },
+            clarity: {
+              grade: rewriteClarity.grade,
+              score: rewriteClarity.score,
+              evidence: rewriteClarity.evidence,
+              feedback: rewriteClarity.feedback,
+            },
+            buyerFocus: {
+              grade: rewriteBuyerFocus.grade,
+              score: rewriteBuyerFocus.score,
+              evidence: rewriteBuyerFocus.evidence,
+              feedback: rewriteBuyerFocus.feedback,
+            },
+          },
+        },
       },
     });
 
     return NextResponse.json({ ok: true, submissionId });
   } catch (e: any) {
+    console.error('run-analysis error:', e);
     return NextResponse.json({ error: `Fatal: ${e?.message}` }, { status: 500 });
   }
 }
