@@ -46,7 +46,6 @@ function getRewriteWordCount(rewrite?: any) {
   return rewrite.trim().split(/\s+/).length;
 }
 
-
 export default function VaultPage() {
   const { user, loading: authLoading } = useUser();
   const [tab, setTab] = useState<"listings" | "reports" | "closing">("listings");
@@ -301,7 +300,7 @@ export default function VaultPage() {
                     </div>
                     {report.analysis && report.analysis.categories && typeof report.analysis.categories === "object" && (
   <div className="mt-4 flex gap-2 flex-wrap">
-    {Object.entries(report.analysis.categories).map(([key, val]: [string, any]) => (
+   {Object.entries(report.analysis.categories || {}).map(([key, val]: [string, any]) => (
       <span key={key} className={'text-xs font-bold px-2 py-1 rounded-full text-white ' + (gradeColor[typeof val === "object" && val?.grade ? val.grade : ""] || "bg-gray-500")}>
         {key}: {typeof val === "object" && val?.grade ? val.grade : "?"}
       </span>
