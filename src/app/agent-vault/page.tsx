@@ -41,10 +41,11 @@ function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function getRewriteWordCount(rewrite?: string) {
-  if (!rewrite) return 0;
+function getRewriteWordCount(rewrite?: any) {
+  if (!rewrite || typeof rewrite !== "string") return 0;
   return rewrite.trim().split(/\s+/).length;
 }
+
 
 export default function VaultPage() {
   const { user, loading: authLoading } = useUser();
