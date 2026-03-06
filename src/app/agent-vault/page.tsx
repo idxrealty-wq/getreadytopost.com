@@ -299,11 +299,15 @@ export default function VaultPage() {
                       </div>
                       <Link href={'/results?id=' + report.id} className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-5 py-2 rounded-xl font-bold text-sm transition whitespace-nowrap flex-shrink-0">View Report</Link>
                     </div>
-                    {report.analysis && (
-                      <div className="mt-4 flex gap-2 flex-wrap">
-                        {Object.entries(report.analysis.categories).map(([key, val]) => (
-                          <span key={key} className={'text-xs font-bold px-2 py-1 rounded-full text-white ' + (gradeColor[val.grade] || "bg-gray-500")}>
-                            {key}: {val.grade}
+                    {report.analysis && report.analysis.categories && typeof report.analysis.categories === "object" && (
+  <div className="mt-4 flex gap-2 flex-wrap">
+    {Object.entries(report.analysis.categories).map(([key, val]: [string, any]) => (
+      <span key={key} className={'text-xs font-bold px-2 py-1 rounded-full text-white ' + (gradeColor[typeof val === "object" && val?.grade ? val.grade : ""] || "bg-gray-500")}>
+        {key}: {typeof val === "object" && val?.grade ? val.grade : "?"}
+      </span>
+    ))}
+  </div>
+)}
                           </span>
                         ))}
                       </div>
