@@ -13,7 +13,19 @@ function initAdmin() {
   if (getApps().length > 0) return;
   const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   if (!json) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON missing');
-  const sa = JSON.parse(json);
+  
+  let sa: any;
+  try {
+    sa = JSON.parse(json);
+  } catch (e) {
+    throw new Error(`Invalid JSON in FIREBASE_SERVICE_ACCOUNT_JSON: ${e}`);
+  }
+
+  if (!sa.private_key) {
+    throw new Error('Service account missing private_key');
+  }
+
+  sa.private_key = sa.private_key.replace(/\\n/g, "\n");
   initializeApp({ credential: cert(sa) });
 }
 
@@ -133,7 +145,8 @@ ${listing}
       evidence: Array.isArray(parsed.evidence) ? parsed.evidence.map((x: any) => String(x)).slice(0, 4) : [],
       feedback: String(parsed.feedback || ''),
     };
-  } catch {
+  } catch (e) {
+    console.error('AI scoring JSON parse error:', e, 'response was:', response);
     return { score: 60, grade: 'C', evidence: [], feedback: 'AI scoring returned invalid JSON.' };
   }
 }
@@ -173,13 +186,12 @@ function scoreToLetter(score: number): 'A' | 'B' | 'C' | 'D' | 'F' {
 function computeOverallScore(parts: {
   compliance: number;
   length: number;
-  keywords: number; // note: 0-50 scale in our keyword scorer
+  keywords: number;
   structure: number;
   emotionalAppeal: number;
   clarity: number;
   buyerFocus: number;
 }): number {
-  // Normalize keywords to 0-100
   const keywords100 = Math.max(0, Math.min(100, (parts.keywords / 50) * 100));
 
   return (
@@ -194,32 +206,50 @@ function computeOverallScore(parts: {
 }
 export async function POST(req: NextRequest) {
   try {
+    console.log('[run-analysis] Starting...');
+    
     initAdmin();
+    console.log('[run-analysis] Admin initialized');
+    
     const db = getFirestore();
     const { submissionId } = await req.json();
 
-    if (!submissionId) return NextResponse.json({ error: 'submissionId required' }, { status: 400 });
+    if (!submissionId) {
+      console.error('[run-analysis] Missing submissionId');
+      return NextResponse.json({ error: 'submissionId required' }, { status: 400 });
+    }
 
+    console.log('[run-analysis] Fetching submission:', submissionId);
     const ref = db.collection('submissions').doc(submissionId);
     const snap = await ref.get();
-    if (!snap.exists) return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
+    
+    if (!snap.exists) {
+      console.error('[run-analysis] Submission not found:', submissionId);
+      return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
+    }
 
     const data = snap.data() || {};
     const listingText = String(data.listingText || '');
     const factsBlock = buildFactsBlock(data.propertyDetails || {});
     const openaiKey = process.env.OPENAI_API_KEY || '';
 
-    if (!openaiKey) return NextResponse.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
+    if (!openaiKey) {
+      console.error('[run-analysis] Missing OPENAI_API_KEY');
+      return NextResponse.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
+    }
 
+    console.log('[run-analysis] Updating status to processing');
     await ref.update({ status: 'processing' });
 
     // ===== ORIGINAL LISTING: LAYER 1 (DETERMINISTIC) =====
+    console.log('[run-analysis] Running deterministic scoring on original...');
     const complianceResult = checkCompliance(listingText);
     const lengthResult = scoreLength(listingText);
     const keywordsResult = scoreKeywords(listingText);
     const structureResult = scoreStructure(listingText);
 
     // ===== ORIGINAL LISTING: LAYER 2 (LLM RUBRIC-BOUND) =====
+    console.log('[run-analysis] Running LLM scoring on original...');
     const emotionalAppeal = await scoreWithAI(openaiKey, 'emotional_appeal', listingText, factsBlock);
     const clarity = await scoreWithAI(openaiKey, 'clarity', listingText, factsBlock);
     const buyerFocus = await scoreWithAI(openaiKey, 'buyer_focus', listingText, factsBlock);
@@ -237,19 +267,25 @@ export async function POST(req: NextRequest) {
 
     let originalGrade = scoreToLetter(originalScore);
     if (complianceResult.grade === 'F') {
-      originalGrade = 'D'; // Compliance override: cap at D
+      originalGrade = 'D';
     }
 
+    console.log('[run-analysis] Original grade:', originalGrade, 'score:', originalScore);
+
     // ===== GENERATE REWRITE =====
+    console.log('[run-analysis] Generating rewrite...');
     const rewriteText = await generateRewrite(openaiKey, listingText, factsBlock);
+    console.log('[run-analysis] Rewrite generated, length:', rewriteText.length);
 
     // ===== REWRITE: LAYER 1 (DETERMINISTIC) =====
+    console.log('[run-analysis] Running deterministic scoring on rewrite...');
     const rewriteComplianceResult = checkCompliance(rewriteText);
     const rewriteLengthResult = scoreLength(rewriteText);
     const rewriteKeywordsResult = scoreKeywords(rewriteText);
     const rewriteStructureResult = scoreStructure(rewriteText);
 
     // ===== REWRITE: LAYER 2 (LLM RUBRIC-BOUND) =====
+    console.log('[run-analysis] Running LLM scoring on rewrite...');
     const rewriteEmotionalAppeal = await scoreWithAI(openaiKey, 'emotional_appeal', rewriteText, factsBlock);
     const rewriteClarity = await scoreWithAI(openaiKey, 'clarity', rewriteText, factsBlock);
     const rewriteBuyerFocus = await scoreWithAI(openaiKey, 'buyer_focus', rewriteText, factsBlock);
@@ -267,10 +303,14 @@ export async function POST(req: NextRequest) {
 
     let rewriteGrade = scoreToLetter(rewriteScore);
     if (rewriteComplianceResult.grade === 'F') {
-      rewriteGrade = 'D'; // Compliance override: cap at D
+      rewriteGrade = 'D';
     }
+
+    console.log('[run-analysis] Rewrite grade:', rewriteGrade, 'score:', rewriteScore);
     // ===== SAVE TO FIRESTORE =====
-    await ref.update({
+    console.log('[run-analysis] Saving to Firestore...');
+    
+    const updatePayload = {
       status: 'completed',
       completedAt: new Date().toISOString(),
       rubricVersion: '2.0.0',
@@ -391,11 +431,16 @@ export async function POST(req: NextRequest) {
           },
         },
       },
-    });
+    };
+
+    console.log('[run-analysis] Update payload size:', JSON.stringify(updatePayload).length, 'bytes');
+    await ref.update(updatePayload);
+    console.log('[run-analysis] Firestore update successful');
 
     return NextResponse.json({ ok: true, submissionId });
   } catch (e: any) {
-    console.error('run-analysis error:', e);
+    console.error('[run-analysis] FATAL ERROR:', e?.message);
+    console.error('[run-analysis] Stack:', e?.stack);
     return NextResponse.json({ error: `Fatal: ${e?.message}` }, { status: 500 });
   }
 }
