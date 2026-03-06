@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { getUserListings, type Listing } from "@/lib/listings";
@@ -13,8 +13,8 @@ interface Report {
   status: string;
   analysis?: {
     overall: string;
-    categories: Record<string, { grade: string; feedback: string }>;
-    rewrite: string;
+    categories: any;
+    rewrite: any;
     recommendations: string[];
   };
   createdAt: string;
@@ -41,6 +41,7 @@ function formatDate(dateString: any) {
   if (!dateString || typeof dateString !== "string") return "Unknown date";
   return new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
+
 function getRewriteWordCount(rewrite?: any) {
   if (!rewrite || typeof rewrite !== "string") return 0;
   return rewrite.trim().split(/\s+/).length;
@@ -114,7 +115,9 @@ export default function VaultPage() {
       const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as ClosingCostEstimate));
       data.sort((a, b) => (b.savedAt || "").localeCompare(a.savedAt || ""));
       setClosingEstimates(data);
-    } catch (err) { console.error("Failed to load closing estimates:", err); }
+    } catch (err) {
+      console.error("Failed to load closing estimates:", err);
+    }
   }
 
   async function handleDelete(listingId: string, address: string) {
@@ -172,7 +175,7 @@ export default function VaultPage() {
         )}
         <div className="flex gap-4 mb-8 border-b border-white/20">
           <button
-            onClick={() => window.location.href = "/workspace"}
+            onClick={() => { window.location.href = "/workspace"; }}
             className={'px-6 py-3 font-bold transition ' + (tab === "listings" ? "text-[#c9a227] border-b-2 border-[#c9a227]" : "text-gray-400 hover:text-white")}
           >
             Descriptions ({listings.length})
@@ -190,13 +193,13 @@ export default function VaultPage() {
             Closing Costs ({closingEstimates.length})
           </button>
         </div>
+
         {tab === "listings" && (
           <>
             {loading ? (
               <p className="text-gray-300">Loading listings...</p>
             ) : listings.length === 0 ? (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20 text-center">
-                <div className="text-6xl mb-4">📋</div>
                 <h2 className="text-2xl font-bold text-white mb-3">No Listings Yet</h2>
                 <p className="text-gray-300 mb-6">Create your first listing to get started!</p>
                 <Link href="/workspace" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition">Create Listing</Link>
@@ -239,11 +242,11 @@ export default function VaultPage() {
             )}
           </>
         )}
+
         {tab === "closing" && (
           <>
             {closingEstimates.length === 0 ? (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20 text-center">
-                <div className="text-6xl mb-4">🧮</div>
                 <h2 className="text-2xl font-bold text-white mb-3">No Saved Estimates</h2>
                 <p className="text-gray-300 mb-6">Run a closing cost calculation and save it to see it here.</p>
                 <Link href="/closing-costs" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition">Open Calculator</Link>
@@ -275,7 +278,6 @@ export default function VaultPage() {
           <>
             {reports.length === 0 ? (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20 text-center">
-                <div className="text-6xl mb-4">📊</div>
                 <h2 className="text-2xl font-bold text-white mb-3">No Reports Yet</h2>
                 <p className="text-gray-300 mb-6">Get your listing graded and save the report to your vault!</p>
                 <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition">Rate My Listing</Link>
@@ -286,7 +288,7 @@ export default function VaultPage() {
                   <div key={report.id} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        {report.analysis && (
+                        {report.analysis && typeof report.analysis.overall === "string" && (
                           <div className={'w-16 h-16 rounded-full flex items-center justify-center font-black text-2xl text-white flex-shrink-0 ' + (gradeColor[report.analysis.overall] || "bg-gray-500")}>
                             {report.analysis.overall}
                           </div>
@@ -299,14 +301,10 @@ export default function VaultPage() {
                       <Link href={'/results?id=' + report.id} className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-5 py-2 rounded-xl font-bold text-sm transition whitespace-nowrap flex-shrink-0">View Report</Link>
                     </div>
                     {report.analysis && report.analysis.categories && typeof report.analysis.categories === "object" && (
-  <div className="mt-4 flex gap-2 flex-wrap">
-   {Object.entries(report.analysis.categories || {}).map(([key, val]: [string, any]) => (
-      <span key={key} className={'text-xs font-bold px-2 py-1 rounded-full text-white ' + (gradeColor[typeof val === "object" && val?.grade ? val.grade : ""] || "bg-gray-500")}>
-        {key}: {typeof val === "object" && val?.grade ? val.grade : "?"}
-      </span>
-    ))}
-  </div>
-)}
+                      <div className="mt-4 flex gap-2 flex-wrap">
+                        {Object.entries(report.analysis.categories).map(([key, val]: [string, any]) => (
+                          <span key={key} className={'text-xs font-bold px-2 py-1 rounded-full text-white ' + (gradeColor[val?.grade] || "bg-gray-500")}>
+                            {key}: {val?.grade || "?"}
                           </span>
                         ))}
                       </div>
@@ -317,6 +315,7 @@ export default function VaultPage() {
             )}
           </>
         )}
+
       </div>
     </main>
   );
