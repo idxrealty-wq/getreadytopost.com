@@ -37,10 +37,10 @@ const gradeColor: Record<string, string> = {
   F: "bg-red-600",
 };
 
-function formatDate(dateString: string) {
+function formatDate(dateString: any) {
+  if (!dateString || typeof dateString !== "string") return "Unknown date";
   return new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
-
 function getRewriteWordCount(rewrite?: any) {
   if (!rewrite || typeof rewrite !== "string") return 0;
   return rewrite.trim().split(/\s+/).length;
