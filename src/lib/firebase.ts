@@ -4,13 +4,12 @@ import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB9OYtrLJ4d3crF7C4alv8ZbPPcUgVkSms",
-  authDomain: "grtp2-5ba00.firebaseapp.com",
-  projectId: "grtp2-5ba00",
-  storageBucket: "grtp2-5ba00.firebasestorage.app",
-  messagingSenderId: "181277965274",
-  appId: "1:181277965274:web:6068552f7b42b46742dee3",
-  measurementId: "G-3GH7JZN3RQ"
+  apiKey: "AIzaSyCi78i1LzuIn96clPsjznuFPkMy57SzLoA",
+  authDomain: "getreadtopost.firebaseapp.com",
+  projectId: "getreadtopost",
+  storageBucket: "getreadtopost.firebasestorage.app",
+  messagingSenderId: "211112970013",
+  appId: "1:211112970013:web:87f23a5f0f36104ceac3f4"
 };
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
