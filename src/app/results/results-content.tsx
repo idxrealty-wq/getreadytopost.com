@@ -7,83 +7,44 @@ import { db } from "@/lib/firebase";
 
 interface Submission {
   listingText: string;
-  analysis?: {
-    original: {
-      overall: { grade: string; score: number };
-      breakdown: {
-        compliance: any;
-        length: any;
-        keywords: any;
-        structure: any;
-        emotionalAppeal: any;
-        clarity: any;
-        buyerFocus: any;
-      };
-    };
-    rewrite: {
-      text: string;
-      wordCount: number;
-      overall: { grade: string; score: number };
-      breakdown: any;
-    };
-  };
+  analysis?: any;
   status: string;
   saved?: boolean;
 }
 
-const steps = [
-  { number: 1, label: "Grades", icon: "" },
-  { number: 2, label: "Rewrite", icon: "" },
-  { number: 3, label: "Next Steps", icon: "" },
-];
-
 const gradeColor = (grade: string) => {
-  switch (grade) {
-    case "A":
-      return "#27ae60";
-    case "B":
-      return "#f39c12";
-    case "C":
-      return "#e74c3c";
-    case "D":
-      return "#c0392b";
-    case "F":
-      return "#95a5a6";
-    default:
-      return "#7f8c8d";
+  switch (String(grade).toUpperCase()) {
+    case "A": return "#27ae60";
+    case "B": return "#f39c12";
+    case "C": return "#e74c3c";
+    case "D": return "#c0392b";
+    case "F": return "#95a5a6";
+    default: return "#7f8c8d";
   }
 };
 
 const gradeLabel = (grade: string) => {
-  switch (grade) {
-    case "A":
-      return "Excellent";
-    case "B":
-      return "Good";
-    case "C":
-      return "Fair";
-    case "D":
-      return "Poor";
-    case "F":
-      return "Incomplete";
-    default:
-      return "Unknown";
+  switch (String(grade).toUpperCase()) {
+    case "A": return "Excellent";
+    case "B": return "Good";
+    case "C": return "Fair";
+    case "D": return "Poor";
+    case "F": return "Incomplete";
+    default: return "Unknown";
   }
 };
+
 export default function ResultsContent() {
   const searchParams = useSearchParams();
   const submissionId = searchParams.get("id");
-
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
-  const [reanalyzing, setReanalyzing] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!submissionId) return;
-
     const fetchSubmission = async () => {
       try {
         const docRef = doc(db, "submissions", submissionId);
@@ -97,30 +58,27 @@ export default function ResultsContent() {
         setLoading(false);
       }
     };
-
     fetchSubmission();
   }, [submissionId]);
 
-  const handleReanalyze = async () => {
-    if (!submissionId) return;
-    setReanalyzing(true);
-    try {
-      await fetch("/api/submissions/run-analysis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submissionId }),
-      });
+  const handleCopyRewrite = () => {
+    const text = getRewriteText();
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
-      const docRef = doc(db, "submissions", submissionId);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setSubmission(docSnap.data() as Submission);
-      }
-    } catch (e) {
-      console.error("Reanalyze error:", e);
-    } finally {
-      setReanalyzing(false);
-    }
+  const handleDownloadRewrite = () => {
+    const text = getRewriteText();
+    if (!text || !submissionId) return;
+    const element = document.createElement("a");
+    const file = new Blob([text], { type: "text/plain" });
+    element.href = URL.createObjectURL(file);
+    element.download = `rewrite-${submissionId}.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
   };
 
   const handleSaveToVault = async () => {
@@ -139,25 +97,64 @@ export default function ResultsContent() {
     }
   };
 
-  const handleCopyRewrite = () => {
-    const text = submission?.analysis?.rewrite?.text;
-    if (!text) return;
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  // Helper: get original grade (supports old + new schema)
+  const getOriginalGrade = () => {
+    const analysis = submission?.analysis;
+    return String(
+      analysis?.original?.overall?.grade ??
+      analysis?.overall ??
+      "—"
+    ).toUpperCase();
   };
 
-  const handleDownloadRewrite = () => {
-    const text = submission?.analysis?.rewrite?.text;
-    if (!text || !submissionId) return;
+  // Helper: get original score
+  const getOriginalScore = () => {
+    const analysis = submission?.analysis;
+    return analysis?.original?.overall?.score ?? null;
+  };
 
-    const element = document.createElement("a");
-    const file = new Blob([text], { type: "text/plain" });
-    element.href = URL.createObjectURL(file);
-    element.download = `rewrite-${submissionId}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+  // Helper: get rewrite grade (supports old + new schema)
+  const getRewriteGrade = () => {
+    const analysis = submission?.analysis;
+    return String(
+      analysis?.rewrite?.overall?.grade ??
+      analysis?.rewriteGrade ??
+      "—"
+    ).toUpperCase();
+  };
+
+  // Helper: get rewrite text (supports old + new schema)
+  const getRewriteText = () => {
+    const analysis = submission?.analysis;
+    return String(
+      analysis?.rewrite?.text ??
+      analysis?.rewrite ??
+      ""
+    );
+  };
+
+  // Helper: get rewrite word count
+  const getRewriteWordCount = () => {
+    const analysis = submission?.analysis;
+    return analysis?.rewrite?.wordCount ??
+      analysis?.rewriteWordCount ??
+      0;
+  };
+
+  // Helper: get original breakdown (supports old + new schema)
+  const getOriginalBreakdown = () => {
+    const analysis = submission?.analysis;
+    return analysis?.original?.breakdown ??
+      analysis?.categories ??
+      {};
+  };
+
+  // Helper: get rewrite breakdown
+  const getRewriteBreakdown = () => {
+    const analysis = submission?.analysis;
+    return analysis?.rewrite?.breakdown ??
+      analysis?.rewriteCategories ??
+      {};
   };
 
   if (loading) {
@@ -171,81 +168,69 @@ export default function ResultsContent() {
     );
   }
 
-  if (!submissionId) {
+  if (!submissionId || !submission || !submission.analysis) {
     return (
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
-        <p className="text-white/80">Missing submission id.</p>
+        <p className="text-white/80">Submission not found or analysis unavailable.</p>
       </main>
     );
   }
 
-  if (!submission) {
-    return (
-      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
-        <p className="text-white/80">Submission not found.</p>
-      </main>
-    );
-  }
+  const originalGrade = getOriginalGrade();
+  const originalScore = getOriginalScore();
+  const rewriteGrade = getRewriteGrade();
+  const rewriteText = getRewriteText();
+  const rewriteWordCount = getRewriteWordCount();
+  const originalBreakdown = getOriginalBreakdown();
+  const rewriteBreakdown = getRewriteBreakdown();
 
-  const analysis = submission.analysis;
-  if (!analysis) {
-    return (
-      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
-        <p className="text-white/80">Analysis not available yet.</p>
-      </main>
-    );
-  }
-
-  const originalGrade = analysis.original?.overall?.grade ?? "—";
-  const originalScore = analysis.original?.overall?.score ?? 0;
-  const originalColor = gradeColor(originalGrade);
-
-  const rewriteGrade = analysis.rewrite?.overall?.grade ?? "—";
-  const rewriteColor = gradeColor(rewriteGrade);
-  const rewriteText = analysis.rewrite?.text ?? "";
-  const rewriteWordCount = analysis.rewrite?.wordCount ?? 0;
-
-  const originalBreakdown = analysis.original?.breakdown ?? {};
-  const rewriteBreakdown = analysis.rewrite?.breakdown ?? {};
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] pb-20">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
         <div className="mb-12">
           <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">Your Listing Results</h1>
-          <p className="text-white/80">Step through grades, the MLS-ready rewrite, and next steps.</p>
+          <p className="text-white/80">Review grades and your MLS-ready rewrite.</p>
         </div>
 
         <div className="bg-white/10 border border-white/15 rounded-2xl p-6 mb-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white/60 text-sm uppercase tracking-wide mb-2">Original Grade</p>
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-4xl"
-                  style={{ backgroundColor: originalColor }}
-                >
-                  {originalGrade}
-                </div>
-                <div>
-                  <p className="text-white text-lg font-semibold">{gradeLabel(originalGrade)}</p>
+          <div className="flex items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div
+                className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-4xl"
+                style={{ backgroundColor: gradeColor(originalGrade) }}
+              >
+                {originalGrade}
+              </div>
+              <div>
+                <p className="text-white/60 text-sm uppercase tracking-wide mb-1">Original Grade</p>
+                <p className="text-white text-lg font-semibold">{gradeLabel(originalGrade)}</p>
+                {originalScore !== null && (
                   <p className="text-white/70 text-sm">Score: {originalScore}/100</p>
-                </div>
+                )}
               </div>
             </div>
+
             <div className="flex gap-3">
-              {steps.map((step) => (
-                <button
-                  key={step.number}
-                  onClick={() => setCurrentStep(step.number)}
-                  className={`px-4 py-2 rounded-full font-semibold transition ${
-                    currentStep === step.number
-                      ? "bg-white text-[#1a2b4a]"
-                      : "bg-white/20 text-white hover:bg-white/30"
-                  }`}
-                >
-                  {step.icon} {step.label}
-                </button>
-              ))}
+              <button
+                onClick={() => setCurrentStep(1)}
+                className={`px-4 py-2 rounded-full font-semibold transition ${
+                  currentStep === 1
+                    ? "bg-white text-[#1a2b4a]"
+                    : "bg-white/20 text-white hover:bg-white/30"
+                }`}
+              >
+                Grades
+              </button>
+              <button
+                onClick={() => setCurrentStep(2)}
+                className={`px-4 py-2 rounded-full font-semibold transition ${
+                  currentStep === 2
+                    ? "bg-white text-[#1a2b4a]"
+                    : "bg-white/20 text-white hover:bg-white/30"
+                }`}
+              >
+                Rewrite
+              </button>
             </div>
           </div>
         </div>
@@ -257,7 +242,9 @@ export default function ResultsContent() {
               {Object.entries(originalBreakdown).map(([key, data]: [string, any]) => (
                 <div key={key} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-[#1a2b4a] capitalize">{key.replace(/([A-Z])/g, " $1")}</h3>
+                    <h3 className="font-semibold text-[#1a2b4a] capitalize">
+                      {key.replace(/([A-Z])/g, " $1").trim()}
+                    </h3>
                     <div
                       className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
                       style={{ backgroundColor: gradeColor(data.grade) }}
@@ -265,7 +252,9 @@ export default function ResultsContent() {
                       {data.grade}
                     </div>
                   </div>
-                  <p className="text-gray-600 text-sm">{data.feedback || data.auditTrail || "No details."}</p>
+                  <p className="text-gray-600 text-sm">
+                    {data.feedback || data.auditTrail || "No details available."}
+                  </p>
                 </div>
               ))}
             </div>
@@ -279,21 +268,14 @@ export default function ResultsContent() {
               <div className="flex items-center gap-4">
                 <div className="text-right">
                   <p className="text-gray-600 text-xs uppercase tracking-wide">Word Count</p>
-                  <p className="text-2xl font-bold text-[#1a2b4a]">{rewriteWordCount} words</p>
+                  <p className="text-2xl font-bold text-[#1a2b4a]">{rewriteWordCount}</p>
                 </div>
                 <div
                   className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl"
-                  style={{ backgroundColor: rewriteColor }}
+                  style={{ backgroundColor: gradeColor(rewriteGrade) }}
                 >
                   {rewriteGrade}
                 </div>
-                <button
-                  onClick={handleReanalyze}
-                  disabled={reanalyzing}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition disabled:opacity-50"
-                >
-                  {reanalyzing ? "Analyzing..." : "Refresh"}
-                </button>
               </div>
             </div>
 
@@ -301,7 +283,7 @@ export default function ResultsContent() {
               <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">{rewriteText}</p>
             </div>
 
-            <div className="flex gap-3 mb-8 flex-wrap">
+            <div className="flex gap-3 flex-wrap">
               <button
                 onClick={handleCopyRewrite}
                 className="px-6 py-3 bg-[#c9a227] hover:bg-[#b8911f] text-white rounded-lg font-semibold transition"
@@ -328,13 +310,15 @@ export default function ResultsContent() {
             </div>
 
             {Object.keys(rewriteBreakdown).length > 0 && (
-              <div>
+              <div className="mt-8">
                 <h3 className="text-lg font-semibold text-[#1a2b4a] mb-4">Rewrite Breakdown</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {Object.entries(rewriteBreakdown).map(([key, data]: [string, any]) => (
                     <div key={key} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-[#1a2b4a] capitalize">{key.replace(/([A-Z])/g, " $1")}</h4>
+                        <h4 className="font-semibold text-[#1a2b4a] capitalize">
+                          {key.replace(/([A-Z])/g, " $1").trim()}
+                        </h4>
                         <div
                           className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
                           style={{ backgroundColor: gradeColor(data.grade) }}
@@ -342,21 +326,14 @@ export default function ResultsContent() {
                           {data.grade}
                         </div>
                       </div>
-                      <p className="text-gray-600 text-sm">{data.feedback || data.auditTrail || ""}</p>
+                      <p className="text-gray-600 text-sm">
+                        {data.feedback || data.auditTrail || ""}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-          </div>
-        )}
-
-        {currentStep === 3 && (
-          <div className="bg-white rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-[#1a2b4a] mb-6">Next Steps</h2>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <p className="text-blue-900">Your listing has been analyzed and rewritten. Save to vault to access anytime.</p>
-            </div>
           </div>
         )}
       </div>
