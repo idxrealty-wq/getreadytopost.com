@@ -147,7 +147,7 @@ export default function RateMyListingPage() {
       if (analysisJson?.ok) {
         setSubmitted(true);
         setTimeout(() => {
-          router.push(`/rate-my-listing?submissionId=${submissionId}`);
+          router.push(`/results/original/${submissionId}`);
         }, 800);
         return;
       }
