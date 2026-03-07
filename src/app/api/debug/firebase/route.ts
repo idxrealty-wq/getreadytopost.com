@@ -4,32 +4,68 @@ import { getFirestore } from "firebase-admin/firestore";
 
 export const dynamic = "force-dynamic";
 
+function initAdmin() {
+  if (getApps().length) return;
+
+  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || "";
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL || "";
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n") || "";
+
+  if (!projectId || !clientEmail || !privateKey) {
+    throw new Error("Missing FIREBASE_ADMIN_* env vars");
+  }
+
+  initializeApp({
+    credential: cert({ projectId, clientEmail, privateKey }),
+  });
+}
+
 export async function GET(req: NextRequest) {
   try {
+    initAdmin();
+    const db = getFirestore();
+
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId") || "";
+    const userId = (searchParams.get("userId") || "").trim();
+    const email = (searchParams.get("email") || "").trim().toLowerCase();
 
-    const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || "";
-    const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL || "";
-    const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n") || "";
+    let resolvedUserDocId: string | null = null;
 
-    if (!getApps().length) {
-      initializeApp({
-  credential: cert({ projectId, clientEmail, privateKey }),
-  databaseURL: `https://${projectId}-default-rtdb.firebaseio.com`,
-});
+    if (userId) {
+      resolvedUserDocId = userId;
+    } else if (email) {
+      const qs = await db.collection("users").where("email", "==", email).limit(1).get();
+      if (!qs.empty) resolvedUserDocId = qs.docs[0].id;
     }
 
-    const db = getFirestore();
-    const snap = await db.collection("users").doc(userId).get();
+    if (!resolvedUserDocId) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Provide userId=... or email=...",
+        },
+        { status: 400 }
+      );
+    }
+
+    const userRef = db.collection("users").doc(resolvedUserDocId);
+    const userSnap = await userRef.get();
+
+    const balanceRef = userRef.collection("credits").doc("balance");
+    const balSnap = await balanceRef.get();
 
     return NextResponse.json({
-      projectId,
-      clientEmailSuffix: clientEmail.slice(-20),
-      userDocExists: snap.exists,
-      balance: snap.exists ? (snap.data() as any)?.credits?.balance ?? null : null,
+      ok: true,
+      resolvedUserDocId,
+      userDocExists: userSnap.exists,
+      userEmailField: userSnap.exists ? (userSnap.data() as any)?.email ?? null : null,
+      creditsDocExists: balSnap.exists,
+      creditsBalance: balSnap.exists ? (balSnap.data() as any)?.balance ?? null : null,
     });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: String(e?.message || e) },
+      { status: 500 }
+    );
   }
 }
