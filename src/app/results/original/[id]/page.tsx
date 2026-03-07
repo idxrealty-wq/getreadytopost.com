@@ -7,6 +7,26 @@ import { db } from "@/lib/firebase";
 
 type Grade = "A" | "B" | "C" | "D" | "F";
 
+type Category = { grade?: Grade | string; feedback?: string };
+
+type SubmissionDoc = {
+  listingText?: string;
+  status?: string;
+  analysis?: {
+    original?: {
+      overall?: Grade | string | { grade?: Grade | string };
+      categories?: Record<string, Category>;
+      breakdown?: Record<string, Category>;
+      recommendations?: string[];
+    };
+    rewrite?: any;
+  };
+  notes?: {
+    userNotes?: string;
+    updatedAt?: string;
+  };
+};
+
 function gradeColor(grade: string) {
   switch (grade) {
     case "A":
@@ -41,24 +61,12 @@ function gradeLabel(grade: string) {
   }
 }
 
-type Category = { grade?: Grade | string; feedback?: string };
-
-type SubmissionDoc = {
-  listingText?: string;
-  status?: string;
-  analysis?: {
-    original?: {
-      overall?: Grade | string;
-      categories?: Record<string, Category>;
-      recommendations?: string[];
-    };
-    rewrite?: any;
-  };
-  notes?: {
-    userNotes?: string;
-    updatedAt?: string;
-  };
-};
+function normalizeOverall(overall: any): Grade | "N/A" {
+  const v = overall?.grade ?? overall;
+  const s = String(v || "").toUpperCase();
+  if (s === "A" || s === "B" || s === "C" || s === "D" || s === "F") return s;
+  return "N/A";
+}
 
 export default function OriginalResultsPage() {
   const params = useParams<{ id: string }>();
@@ -67,6 +75,7 @@ export default function OriginalResultsPage() {
 
   const [loading, setLoading] = useState(true);
   const [submission, setSubmission] = useState<SubmissionDoc | null>(null);
+
   const [notes, setNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesStatus, setNotesStatus] = useState<"idle" | "saved" | "error">("idle");
@@ -97,11 +106,13 @@ export default function OriginalResultsPage() {
     run();
   }, [submissionId]);
 
+  // autosave notes
   useEffect(() => {
     if (!submissionId) return;
     if (!submission) return;
 
     setNotesStatus("idle");
+
     const t = setTimeout(async () => {
       try {
         setSavingNotes(true);
@@ -124,13 +135,14 @@ export default function OriginalResultsPage() {
   }, [notes, submissionId, submission]);
 
   const analysisOriginal = submission?.analysis?.original as any;
-  const overall = String(analysisOriginal?.overall || "N/A") as Grade;
-  const overallColor = gradeColor(overall);
 
- const categories = useMemo(() => {
-  const obj = analysisOriginal?.breakdown || analysisOriginal?.categories || {};
-  return Object.entries(obj);
-}, [analysisOriginal?.breakdown, analysisOriginal?.categories]);
+  const overall = normalizeOverall(analysisOriginal?.overall);
+  const overallColor = gradeColor(String(overall));
+
+  const categories = useMemo(() => {
+    const obj = analysisOriginal?.categories || analysisOriginal?.breakdown || {};
+    return Object.entries(obj);
+  }, [analysisOriginal?.categories, analysisOriginal?.breakdown]);
 
   if (loading) {
     return (
@@ -183,11 +195,9 @@ export default function OriginalResultsPage() {
             >
               View Rewrite →
             </button>
-
             <a
               href="/agent-vault"
-              className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/30 rounded-lg font-semibold transition"
-            >
+              className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/30 rounded-lg font-semibold transition">
               Agent Vault
             </a>
           </div>
@@ -198,12 +208,11 @@ export default function OriginalResultsPage() {
           <div className="flex items-center gap-4">
             <div
               className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-4xl"
-              style={{ backgroundColor: overallColor }}
-            >
+              style={{ backgroundColor: overallColor }}>
               {overall}
             </div>
             <div>
-              <p className="text-white text-lg font-semibold">{gradeLabel(overall)}</p>
+              <p className="text-white text-lg font-semibold">{gradeLabel(String(overall))}</p>
               <p className="text-white/70 text-sm">Based on 6 categories + compliance</p>
             </div>
           </div>
@@ -263,8 +272,7 @@ export default function OriginalResultsPage() {
                       <h3 className="font-semibold text-[#1a2b4a] capitalize">{String(key)}</h3>
                       <div
                         className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
-                        style={{ backgroundColor: gradeColor(String(c?.grade || "")) }}
-                      >
+                        style={{ backgroundColor: gradeColor(String(c?.grade || "")) }}>
                         {String(c?.grade || "?")}
                       </div>
                     </div>
