@@ -307,6 +307,11 @@ export async function POST(req: NextRequest) {
         { error: "Missing OPENAI_API_KEY" },
         { status: 500 }
       );
+    // Idempotency: if analysis already exists, return early
+    if (data.analysis?.rewrite?.text) {
+      console.log(`[run-analysis] Submission ${submissionId} already analyzed. Returning cached result.`);
+      return NextResponse.json({ ok: true, submissionId });
+    }
 
     await ref.update({ status: "processing" });
 
