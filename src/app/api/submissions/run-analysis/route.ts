@@ -307,7 +307,7 @@ export async function POST(req: NextRequest) {
             emotion: emotionalAppeal,
             keywords: { grade: keywordsResult.grade, feedback: keywordsResult.auditTrail },
             cta: { grade: structureResult.callToAction ? "B" : "C", feedback: structureResult.callToAction ? "CTA present." : "No clear CTA." },
-            compliance: { grade: complianceResult.grade, feedback: complianceResult.feedback || "" },
+            compliance: { grade: complianceResult.grade, feedback: complianceResult.auditTrail },
           },
           recommendations: [
             "Improve the headline to include more property features.",
@@ -325,7 +325,7 @@ export async function POST(req: NextRequest) {
             emotion: rewriteEmotionalAppeal,
             keywords: { grade: rewriteKeywordsResult.grade, feedback: rewriteKeywordsResult.auditTrail },
             cta: { grade: "A", feedback: "Clear, actionable CTA present." },
-            compliance: { grade: rewriteComplianceResult.grade, feedback: rewriteComplianceResult.feedback || "" },
+            compliance: { grade: rewriteComplianceResult.grade, feedback: rewriteComplianceResult.auditTrail },
           },
         },
       },
