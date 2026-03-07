@@ -303,9 +303,9 @@ export async function POST(req: NextRequest) {
           overall: originalGrade,
           categories: {
             headline: { grade: "B", feedback: "Headline present but could be more specific." },
-            length: { grade: lengthResult.grade, feedback: lengthResult.feedback || "" },
+            length: { grade: lengthResult.grade, feedback: lengthResult.auditTrail },
             emotion: emotionalAppeal,
-            keywords: { grade: keywordsResult.grade, feedback: keywordsResult.feedback || "" },
+            keywords: { grade: keywordsResult.grade, feedback: keywordsResult.auditTrail },
             cta: { grade: structureResult.callToAction ? "B" : "C", feedback: structureResult.callToAction ? "CTA present." : "No clear CTA." },
             compliance: { grade: complianceResult.grade, feedback: complianceResult.feedback || "" },
           },
@@ -321,9 +321,9 @@ export async function POST(req: NextRequest) {
           wordCount: rewriteText.trim().split(/\s+/).length,
           categories: {
             headline: { grade: "A", feedback: "Strong, MLS-safe headline." },
-            length: { grade: rewriteLengthResult.grade, feedback: rewriteLengthResult.feedback || "" },
+            length: { grade: rewriteLengthResult.grade, feedback: rewriteLengthResult.auditTrail },
             emotion: rewriteEmotionalAppeal,
-            keywords: { grade: rewriteKeywordsResult.grade, feedback: rewriteKeywordsResult.feedback || "" },
+            keywords: { grade: rewriteKeywordsResult.grade, feedback: rewriteKeywordsResult.auditTrail },
             cta: { grade: "A", feedback: "Clear, actionable CTA present." },
             compliance: { grade: rewriteComplianceResult.grade, feedback: rewriteComplianceResult.feedback || "" },
           },
