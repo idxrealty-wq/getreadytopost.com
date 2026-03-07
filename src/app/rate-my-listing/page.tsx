@@ -91,7 +91,7 @@ export default function RateMyListingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           listingDescription,
-          email,
+          email,uid: null,
           address,
           city,
           state: stateVal,

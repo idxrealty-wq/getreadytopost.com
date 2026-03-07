@@ -6,12 +6,16 @@ export const dynamic = "force-dynamic";
 
 function initAdmin() {
   if (getApps().length > 0) return;
+
   const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   if (!json) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON missing");
+
   const sa: any = JSON.parse(json);
+
   if (!sa.private_key || typeof sa.private_key !== "string") {
     throw new Error('Service account object must contain a string "private_key" property.');
   }
+
   sa.private_key = sa.private_key.replace(/\\n/g, "\n");
   initializeApp({ credential: cert(sa) });
 }
@@ -40,6 +44,10 @@ export async function POST(req: NextRequest) {
     const submission = {
       listingText: String(listingDescription),
       email: String(email),
+
+      // IMPORTANT: store uid if provided (Rate My Listing can send null for now)
+      uid: body?.uid ?? null,
+
       propertyDetails: {
         address: body?.address || "",
         city: body?.city || "",
@@ -53,6 +61,7 @@ export async function POST(req: NextRequest) {
         hoa: body?.hoa === "yes",
         hoaAmount: body?.hoaAmount ?? null,
       },
+
       nearby: body?.nearby ?? null,
       status: "created",
       createdAt: new Date().toISOString(),
