@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     }
 
     const data = snap.data() || {};
-    const balance = Number(data.credits ?? data.creditBalance ?? 0);
+    const balance = Number(data.balance ?? data.credits ?? data.creditBalance ?? 0);
 
     return NextResponse.json({ userId, balance }, { status: 200 });
   } catch (e: any) {
