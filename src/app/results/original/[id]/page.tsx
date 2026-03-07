@@ -41,30 +41,21 @@ function gradeLabel(grade: string) {
   }
 }
 
-type Category = { grade: Grade; feedback?: string };
+type Category = { grade?: Grade | string; feedback?: string };
 
 type SubmissionDoc = {
   listingText?: string;
   status?: string;
   analysis?: {
-    original?: {
-      overall?: Grade;
-      categories?: Record<string, Category>;
-      recommendations?: string[];
-    };
-    rewrite?: {
-      overall?: Grade;
-      text?: string;
-      wordCount?: number;
-      categories?: Record<string, Category>;
-    };
+    overallGrade?: Grade | string;
+    categories?: Record<string, Category>;
+    recommendations?: string[];
   };
   notes?: {
     userNotes?: string;
     updatedAt?: string;
   };
 };
-
 export default function OriginalResultsPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -72,7 +63,6 @@ export default function OriginalResultsPage() {
 
   const [loading, setLoading] = useState(true);
   const [submission, setSubmission] = useState<SubmissionDoc | null>(null);
-
   const [notes, setNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesStatus, setNotesStatus] = useState<"idle" | "saved" | "error">("idle");
@@ -103,13 +93,11 @@ export default function OriginalResultsPage() {
     run();
   }, [submissionId]);
 
-  // Debounced autosave notes to Firestore via API route
   useEffect(() => {
     if (!submissionId) return;
     if (!submission) return;
 
     setNotesStatus("idle");
-
     const t = setTimeout(async () => {
       try {
         setSavingNotes(true);
@@ -118,7 +106,6 @@ export default function OriginalResultsPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ submissionId, userNotes: notes }),
         });
-
         if (!res.ok) throw new Error("Save failed");
         setNotesStatus("saved");
       } catch (e) {
@@ -130,18 +117,16 @@ export default function OriginalResultsPage() {
     }, 700);
 
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notes]);
+  }, [notes, submissionId, submission]);
 
-  const original = submission?.analysis?.original;
-  const overall = String(original?.overall || "") as Grade;
+  const analysis = submission?.analysis as any;
+  const overall = String(analysis?.overallGrade || "N/A") as Grade;
   const overallColor = gradeColor(overall);
 
   const categories = useMemo(() => {
-    const obj = original?.categories || {};
+    const obj = analysis?.categories || {};
     return Object.entries(obj);
-  }, [original?.categories]);
-
+  }, [analysis?.categories]);
   if (loading) {
     return (
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
@@ -169,10 +154,10 @@ export default function OriginalResultsPage() {
     );
   }
 
-  if (!original) {
+  if (!analysis) {
     return (
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
-        <p className="text-white/80">Original analysis not available yet.</p>
+        <p className="text-white/80">Analysis not available yet.</p>
       </main>
     );
   }
@@ -187,7 +172,6 @@ export default function OriginalResultsPage() {
               This is what you submitted — unchanged — plus the grades and your notes.
             </p>
           </div>
-
           <div className="flex gap-3 flex-wrap">
             <button
               onClick={() => router.push(`/results/rewrite/${submissionId}`)}
@@ -231,7 +215,6 @@ export default function OriginalResultsPage() {
               </p>
             </div>
           </div>
-
           <div className="bg-white rounded-2xl p-8">
             <div className="flex items-start justify-between gap-4 mb-3">
               <div>
@@ -246,7 +229,6 @@ export default function OriginalResultsPage() {
                 </p>
               </div>
             </div>
-
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -264,36 +246,44 @@ export default function OriginalResultsPage() {
         <div className="bg-white rounded-2xl p-8 mb-10">
           <h2 className="text-2xl font-bold text-[#1a2b4a] mb-6">Original Listing Grades</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {categories.map(([key, cat]) => (
-              <div key={key} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-[#1a2b4a] capitalize">{key}</h3>
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
-                    style={{ backgroundColor: gradeColor(cat?.grade) }}
-                  >
-                    {cat?.grade}
+            {categories.length > 0 ? (
+              categories.map(([key, cat]) => (
+                <div key={key} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-[#1a2b4a] capitalize">{key}</h3>
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                      style={{ backgroundColor: gradeColor(String(cat?.grade || "")) }}
+                    >
+                      {String(cat?.grade || "?")}
+                    </div>
                   </div>
+                  <p className="text-gray-600 text-sm">{cat?.feedback || "No feedback provided."}</p>
                 </div>
-                <p className="text-gray-600 text-sm">{cat?.feedback || "No feedback provided."}</p>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-gray-600">No category grades available.</p>
+            )}
           </div>
         </div>
 
         {/* Recommendations */}
         <div className="bg-white rounded-2xl p-8">
           <h2 className="text-2xl font-bold text-[#1a2b4a] mb-6">Recommendations</h2>
-          <ol className="space-y-4">
-            {(original.recommendations || []).map((rec: string, idx: number) => (
-              <li key={idx} className="flex gap-4">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#c9a227] text-white flex items-center justify-center font-bold">
-                  {idx + 1}
-                </span>
-                <p className="text-gray-800 pt-1">{rec}</p>
-              </li>
-            ))}
-          </ol>
+          {(analysis?.recommendations as string[])?.length > 0 ? (
+            <ol className="space-y-4">
+              {(analysis.recommendations as string[]).map((rec: string, idx: number) => (
+                <li key={idx} className="flex gap-4">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#c9a227] text-white flex items-center justify-center font-bold">
+                    {idx + 1}
+                  </span>
+                  <p className="text-gray-800 pt-1">{rec}</p>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="text-gray-600">No recommendations available.</p>
+          )}
         </div>
       </div>
     </main>
