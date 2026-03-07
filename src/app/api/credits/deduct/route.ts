@@ -7,13 +7,22 @@ export const dynamic = "force-dynamic";
 function initAdmin() {
   if (getApps().length) return;
 
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
-  });
+  const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (!json) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON missing");
+
+  let sa: any;
+  try {
+    sa = JSON.parse(json);
+  } catch (e) {
+    throw new Error(`Invalid JSON in FIREBASE_SERVICE_ACCOUNT_JSON: ${e}`);
+  }
+
+  if (!sa.private_key || typeof sa.private_key !== "string") {
+    throw new Error('Service account object must contain a string "private_key" property.');
+  }
+
+  sa.private_key = sa.private_key.replace(/\\n/g, "\n");
+  initializeApp({ credential: cert(sa) });
 }
 
 async function resolveUserDocId(db: any, userIdOrEmail: string): Promise<string | null> {
@@ -37,10 +46,10 @@ async function resolveUserDocId(db: any, userIdOrEmail: string): Promise<string 
 }
 
 export async function POST(req: NextRequest) {
-  initAdmin();
-  const db = getFirestore();
-
   try {
+    initAdmin();
+    const db = getFirestore();
+
     const { userId, submissionId } = await req.json();
 
     if (!userId) {
@@ -120,7 +129,6 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     const msg = String(error?.message || error || "Server error");
 
-    // Make insufficient credits a 400 (expected failure), not 500
     if (msg.toLowerCase().includes("insufficient credits")) {
       return NextResponse.json({ error: "Insufficient credits" }, { status: 400 });
     }
