@@ -47,15 +47,19 @@ type SubmissionDoc = {
   listingText?: string;
   status?: string;
   analysis?: {
-    overallGrade?: Grade | string;
-    categories?: Record<string, Category>;
-    recommendations?: string[];
+    original?: {
+      overall?: Grade | string;
+      categories?: Record<string, Category>;
+      recommendations?: string[];
+    };
+    rewrite?: any;
   };
   notes?: {
     userNotes?: string;
     updatedAt?: string;
   };
 };
+
 export default function OriginalResultsPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -119,14 +123,15 @@ export default function OriginalResultsPage() {
     return () => clearTimeout(t);
   }, [notes, submissionId, submission]);
 
-  const analysis = submission?.analysis as any;
-  const overall = String(analysis?.overallGrade || "N/A") as Grade;
+  const analysisOriginal = submission?.analysis?.original as any;
+  const overall = String(analysisOriginal?.overall || "N/A") as Grade;
   const overallColor = gradeColor(overall);
 
   const categories = useMemo(() => {
-    const obj = analysis?.categories || {};
+    const obj = analysisOriginal?.categories || {};
     return Object.entries(obj);
-  }, [analysis?.categories]);
+  }, [analysisOriginal?.categories]);
+
   if (loading) {
     return (
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
@@ -154,13 +159,14 @@ export default function OriginalResultsPage() {
     );
   }
 
-  if (!analysis) {
+  if (!analysisOriginal) {
     return (
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
         <p className="text-white/80">Analysis not available yet.</p>
       </main>
     );
   }
+
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] pb-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
@@ -275,9 +281,9 @@ export default function OriginalResultsPage() {
         <div className="bg-white rounded-2xl p-8">
           <h2 className="text-2xl font-bold text-[#1a2b4a] mb-6">Recommendations</h2>
 
-          {(analysis?.recommendations as string[])?.length > 0 ? (
+          {(analysisOriginal?.recommendations as string[])?.length > 0 ? (
             <ol className="space-y-4">
-              {(analysis.recommendations as string[]).map((rec: string, idx: number) => (
+              {(analysisOriginal.recommendations as string[]).map((rec: string, idx: number) => (
                 <li key={idx} className="flex gap-4">
                   <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#c9a227] text-white flex items-center justify-center font-bold">
                     {idx + 1}
