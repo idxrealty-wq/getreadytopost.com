@@ -81,6 +81,7 @@ function normalizeGrade(g: any): "A" | "B" | "C" | "D" | "F" {
   if (x === "A" || x === "B" || x === "C" || x === "D" || x === "F") return x;
   return "F";
 }
+
 async function scoreWithAI(
   key: string,
   category: "emotional_appeal" | "clarity" | "buyer_focus",
@@ -154,7 +155,6 @@ ${listing}`.trim();
     };
   }
 }
-
 async function generateRewrite(
   key: string,
   listing: string,
@@ -268,11 +268,11 @@ function computeOverallScore(parts: {
   return (
     parts.compliance * 0.25 +
     parts.length * 0.15 +
-    keywords100 * 0.1 +
-    parts.structure * 0.1 +
-    parts.emotionalAppeal * 0.15 +
+    keywords100 * 0.05 +
+    parts.structure * 0.12 +
+    parts.emotionalAppeal * 0.18 +
     parts.clarity * 0.15 +
-    parts.buyerFocus * 0.1
+    parts.buyerFocus * 0.10
   );
 }
 export async function POST(req: NextRequest) {
@@ -307,9 +307,12 @@ export async function POST(req: NextRequest) {
         { error: "Missing OPENAI_API_KEY" },
         { status: 500 }
       );
+
     // Idempotency: if analysis already exists, return early
     if (data.analysis?.rewrite?.text) {
-      console.log(`[run-analysis] Submission ${submissionId} already analyzed. Returning cached result.`);
+      console.log(
+        `[run-analysis] Submission ${submissionId} already analyzed. Returning cached result.`
+      );
       return NextResponse.json({ ok: true, submissionId });
     }
 
