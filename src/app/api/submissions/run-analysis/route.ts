@@ -1,6 +1,7 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+
 import { checkCompliance } from "@/lib/grading/complianceDb";
 import { scoreLength } from "@/lib/grading/lengthScoring";
 import { scoreKeywords } from "@/lib/grading/keywordScoring";
@@ -10,17 +11,21 @@ export const dynamic = "force-dynamic";
 
 function initAdmin() {
   if (getApps().length > 0) return;
+
   const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   if (!json) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON missing");
+
   let sa: any;
   try {
     sa = JSON.parse(json);
   } catch (e) {
     throw new Error(`Invalid JSON in FIREBASE_SERVICE_ACCOUNT_JSON: ${e}`);
   }
+
   if (!sa.private_key || typeof sa.private_key !== "string") {
     throw new Error('Service account object must contain a string "private_key" property.');
   }
+
   sa.private_key = sa.private_key.replace(/\\n/g, "\n");
   initializeApp({ credential: cert(sa) });
 }
@@ -33,6 +38,7 @@ function buildFactsBlock(pd: any): string {
     if (!s) return;
     lines.push(`${label}: ${s}`);
   };
+
   add("Address", pd.address);
   add("City", pd.city);
   add("State", pd.state);
@@ -42,8 +48,10 @@ function buildFactsBlock(pd: any): string {
   add("Year Built", pd.yearBuilt);
   add("Price", pd.price);
   add("HOA", pd.hoa);
+
   return lines.length ? lines.join("\n") : "None provided.";
 }
+
 // ========================================
 // TAB 2: Enrichment (Nearby, etc.)
 // ========================================
@@ -93,8 +101,6 @@ function mergeFactsBlocks(baseFacts: string, nearbyFacts: string): string {
 
   return `${b}\n\nNEARBY (provided facts only):\n${n}`;
 }
-
-
 async function callOpenAI(key: string, system: string, user: string): Promise<string> {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -108,6 +114,7 @@ async function callOpenAI(key: string, system: string, user: string): Promise<st
       temperature: 0.4,
     }),
   });
+
   if (!res.ok) throw new Error(`OpenAI error: ${res.status}`);
   const data = await res.json();
   return String(data.choices?.[0]?.message?.content || "").trim();
@@ -182,7 +189,7 @@ ${listing}`.trim();
 
   response = response.trim();
   response = response.replace(/^```json\s*/i, "").replace(/^```\s*/i, "");
-  response = response.replace(/\s*```$/i, "");
+  response = response.replace(/\s*```\$/i, "");
 
   try {
     const parsed = JSON.parse(response);
@@ -210,8 +217,7 @@ async function generateRewrite(
   listing: string,
   factsBlock: string
 ): Promise<string> {
-  const basePrompt = `
-You are an elite MLS listing rewriter optimizing for conversion AND for an A-grade rubric.
+  const basePrompt = `You are an elite MLS listing rewriter optimizing for conversion AND for an A-grade rubric.
 
 HARD RULES:
 - Use ONLY facts provided in PROPERTY FACTS or ORIGINAL (do not invent schools, distances, upgrades, views, or neighborhood claims).
@@ -234,8 +240,7 @@ ${factsBlock}
 ORIGINAL:
 ${listing}
 
-Return ONLY the rewritten listing text.
-  `.trim();
+Return ONLY the rewritten listing text.`.trim();
 
   const system =
     "You are an elite MLS listing rewriter. Follow the output format exactly. Return ONLY the rewritten listing text.";
@@ -252,20 +257,15 @@ Return ONLY the rewritten listing text.
       .split(/\s+/)
       .filter(Boolean).length;
 
-  // Pass 1: Initial generation
   let text = clean(await callOpenAI(key, system, basePrompt));
   let wc = wordCount(text);
-
   console.log(`[generateRewrite] Pass 1 word count: ${wc}`);
 
-  // Pass 2 (repair) — enforce word count + keep format
   if (wc < 145 || wc > 165) {
     console.log(
       `[generateRewrite] Word count ${wc} outside target 145–165. Running repair pass...`
     );
-
-    const repairPrompt = `
-Your previous rewrite did not meet the required word count (target: 145–165 words).
+    const repairPrompt = `Your previous rewrite did not meet the required word count (target: 145–165 words).
 
 TASK:
 - Keep the EXACT output format (headline line 1, single paragraph line 2+).
@@ -275,65 +275,22 @@ TASK:
 - Keep the CTA EXACTLY: "Schedule your private showing today."
 
 PROPERTY FACTS:
-${factsBlock}
+\${factsBlock}
 
 ORIGINAL:
-${listing}
+\${listing}
 
-CURRENT REWRITE (${wc} words):
-${text}
+CURRENT REWRITE (\${wc} words):
+\${text}
 
-Return ONLY the corrected rewritten listing text.
-    `.trim();
+Return ONLY the corrected rewritten listing text.`.trim();
 
     text = clean(await callOpenAI(key, system, repairPrompt));
     wc = wordCount(text);
-    console.log(`[generateRewrite] Pass 2 word count: ${wc}`);
+    console.log(`[generateRewrite] Pass 2 word count: \${wc}`);
   }
 
   return clean(text);
-}
-// ========================================
-// TAB 0: Credits Guard (Idempotent Deduct)
-// ========================================
-async function deductCreditsIfNeeded(
-  db: any,
-  userId: string,
-  submissionId: string
-): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const ref = db.collection("submissions").doc(submissionId);
-    const snap = await ref.get();
-    const data = snap.data() || {};
-
-    // Already deducted, skip
-    if (data.creditUsed === true) {
-      console.log(`[run-analysis] Submission ${submissionId} already deducted. Skipping.`);
-      return { ok: true };
-    }
-
-    // Call deduct endpoint
-    const deductRes = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/api/credits/deduct`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, submissionId }),
-      }
-    );
-
-    if (!deductRes.ok) {
-      const errData = await deductRes.json();
-      return { ok: false, error: errData.error || "Deduct failed" };
-    }
-
-    const result = await deductRes.json();
-    console.log(`[run-analysis] Credit deducted. New balance: ${result.newBalance}`);
-    return { ok: true };
-  } catch (e: any) {
-    console.error("[run-analysis] Deduct error:", e?.message);
-    return { ok: false, error: e?.message || "Deduct error" };
-  }
 }
 
 function scoreToLetter(score: number): "A" | "B" | "C" | "D" | "F" {
@@ -364,8 +321,53 @@ function computeOverallScore(parts: {
     parts.structure * 0.12 +
     parts.emotionalAppeal * 0.18 +
     parts.clarity * 0.15 +
-    parts.buyerFocus * 0.10
+    parts.buyerFocus * 0.1
   );
+}
+
+// ========================================
+// TAB 0: Credits Guard (Idempotent Deduct)
+// ========================================
+async function deductCreditsIfNeeded(
+  db: any,
+  userId: string,
+  submissionId: string
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const ref = db.collection("submissions").doc(submissionId);
+    const snap = await ref.get();
+    const data = snap.data() || {};
+
+    if (data.creditUsed === true) {
+      console.log(
+        `[run-analysis] Submission \${submissionId} already deducted. Skipping.`
+      );
+      return { ok: true };
+    }
+
+    const deductRes = await fetch(
+      `\${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/api/credits/deduct`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, submissionId }),
+      }
+    );
+
+    if (!deductRes.ok) {
+      const errData = await deductRes.json();
+      return { ok: false, error: errData.error || "Deduct failed" };
+    }
+
+    const result = await deductRes.json();
+    console.log(
+      `[run-analysis] Credit deducted. New balance: \${result.newBalance}`
+    );
+    return { ok: true };
+  } catch (e: any) {
+    console.error("[run-analysis] Deduct error:", e?.message);
+    return { ok: false, error: e?.message || "Deduct error" };
+  }
 }
 export async function POST(req: NextRequest) {
   try {
@@ -391,61 +393,9 @@ export async function POST(req: NextRequest) {
 
     const data = snap.data() || {};
     const listingText = String(data.listingText || "");
-        const baseFacts = buildFactsBlock(data.propertyDetails || {});
+    const baseFacts = buildFactsBlock(data.propertyDetails || {});
     const nearbyFacts = buildNearbyFactsBlock(data.nearby);
     const factsBlock = mergeFactsBlocks(baseFacts, nearbyFacts);
-
-    
-// ========================================
-// TAB 2: Enrichment (Nearby, etc.)
-// ========================================
-function buildNearbyFactsBlock(nearby: any): string {
-  if (!nearby || typeof nearby !== "object") return "";
-
-  const categories = [
-    "Schools",
-    "Grocery",
-    "Parks",
-    "Medical",
-    "Restaurants",
-    "Golf",
-    "Entertainment",
-    "Gas",
-    "Shopping",
-    "Utilities",
-  ];
-
-  const lines: string[] = [];
-
-  for (const cat of categories) {
-    const arr = (nearby as any)[cat];
-    if (!Array.isArray(arr) || arr.length === 0) continue;
-
-    const places = arr
-      .slice(0, 3)
-      .map((p: any) => p?.name)
-      .filter(Boolean)
-      .join(", ");
-
-    if (places) lines.push(`${cat}: ${places}`);
-  }
-
-  return lines.length ? lines.join("\n") : "";
-}
-
-// ========================================
-// TAB 3: Merge + Final Facts Block
-// ========================================
-function mergeFactsBlocks(baseFacts: string, nearbyFacts: string): string {
-  const b = String(baseFacts || "").trim();
-  const n = String(nearbyFacts || "").trim();
-
-  if (!n) return b || "None provided.";
-  if (!b) return `NEARBY (provided facts only):\n${n}`;
-
-  return `${b}\n\nNEARBY (provided facts only):\n${n}`;
-}
-
     const openaiKey = process.env.OPENAI_API_KEY || "";
 
     if (!openaiKey)
@@ -454,7 +404,6 @@ function mergeFactsBlocks(baseFacts: string, nearbyFacts: string): string {
         { status: 500 }
       );
 
-    // Idempotency: if analysis already exists, return early
     if (data.analysis?.rewrite?.text) {
       console.log(
         `[run-analysis] Submission ${submissionId} already analyzed. Returning cached result.`
@@ -463,15 +412,23 @@ function mergeFactsBlocks(baseFacts: string, nearbyFacts: string): string {
     }
 
     await ref.update({ status: "processing" });
-    // TAB 0: Deduct credits (idempotent)
-    const uid = String((data as any).uid || (data as any).userId || "");
-if (!uid) {
-  await ref.update({ status: "failed", error: "Missing uid on submission" });
-  return NextResponse.json({ error: "Missing uid on submission" }, { status: 400 });
-}
 
-const creditCheck = await deductCreditsIfNeeded(db, uid, submissionId);
+    // TAB 0: Deduct credits (idempotent) — use uid if present, else email
+    const uid = String(
+      (data as any).uid || (data as any).userId || (data as any).email || ""
+    );
+    if (!uid) {
+      await ref.update({
+        status: "failed",
+        error: "Missing uid/email on submission",
+      });
+      return NextResponse.json(
+        { error: "Missing uid/email on submission" },
+        { status: 400 }
+      );
+    }
 
+    const creditCheck = await deductCreditsIfNeeded(db, uid, submissionId);
     if (!creditCheck.ok) {
       await ref.update({ status: "failed", error: creditCheck.error });
       return NextResponse.json({ error: creditCheck.error }, { status: 400 });
@@ -570,7 +527,10 @@ const creditCheck = await deductCreditsIfNeeded(db, uid, submissionId);
             },
             length: { grade: lengthResult.grade, feedback: lengthResult.auditTrail },
             emotion: emotionalAppeal,
-            keywords: { grade: keywordsResult.grade, feedback: keywordsResult.auditTrail },
+            keywords: {
+              grade: keywordsResult.grade,
+              feedback: keywordsResult.auditTrail,
+            },
             cta: {
               grade: structureResult.callToAction ? "B" : "C",
               feedback: structureResult.callToAction
