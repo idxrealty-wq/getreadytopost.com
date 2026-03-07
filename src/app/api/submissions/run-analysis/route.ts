@@ -44,6 +44,56 @@ function buildFactsBlock(pd: any): string {
   add("HOA", pd.hoa);
   return lines.length ? lines.join("\n") : "None provided.";
 }
+// ========================================
+// TAB 2: Enrichment (Nearby, etc.)
+// ========================================
+function buildNearbyFactsBlock(nearby: any): string {
+  if (!nearby || typeof nearby !== "object") return "";
+
+  const categories = [
+    "Schools",
+    "Grocery",
+    "Parks",
+    "Medical",
+    "Restaurants",
+    "Golf",
+    "Entertainment",
+    "Gas",
+    "Shopping",
+    "Utilities",
+  ];
+
+  const lines: string[] = [];
+
+  for (const cat of categories) {
+    const arr = (nearby as any)[cat];
+    if (!Array.isArray(arr) || arr.length === 0) continue;
+
+    const places = arr
+      .slice(0, 3)
+      .map((p: any) => p?.name)
+      .filter(Boolean)
+      .join(", ");
+
+    if (places) lines.push(`${cat}: ${places}`);
+  }
+
+  return lines.length ? lines.join("\n") : "";
+}
+
+// ========================================
+// TAB 3: Merge + Final Facts Block
+// ========================================
+function mergeFactsBlocks(baseFacts: string, nearbyFacts: string): string {
+  const b = String(baseFacts || "").trim();
+  const n = String(nearbyFacts || "").trim();
+
+  if (!n) return b || "None provided.";
+  if (!b) return `NEARBY (provided facts only):\n${n}`;
+
+  return `${b}\n\nNEARBY (provided facts only):\n${n}`;
+}
+
 
 async function callOpenAI(key: string, system: string, user: string): Promise<string> {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -300,6 +350,57 @@ export async function POST(req: NextRequest) {
     const data = snap.data() || {};
     const listingText = String(data.listingText || "");
     const factsBlock = buildFactsBlock(data.propertyDetails || {});
+    
+// ========================================
+// TAB 2: Enrichment (Nearby, etc.)
+// ========================================
+function buildNearbyFactsBlock(nearby: any): string {
+  if (!nearby || typeof nearby !== "object") return "";
+
+  const categories = [
+    "Schools",
+    "Grocery",
+    "Parks",
+    "Medical",
+    "Restaurants",
+    "Golf",
+    "Entertainment",
+    "Gas",
+    "Shopping",
+    "Utilities",
+  ];
+
+  const lines: string[] = [];
+
+  for (const cat of categories) {
+    const arr = (nearby as any)[cat];
+    if (!Array.isArray(arr) || arr.length === 0) continue;
+
+    const places = arr
+      .slice(0, 3)
+      .map((p: any) => p?.name)
+      .filter(Boolean)
+      .join(", ");
+
+    if (places) lines.push(`${cat}: ${places}`);
+  }
+
+  return lines.length ? lines.join("\n") : "";
+}
+
+// ========================================
+// TAB 3: Merge + Final Facts Block
+// ========================================
+function mergeFactsBlocks(baseFacts: string, nearbyFacts: string): string {
+  const b = String(baseFacts || "").trim();
+  const n = String(nearbyFacts || "").trim();
+
+  if (!n) return b || "None provided.";
+  if (!b) return `NEARBY (provided facts only):\n${n}`;
+
+  return `${b}\n\nNEARBY (provided facts only):\n${n}`;
+}
+
     const openaiKey = process.env.OPENAI_API_KEY || "";
 
     if (!openaiKey)
