@@ -86,8 +86,7 @@ export default function RateMyListingPage() {
     setLoading(true);
 
     try {
-      // 1) Create submission
-      const createRes = await fetch("/api/submissions/create", {
+      const createRes = await fetch("https://getreadytopost.com/api/submissions/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -126,8 +125,7 @@ export default function RateMyListingPage() {
         return;
       }
 
-      // 2) Run analysis
-      const analysisRes = await fetch("/api/submissions/run-analysis", {
+      const analysisRes = await fetch("https://getreadytopost.com/api/submissions/run-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ submissionId }),
@@ -149,7 +147,7 @@ export default function RateMyListingPage() {
       if (analysisJson?.ok) {
         setSubmitted(true);
         setTimeout(() => {
-          router.push(`/results/original/${submissionId}`);
+          router.push(`/rate-my-listing?submissionId=${submissionId}`);
         }, 800);
         return;
       }
@@ -185,7 +183,6 @@ export default function RateMyListingPage() {
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-10">
-        {/* Hero */}
         <section className="py-8 text-center text-white">
           <div className="inline-block bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-full mb-4">
             🔥 Instant Listing Analysis
@@ -199,7 +196,6 @@ export default function RateMyListingPage() {
           </div>
         </section>
 
-        {/* Video */}
         <section className="mb-10">
           <div className="rounded-2xl overflow-hidden border border-white/20 shadow-2xl aspect-video">
             <iframe
@@ -215,7 +211,6 @@ export default function RateMyListingPage() {
           </div>
         </section>
 
-        {/* Agent Workspace Callout */}
         <section className="mb-10">
           <Link
             href="/workspace"
@@ -236,7 +231,6 @@ export default function RateMyListingPage() {
             </div>
           </Link>
         </section>
-        {/* Grading Criteria */}
         <section className="mb-10">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-white mb-2">How We Grade Your Listing</h2>
@@ -245,10 +239,7 @@ export default function RateMyListingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {gradingCategories.map((cat, i) => (
-              <div
-                key={i}
-                className={`rounded-xl p-5 border ${cat.color} backdrop-blur-sm`}
-              >
+              <div key={i} className={`rounded-xl p-5 border ${cat.color} backdrop-blur-sm`}>
                 <div className="flex items-start gap-3">
                   <div className="text-3xl">{cat.icon}</div>
                   <div>
@@ -267,7 +258,6 @@ export default function RateMyListingPage() {
           </div>
         </section>
 
-        {/* Form */}
         <div className="bg-white rounded-2xl p-6 shadow-2xl mb-6">
           <h2 className="text-xl font-bold text-[#1a2b4a] mb-4 text-center">Paste Your Listing Below</h2>
 
@@ -327,54 +317,28 @@ export default function RateMyListingPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Property Address *</label>
-              <AddressAutosuggest
-                value={address}
-                onChange={setAddress}
-                onSelect={handleAddressSelect}
-                state={stateVal}
-                city={city}
-              />
+              <AddressAutosuggest value={address} onChange={setAddress} onSelect={handleAddressSelect} state={stateVal} city={city} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Beds</label>
-                <input
-                  type="number"
-                  value={beds}
-                  onChange={(e) => setBeds(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900"
-                />
+                <input type="number" value={beds} onChange={(e) => setBeds(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Baths</label>
-                <input
-                  type="number"
-                  value={baths}
-                  onChange={(e) => setBaths(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900"
-                />
+                <input type="number" value={baths} onChange={(e) => setBaths(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Square Feet</label>
-                <input
-                  type="number"
-                  value={sqft}
-                  onChange={(e) => setSqft(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900"
-                />
+                <input type="number" value={sqft} onChange={(e) => setSqft(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Year Built</label>
-                <input
-                  type="number"
-                  value={yearBuilt}
-                  onChange={(e) => setYearBuilt(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900"
-                />
+                <input type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900" />
               </div>
             </div>
 
@@ -390,11 +354,7 @@ export default function RateMyListingPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">HOA</label>
-              <select
-                value={hoa}
-                onChange={(e) => setHoa(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900"
-              >
+              <select value={hoa} onChange={(e) => setHoa(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900">
                 <option value="">Do you have an HOA?</option>
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
