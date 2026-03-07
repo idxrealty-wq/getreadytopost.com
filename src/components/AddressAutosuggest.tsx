@@ -70,7 +70,6 @@ export default function AddressAutosuggest({
   const doSearch = (val: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    // Nationwide search needs more than "701" to be useful.
     if (val.length < 5) {
       setResults([]);
       setShowResults(false);
@@ -82,7 +81,6 @@ export default function AddressAutosuggest({
       try {
         const params = new URLSearchParams();
         params.set("q", val);
-
         if (state && state.trim()) params.set("state", state.trim());
         if (city && city.trim()) params.set("city", city.trim());
 
@@ -114,16 +112,12 @@ export default function AddressAutosuggest({
 
     onChange(fullAddress);
     setSelected(parcel);
-    setConfirmed(false);
     setShowResults(false);
     setResults([]);
-  };
 
-  const handleConfirm = () => {
-    if (selected) {
-      onSelect(selected);
-      setConfirmed(true);
-    }
+    // Auto-confirm immediately (no extra click)
+    onSelect(parcel);
+    setConfirmed(true);
   };
 
   const handleClear = () => {
@@ -154,6 +148,7 @@ export default function AddressAutosuggest({
     if (parcel.parcel_id) parts.push("Parcel: " + parcel.parcel_id);
     return parts.join(" | ");
   };
+
   return (
     <div ref={wrapperRef} className="relative">
       {!selected && (
@@ -180,6 +175,7 @@ export default function AddressAutosuggest({
           {results.map((r, i) => (
             <button
               key={i}
+              type="button"
               onMouseDown={(e) => {
                 e.preventDefault();
                 handlePick(r);
@@ -201,37 +197,13 @@ export default function AddressAutosuggest({
         </div>
       )}
 
-      {selected && !confirmed && (
-        <div className="bg-white border-2 border-[#c9a227] rounded-xl p-5 shadow-lg">
-          <div className="text-lg font-bold text-gray-900 mb-1">
-            {selected.address}, {selected.city}, {selected.zip}
-          </div>
-          <div className="text-sm text-gray-600 mb-4">{formatConfirmDetail(selected)}</div>
-          <p className="text-gray-700 font-semibold mb-3">Is this your property?</p>
-          <div className="flex gap-3">
-            <button
-              onClick={handleConfirm}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold transition"
-            >
-              Yes, this is it
-            </button>
-            <button
-              onClick={handleClear}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-bold transition"
-            >
-              No, search again
-            </button>
-          </div>
-        </div>
-      )}
-
       {confirmed && selected && (
         <div className="bg-green-50 border-2 border-green-500 rounded-xl p-4 flex items-center justify-between">
           <div>
             <div className="text-lg font-bold text-green-800">
               {selected.address}, {selected.city}, {selected.zip}
             </div>
-            <div className="text-sm text-green-600">Property confirmed - details auto-filled below</div>
+            <div className="text-sm text-green-600">{formatConfirmDetail(selected)}</div>
           </div>
           <button
             onClick={handleClear}
