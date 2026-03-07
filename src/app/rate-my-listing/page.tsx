@@ -1,5 +1,4 @@
 "use client";
-
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -43,26 +42,20 @@ const gradingCategories = [
     color: "bg-pink-500/20 border-pink-400/40",
   },
 ];
-
 export default function RateMyListingPage() {
   const router = useRouter();
-
   const [listingDescription, setListingDescription] = useState("");
   const [email, setEmail] = useState("");
-
   const [stateVal, setStateVal] = useState("Florida");
   const [city, setCity] = useState("Orlando");
   const [address, setAddress] = useState("");
-
   const [beds, setBeds] = useState("");
   const [baths, setBaths] = useState("");
   const [sqft, setSqft] = useState("");
   const [yearBuilt, setYearBuilt] = useState("");
   const [price, setPrice] = useState("");
-
   const [hoa, setHoa] = useState("");
   const [hoaAmount, setHoaAmount] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -76,15 +69,13 @@ export default function RateMyListingPage() {
     if (parcel?.sqft) setSqft(String(parcel.sqft));
     if (parcel?.year_built) setYearBuilt(String(parcel.year_built));
   };
-
-  const handleSubmit = async () => {
+    const handleSubmit = async () => {
     if (!listingDescription.trim() || !email.trim() || !address.trim()) {
       alert("Listing description, email, and address are required.");
       return;
     }
 
     setLoading(true);
-
     try {
       const createRes = await fetch("https://getreadytopost.com/api/submissions/create", {
         method: "POST",
@@ -103,6 +94,7 @@ export default function RateMyListingPage() {
           price: price ? parseInt(String(price).replace(/,/g, ""), 10) : null,
           hoa: hoa === "yes" ? "yes" : "no",
           hoaAmount: hoaAmount ? parseFloat(String(hoaAmount).replace(/,/g, "")) : null,
+          nearby: null,
         }),
       });
 
@@ -159,8 +151,7 @@ export default function RateMyListingPage() {
       setLoading(false);
     }
   };
-
-  if (submitted) {
+    if (submitted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center p-4">
         <div className="text-center">
@@ -177,9 +168,8 @@ export default function RateMyListingPage() {
         <img
           src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/1c6b6e83-767a-4a5f-9cc4-ea33a9ca148a/image.png?w=1200&h=896"
           alt="Background"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-[#1a2b4a]/85" />
+          className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-[#1a2b4a]/85"/>
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-10">
@@ -189,7 +179,6 @@ export default function RateMyListingPage() {
           </div>
           <h1 className="text-3xl md:text-5xl font-bold mb-3">Rate My Listing</h1>
           <p className="text-gray-300 mb-4 text-lg">Grade → Rewrite → Report. All in one place.</p>
-
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 inline-block">
             <p className="text-4xl font-bold text-[#c9a227] mb-1">$19.99</p>
             <p className="text-sm text-gray-300">Instant AI-powered analysis</p>
@@ -206,16 +195,14 @@ export default function RateMyListingPage() {
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              className="w-full h-full"
-            />
+              className="w-full h-full"/>
           </div>
         </section>
 
         <section className="mb-10">
           <Link
             href="/workspace"
-            className="block bg-gradient-to-r from-[#c9a227]/20 to-amber-600/10 border-2 border-[#c9a227]/40 rounded-2xl p-6 hover:border-[#c9a227]/70 transition group"
-          >
+            className="block bg-gradient-to-r from-[#c9a227]/20 to-amber-600/10 border-2 border-[#c9a227]/40 rounded-2xl p-6 hover:border-[#c9a227]/70 transition group" />
             <div className="flex items-center gap-4">
               <div className="text-5xl">🔧</div>
               <div className="flex-1">
@@ -231,12 +218,12 @@ export default function RateMyListingPage() {
             </div>
           </Link>
         </section>
+
         <section className="mb-10">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-white mb-2">How We Grade Your Listing</h2>
             <p className="text-gray-400">Your description is scored across 6 categories + compliance.</p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {gradingCategories.map((cat, i) => (
               <div key={i} className={`rounded-xl p-5 border ${cat.color} backdrop-blur-sm`}>
@@ -250,17 +237,14 @@ export default function RateMyListingPage() {
               </div>
             ))}
           </div>
-
           <div className="mt-4 text-center">
             <p className="text-gray-400 text-sm">
               Each category is scored 1–10. Your total score determines your grade — and what to fix.
             </p>
           </div>
         </section>
-
-        <div className="bg-white rounded-2xl p-6 shadow-2xl mb-6">
+                <div className="bg-white rounded-2xl p-6 shadow-2xl mb-6">
           <h2 className="text-xl font-bold text-[#1a2b4a] mb-4 text-center">Paste Your Listing Below</h2>
-
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Listing Description *</label>
@@ -276,8 +260,7 @@ export default function RateMyListingPage() {
                 <p
                   className={`text-sm font-bold ${
                     wordCount < 50 ? "text-red-500" : wordCount < 140 ? "text-amber-500" : "text-green-500"
-                  }`}
-                >
+                  }`}>
                   {wordCount} words
                 </p>
               </div>
@@ -288,7 +271,7 @@ export default function RateMyListingPage() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) = /> setEmail(e.target.value)}
                 placeholder="your@email.com"
                 className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900"
               />
@@ -300,7 +283,7 @@ export default function RateMyListingPage() {
                 <input
                   type="text"
                   value={stateVal}
-                  onChange={(e) => setStateVal(e.target.value)}
+                  onChange={(e) = /> setStateVal(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900"
                 />
               </div>
@@ -309,7 +292,7 @@ export default function RateMyListingPage() {
                 <input
                   type="text"
                   value={city}
-                  onChange={(e) => setCity(e.target.value)}
+                  onChange={(e) = /> setCity(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900"
                 />
               </div>
@@ -317,28 +300,28 @@ export default function RateMyListingPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Property Address *</label>
-              <AddressAutosuggest value={address} onChange={setAddress} onSelect={handleAddressSelect} state={stateVal} city={city} />
+              <AddressAutosuggest value={address} onChange={setAddress} onSelect={handleAddressSelect} state={stateVal} city={city}/>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Beds</label>
-                <input type="number" value={beds} onChange={(e) => setBeds(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900" />
+                <input type="number" value={beds} onChange={(e) = /> setBeds(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Baths</label>
-                <input type="number" value={baths} onChange={(e) => setBaths(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900" />
+                <input type="number" value={baths} onChange={(e) = /> setBaths(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Square Feet</label>
-                <input type="number" value={sqft} onChange={(e) => setSqft(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900" />
+                <input type="number" value={sqft} onChange={(e) = /> setSqft(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Year Built</label>
-                <input type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900" />
+                <input type="number" value={yearBuilt} onChange={(e) = /> setYearBuilt(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900" />
               </div>
             </div>
 
@@ -347,7 +330,7 @@ export default function RateMyListingPage() {
               <input
                 type="text"
                 value={price ? Number(price).toLocaleString() : ""}
-                onChange={(e) => setPrice(e.target.value.replace(/,/g, ""))}
+                onChange={(e) = /> setPrice(e.target.value.replace(/,/g, ""))}
                 className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900"
               />
             </div>
@@ -367,7 +350,7 @@ export default function RateMyListingPage() {
                 <input
                   type="text"
                   value={hoaAmount ? Number(hoaAmount).toLocaleString() : ""}
-                  onChange={(e) => setHoaAmount(e.target.value.replace(/,/g, ""))}
+                  onChange={(e) = /> setHoaAmount(e.target.value.replace(/,/g, ""))}
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#c9a227] focus:outline-none text-gray-900"
                 />
               </div>
@@ -376,8 +359,7 @@ export default function RateMyListingPage() {
             <button
               onClick={handleSubmit}
               disabled={loading || !listingDescription || !email || !address}
-              className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50"
-            >
+              className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50">
               {loading ? "Analyzing..." : "🔥 Analyze My Listing"}
             </button>
 
@@ -386,7 +368,7 @@ export default function RateMyListingPage() {
         </div>
 
         <div className="text-center mt-8">
-          <Link href="/" className="text-white/70 hover:text-white font-semibold">
+          <Link href="/" className="text-white/70 hover:text-white font-semibold" />
             ← Back to Home
           </Link>
         </div>
