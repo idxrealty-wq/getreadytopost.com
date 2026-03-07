@@ -61,7 +61,7 @@ export default function RateMyListingPage() {
   const [price, setPrice] = useState("");
 
   const [hoa, setHoa] = useState("");
-  const [hoaAmount,nearby: null, setHoaAmount] = useState("");
+  const [hoaAmount, setHoaAmount] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -103,6 +103,7 @@ export default function RateMyListingPage() {
           price: price ? parseInt(String(price).replace(/,/g, ""), 10) : null,
           hoa: hoa === "yes" ? "yes" : "no",
           hoaAmount: hoaAmount ? parseFloat(String(hoaAmount).replace(/,/g, "")) : null,
+          nearby: null,
         }),
       });
 
