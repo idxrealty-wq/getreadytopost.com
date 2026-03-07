@@ -127,10 +127,10 @@ export default function OriginalResultsPage() {
   const overall = String(analysisOriginal?.overall || "N/A") as Grade;
   const overallColor = gradeColor(overall);
 
-  const categories = useMemo(() => {
-    const obj = analysisOriginal?.categories || {};
-    return Object.entries(obj);
-  }, [analysisOriginal?.categories]);
+ const categories = useMemo(() => {
+  const obj = analysisOriginal?.breakdown || analysisOriginal?.categories || {};
+  return Object.entries(obj);
+}, [analysisOriginal?.breakdown, analysisOriginal?.categories]);
 
   if (loading) {
     return (
