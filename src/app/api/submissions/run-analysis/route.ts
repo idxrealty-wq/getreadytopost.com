@@ -340,28 +340,38 @@ async function deductCreditsIfNeeded(
 
     if (data.creditUsed === true) {
       console.log(
-        `[run-analysis] Submission \${submissionId} already deducted. Skipping.`
+        `[run-analysis] Submission ${submissionId} already deducted. Skipping.`
       );
       return { ok: true };
     }
 
-    const deductRes = await fetch(
-      `\${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/api/credits/deduct`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, submissionId }),
-      }
-    );
+    // Build an absolute URL safely in server environments (Netlify, local, etc.)
+    const base =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.SITE_URL ||
+      process.env.URL ||
+      "http://localhost:3000";
+
+    const url = new URL("/api/credits/deduct", base).toString();
+
+    const deductRes = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, submissionId }),
+    });
 
     if (!deductRes.ok) {
-      const errData = await deductRes.json();
-      return { ok: false, error: errData.error || "Deduct failed" };
+      let errMsg = "Deduct failed";
+      try {
+        const errData = await deductRes.json();
+        errMsg = errData?.error || errMsg;
+      } catch {}
+      return { ok: false, error: errMsg };
     }
 
     const result = await deductRes.json();
     console.log(
-      `[run-analysis] Credit deducted. New balance: \${result.newBalance}`
+      `[run-analysis] Credit deducted. New balance: ${result.newBalance}`
     );
     return { ok: true };
   } catch (e: any) {
