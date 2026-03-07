@@ -464,11 +464,10 @@ function mergeFactsBlocks(baseFacts: string, nearbyFacts: string): string {
 
     await ref.update({ status: "processing" });
     // TAB 0: Deduct credits (idempotent)
-    const uid = String((data as any).uid || (data as any).userId || "");
+    const uid = String((data as any).uid || (data as any).userId || (data as any).email || "");
 if (!uid) {
-  await ref.update({ status: "failed", error: "Missing uid on submission" });
-  return NextResponse.json({ error: "Missing uid on submission" }, { status: 400 });
-}
+  await ref.update({ status: "failed", error: "Missing uid/email on submission" });
+  return NextResponse.json({ error: "Missing uid/email on submission" }, { status: 400 });
 
 const creditCheck = await deductCreditsIfNeeded(db, uid, submissionId);
 
