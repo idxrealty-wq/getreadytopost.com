@@ -302,11 +302,17 @@ export async function POST(req: NextRequest) {
         original: {
           overall: originalGrade,
           categories: {
-            headline: { grade: "B", feedback: "Headline present but could be more specific." },
+            headline: {
+              grade: structureResult.openingHook ? "B" : "C",
+              feedback: structureResult.openingHook ? "Opening hook present." : "Opening hook missing or weak.",
+            },
             length: { grade: lengthResult.grade, feedback: lengthResult.auditTrail },
             emotion: emotionalAppeal,
             keywords: { grade: keywordsResult.grade, feedback: keywordsResult.auditTrail },
-            cta: { grade: structureResult.callToAction ? "B" : "C", feedback: structureResult.callToAction ? "CTA present." : "No clear CTA." },
+            cta: {
+              grade: structureResult.callToAction ? "B" : "C",
+              feedback: structureResult.callToAction ? "CTA present." : "No clear CTA.",
+            },
             compliance: { grade: complianceResult.grade, feedback: complianceResult.auditTrail },
           },
           recommendations: [
@@ -320,11 +326,17 @@ export async function POST(req: NextRequest) {
           text: rewriteText,
           wordCount: rewriteText.trim().split(/\s+/).length,
           categories: {
-            headline: { grade: "A", feedback: "Strong, MLS-safe headline." },
+            headline: {
+              grade: rewriteStructureResult.openingHook ? "A" : "B",
+              feedback: rewriteStructureResult.openingHook ? "Strong opening hook present." : "Opening hook could be stronger.",
+            },
             length: { grade: rewriteLengthResult.grade, feedback: rewriteLengthResult.auditTrail },
             emotion: rewriteEmotionalAppeal,
             keywords: { grade: rewriteKeywordsResult.grade, feedback: rewriteKeywordsResult.auditTrail },
-            cta: { grade: "A", feedback: "Clear, actionable CTA present." },
+            cta: {
+              grade: rewriteStructureResult.callToAction ? "A" : "B",
+              feedback: rewriteStructureResult.callToAction ? "Clear, actionable CTA present." : "CTA could be stronger.",
+            },
             compliance: { grade: rewriteComplianceResult.grade, feedback: rewriteComplianceResult.auditTrail },
           },
         },
