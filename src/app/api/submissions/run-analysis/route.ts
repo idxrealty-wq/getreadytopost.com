@@ -293,6 +293,48 @@ Return ONLY the corrected rewritten listing text.
 
   return clean(text);
 }
+// ========================================
+// TAB 0: Credits Guard (Idempotent Deduct)
+// ========================================
+async function deductCreditsIfNeeded(
+  db: any,
+  userId: string,
+  submissionId: string
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const ref = db.collection("submissions").doc(submissionId);
+    const snap = await ref.get();
+    const data = snap.data() || {};
+
+    // Already deducted, skip
+    if (data.creditUsed === true) {
+      console.log(`[run-analysis] Submission ${submissionId} already deducted. Skipping.`);
+      return { ok: true };
+    }
+
+    // Call deduct endpoint
+    const deductRes = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/api/credits/deduct`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, submissionId }),
+      }
+    );
+
+    if (!deductRes.ok) {
+      const errData = await deductRes.json();
+      return { ok: false, error: errData.error || "Deduct failed" };
+    }
+
+    const result = await deductRes.json();
+    console.log(`[run-analysis] Credit deducted. New balance: ${result.newBalance}`);
+    return { ok: true };
+  } catch (e: any) {
+    console.error("[run-analysis] Deduct error:", e?.message);
+    return { ok: false, error: e?.message || "Deduct error" };
+  }
+}
 
 function scoreToLetter(score: number): "A" | "B" | "C" | "D" | "F" {
   if (score >= 90) return "A";
@@ -421,6 +463,12 @@ function mergeFactsBlocks(baseFacts: string, nearbyFacts: string): string {
     }
 
     await ref.update({ status: "processing" });
+    // TAB 0: Deduct credits (idempotent)
+    const creditCheck = await deductCreditsIfNeeded(db, data.userId, submissionId);
+    if (!creditCheck.ok) {
+      await ref.update({ status: "failed", error: creditCheck.error });
+      return NextResponse.json({ error: creditCheck.error }, { status: 400 });
+    }
 
     // Score original
     const complianceResult = checkCompliance(listingText);
