@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     const db = getFirestore();
 
     const { searchParams } = new URL(req.url);
-    const submissionId = searchParams.get("submissionId");
+    const submissionId = searchParams.get("id");
     if (!submissionId) {
       return NextResponse.json({ error: "submissionId is required" }, { status: 400 });
     }
