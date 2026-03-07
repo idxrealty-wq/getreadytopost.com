@@ -41,27 +41,27 @@ function gradeLabel(grade: string) {
   }
 }
 
-type Category = { grade: Grade; feedback?: string };
+type Category = { grade?: Grade | string; feedback?: string };
 
 type SubmissionDoc = {
   listingText?: string;
   status?: string;
   analysis?: {
     original?: {
-      overall?: Grade;
+      overall?: Grade | string;
+      breakdown?: Record<string, Category>;
       categories?: Record<string, Category>;
-      recommendations?: string[];
     };
     rewrite?: {
-      overall?: Grade;
+      overall?: Grade | string;
       text?: string;
       wordCount?: number;
+      breakdown?: Record<string, Category>;
       categories?: Record<string, Category>;
     };
   };
   saved?: boolean;
 };
-
 export default function RewriteResultsPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -82,8 +82,7 @@ export default function RewriteResultsPage() {
         const ref = doc(db, "submissions", submissionId);
         const snap = await getDoc(ref);
         if (snap.exists()) {
-          const data = snap.data() as SubmissionDoc;
-          setSubmission(data);
+          setSubmission(snap.data() as SubmissionDoc);
         } else {
           setSubmission(null);
         }
@@ -107,14 +106,11 @@ export default function RewriteResultsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ submissionId }),
       });
-
       if (!res.ok) throw new Error("Reanalyze failed");
 
       const ref = doc(db, "submissions", submissionId);
       const snap = await getDoc(ref);
-      if (snap.exists()) {
-        setSubmission(snap.data() as SubmissionDoc);
-      }
+      if (snap.exists()) setSubmission(snap.data() as SubmissionDoc);
     } catch (e) {
       console.error(e);
       alert("Error reanalyzing. Please try again.");
@@ -127,12 +123,9 @@ export default function RewriteResultsPage() {
     if (!submissionId) return;
     setSaving(true);
     try {
-      const docRef = doc(db, "submissions", submissionId);
-      // Keep it simple: mark saved on the document (same as your previous results-content.tsx)
-      // This avoids relying on a separate API route that may not exist.
       const { updateDoc } = await import("firebase/firestore");
+      const docRef = doc(db, "submissions", submissionId);
       await updateDoc(docRef, { saved: true, savedAt: new Date().toISOString() });
-
       setSubmission((prev) => (prev ? { ...prev, saved: true } : null));
       alert("Saved to Vault!");
     } catch (e) {
@@ -163,14 +156,14 @@ export default function RewriteResultsPage() {
     document.body.removeChild(element);
   };
 
-  const rewrite = submission?.analysis?.rewrite;
-  const overall = String(rewrite?.overall || "") as Grade;
+  const rewrite = submission?.analysis?.rewrite as any;
+  const overall = String(rewrite?.overall?.grade || rewrite?.overall || "N/A") as Grade;
   const overallColor = gradeColor(overall);
 
   const categories = useMemo(() => {
-    const obj = rewrite?.categories || {};
+    const obj = rewrite?.breakdown || rewrite?.categories || {};
     return Object.entries(obj);
-  }, [rewrite?.categories]);
+  }, [rewrite?.breakdown, rewrite?.categories]);
   if (loading) {
     return (
       <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] via-[#2d4a7c] to-[#1a2b4a] flex items-center justify-center">
@@ -212,9 +205,7 @@ export default function RewriteResultsPage() {
         <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">MLS-Ready Rewrite</h1>
-            <p className="text-white/80">
-              This is your rewrite, graded separately, plus next steps and upsells.
-            </p>
+            <p className="text-white/80">This is your rewrite, graded separately, plus next steps.</p>
           </div>
 
           <div className="flex gap-3 flex-wrap">
@@ -224,10 +215,7 @@ export default function RewriteResultsPage() {
             >
               ← View Original
             </button>
-            <a
-              href="/agent-vault"
-              className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/30 rounded-lg font-semibold transition"
-            >
+            <a href="/agent-vault" className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/30 rounded-lg font-semibold transition">
               Agent Vault
             </a>
           </div>
@@ -236,10 +224,7 @@ export default function RewriteResultsPage() {
         <div className="bg-white/10 border border-white/15 rounded-2xl p-6 mb-8">
           <p className="text-white/60 text-sm uppercase tracking-wide mb-2">Rewrite Overall Grade</p>
           <div className="flex items-center gap-4">
-            <div
-              className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-4xl"
-              style={{ backgroundColor: overallColor }}
-            >
+            <div className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-4xl" style={{ backgroundColor: overallColor }}>
               {overall}
             </div>
             <div>
@@ -248,51 +233,30 @@ export default function RewriteResultsPage() {
             </div>
           </div>
         </div>
+
         <div className="bg-white rounded-2xl p-8 mb-8">
           <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
             <div>
               <h2 className="text-2xl font-bold text-[#1a2b4a]">Your Rewrite</h2>
-              <p className="text-gray-600 text-sm">
-                Word count: <strong>{rewrite.wordCount || 0} words</strong>
-              </p>
+              <p className="text-gray-600 text-sm">Word count: <strong>{rewrite.wordCount || 0} words</strong></p>
             </div>
-            <button
-              onClick={handleReanalyze}
-              disabled={reanalyzing}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition disabled:opacity-50"
-            >
+            <button onClick={handleReanalyze} disabled={reanalyzing} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition disabled:opacity-50">
               {reanalyzing ? "Analyzing..." : "Refresh"}
             </button>
           </div>
 
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
-            <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
-              {String(rewrite.text || "")}
-            </p>
+            <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">{String(rewrite.text || "")}</p>
           </div>
 
           <div className="flex gap-3 flex-wrap">
-            <button
-              onClick={handleCopyRewrite}
-              className="px-6 py-3 bg-[#c9a227] hover:bg-[#b8911f] text-white rounded-lg font-semibold transition"
-            >
+            <button onClick={handleCopyRewrite} className="px-6 py-3 bg-[#c9a227] hover:bg-[#b8911f] text-white rounded-lg font-semibold transition">
               {copied ? "Copied!" : "Copy Rewrite"}
             </button>
-            <button
-              onClick={handleDownloadRewrite}
-              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
-            >
+            <button onClick={handleDownloadRewrite} className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition">
               Download
             </button>
-            <button
-              onClick={handleSaveToVault}
-              disabled={saving || submission.saved}
-              className={`px-6 py-3 rounded-lg font-semibold transition ${
-                submission.saved
-                  ? "bg-green-600 text-white cursor-default"
-                  : "bg-green-500 hover:bg-green-600 text-white"
-              }`}
-            >
+            <button onClick={handleSaveToVault} disabled={saving || submission.saved} className={`px-6 py-3 rounded-lg font-semibold transition ${submission.saved ? "bg-green-600 text-white cursor-default" : "bg-green-500 hover:bg-green-600 text-white"}`}>
               {saving ? "Saving..." : submission.saved ? "Saved to Vault" : "Save to Vault"}
             </button>
           </div>
@@ -302,54 +266,46 @@ export default function RewriteResultsPage() {
           <div className="bg-white rounded-2xl p-8 mb-8">
             <h2 className="text-2xl font-bold text-[#1a2b4a] mb-6">Rewrite Grades</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {categories.map(([key, cat]) => (
-                <div key={key} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-[#1a2b4a] capitalize">{key}</h3>
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
-                      style={{ backgroundColor: gradeColor(cat?.grade) }}
-                    >
-                      {cat?.grade}
+              {categories.map(([key, cat]) => {
+                const c = cat as any;
+                return (
+                  <div key={key} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-[#1a2b4a] capitalize">{String(key)}</h3>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: gradeColor(String(c?.grade || "")) }}>
+                        {String(c?.grade || "?")}
+                      </div>
                     </div>
+                    <p className="text-gray-600 text-sm">{String(c?.feedback || "No feedback provided.")}</p>
                   </div>
-                  <p className="text-gray-600 text-sm">{cat?.feedback || "No feedback provided."}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
-        <div className="bg-white/10 border border-white/20 rounded-2xl p-8 mb-8">
+
+        <div className="bg-white/10 border border-white/20 rounded-2xl p-8">
           <div className="text-center mb-6">
             <p className="text-[#c9a227] font-bold text-lg mb-1">Ready to close more deals?</p>
             <p className="text-white/80">Take these tools for a spin with your listing data already loaded:</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a
-              href={`/property-tax?submissionId=${submissionId}`}
-              className="bg-[#1e3a5f] hover:bg-[#2a4f7a] border border-white/20 rounded-xl p-5 text-center transition group"
-            >
+            <a href={`/property-tax?submissionId=${submissionId}`} className="bg-[#1e3a5f] hover:bg-[#2a4f7a] border border-white/20 rounded-xl p-5 text-center transition group">
               <div className="text-4xl mb-2">🏠</div>
               <h3 className="text-white font-bold mb-1">Property Tax Estimator</h3>
               <p className="text-gray-400 text-sm">Estimate 2025 Orange County taxes for this property</p>
               <p className="text-[#c9a227] text-sm mt-2 font-semibold group-hover:underline">Open Estimator</p>
             </a>
 
-            <a
-              href={`/closing-costs?submissionId=${submissionId}`}
-              className="bg-[#1e3a5f] hover:bg-[#2a4f7a] border border-white/20 rounded-xl p-5 text-center transition group"
-            >
+            <a href={`/closing-costs?submissionId=${submissionId}`} className="bg-[#1e3a5f] hover:bg-[#2a4f7a] border border-white/20 rounded-xl p-5 text-center transition group">
               <div className="text-4xl mb-2">💰</div>
               <h3 className="text-white font-bold mb-1">Closing Cost Calculator</h3>
               <p className="text-gray-400 text-sm">Full TRID-style buyer & seller cost breakdown</p>
               <p className="text-[#c9a227] text-sm mt-2 font-semibold group-hover:underline">Open Calculator</p>
             </a>
 
-            <a
-              href="/workspace"
-              className="bg-[#1e3a5f] hover:bg-[#2a4f7a] border border-white/20 rounded-xl p-5 text-center transition group"
-            >
+            <a href="/workspace" className="bg-[#1e3a5f] hover:bg-[#2a4f7a] border border-white/20 rounded-xl p-5 text-center transition group">
               <div className="text-4xl mb-2">📋</div>
               <h3 className="text-white font-bold mb-1">Agent Workspace</h3>
               <p className="text-gray-400 text-sm">Build your full listing package with AI assistance</p>
