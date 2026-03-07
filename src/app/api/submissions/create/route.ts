@@ -11,7 +11,6 @@ function initAdmin() {
   if (!json) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON missing");
 
   const sa: any = JSON.parse(json);
-
   if (!sa.private_key || typeof sa.private_key !== "string") {
     throw new Error('Service account object must contain a string "private_key" property.');
   }
@@ -26,50 +25,38 @@ export async function POST(req: NextRequest) {
     const db = getFirestore();
     const body = await req.json();
 
-    const listingDescription = body?.listingDescription;
-    const email = body?.email;
+    // Accept either listingDescription (legacy) or listingText (current)
+    const listingText =
+      String(body?.listingText || body?.listingDescription || "").trim();
 
-    if (
-      !listingDescription ||
-      !String(listingDescription).trim() ||
-      !email ||
-      !String(email).trim()
-    ) {
+    // Accept email from body
+    const email = String(body?.email || "").trim();
+
+    // Validate: need at least email (listing can be empty initially)
+    if (!email) {
       return NextResponse.json(
-        { error: "listingDescription and email are required" },
+        { error: "email is required" },
         { status: 400 }
       );
     }
 
+    // Build submission doc
     const submission = {
-      listingText: String(listingDescription),
-      email: String(email),
-
-      // IMPORTANT: store uid if provided (Rate My Listing can send null for now)
+      listingText,
+      email,
       uid: body?.uid ?? null,
-
-      propertyDetails: {
-        address: body?.address || "",
-        city: body?.city || "",
-        state: body?.state || "",
-        zip: body?.zip || "",
-        beds: body?.beds ?? null,
-        baths: body?.baths ?? null,
-        sqft: body?.sqft ?? null,
-        yearBuilt: body?.yearBuilt ?? null,
-        price: body?.price ?? null,
-        hoa: body?.hoa === "yes",
-        hoaAmount: body?.hoaAmount ?? null,
-      },
-
+      address: String(body?.address || "").trim(),
+      propertyDetails: body?.propertyDetails || {},
       nearby: body?.nearby ?? null,
       status: "created",
       createdAt: new Date().toISOString(),
     };
 
     const docRef = await db.collection("submissions").add(submission);
+
     return NextResponse.json({ submissionId: docRef.id, ok: true });
   } catch (e: any) {
+    console.error("[submissions/create] Error:", e?.message);
     return NextResponse.json(
       { error: "Create failed", message: String(e?.message || e) },
       { status: 500 }
