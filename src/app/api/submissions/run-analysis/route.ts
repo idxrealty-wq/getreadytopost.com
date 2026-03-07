@@ -349,7 +349,10 @@ export async function POST(req: NextRequest) {
 
     const data = snap.data() || {};
     const listingText = String(data.listingText || "");
-    const factsBlock = buildFactsBlock(data.propertyDetails || {});
+        const baseFacts = buildFactsBlock(data.propertyDetails || {});
+    const nearbyFacts = buildNearbyFactsBlock(data.nearby);
+    const factsBlock = mergeFactsBlocks(baseFacts, nearbyFacts);
+
     
 // ========================================
 // TAB 2: Enrichment (Nearby, etc.)
