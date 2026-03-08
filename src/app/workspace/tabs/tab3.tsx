@@ -37,6 +37,7 @@ export default function Tab3Listing({
     setLoading(true);
     setError("");
     setAnalysis(null);
+    setSubmissionId(null);
 
     try {
       if (!authReady) {
@@ -47,59 +48,83 @@ export default function Tab3Listing({
       }
 
       // 1) Create submission
+      const createPayload = {
+        address: String(address).trim(),
+        propertyDetails: propertyData || {},
+        nearby: nearby || null,
+        listingText: String(listing || "").trim(),
+        uid: uid || null,
+        email: String(email).trim(),
+      };
+
+      console.log("[Tab3] Creating submission with payload:", createPayload);
+
       const createRes = await fetch("/api/submissions/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          address,
-          propertyDetails: propertyData,
-          nearby,
-          listingText: listing || "",
-          uid,
-          email,
-        }),
+        body: JSON.stringify(createPayload),
       });
 
       const createJson = await createRes.json().catch(() => ({}));
+      console.log("[Tab3] Create response:", createRes.status, createJson);
+
       if (!createRes.ok) {
-        throw new Error(createJson?.error || "Failed to create submission");
+        throw new Error(
+          createJson?.error || createJson?.message || "Failed to create submission"
+        );
       }
 
       const subId = String(createJson?.submissionId || "").trim();
-      if (!subId) throw new Error("Create succeeded but no submissionId returned.");
+      if (!subId) {
+        throw new Error("Create succeeded but no submissionId in response.");
+      }
 
       setSubmissionId(subId);
+      console.log("[Tab3] Submission created:", subId);
 
       // 2) Run analysis
+      const analysisPayload = { submissionId: subId };
+      console.log("[Tab3] Running analysis with payload:", analysisPayload);
+
       const analysisRes = await fetch("/api/submissions/run-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submissionId: subId }),
+        body: JSON.stringify(analysisPayload),
       });
 
       const analysisJson = await analysisRes.json().catch(() => ({}));
+      console.log("[Tab3] Analysis response:", analysisRes.status, analysisJson);
+
       if (!analysisRes.ok) {
-        throw new Error(analysisJson?.error || "Analysis failed");
+        throw new Error(
+          analysisJson?.error || analysisJson?.message || "Analysis failed"
+        );
       }
 
       // 3) Fetch completed submission
-      const getRes = await fetch(
-        `/api/submissions/get?submissionId=${encodeURIComponent(subId)}`
-      );
+      const getUrl = `/api/submissions/get?submissionId=${encodeURIComponent(subId)}`;
+      console.log("[Tab3] Fetching results from:", getUrl);
+
+      const getRes = await fetch(getUrl);
       const getJson = await getRes.json().catch(() => ({}));
+      console.log("[Tab3] Get response:", getRes.status, getJson);
+
       if (!getRes.ok) {
-        throw new Error(getJson?.error || "Failed to fetch results");
+        throw new Error(getJson?.error || getJson?.message || "Failed to fetch results");
       }
 
       const rewriteText = String(getJson?.analysis?.rewrite?.text || "").trim();
       if (!rewriteText) {
-        throw new Error("No rewrite returned.");
+        throw new Error("No rewrite text returned from analysis.");
       }
 
       setListing(rewriteText);
       setAnalysis(getJson?.analysis || null);
+      console.log("[Tab3] Success! Rewrite and analysis set.");
     } catch (err: any) {
-      setError(err?.message || "Failed to generate listing. Please try again.");
+      const msg = err?.message || "Failed to generate listing. Please try again.";
+      console.error("[Tab3] Error:", msg);
+      setError(msg);
       setListing("");
       setAnalysis(null);
     } finally {
