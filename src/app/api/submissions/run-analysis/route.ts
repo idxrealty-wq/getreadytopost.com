@@ -1,7 +1,5 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
-import { initializeApp, cert, getApps } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
-
+import admin from "firebase-admin";
 import { checkCompliance } from "@/lib/grading/complianceDb";
 import { scoreLength } from "@/lib/grading/lengthScoring";
 import { scoreKeywords } from "@/lib/grading/keywordScoring";
@@ -10,16 +8,16 @@ import { scoreStructure } from "@/lib/grading/structureScoring";
 export const dynamic = "force-dynamic";
 
 function initAdmin() {
-  if (getApps().length > 0) return;
+  if (admin.apps.length) return;
 
-  const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-  if (!json) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON missing");
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (!raw) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON missing");
 
   let sa: any;
   try {
-    sa = JSON.parse(json);
-  } catch (e) {
-    throw new Error(`Invalid JSON in FIREBASE_SERVICE_ACCOUNT_JSON: ${e}`);
+    sa = JSON.parse(raw);
+  } catch (e: any) {
+    throw new Error(`Invalid JSON in FIREBASE_SERVICE_ACCOUNT_JSON: ${e?.message || e}`);
   }
 
   if (!sa.private_key || typeof sa.private_key !== "string") {
@@ -27,7 +25,14 @@ function initAdmin() {
   }
 
   sa.private_key = sa.private_key.replace(/\\n/g, "\n");
-  initializeApp({ credential: cert(sa) });
+
+  admin.initializeApp({
+    credential: admin.credential.cert(sa),
+  });
+}
+
+function safeTrim(x: any) {
+  return String(x || "").trim();
 }
 
 function buildFactsBlock(pd: any): string {
@@ -39,22 +44,22 @@ function buildFactsBlock(pd: any): string {
     lines.push(`${label}: ${s}`);
   };
 
-  add("Address", pd.address);
-  add("City", pd.city);
-  add("State", pd.state);
-  add("Bedrooms", pd.beds);
-  add("Bathrooms", pd.baths);
-  add("Square Feet", pd.sqft);
-  add("Year Built", pd.yearBuilt);
-  add("Price", pd.price);
-  add("HOA", pd.hoa);
+  add("Address", pd?.address);
+  add("City", pd?.city);
+  add("State", pd?.state);
+  add("Zip", pd?.zip);
+  add("Bedrooms", pd?.beds);
+  add("Bathrooms", pd?.baths);
+  add("Square Feet", pd?.sqft);
+  add("Year Built", pd?.yearBuilt);
+  add("Lot Size", pd?.lotSize);
+  add("Property Type", pd?.propertyType);
+  add("Price", pd?.price);
+  add("HOA", pd?.hoa);
 
   return lines.length ? lines.join("\n") : "None provided.";
 }
 
-// ========================================
-// TAB 2: Enrichment (Nearby, etc.)
-// ========================================
 function buildNearbyFactsBlock(nearby: any): string {
   if (!nearby || typeof nearby !== "object") return "";
 
@@ -89,22 +94,21 @@ function buildNearbyFactsBlock(nearby: any): string {
   return lines.length ? lines.join("\n") : "";
 }
 
-// ========================================
-// TAB 3: Merge + Final Facts Block
-// ========================================
 function mergeFactsBlocks(baseFacts: string, nearbyFacts: string): string {
-  const b = String(baseFacts || "").trim();
-  const n = String(nearbyFacts || "").trim();
-
+  const b = safeTrim(baseFacts);
+  const n = safeTrim(nearbyFacts);
   if (!n) return b || "None provided.";
   if (!b) return `NEARBY (provided facts only):\n${n}`;
-
   return `${b}\n\nNEARBY (provided facts only):\n${n}`;
 }
+
 async function callOpenAI(key: string, system: string, user: string): Promise<string> {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`,
+    },
     body: JSON.stringify({
       model: "gpt-4o",
       messages: [
@@ -115,9 +119,13 @@ async function callOpenAI(key: string, system: string, user: string): Promise<st
     }),
   });
 
-  if (!res.ok) throw new Error(`OpenAI error: ${res.status}`);
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(`OpenAI error: ${res.status} ${txt ? `- ${txt}` : ""}`.trim());
+  }
+
   const data = await res.json();
-  return String(data.choices?.[0]?.message?.content || "").trim();
+  return safeTrim(data?.choices?.[0]?.message?.content);
 }
 
 type AiRubricResult = {
@@ -138,7 +146,6 @@ function normalizeGrade(g: any): "A" | "B" | "C" | "D" | "F" {
   if (x === "A" || x === "B" || x === "C" || x === "D" || x === "F") return x;
   return "F";
 }
-
 async function scoreWithAI(
   key: string,
   category: "emotional_appeal" | "clarity" | "buyer_focus",
@@ -187,9 +194,11 @@ ${listing}`.trim();
     prompt
   );
 
-  response = response.trim();
-  response = response.replace(/^```json\s*/i, "").replace(/^```\s*/i, "");
-  response = response.replace(/\s*```\$/i, "");
+  response = response
+    .trim()
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/i, "");
 
   try {
     const parsed = JSON.parse(response);
@@ -199,10 +208,10 @@ ${listing}`.trim();
       evidence: Array.isArray(parsed.evidence)
         ? parsed.evidence.map((x: any) => String(x)).slice(0, 4)
         : [],
-      feedback: String(parsed.feedback || ""),
+      feedback: safeTrim(parsed.feedback),
     };
-  } catch (e) {
-    console.error("[run-analysis] AI JSON parse error:", e);
+  } catch (e: any) {
+    console.error("[run-analysis] AI JSON parse error:", e?.message);
     console.error("[run-analysis] AI raw response:", response);
     return {
       score: 60,
@@ -212,6 +221,7 @@ ${listing}`.trim();
     };
   }
 }
+
 async function generateRewrite(
   key: string,
   listing: string,
@@ -228,11 +238,11 @@ HARD RULES:
 OUTPUT FORMAT (exactly):
 Line 1: A short MLS-safe headline (6–10 words, Title Case).
 Line 2+: One tight paragraph (no bullets) that includes:
-- An emotional hook in the first sentence (lifestyle benefit + property benefit)
-- Beds/Baths/Sq Ft if provided
-- 2–4 strongest features from the original (roof, updates, porch, garage, golf course, etc.)
-- A location convenience sentence (airport/shopping/attractions/beach ONLY if present in ORIGINAL)
-- End with a clear CTA: "Schedule your private showing today."
+  - An emotional hook in the first sentence (lifestyle benefit + property benefit)
+  - Beds/Baths/Sq Ft if provided
+  - 2–4 strongest features from the original (roof, updates, porch, garage, golf course, etc.)
+  - A location convenience sentence (airport/shopping/attractions/beach ONLY if present in ORIGINAL)
+  - End with a clear CTA: "Schedule your private showing today."
 
 PROPERTY FACTS:
 ${factsBlock}
@@ -259,12 +269,14 @@ Return ONLY the rewritten listing text.`.trim();
 
   let text = clean(await callOpenAI(key, system, basePrompt));
   let wc = wordCount(text);
+
   console.log(`[generateRewrite] Pass 1 word count: ${wc}`);
 
   if (wc < 145 || wc > 165) {
     console.log(
       `[generateRewrite] Word count ${wc} outside target 145–165. Running repair pass...`
     );
+
     const repairPrompt = `Your previous rewrite did not meet the required word count (target: 145–165 words).
 
 TASK:
@@ -310,10 +322,7 @@ function computeOverallScore(parts: {
   clarity: number;
   buyerFocus: number;
 }): number {
-  const keywords100 = Math.max(
-    0,
-    Math.min(100, (parts.keywords / 50) * 100)
-  );
+  const keywords100 = Math.max(0, Math.min(100, (parts.keywords / 50) * 100));
   return (
     parts.compliance * 0.25 +
     parts.length * 0.15 +
@@ -325,9 +334,6 @@ function computeOverallScore(parts: {
   );
 }
 
-// ========================================
-// TAB 0: Credits Guard (Idempotent Deduct)
-// ========================================
 async function deductCreditsIfNeeded(
   db: any,
   userId: string,
@@ -339,19 +345,15 @@ async function deductCreditsIfNeeded(
     const data = snap.data() || {};
 
     if (data.creditUsed === true) {
-      console.log(
-        `[run-analysis] Submission ${submissionId} already deducted. Skipping.`
-      );
+      console.log(`[run-analysis] Submission \${submissionId} already deducted. Skipping.`);
       return { ok: true };
     }
 
-    // Build an absolute URL safely in server environments (Netlify, local, etc.)
     const base =
       process.env.NEXT_PUBLIC_SITE_URL ||
       process.env.SITE_URL ||
       process.env.URL ||
       "http://localhost:3000";
-
     const url = new URL("/api/credits/deduct", base).toString();
 
     const deductRes = await fetch(url, {
@@ -370,9 +372,7 @@ async function deductCreditsIfNeeded(
     }
 
     const result = await deductRes.json();
-    console.log(
-      `[run-analysis] Credit deducted. New balance: ${result.newBalance}`
-    );
+    console.log(`[run-analysis] Credit deducted. New balance: \${result?.newBalance}`);
     return { ok: true };
   } catch (e: any) {
     console.error("[run-analysis] Deduct error:", e?.message);
@@ -382,51 +382,67 @@ async function deductCreditsIfNeeded(
 export async function POST(req: NextRequest) {
   try {
     initAdmin();
-    const db = getFirestore();
-    const body = await req.json();
-    const submissionId = body?.submissionId;
+    const db = admin.firestore();
 
-    if (!submissionId)
+    const body = await req.json();
+    const submissionId = safeTrim(body?.submissionId);
+
+    if (!submissionId) {
       return NextResponse.json(
-        { error: "submissionId required" },
+        { error: "submissionId is required" },
         { status: 400 }
       );
+    }
 
-    const ref = db.collection("submissions").doc(String(submissionId));
+    console.log(`[run-analysis] Starting analysis for submission: ${submissionId}`);
+
+    const ref = db.collection("submissions").doc(submissionId);
     const snap = await ref.get();
 
-    if (!snap.exists)
+    if (!snap.exists) {
       return NextResponse.json(
         { error: "Submission not found" },
         { status: 404 }
       );
+    }
 
     const data = snap.data() || {};
-    const listingText = String(data.listingText || "");
+    console.log(`[run-analysis] Submission data loaded:`, {
+      hasListingText: !!data.listingText,
+      hasPropertyDetails: !!data.propertyDetails,
+      hasNearby: !!data.nearby,
+      hasAnalysis: !!data.analysis,
+    });
+
+    // If already analyzed, return cached
+    if (data.analysis?.rewrite?.text) {
+      console.log(`[run-analysis] Submission already analyzed. Returning cached.`);
+      return NextResponse.json({
+        ok: true,
+        submissionId,
+        analysis: data.analysis,
+        rewriteText: data.analysis.rewrite.text,
+      });
+    }
+
+    const listingText = safeTrim(data.listingText);
     const baseFacts = buildFactsBlock(data.propertyDetails || {});
     const nearbyFacts = buildNearbyFactsBlock(data.nearby);
     const factsBlock = mergeFactsBlocks(baseFacts, nearbyFacts);
-    const openaiKey = process.env.OPENAI_API_KEY || "";
 
-    if (!openaiKey)
+    const openaiKey = process.env.OPENAI_API_KEY || "";
+    if (!openaiKey) {
       return NextResponse.json(
         { error: "Missing OPENAI_API_KEY" },
         { status: 500 }
       );
-
-    if (data.analysis?.rewrite?.text) {
-      console.log(
-        `[run-analysis] Submission ${submissionId} already analyzed. Returning cached result.`
-      );
-      return NextResponse.json({ ok: true, submissionId });
     }
 
-    await ref.update({ status: "processing" });
+    // Update status to processing
+    await ref.update({ status: "processing", startedAt: new Date().toISOString() });
 
-    // TAB 0: Deduct credits (idempotent) — use uid if present, else email
-    const uid = String(
-      (data as any).uid || (data as any).userId || (data as any).email || ""
-    );
+    // Deduct credits (idempotent) — use uid if present, else email
+    const uid = safeTrim(data.uid || data.userId || data.email);
     if (!uid) {
       await ref.update({
         status: "failed",
@@ -444,23 +460,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: creditCheck.error }, { status: 400 });
     }
 
+    console.log(`[run-analysis] Credits deducted. Scoring original listing...`);
+
     // Score original
     const complianceResult = checkCompliance(listingText);
     const lengthResult = scoreLength(listingText);
     const keywordsResult = scoreKeywords(listingText);
     const structureResult = scoreStructure(listingText);
+
+    console.log(`[run-analysis] Calling AI for emotional_appeal...`);
     const emotionalAppeal = await scoreWithAI(
       openaiKey,
       "emotional_appeal",
       listingText,
       factsBlock
     );
-    const clarity = await scoreWithAI(
-      openaiKey,
-      "clarity",
-      listingText,
-      factsBlock
-    );
+
+    console.log(`[run-analysis] Calling AI for clarity...`);
+    const clarity = await scoreWithAI(openaiKey, "clarity", listingText, factsBlock);
+
+    console.log(`[run-analysis] Calling AI for buyer_focus...`);
     const buyerFocus = await scoreWithAI(
       openaiKey,
       "buyer_focus",
@@ -481,26 +500,41 @@ export async function POST(req: NextRequest) {
     let originalGrade = scoreToLetter(originalScore);
     if (complianceResult.grade === "F") originalGrade = "D";
 
+    console.log(`[run-analysis] Original score: ${originalScore.toFixed(1)}, grade: ${originalGrade}`);
+
     // Generate rewrite
+    console.log(`[run-analysis] Generating rewrite...`);
     const rewriteText = await generateRewrite(openaiKey, listingText, factsBlock);
+
+    if (!rewriteText) {
+      throw new Error("Rewrite generation returned empty text");
+    }
+
+    console.log(`[run-analysis] Rewrite generated (${rewriteText.length} chars). Scoring rewrite...`);
 
     // Score rewrite
     const rewriteComplianceResult = checkCompliance(rewriteText);
     const rewriteLengthResult = scoreLength(rewriteText);
     const rewriteKeywordsResult = scoreKeywords(rewriteText);
     const rewriteStructureResult = scoreStructure(rewriteText);
+
+    console.log(`[run-analysis] Calling AI for rewrite emotional_appeal...`);
     const rewriteEmotionalAppeal = await scoreWithAI(
       openaiKey,
       "emotional_appeal",
       rewriteText,
       factsBlock
     );
+
+    console.log(`[run-analysis] Calling AI for rewrite clarity...`);
     const rewriteClarity = await scoreWithAI(
       openaiKey,
       "clarity",
       rewriteText,
       factsBlock
     );
+
+    console.log(`[run-analysis] Calling AI for rewrite buyer_focus...`);
     const rewriteBuyerFocus = await scoreWithAI(
       openaiKey,
       "buyer_focus",
@@ -521,85 +555,82 @@ export async function POST(req: NextRequest) {
     let rewriteGrade = scoreToLetter(rewriteScore);
     if (rewriteComplianceResult.grade === "F") rewriteGrade = "D";
 
-    const updatePayload = {
-      status: "completed",
-      completedAt: new Date().toISOString(),
-      rubricVersion: "2.0.0",
-      analysis: {
-        original: {
-          overall: originalGrade,
-          categories: {
-            headline: {
-              grade: structureResult.openingHook ? "B" : "C",
-              feedback: structureResult.openingHook
-                ? "Opening hook present."
-                : "Opening hook missing or weak.",
-            },
-            length: { grade: lengthResult.grade, feedback: lengthResult.auditTrail },
-            emotion: emotionalAppeal,
-            keywords: {
-              grade: keywordsResult.grade,
-              feedback: keywordsResult.auditTrail,
-            },
-            cta: {
-              grade: structureResult.callToAction ? "B" : "C",
-              feedback: structureResult.callToAction
-                ? "CTA present."
-                : "No clear CTA.",
-            },
-            compliance: {
-              grade: complianceResult.grade,
-              feedback: complianceResult.auditTrail,
-            },
+    console.log(`[run-analysis] Rewrite score: ${rewriteScore.toFixed(1)}, grade: ${rewriteGrade}`);
+    const analysis = {
+      original: {
+        overall: originalGrade,
+        categories: {
+          headline: {
+            grade: structureResult.openingHook ? "B" : "C",
+            feedback: structureResult.openingHook
+              ? "Opening hook present."
+              : "Opening hook missing or weak.",
           },
-          recommendations: [
-            "Improve the headline to include more property features.",
-            "Enhance the emotional appeal with more vivid descriptions.",
-            "Add a call to action to encourage potential buyers to schedule a viewing.",
-          ],
+          length: { grade: lengthResult.grade, feedback: lengthResult.auditTrail },
+          emotion: emotionalAppeal,
+          keywords: { grade: keywordsResult.grade, feedback: keywordsResult.auditTrail },
+          cta: {
+            grade: structureResult.callToAction ? "B" : "C",
+            feedback: structureResult.callToAction ? "CTA present." : "No clear CTA.",
+          },
+          compliance: {
+            grade: complianceResult.grade,
+            feedback: complianceResult.auditTrail,
+          },
         },
-        rewrite: {
-          overall: rewriteGrade,
-          text: rewriteText,
-          wordCount: rewriteText.trim().split(/\s+/).length,
-          categories: {
-            headline: {
-              grade: rewriteStructureResult.openingHook ? "A" : "B",
-              feedback: rewriteStructureResult.openingHook
-                ? "Strong opening hook present."
-                : "Opening hook could be stronger.",
-            },
-            length: {
-              grade: rewriteLengthResult.grade,
-              feedback: rewriteLengthResult.auditTrail,
-            },
-            emotion: rewriteEmotionalAppeal,
-            keywords: {
-              grade: rewriteKeywordsResult.grade,
-              feedback: rewriteKeywordsResult.auditTrail,
-            },
-            cta: {
-              grade: rewriteStructureResult.callToAction ? "A" : "B",
-              feedback: rewriteStructureResult.callToAction
-                ? "Clear, actionable CTA present."
-                : "CTA could be stronger.",
-            },
-            compliance: {
-              grade: rewriteComplianceResult.grade,
-              feedback: rewriteComplianceResult.auditTrail,
-            },
+      },
+      rewrite: {
+        overall: rewriteGrade,
+        text: rewriteText,
+        wordCount: rewriteText.split(/\s+/).filter(Boolean).length,
+        categories: {
+          headline: {
+            grade: rewriteStructureResult.openingHook ? "A" : "B",
+            feedback: rewriteStructureResult.openingHook
+              ? "Strong opening hook present."
+              : "Opening hook could be stronger.",
+          },
+          length: { grade: rewriteLengthResult.grade, feedback: rewriteLengthResult.auditTrail },
+          emotion: rewriteEmotionalAppeal,
+          keywords: { grade: rewriteKeywordsResult.grade, feedback: rewriteKeywordsResult.auditTrail },
+          cta: {
+            grade: rewriteStructureResult.callToAction ? "A" : "B",
+            feedback: rewriteStructureResult.callToAction
+              ? "Clear, actionable CTA present."
+              : "CTA could be stronger.",
+          },
+          compliance: {
+            grade: rewriteComplianceResult.grade,
+            feedback: rewriteComplianceResult.auditTrail,
           },
         },
       },
     };
 
+    // Save analysis + rewrite to Firestore BEFORE returning
+    const updatePayload = {
+      status: "completed",
+      completedAt: new Date().toISOString(),
+      rubricVersion: "2.0.1",
+      analysis,
+    };
+
     await ref.update(updatePayload);
-    return NextResponse.json({ ok: true, submissionId });
+
+    console.log(`[run-analysis] Saved analysis to Firestore. Returning response.`);
+
+    // Return analysis + rewriteText so UI doesn't need to race Firestore
+    return NextResponse.json({
+      ok: true,
+      submissionId,
+      analysis,
+      rewriteText: analysis.rewrite.text,
+    });
   } catch (e: any) {
     console.error("[run-analysis] Fatal:", e?.message);
     console.error("[run-analysis] Stack:", e?.stack);
     return NextResponse.json(
-      { error: `Fatal: ${e?.message}` },
+      { error: e?.message || "Server error" },
       { status: 500 }
     );
   }
