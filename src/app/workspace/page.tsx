@@ -217,7 +217,20 @@ function WorkspaceContent() {
       }
 
       // Classification
-      setIfEmpty("propertyType", parcel.property_type);
+              const normalizePropType = (v: string) => {
+          if (!v) return '';
+          const u = v.toUpperCase();
+          if (u.includes('SINGLE') || u.includes('RESIDENTIAL') || u.includes('SFR')) return 'Single Family';
+          if (u.includes('CONDO')) return 'Condo';
+          if (u.includes('TOWN')) return 'Townhome';
+          if (u.includes('MULTI') || u.includes('DUPLEX') || u.includes('TRIPLEX')) return 'Multi-Family';
+          if (u.includes('LAND') || u.includes('VACANT') || u.includes('LOT')) return 'Land';
+          if (u.includes('MOBILE') || u.includes('MANUFACTURED')) return 'Mobile Home';
+          if (u.includes('COMMERCIAL') || u.includes('OFFICE') || u.includes('RETAIL') || u.includes('INDUSTRIAL')) return 'Commercial';
+          return '';
+        };
+        setIfEmpty("propertyType", normalizePropType(parcel.property_type));
+
       setIfEmpty("zoning", parcel.zoning);
 
       // Legal / ownership
