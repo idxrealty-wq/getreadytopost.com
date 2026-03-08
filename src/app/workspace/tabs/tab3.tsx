@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
+import { auth } from "@/lib/firebase";
 
 export default function Tab3Listing({
   address,
@@ -24,7 +25,14 @@ export default function Tab3Listing({
     setAnalysis(null);
 
     try {
-      // Step 1: Create submission with property data + nearby
+      const uid = auth.currentUser?.uid || null;
+      const email = auth.currentUser?.email || null;
+
+      if (!email) {
+        throw new Error("You must be signed in (email missing).");
+      }
+
+      // 1) Create submission
       const createRes = await fetch("/api/submissions/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -32,44 +40,49 @@ export default function Tab3Listing({
           address,
           propertyDetails: propertyData,
           nearby,
-          listingText: "", // Will be populated by analysis
-          uid: null, // Workspace users are authenticated, but we pass null for now
-          email: null,
+          listingText: listing || "",
+          uid,
+          email,
         }),
       });
 
+      const createJson = await createRes.json().catch(() => ({}));
       if (!createRes.ok) {
-        throw new Error("Failed to create submission");
+        throw new Error(createJson?.error || "Failed to create submission");
       }
 
-      const createData = await createRes.json();
-      const subId = createData.submissionId;
-      setSubmissionId(subId);
+      const subId = String(createJson?.submissionId || "").trim();
+      if (!subId) throw new Error("Create succeeded but no submissionId returned.");
 
-      // Step 2: Run analysis (grades + rewrite)
+      setSubmissionId(subId);
+      // 2) Run analysis
       const analysisRes = await fetch("/api/submissions/run-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ submissionId: subId }),
       });
 
+      const analysisJson = await analysisRes.json().catch(() => ({}));
       if (!analysisRes.ok) {
-        const errData = await analysisRes.json();
-        throw new Error(errData.error || "Analysis failed");
+        throw new Error(analysisJson?.error || "Analysis failed");
       }
 
-      // Step 3: Fetch the completed submission to get results
-      const getRes = await fetch(`/api/submissions/get?submissionId=${subId}`);
+      // 3) Fetch completed submission
+      const getRes = await fetch(`/api/submissions/get?submissionId=${encodeURIComponent(subId)}`);
+      const getJson = await getRes.json().catch(() => ({}));
       if (!getRes.ok) {
-        throw new Error("Failed to fetch results");
+        throw new Error(getJson?.error || "Failed to fetch results");
       }
 
-      const resultData = await getRes.json();
-      const rewriteText = resultData.analysis?.rewrite?.text || "";
+      const rewriteText = String(getJson?.analysis?.rewrite?.text || "").trim();
+      if (!rewriteText) {
+        throw new Error("No rewrite returned.");
+      }
+
       setListing(rewriteText);
-      setAnalysis(resultData.analysis);
+      setAnalysis(getJson?.analysis || null);
     } catch (err: any) {
-      setError(err.message || "Failed to generate listing. Please try again.");
+      setError(err?.message || "Failed to generate listing. Please try again.");
       setListing("");
       setAnalysis(null);
     } finally {
@@ -78,21 +91,20 @@ export default function Tab3Listing({
   };
 
   const copyListing = () => {
-    if (listing) {
-      navigator.clipboard.writeText(listing);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+    if (!listing) return;
+    navigator.clipboard.writeText(listing);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
-
   return (
     <div className="space-y-6">
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">AI Listing Builder</h2>
         <p className="text-gray-300 mb-6">
-          Generate a professional, MLS-ready listing description using all your
-          property and neighborhood data. Includes AI grading across 6 categories.
+          Generate a professional, MLS-ready listing description using all your property and
+          neighborhood data. Includes AI grading across 6 categories.
         </p>
+
         <button
           onClick={generateListing}
           disabled={loading || !address}
@@ -100,6 +112,10 @@ export default function Tab3Listing({
         >
           {loading ? "Generating..." : listing ? "Regenerate Listing" : "Generate A+ Listing"}
         </button>
+
+        {submissionId && (
+          <p className="text-gray-400 text-xs mt-3">Submission: {submissionId}</p>
+        )}
       </div>
 
       {loading && (
@@ -120,15 +136,12 @@ export default function Tab3Listing({
       {listing && !loading && analysis && (
         <div className="bg-gradient-to-br from-emerald-900/60 to-green-900/40 backdrop-blur-md rounded-2xl p-8 border-2 border-emerald-500/40 relative">
           <div className="absolute top-4 left-4 bg-red-500 text-white px-5 py-2 rounded-lg font-black text-2xl shadow-2xl transform -rotate-6">
-            {analysis.rewrite?.overall || "A+"}
+            {analysis?.rewrite?.overall || "—"}
           </div>
 
-          <h2 className="text-2xl font-bold text-white mb-4 ml-20">
-            Your Professional Listing
-          </h2>
+          <h2 className="text-2xl font-bold text-white mb-4 ml-20">Your Professional Listing</h2>
 
-          {/* Grades Summary */}
-          {analysis.rewrite?.categories && (
+          {analysis?.rewrite?.categories && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
               {[
                 { label: "Headline", key: "headline" },
@@ -138,7 +151,7 @@ export default function Tab3Listing({
                 { label: "CTA", key: "cta" },
                 { label: "Compliance", key: "compliance" },
               ].map((cat) => {
-                const grade = analysis.rewrite.categories[cat.key]?.grade || "—";
+                const grade = analysis?.rewrite?.categories?.[cat.key]?.grade || "—";
                 return (
                   <div
                     key={cat.key}
@@ -152,17 +165,13 @@ export default function Tab3Listing({
             </div>
           )}
 
-          {/* Rewrite Text */}
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-4">
-            <p className="text-white text-lg leading-relaxed whitespace-pre-wrap">
-              {listing}
-            </p>
+            <p className="text-white text-lg leading-relaxed whitespace-pre-wrap">{listing}</p>
             <p className="text-gray-400 text-sm mt-4">
-              Word count: {listing.trim().split(/\s+/).length}
+              Word count: {listing.trim().split(/\s+/).filter(Boolean).length}
             </p>
           </div>
 
-          {/* Actions */}
           <div className="flex gap-3">
             <button
               onClick={copyListing}
