@@ -132,8 +132,8 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-white mb-8">Ready to Grade Your Listing?</h2>
           <p className="text-xl text-gray-300 mb-12">See what buyers see. Get actionable feedback in 30 seconds.</p>
-          <Link href="/rate-my-listing" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-12 py-4 rounded-lg font-bold text-lg transition shadow-lg">
-            Grade My Listing Free
+          <Link href="/checkout" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-12 py-4 rounded-lg font-bold text-lg transition shadow-lg">
+            Grade My Listing — $19.99
           </Link>
         </div>
       </section>
