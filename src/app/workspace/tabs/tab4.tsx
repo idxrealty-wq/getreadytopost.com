@@ -45,7 +45,7 @@ const CHECKLIST_ITEMS = [
   { id: "open_house", label: "Open House Scheduled", category: "Marketing" },
 ];
 
-export default function Tab4Checklist({
+export default function Tab4MediaTours({
   checklistState,
   setChecklistState,
   notes,
@@ -59,6 +59,10 @@ export default function Tab4Checklist({
   listingId,
   documentAccessCode,
   setDocumentAccessCode,
+  virtualTourUrl,
+  setVirtualTourUrl,
+  droneUrl,
+  setDroneUrl,
 }: any) {
   const [uploads, setUploads] = useState<Record<string, any>>({});
   const [docMeta, setDocMeta] = useState<
@@ -86,7 +90,6 @@ export default function Tab4Checklist({
   const [codeSaved, setCodeSaved] = useState(false);
   const [showShareConfirm, setShowShareConfirm] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
-
   useEffect(() => {
     if (listingId) setShareUrl("https://getreadytopost.com/documents/view?id=" + listingId);
   }, [listingId]);
@@ -104,7 +107,6 @@ export default function Tab4Checklist({
         };
       });
       setUploads(loaded);
-
       const metaUpdate: Record<string, any> = {};
       existingDocuments.forEach((d: any) => {
         metaUpdate[d.docId] = {
@@ -154,10 +156,16 @@ export default function Tab4Checklist({
     if (!listingId) return;
     setSavingCode(true);
     try {
-      await updateDoc(doc(db, "listings", listingId), { documentAccessCode });
+      await updateDoc(doc(db, "listings", listingId), { 
+        documentAccessCode,
+        media: {
+          virtualTourUrl: virtualTourUrl || "",
+          droneUrl: droneUrl || "",
+        }
+      });
       setCodeSaved(true);
     } catch (e) {
-      alert("Failed to save access code");
+      alert("Failed to save access code and media URLs");
     } finally {
       setSavingCode(false);
     }
@@ -190,7 +198,6 @@ export default function Tab4Checklist({
       const allDocs = snap.data().documents || [];
       const meta = docMeta[docId] || {};
       let found = false;
-
       const updated = allDocs.map((d: any) => {
         if (d.docId !== docId) return d;
         found = true;
@@ -202,12 +209,10 @@ export default function Tab4Checklist({
           sharedWithBuyer: meta.sharedWithBuyer === true,
         };
       });
-
       if (!found) {
         alert("Doc not found in Firestore. Total docs: " + allDocs.length);
         return;
       }
-
       await updateDoc(listingRef, { documents: updated });
       setDocMeta((prev) => ({ ...prev, [docId]: { ...prev[docId], codeSaved: true } }));
     } catch (e: any) {
@@ -228,7 +233,6 @@ export default function Tab4Checklist({
     try {
       const storagePath = "documents/" + (listingId || "temp") + "/" + docId + "/" + file.name;
       const storageRef = ref(storage, storagePath);
-
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
 
@@ -266,7 +270,6 @@ export default function Tab4Checklist({
   const handleDeleteDoc = async (docId: string) => {
     if (!window.confirm("Delete this document?")) return;
     setDeletingDoc(docId);
-
     try {
       if (listingId) {
         const snap = await getDoc(doc(db, "listings", listingId));
@@ -285,13 +288,11 @@ export default function Tab4Checklist({
 
   const handleDeleteSavedPhoto = async (photo: any) => {
     if (!window.confirm("Delete this photo?")) return;
-
     try {
       if (photo.storagePath) {
         const storageRef = ref(storage, photo.storagePath);
         await deleteObject(storageRef);
       }
-
       if (listingId) {
         const snap = await getDoc(doc(db, "listings", listingId));
         if (snap.exists()) {
@@ -299,7 +300,6 @@ export default function Tab4Checklist({
           await updateDoc(doc(db, "listings", listingId), { photos: updated });
         }
       }
-
       setSavedPhotos((prev) => prev.filter((p) => p.downloadURL !== photo.downloadURL));
     } catch (e) {
       console.error(e);
@@ -328,18 +328,14 @@ export default function Tab4Checklist({
 
   const totalPhotos =
     savedPhotos.length + Object.values(photos).reduce((sum: number, arr: any) => sum + (arr?.length || 0), 0);
-
   const completedCount = Object.values(checklistState).filter(Boolean).length;
   const totalCount = CHECKLIST_ITEMS.length;
-
   const groupedChecklist = CHECKLIST_ITEMS.reduce((acc: any, item) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;
   }, {});
-
   const sharedCount = DOCUMENT_SLOTS.filter((slot) => docMeta[slot.id]?.sharedWithBuyer).length;
-
   return (
     <div className="space-y-8">
       {/* Share Link */}
@@ -352,7 +348,6 @@ export default function Tab4Checklist({
             {sharedCount} document{sharedCount !== 1 ? "s" : ""} selected for sharing.
           </span>
         </p>
-
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           <div className="flex-1 flex gap-2">
             <input
@@ -373,7 +368,6 @@ export default function Tab4Checklist({
               {showGlobalCode ? "Hide" : "Show"}
             </button>
           </div>
-
           <button
             onClick={handleShareClick}
             disabled={savingCode}
@@ -382,7 +376,6 @@ export default function Tab4Checklist({
             {savingCode ? "Saving..." : "Save & Generate Link"}
           </button>
         </div>
-
         {codeSaved && shareUrl && (
           <div className="bg-white/10 rounded-xl p-4 border border-white/20">
             <p className="text-gray-300 text-sm mb-2">Share this link with your buyer:</p>
@@ -402,13 +395,53 @@ export default function Tab4Checklist({
         )}
       </div>
 
+      {/* Virtual Tour & Drone Section */}
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+        <h2 className="text-2xl font-bold text-white mb-6">🎥 Media & Tours</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Virtual Tour */}
+          <div>
+            <label className="block text-white font-bold mb-2">Virtual Tour URL</label>
+            <input
+              type="url"
+              value={virtualTourUrl}
+              onChange={(e) => setVirtualTourUrl(e.target.value)}
+              placeholder="e.g., https://matterport.com/show/..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black"
+            />
+            <p className="text-gray-400 text-xs mt-2">Paste Matterport, YouTube, or other virtual tour URL</p>
+          </div>
+
+          {/* Drone Footage */}
+          <div>
+            <label className="block text-white font-bold mb-2">🛸 Drone Footage URL</label>
+            <input
+              type="url"
+              value={droneUrl}
+              onChange={(e) => setDroneUrl(e.target.value)}
+              placeholder="e.g., https://youtube.com/watch?v=..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black"
+            />
+            <p className="text-gray-400 text-xs mt-2">Paste YouTube, Vimeo, or drone footage URL</p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSaveAccessCode}
+          disabled={savingCode}
+          className="mt-4 bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-2 rounded-xl font-bold transition disabled:opacity-50"
+        >
+          {savingCode ? "Saving..." : "Save Media URLs"}
+        </button>
+      </div>
+
       {/* Documents */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-2">Transaction Documents</h2>
         <p className="text-gray-300 mb-6 text-sm">
           Upload documents, set access codes, and check "Include in share link" to control what the buyer sees.
         </p>
-
         <div className="space-y-6">
           {DOCUMENT_SLOTS.map((docSlot) => (
             <div key={docSlot.id} className="bg-white/5 rounded-xl p-5 border border-white/20">
@@ -417,7 +450,6 @@ export default function Tab4Checklist({
                   {docSlot.label}{" "}
                   {docSlot.required && <span className="text-red-400 text-xs ml-1">Required</span>}
                 </h3>
-
                 {uploads[docSlot.id]?.url && (
                   <div className="flex gap-2">
                     <button
@@ -469,7 +501,6 @@ export default function Tab4Checklist({
                             ...prev,
                             [docSlot.id]: { ...prev[docSlot.id], sharedWithBuyer: checked, codeSaved: false },
                           }));
-
                           if (listingId) {
                             try {
                               const listingRef = doc(db, "listings", listingId);
@@ -493,9 +524,9 @@ export default function Tab4Checklist({
                       )}
                     </label>
                   </div>
+
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Access Code (optional)</label>
-
                     <div className="flex gap-2">
                       <input
                         type={docMeta[docSlot.id]?.showCode ? "text" : "password"}
@@ -567,7 +598,6 @@ export default function Tab4Checklist({
           {PHOTO_CATEGORIES.map((cat) => (
             <div key={cat.id} className="bg-white/5 rounded-xl p-4 border border-white/20">
               <h3 className="text-white font-bold mb-3">{cat.label}</h3>
-
               <input
                 type="file"
                 accept="image/*"
@@ -593,9 +623,7 @@ export default function Tab4Checklist({
                     localIndex: i,
                   })),
                 ];
-
                 if (allPhotos.length === 0) return null;
-
                 return (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {allPhotos.map((item: any, i: number) => (
@@ -628,14 +656,12 @@ export default function Tab4Checklist({
           ))}
         </div>
       </div>
-
       {/* Pre-Listing Checklist */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">Pre-Listing Checklist</h2>
         <p className="text-gray-300 mb-6">
           Track your progress: {completedCount}/{totalCount} complete
         </p>
-
         <div className="space-y-6">
           {Object.entries(groupedChecklist).map(([category, items]: [string, any]) => (
             <div key={category}>
@@ -662,6 +688,7 @@ export default function Tab4Checklist({
           ))}
         </div>
       </div>
+
       {/* Notes */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">Notes</h2>
@@ -755,7 +782,6 @@ export default function Tab4Checklist({
           const isPdf = lower.includes(".pdf");
           const isImage = /\.(png|jpg|jpeg|webp|gif)$/i.test(lower);
           const title = uploads[viewingDoc]?.file?.name || "Document";
-
           return (
             <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
               <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-4xl max-h-[90vh] overflow-auto">
@@ -795,7 +821,7 @@ export default function Tab4Checklist({
           onClick={onNext}
           className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition"
         >
-          Next: Save to Vault
+          Next: Checklist →
         </button>
       </div>
     </div>
