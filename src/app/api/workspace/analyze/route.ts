@@ -41,31 +41,73 @@ async function generateListing(address, propertyDetails, nearbyData) {
   for (var i = 0; i < entries.length; i++) {
     var category = entries[i][0];
     var places = entries[i][1];
-    var names = places.slice(0, 3).map(function(p) { return p.name; }).join(', ');
+    var names = places.slice(0, 3).map(function(p) {
+      return p.name + (p.distance ? ' (' + p.distance + ')' : '');
+    }).join(', ');
     nearbyLines.push(category + ': ' + names);
   }
-  var nearbyText = nearbyLines.join(String.fromCharCode(10));
-  var nl = String.fromCharCode(10);
-  var prompt = 'You are an elite MLS listing copywriter. Write a professional buyer-focused listing description.' + nl + nl + 'PROPERTY:' + nl + 'Address: ' + address + nl;
-  if (propertyDetails.beds) prompt += 'Bedrooms: ' + propertyDetails.beds + nl;
-  if (propertyDetails.baths) prompt += 'Bathrooms: ' + propertyDetails.baths + nl;
-  if (propertyDetails.sqft) prompt += 'Square Feet: ' + propertyDetails.sqft + nl;
-  if (propertyDetails.price) prompt += 'Price: ' + propertyDetails.price + nl;
-  if (propertyDetails.yearBuilt) prompt += 'Year Built: ' + propertyDetails.yearBuilt + nl;
-  if (propertyDetails.lotSize) prompt += 'Lot Size: ' + propertyDetails.lotSize + nl;
-  if (propertyDetails.features) prompt += 'Features: ' + propertyDetails.features + nl;
-  prompt += nl + 'NEARBY AMENITIES:' + nl + nearbyText + nl + nl;
-  prompt += 'RULES: 140-160 words MLS-compliant Fair Housing safe. Mention specific nearby places BY NAME. Vivid sensory language buyer psychology. Strong call to action. SEO optimized. Write ONLY the listing description.';
+  var nearbyText = nearbyLines.join('\n');
+  var nl = '\n';
+
+  var prompt = 'You are an elite MLS listing copywriter. Write a professional buyer-focused listing description.' + nl + nl;
+  prompt += 'PROPERTY:' + nl;
+  prompt += 'Address: ' + address + nl;
+
+  if (propertyDetails.propertyType) prompt += 'Property Type: ' + propertyDetails.propertyType + nl;
+  if (propertyDetails.beds)         prompt += 'Bedrooms: ' + propertyDetails.beds + nl;
+  if (propertyDetails.baths)        prompt += 'Bathrooms: ' + propertyDetails.baths + nl;
+  if (propertyDetails.sqft)         prompt += 'Square Feet: ' + propertyDetails.sqft + nl;
+  if (propertyDetails.lotSize)      prompt += 'Lot Size: ' + propertyDetails.lotSize + nl;
+  if (propertyDetails.price)        prompt += 'List Price: $' + propertyDetails.price + nl;
+  if (propertyDetails.yearBuilt)    prompt += 'Year Built: ' + propertyDetails.yearBuilt + nl;
+  if (propertyDetails.stories)      prompt += 'Stories: ' + propertyDetails.stories + nl;
+  if (propertyDetails.garage)       prompt += 'Garage: ' + propertyDetails.garage + nl;
+  if (propertyDetails.pool)         prompt += 'Pool: ' + propertyDetails.pool + nl;
+  if (propertyDetails.construction) prompt += 'Construction: ' + propertyDetails.construction + nl;
+  if (propertyDetails.roofYear)     prompt += 'Roof Year: ' + propertyDetails.roofYear + nl;
+  if (propertyDetails.acYear)       prompt += 'AC Year: ' + propertyDetails.acYear + nl;
+  if (propertyDetails.waterHeaterYear) prompt += 'Water Heater Year: ' + propertyDetails.waterHeaterYear + nl;
+  if (propertyDetails.floodZone)    prompt += 'Flood Zone: ' + propertyDetails.floodZone + nl;
+  if (propertyDetails.water)        prompt += 'Water: ' + propertyDetails.water + nl;
+  if (propertyDetails.sewer)        prompt += 'Sewer: ' + propertyDetails.sewer + nl;
+  if (propertyDetails.hoa && propertyDetails.hoa !== 'None') {
+    prompt += 'HOA: ' + propertyDetails.hoa + nl;
+    if (propertyDetails.hoaAmount)  prompt += 'HOA Amount: $' + propertyDetails.hoaAmount + '/mo' + nl;
+    if (propertyDetails.hoaName)    prompt += 'HOA Name: ' + propertyDetails.hoaName + nl;
+    if (propertyDetails.amenities)  prompt += 'Community Amenities: ' + propertyDetails.amenities + nl;
+  }
+  if (propertyDetails.schoolDistrict) prompt += 'School District: ' + propertyDetails.schoolDistrict + nl;
+  if (propertyDetails.homestead)    prompt += 'Homestead Exemption: ' + propertyDetails.homestead + nl;
+  if (propertyDetails.features)     prompt += 'Key Features: ' + propertyDetails.features + nl;
+  if (propertyDetails.virtualTourUrl) prompt += 'Virtual Tour Available: Yes' + nl;
+
+  prompt += nl + 'NEARBY AMENITIES (mention by name with distance):' + nl + nearbyText + nl + nl;
+  prompt += 'RULES:' + nl;
+  prompt += '- 140-160 words exactly' + nl;
+  prompt += '- MLS-compliant, Fair Housing safe' + nl;
+  prompt += '- Mention specific nearby places BY NAME with distance' + nl;
+  prompt += '- Highlight property upgrades (roof, AC, pool, garage) if present' + nl;
+  prompt += '- Vivid sensory language, buyer psychology' + nl;
+  prompt += '- Strong call to action at the end' + nl;
+  prompt += '- Write ONLY the listing description, no intro or labels';
+
   try {
     var res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + OPENAI_KEY },
-      body: JSON.stringify({ model: 'gpt-4', messages: [{ role: 'user', content: prompt }], temperature: 0.7, max_tokens: 500 })
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 600
+      })
     });
-    if (res.ok === false) { return 'AI listing generation is temporarily unavailable.'; }
+    if (!res.ok) { return 'AI listing generation is temporarily unavailable.'; }
     var data = await res.json();
     return data.choices[0].message.content || 'Unable to generate listing.';
-  } catch (error) { return 'AI listing generation is temporarily unavailable.'; }
+  } catch (error) {
+    return 'AI listing generation is temporarily unavailable.';
+  }
 }
 
 export async function POST(request) {
@@ -73,11 +115,19 @@ export async function POST(request) {
     var body = await request.json();
     var address = body.address;
     var propertyDetails = body.propertyDetails || {};
-    if (address === undefined || address === '') { return NextResponse.json({ error: 'Address is required' }, { status: 400 }); }
+
+    if (!address) {
+      return NextResponse.json({ error: 'Address is required' }, { status: 400 });
+    }
+
     var location = await geocodeAddress(address);
-    if (location === null) { return NextResponse.json({ error: 'Could not find that address' }, { status: 400 }); }
+    if (!location) {
+      return NextResponse.json({ error: 'Could not find that address' }, { status: 400 });
+    }
+
     var lat = location.lat;
     var lng = location.lng;
+
     var results = await Promise.all([
       nearbySearch(lat, lng, 'school'),
       nearbySearch(lat, lng, 'restaurant'),
@@ -90,6 +140,7 @@ export async function POST(request) {
       nearbySearch(lat, lng, 'utility company'),
       nearbySearch(lat, lng, 'shopping mall')
     ]);
+
     var distResults = await Promise.all([
       getDistances(lat, lng, results[0]),
       getDistances(lat, lng, results[1]),
@@ -102,13 +153,30 @@ export async function POST(request) {
       getDistances(lat, lng, results[8]),
       getDistances(lat, lng, results[9])
     ]);
+
     var nearbyData = {
-      Schools: distResults[0], Restaurants: distResults[1], Parks: distResults[2],
-      Grocery: distResults[3], Medical: distResults[4], Entertainment: distResults[5],
-      Golf: distResults[6], Gas: distResults[7], Utilities: distResults[8], Shopping: distResults[9]
+      Schools: distResults[0],
+      Restaurants: distResults[1],
+      Parks: distResults[2],
+      Grocery: distResults[3],
+      Medical: distResults[4],
+      Entertainment: distResults[5],
+      Golf: distResults[6],
+      Gas: distResults[7],
+      Utilities: distResults[8],
+      Shopping: distResults[9]
     };
+
     var listing = await generateListing(address, propertyDetails, nearbyData);
-    return NextResponse.json({ address: address, lat: lat, lng: lng, nearby: nearbyData, listing: listing });
+
+    return NextResponse.json({
+      address,
+      lat,
+      lng,
+      nearby: nearbyData,
+      listing
+    });
+
   } catch (error) {
     console.error('Workspace error:', error);
     return NextResponse.json({ error: 'Analysis failed' }, { status: 500 });

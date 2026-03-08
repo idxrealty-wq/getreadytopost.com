@@ -419,6 +419,8 @@ function WorkspaceContent() {
             existingDocuments={existingDocuments}
             documentAccessCode={documentAccessCode}
             saveNowNonce={saveNowNonce}
+			virtualTourUrl={virtualTourUrl}
+            droneUrl={droneUrl}
           />
         )}
 

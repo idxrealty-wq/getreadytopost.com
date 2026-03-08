@@ -17,6 +17,35 @@ export interface Listing {
     price: string;
     features: string;
     dateAdded: string;
+    legalDescription?: string;
+    propertyType?: string;
+    zoning?: string;
+    stories?: string;
+    garage?: string;
+    pool?: string;
+    construction?: string;
+    schoolDistrict?: string;
+    hoa?: string;
+    hoaAmount?: string;
+    hoaName?: string;
+    amenities?: string;
+    floodZone?: string;
+    water?: string;
+    sewer?: string;
+    roofYear?: string;
+    acYear?: string;
+    waterHeaterYear?: string;
+    assessedValue?: string;
+    lastSalePrice?: string;
+    lastSaleYear?: string;
+    homestead?: string;
+    propertyLink?: string;
+    ownerName?: string;
+    justValue?: string;
+    taxableValue?: string;
+    landValue?: string;
+    buildingValue?: string;
+    virtualTourUrl?: string;
   };
   nearby: any;
   aiListing: string;
@@ -43,6 +72,7 @@ export const saveListing = async (
 ): Promise<string> => {
   const listingId = `listing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const listingRef = doc(db, 'listings', listingId);
+
   const listingData: Listing = {
     id: listingId,
     userId,
@@ -59,6 +89,7 @@ export const saveListing = async (
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
+
   await setDoc(listingRef, listingData);
   return listingId;
 };
@@ -70,6 +101,7 @@ export const getUserListings = async (userId: string): Promise<Listing[]> => {
     where('userId', '==', userId),
     orderBy('updatedAt', 'desc')
   );
+
   const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => doc.data() as Listing);
 };
