@@ -14,55 +14,16 @@ type ParcelMatch = {
 };
 
 const STATE_MAP: Record<string, string> = {
-  ALABAMA: 'AL',
-  ALASKA: 'AK',
-  ARIZONA: 'AZ',
-  ARKANSAS: 'AR',
-  CALIFORNIA: 'CA',
-  COLORADO: 'CO',
-  CONNECTICUT: 'CT',
-  DELAWARE: 'DE',
-  FLORIDA: 'FL',
-  GEORGIA: 'GA',
-  HAWAII: 'HI',
-  IDAHO: 'ID',
-  ILLINOIS: 'IL',
-  INDIANA: 'IN',
-  IOWA: 'IA',
-  KANSAS: 'KS',
-  KENTUCKY: 'KY',
-  LOUISIANA: 'LA',
-  MAINE: 'ME',
-  MARYLAND: 'MD',
-  MASSACHUSETTS: 'MA',
-  MICHIGAN: 'MI',
-  MINNESOTA: 'MN',
-  MISSISSIPPI: 'MS',
-  MISSOURI: 'MO',
-  MONTANA: 'MT',
-  NEBRASKA: 'NE',
-  NEVADA: 'NV',
-  'NEW HAMPSHIRE': 'NH',
-  'NEW JERSEY': 'NJ',
-  'NEW MEXICO': 'NM',
-  'NEW YORK': 'NY',
-  'NORTH CAROLINA': 'NC',
-  'NORTH DAKOTA': 'ND',
-  OHIO: 'OH',
-  OKLAHOMA: 'OK',
-  OREGON: 'OR',
-  PENNSYLVANIA: 'PA',
-  'RHODE ISLAND': 'RI',
-  'SOUTH CAROLINA': 'SC',
-  'SOUTH DAKOTA': 'SD',
-  TENNESSEE: 'TN',
-  TEXAS: 'TX',
-  UTAH: 'UT',
-  VERMONT: 'VT',
-  VIRGINIA: 'VA',
-  WASHINGTON: 'WA',
-  'WEST VIRGINIA': 'WV',
-  WISCONSIN: 'WI',
+  ALABAMA: 'AL', ALASKA: 'AK', ARIZONA: 'AZ', ARKANSAS: 'AR', CALIFORNIA: 'CA',
+  COLORADO: 'CO', CONNECTICUT: 'CT', DELAWARE: 'DE', FLORIDA: 'FL', GEORGIA: 'GA',
+  HAWAII: 'HI', IDAHO: 'ID', ILLINOIS: 'IL', INDIANA: 'IN', IOWA: 'IA',
+  KANSAS: 'KS', KENTUCKY: 'KY', LOUISIANA: 'LA', MAINE: 'ME', MARYLAND: 'MD',
+  MASSACHUSETTS: 'MA', MICHIGAN: 'MI', MINNESOTA: 'MN', MISSISSIPPI: 'MS', MISSOURI: 'MO',
+  MONTANA: 'MT', NEBRASKA: 'NE', NEVADA: 'NV', 'NEW HAMPSHIRE': 'NH', 'NEW JERSEY': 'NJ',
+  'NEW MEXICO': 'NM', 'NEW YORK': 'NY', 'NORTH CAROLINA': 'NC', 'NORTH DAKOTA': 'ND',
+  OHIO: 'OH', OKLAHOMA: 'OK', OREGON: 'OR', PENNSYLVANIA: 'PA', 'RHODE ISLAND': 'RI',
+  'SOUTH CAROLINA': 'SC', 'SOUTH DAKOTA': 'SD', TENNESSEE: 'TN', TEXAS: 'TX', UTAH: 'UT',
+  VERMONT: 'VT', VIRGINIA: 'VA', WASHINGTON: 'WA', 'WEST VIRGINIA': 'WV', WISCONSIN: 'WI',
   WYOMING: 'WY',
 };
 
@@ -80,7 +41,6 @@ export async function GET(req: NextRequest) {
   if (stateParam) addr2Parts.push(stateParam);
   const addr2 = addr2Parts.join(', ') || '';
 
-  // Normalize state: convert full name to 2-letter code
   const stateUpperRaw = stateParam.toUpperCase();
   const stateNormalized =
     stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw.substring(0, 2));
@@ -93,6 +53,7 @@ export async function GET(req: NextRequest) {
         cache: 'no-store',
       }
     );
+
     const d1 = await r1.json();
     let matches: ParcelMatch[] = Array.isArray(d1?.property) ? (d1.property as ParcelMatch[]) : [];
 
@@ -107,6 +68,7 @@ export async function GET(req: NextRequest) {
     if (!matches.length) return NextResponse.json({ results: [] });
 
     const results = [];
+
     for (const m of matches) {
       const id = m?.identifier?.attomId || m?.identifier?.Id;
       if (!id) continue;
@@ -115,10 +77,10 @@ export async function GET(req: NextRequest) {
         headers: { apikey: KEY, Accept: 'application/json' },
         cache: 'no-store',
       });
+
       const d2 = await r2.json();
       const p = d2?.property?.[0];
       if (!p) continue;
-
       results.push({
         parcel_id: p?.identifier?.apn || '',
         address: p?.address?.line1 || '',
@@ -129,19 +91,27 @@ export async function GET(req: NextRequest) {
         sqft: String(p?.building?.size?.livingsize || ''),
         beds: String(p?.building?.rooms?.beds || ''),
         baths: String(p?.building?.rooms?.bathstotal || ''),
-        just_value: '',
-        sale_price: '',
-        sale_year: '',
-        dor_uc: '',
+        just_value: String(p?.assessment?.market?.mktttlvalue || ''),
+        assessed_value: String(p?.assessment?.assessed?.assdttlvalue || ''),
+        taxable_value: String(p?.assessment?.tax?.taxamt || ''),
+        land_value: String(p?.assessment?.market?.mktlandvalue || ''),
+        building_value: String(p?.assessment?.market?.mktimprvalue || ''),
+        sale_price: String(p?.sale?.amount?.saleamt || ''),
+        sale_year: String(p?.sale?.salesearchdate ? new Date(p.sale.salesearchdate).getFullYear() : ''),
+        property_type: p?.summary?.proptype || '',
+        legal_description: p?.summary?.legal1 || '',
+        owner_name: p?.owner?.owner1?.fullname || '',
+        homestead: p?.assessment?.tax?.taxexemption1 ? 'Yes' : 'No',
+        stories: String(p?.building?.summary?.levels || ''),
         land_sqft: String(p?.lot?.lotsize2 || ''),
-        legal_description: '',
-        owner_name: '',
-        homestead: '',
+        acres: String(p?.lot?.lotsize1 || ''),
+        dor_uc: '',
         search_key: q.toLowerCase(),
       });
     }
 
     return NextResponse.json({ results });
+
   } catch (e) {
     return NextResponse.json({ results: [] });
   }
