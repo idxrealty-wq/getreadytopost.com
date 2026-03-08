@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -31,6 +31,15 @@ export default function Tab3Listing({
   const [uid, setUid] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
 
+  // Local editable input (original listing). We do NOT want to overwrite it with the rewrite.
+  const [draftListing, setDraftListing] = useState<string>("");
+
+  // Initialize draft once from incoming listing (if any)
+  useEffect(() => {
+    setDraftListing((prev) => (prev.trim().length ? prev : String(listing || "")));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUid(u?.uid || null);
@@ -39,6 +48,9 @@ export default function Tab3Listing({
     });
     return () => unsub();
   }, []);
+
+  const originalCharCount = useMemo(() => draftListing.trim().length, [draftListing]);
+  const canGenerate = !!address && authReady && !!email && originalCharCount >= 50;
 
   const generateListing = async () => {
     if (!address) return;
@@ -51,13 +63,16 @@ export default function Tab3Listing({
     try {
       if (!authReady) throw new Error("Auth is still loading. Try again in 1 second.");
       if (!email) throw new Error("You must be signed in (email missing).");
+      if (draftListing.trim().length < 50) {
+        throw new Error("Paste at least 50 characters of the original listing before generating.");
+      }
 
       // 1) Create submission
       const createPayload = {
         address: String(address).trim(),
         propertyDetails: propertyData || {},
         nearby: nearby || null,
-        listingText: String(listing || "").trim(),
+        listingText: String(draftListing || "").trim(),
         uid: uid || null,
         email: String(email).trim(),
       };
@@ -75,7 +90,6 @@ export default function Tab3Listing({
 
       const subId = String(createJson?.submissionId || "").trim();
       if (!subId) throw new Error("Create succeeded but no submissionId in response.");
-
       setSubmissionId(subId);
 
       // 2) Run analysis
@@ -110,9 +124,7 @@ export default function Tab3Listing({
       }
 
       const storedAnalysis = getJson?.submission?.analysis || getJson?.analysis || null;
-      const storedRewrite = String(
-        storedAnalysis?.rewrite?.text || getJson?.submission?.analysis?.rewrite?.text || ""
-      ).trim();
+      const storedRewrite = String(storedAnalysis?.rewrite?.text || "").trim();
 
       if (!storedRewrite) throw new Error("No rewrite text returned from analysis.");
 
@@ -139,13 +151,31 @@ export default function Tab3Listing({
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">AI Listing Builder</h2>
         <p className="text-gray-300 mb-6">
-          Generate a professional, MLS-ready listing description using all your property and
-          neighborhood data. Includes AI grading across 6 categories.
+          Paste your current MLS description below. We’ll grade it and generate an improved,
+          MLS-safe rewrite using your property + neighborhood facts.
         </p>
+
+        <div className="space-y-2 mb-5">
+          <div className="flex items-center justify-between">
+            <label className="text-white font-semibold">Original Listing (required)</label>
+            <span className={`text-xs ${originalCharCount >= 50 ? "text-emerald-300" : "text-yellow-200"}`}>
+              {originalCharCount} chars (min 50)
+            </span>
+          </div>
+          <textarea
+            value={draftListing}
+            onChange={(e) => setDraftListing(e.target.value)}
+            placeholder="Paste the original MLS listing description here..."
+            className="w-full min-h-[140px] rounded-xl bg-white/10 border border-white/20 text-white p-4 outline-none focus:border-white/40"
+          />
+          <p className="text-gray-400 text-xs">
+            Tip: even a rough draft works — the AI needs some starting text to rewrite safely.
+          </p>
+        </div>
 
         <button
           onClick={generateListing}
-          disabled={loading || !address}
+          disabled={loading || !canGenerate}
           className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition disabled:opacity-50"
         >
           {loading ? "Generating..." : listing ? "Regenerate Listing" : "Generate A+ Listing"}
@@ -235,3 +265,4 @@ export default function Tab3Listing({
     </div>
   );
 }
+
