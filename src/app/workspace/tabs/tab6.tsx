@@ -19,7 +19,7 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
   const labelClass = "block text-sm font-semibold text-gray-300 mb-2";
 
   const defaultInputs: ClosingCostInputs = {
-    salePrice: parseFloat(propertyData.price?.replace(/[^0-9.]/g, '')) || 0,
+    salePrice: parseFloat(String(propertyData.price || '').replace(/[^0-9.]/g, '')) || 0,
     address: address || '',
     county: propertyData.county || 'Orange',
     closingDate: '',
@@ -32,11 +32,11 @@ export default function Tab6ClosingCosts({ listingId, address, propertyData, sav
     lendersTitleInsurance: true,
     surveyRequired: true,
     surveyAmount: 500,
-    annualPropertyTax: parseFloat(propertyData.assessedValue?.replace(/[^0-9.]/g, '')) * 0.015 || 0,
+    annualPropertyTax: parseFloat(String(propertyData.assessedValue || '').replace(/[^0-9.]/g, '')) * 0.015 || 0,
     homesteadExemption: false,
     taxesPaidThrough: '',
     hasHOA: false,
-    hoaMonthly: parseFloat(propertyData.hoaAmount?.replace(/[^0-9.]/g, '')) || 0,
+    hoaMonthly: parseFloat(String(propertyData.hoaAmount || '').replace(/[^0-9.]/g, '')) || 0,
     hoaEstoppelFee: 250,
     homeownersInsuranceAnnual: 2400,
     floodInsuranceAnnual: 0,
