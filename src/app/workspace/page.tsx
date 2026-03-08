@@ -29,6 +29,7 @@ function WorkspaceContent() {
   const [address, setAddress] = useState("");
 
   const [propertyData, setPropertyData] = useState({
+  
     taxId: "",
     yearBuilt: "",
     beds: "",
@@ -66,8 +67,9 @@ function WorkspaceContent() {
     taxableValue: "",
     landValue: "",
     buildingValue: "",
-  });
-
+	 });
+  const [virtualTourUrl, setVirtualTourUrl] = useState("");
+  const [droneUrl, setDroneUrl] = useState("");
   const [nearby, setNearby] = useState<any>(null);
   const [listing, setListing] = useState("");
   const [checklistState, setChecklistState] = useState<Record<string, boolean>>({});
