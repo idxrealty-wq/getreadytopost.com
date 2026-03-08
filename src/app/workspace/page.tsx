@@ -244,6 +244,9 @@ function WorkspaceContent() {
       setIfEmpty("assessedValue", parcel.assessed_value || parcel.just_value);
       setIfEmpty("justValue", parcel.just_value);
       setIfEmpty("taxableValue", parcel.taxable_value);
+	  setIfEmpty("annualTax", parcel.annual_tax);
+      setIfEmpty("taxYear", parcel.tax_year);
+
       setIfEmpty("landValue", parcel.land_value);
       setIfEmpty("buildingValue", parcel.building_value);
 
@@ -307,6 +310,8 @@ function WorkspaceContent() {
         setIfEmpty("landValue", parcel.land_value);
         setIfEmpty("buildingValue", parcel.building_value);
         setIfEmpty("taxableValue", parcel.taxable_value);
+		setIfEmpty("annualTax", parcel.annual_tax);
+        setIfEmpty("taxYear", parcel.tax_year);
         setIfEmpty("lastSalePrice", parcel.sale_price);
         setIfEmpty("lastSaleYear", parcel.sale_year);
 

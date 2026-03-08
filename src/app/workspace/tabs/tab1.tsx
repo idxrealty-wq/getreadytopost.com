@@ -257,6 +257,15 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             <label className={labelClass}>Taxable Value</label>
             <input type="text" value={formatCurrency((data as any).taxableValue)} onChange={(e) => updateField('taxableValue', e.target.value)} placeholder="e.g., $300,000" className={inputClass} />
           </div>
+		    <div>
+            <label className={labelClass}>Annual Tax</label>
+            <input type="text" value={formatCurrency((data as any).annualTax)} onChange={(e) => updateField('annualTax', e.target.value)} placeholder="e.g., $4,500" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Tax Year</label>
+            <input type="text" value={(data as any).taxYear || ''} onChange={(e) => updateField('taxYear', e.target.value)} placeholder="e.g., 2024" className={inputClass} />
+          </div>
+
           <div>
             <label className={labelClass}>Homestead Exemption</label>
             <select value={data.homestead || ''} onChange={(e) => updateField('homestead', e.target.value)} className={selectClass}>
