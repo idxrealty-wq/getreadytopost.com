@@ -9,7 +9,7 @@ type DocPayload = {
   label: string;
   fileName: string;
   fileType: string;
-  downloadURL: string;
+  downloadURL: string; // used for preview only (iframe/img). Download uses signed URL endpoint.
 };
 
 function Inner() {
@@ -20,7 +20,6 @@ function Inner() {
   const listingId = String(searchParams.get("id") || "").trim();
 
   const storageKey = useMemo(() => {
-    // Keep it scoped per listing so codes don’t bleed across listings
     return listingId ? `grtp_doc_access_code:${listingId}` : `grtp_doc_access_code:unknown`;
   }, [listingId]);
 
@@ -28,18 +27,18 @@ function Inner() {
   const [showGate, setShowGate] = useState(true);
 
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
 
   const [address, setAddress] = useState("");
   const [doc, setDoc] = useState<DocPayload | null>(null);
 
-  // On load, try to pull code from sessionStorage (wow factor: gate still shows if missing)
   useEffect(() => {
     try {
       const saved = sessionStorage.getItem(storageKey) || "";
       if (saved.trim()) {
         setAccessCode(saved.trim());
-        setShowGate(false); // we’ll attempt auto-load
+        setShowGate(false);
       } else {
         setShowGate(true);
       }
@@ -92,7 +91,6 @@ function Inner() {
         return;
       }
 
-      // Save code for this session (so they don’t re-enter for every doc)
       try {
         sessionStorage.setItem(storageKey, String(code || "").trim());
       } catch {}
@@ -115,13 +113,53 @@ function Inner() {
     }
   };
 
-  // Auto-fetch if we had a saved code
   useEffect(() => {
     if (!showGate && accessCode.trim() && !doc && !loading) {
       fetchDoc(accessCode.trim());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showGate]);
+
+  const secureDownload = async () => {
+    if (!listingId || !docId || !accessCode.trim()) {
+      setError("Missing listing id, document id, or access code.");
+      setShowGate(true);
+      return;
+    }
+
+    setDownloading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/documents/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          listingId,
+          docId,
+          accessCode: accessCode.trim(),
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(data?.error || "Download failed");
+        return;
+      }
+
+      if (!data?.downloadUrl) {
+        setError("Download link missing.");
+        return;
+      }
+
+      window.open(String(data.downloadUrl), "_blank");
+    } catch {
+      setError("Failed to generate download link");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const isPdf = doc?.fileType?.toLowerCase().includes("pdf");
   const isImage = /image/i.test(doc?.fileType || "");
@@ -130,7 +168,13 @@ function Inner() {
     <main className="min-h-screen bg-[#1a2b4a] px-4 py-10">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <Link href={listingId ? `/documents/view?id=${encodeURIComponent(listingId)}` : "/documents/view"}>
+          <Link
+            href={
+              listingId
+                ? `/documents/view?id=${encodeURIComponent(listingId)}`
+                : "/documents/view"
+            }
+          >
             <span className="text-white/90 hover:text-white font-bold">← Back to documents</span>
           </Link>
           <Link href="/">
@@ -194,15 +238,13 @@ function Inner() {
                       Lock
                     </button>
 
-                    <a
-                      href={doc.downloadURL}
-                      download={doc.fileName}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-[#1a2b4a] hover:bg-[#243a63] text-white px-4 py-2 rounded-lg text-sm font-bold transition"
+                    <button
+                      onClick={secureDownload}
+                      disabled={downloading}
+                      className="bg-[#1a2b4a] hover:bg-[#243a63] text-white px-4 py-2 rounded-lg text-sm font-bold transition disabled:opacity-60"
                     >
-                      Download
-                    </a>
+                      {downloading ? "Preparing..." : "Download"}
+                    </button>
                   </div>
                 </div>
 
@@ -221,15 +263,13 @@ function Inner() {
                 ) : (
                   <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
                     <p className="text-gray-600 mb-4">Preview not available for this file type.</p>
-                    <a
-                      href={doc.downloadURL}
-                      download={doc.fileName}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition"
+                    <button
+                      onClick={secureDownload}
+                      disabled={downloading}
+                      className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition disabled:opacity-60"
                     >
-                      Download File
-                    </a>
+                      {downloading ? "Preparing..." : "Download File"}
+                    </button>
                   </div>
                 )}
               </div>
@@ -276,7 +316,6 @@ function Inner() {
                 <button
                   type="button"
                   onClick={() => {
-                    // Keep them on page but close modal
                     setShowGate(false);
                     setError("");
                   }}
@@ -306,7 +345,13 @@ function Inner() {
 
 export default function DocumentViewDocPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#1a2b4a] text-white flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#1a2b4a] text-white flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
       <Inner />
     </Suspense>
   );
