@@ -238,9 +238,47 @@ function WorkspaceContent() {
         setIfEmpty("homestead", parcel.homestead);
 
         // Physical features from ATTOM
-        setIfEmpty("construction", parcel.construction);
-        setIfEmpty("garage", parcel.garage);
-        setIfEmpty("pool", parcel.pool);
+        // Normalize ATTOM values to match dropdown options
+        const normalizeConstruction = (v: string) => {
+          if (!v) return '';
+          const u = v.toUpperCase();
+          if (u.includes('CONCRETE') || u.includes('CBS') || u.includes('BLOCK')) return 'CBS (Concrete Block)';
+          if (u.includes('BRICK')) return 'Brick';
+          if (u.includes('FRAME') || u.includes('WOOD')) return 'Frame';
+          if (u.includes('STUCCO')) return 'Stucco';
+          return 'Mixed';
+        };
+        const normalizeGarage = (v: string) => {
+          if (!v) return '';
+          const u = v.toUpperCase();
+          if (u.includes('CARPORT')) return 'Carport';
+          if (u.includes('3')) return '3-Car';
+          if (u.includes('2')) return '2-Car';
+          if (u.includes('1') || u.includes('SINGLE')) return '1-Car';
+          if (u.includes('NONE') || u.includes('NO ')) return 'None';
+          return '';
+        };
+        const normalizePool = (v: string) => {
+          if (!v) return '';
+          const u = v.toUpperCase();
+          if (u.includes('SPA') || u.includes('HOT TUB')) return 'In-Ground + Spa';
+          if (u.includes('ABOVE')) return 'Above-Ground';
+          if (u.includes('YES') || u.includes('POOL') || u.includes('IN-GROUND')) return 'In-Ground';
+          if (u.includes('NONE') || u.includes('NO')) return 'None';
+          return '';
+        };
+        const normalizeStories = (v: string) => {
+          if (!v) return '';
+          if (v === '1') return '1';
+          if (v === '2') return '2';
+          if (Number(v) >= 3) return '3';
+          return '';
+        };
+
+        setIfEmpty("construction", normalizeConstruction(parcel.construction));
+        setIfEmpty("garage", normalizeGarage(parcel.garage));
+        setIfEmpty("pool", normalizePool(parcel.pool));
+        setIfEmpty("stories", normalizeStories(parcel.stories));
         setIfEmpty("subdivision", parcel.subdivision);
         setIfEmpty("cooling", parcel.cooling);
         setIfEmpty("fireplace", parcel.fireplace);
