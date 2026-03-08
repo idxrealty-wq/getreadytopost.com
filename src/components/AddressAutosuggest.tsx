@@ -97,13 +97,19 @@ export default function AddressAutosuggest({
     }, 450);
   };
 
-  const handleInputChange = (val: string) => {
+   const handleInputChange = (val: string) => {
     onChange(val);
     setSelected(null);
     setConfirmed(false);
-    doSearch(val);
   };
 
+  const handleSearch = () => {
+    if (value.length >= 5) doSearch(value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSearch();
+  };
   const handlePick = (parcel: ParcelResult) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
@@ -156,12 +162,23 @@ export default function AddressAutosuggest({
           type="text"
           value={value}
           onChange={(e) => handleInputChange(e.target.value)}
-          placeholder="Start typing an address..."
+          onKeyDown={handleKeyDown}
+          placeholder="Type full address then press Enter or Search..."
           className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-[#c9a227] focus:outline-none text-lg text-gray-900"
         />
+            )}
+      {!selected && (
+        <button
+          type="button"
+          onClick={handleSearch}
+          disabled={loading || value.length < 5}
+          className="mt-2 w-full bg-[#c9a227] hover:bg-[#b8911f] disabled:opacity-50 text-white font-bold py-3 px-6 rounded-xl transition"
+        >
+          {loading ? 'Searching...' : 'Search Property'}
+        </button>
       )}
-
       {loading && !selected && (
+
         <div className="absolute right-4 top-4 text-gray-400 text-sm">Searching...</div>
       )}
 
