@@ -113,7 +113,6 @@ export async function GET(req: NextRequest) {
         taxable_value: String(p?.assessment?.assessed?.assdTtlValue || ''),
         annual_tax: String(p?.assessment?.tax?.taxAmt || ''),
         tax_year: String(p?.assessment?.tax?.taxYear || ''),
-        tax_year: String(p?.assessment?.tax?.taxYear || ''),
         sale_price: String(p?.sale?.amount?.saleAmt || ''),
         sale_year: String(p?.sale?.salesSearchDate ? new Date(p.sale.salesSearchDate).getFullYear() : ''),
         last_modified: p?.vintage?.lastModified || '',
