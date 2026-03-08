@@ -9,7 +9,6 @@ type DocPayload = {
   label: string;
   fileName: string;
   fileType: string;
-  downloadURL: string; // used for preview only (iframe/img). Download uses signed URL endpoint.
 };
 
 function Inner() {
@@ -28,10 +27,12 @@ function Inner() {
 
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [address, setAddress] = useState("");
   const [doc, setDoc] = useState<DocPayload | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
 
   useEffect(() => {
     try {
@@ -48,7 +49,7 @@ function Inner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
-  const fetchDoc = async (code: string) => {
+  const fetchDocMeta = async (code: string) => {
     if (!listingId) {
       setError("Missing listing id in URL. Use /documents/view/[docId]?id=LISTING_ID");
       setShowGate(true);
@@ -62,6 +63,7 @@ function Inner() {
 
     setLoading(true);
     setError("");
+    setPreviewUrl("");
 
     try {
       const res = await fetch("/api/documents/get-one", {
@@ -85,9 +87,9 @@ function Inner() {
       }
 
       const d = data?.document || null;
-      if (!d?.downloadURL) {
+      if (!d?.docId) {
         setShowGate(true);
-        setError("Document is missing a download URL.");
+        setError("Document metadata missing.");
         return;
       }
 
@@ -101,7 +103,6 @@ function Inner() {
         label: String(d.label || ""),
         fileName: String(d.fileName || ""),
         fileType: String(d.fileType || ""),
-        downloadURL: String(d.downloadURL || ""),
       });
 
       setShowGate(false);
@@ -113,12 +114,45 @@ function Inner() {
     }
   };
 
-  useEffect(() => {
-    if (!showGate && accessCode.trim() && !doc && !loading) {
-      fetchDoc(accessCode.trim());
+  const fetchPreviewUrl = async () => {
+    if (!listingId || !docId || !accessCode.trim()) return;
+
+    setPreviewLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/documents/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          listingId,
+          docId,
+          accessCode: accessCode.trim(),
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data?.error || "Preview failed");
+        setPreviewUrl("");
+        return;
+      }
+
+      const url = String(data?.previewUrl || "").trim();
+      if (!url) {
+        setError("Preview URL missing.");
+        setPreviewUrl("");
+        return;
+      }
+
+      setPreviewUrl(url);
+    } catch {
+      setError("Failed to load preview");
+      setPreviewUrl("");
+    } finally {
+      setPreviewLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showGate]);
+  };
 
   const secureDownload = async () => {
     if (!listingId || !docId || !accessCode.trim()) {
@@ -148,18 +182,35 @@ function Inner() {
         return;
       }
 
-      if (!data?.downloadUrl) {
+      const url = String(data?.downloadUrl || "").trim();
+      if (!url) {
         setError("Download link missing.");
         return;
       }
 
-      window.open(String(data.downloadUrl), "_blank");
+      window.open(url, "_blank");
     } catch {
       setError("Failed to generate download link");
     } finally {
       setDownloading(false);
     }
   };
+
+  // Auto-load metadata if we had a saved code
+  useEffect(() => {
+    if (!showGate && accessCode.trim() && !doc && !loading) {
+      fetchDocMeta(accessCode.trim());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showGate]);
+
+  // Once we have doc meta, fetch signed preview URL
+  useEffect(() => {
+    if (doc && !previewUrl && !previewLoading) {
+      fetchPreviewUrl();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc]);
 
   const isPdf = doc?.fileType?.toLowerCase().includes("pdf");
   const isImage = /image/i.test(doc?.fileType || "");
@@ -231,6 +282,7 @@ function Inner() {
                         setDoc(null);
                         setAddress("");
                         setAccessCode("");
+                        setPreviewUrl("");
                         setShowGate(true);
                       }}
                       className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg text-sm font-bold transition"
@@ -248,21 +300,48 @@ function Inner() {
                   </div>
                 </div>
 
-                {isPdf ? (
+                {previewLoading && (
+                  <div className="text-center py-10 bg-gray-50 rounded-xl border border-gray-200">
+                    <div className="w-10 h-10 border-4 border-[#c9a227] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                    <p className="text-gray-600">Loading secure preview…</p>
+                  </div>
+                )}
+
+                {!previewLoading && previewUrl && isPdf && (
                   <iframe
-                    src={doc.downloadURL}
+                    src={previewUrl}
                     className="w-full h-[75vh] rounded-xl border border-gray-200"
                     title="PDF Viewer"
                   />
-                ) : isImage ? (
+                )}
+
+                {!previewLoading && previewUrl && isImage && (
                   <img
-                    src={doc.downloadURL}
+                    src={previewUrl}
                     alt={doc.label}
                     className="max-w-full h-auto rounded-xl border border-gray-200 mx-auto"
                   />
-                ) : (
+                )}
+
+                {!previewLoading && !previewUrl && (
                   <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
-                    <p className="text-gray-600 mb-4">Preview not available for this file type.</p>
+                    <p className="text-gray-600 mb-4">
+                      Preview not available yet. Try again.
+                    </p>
+                    <button
+                      onClick={fetchPreviewUrl}
+                      className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition"
+                    >
+                      Load Preview
+                    </button>
+                  </div>
+                )}
+
+                {!previewLoading && previewUrl && !isPdf && !isImage && (
+                  <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+                    <p className="text-gray-600 mb-4">
+                      Preview not available for this file type.
+                    </p>
                     <button
                       onClick={secureDownload}
                       disabled={downloading}
@@ -294,7 +373,7 @@ function Inner() {
               className="p-6 space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();
-                fetchDoc(accessCode);
+                fetchDocMeta(accessCode);
               }}
             >
               <div>
