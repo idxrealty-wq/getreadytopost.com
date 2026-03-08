@@ -1,39 +1,52 @@
-﻿'use client';
+﻿"use client";
 
-import { Suspense, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 function DocumentViewContent() {
   const searchParams = useSearchParams();
-  const listingIdFromUrl = searchParams.get('id') || '';
+  const listingIdFromUrl = searchParams.get("id") || "";
 
   const [listingId, setListingId] = useState(listingIdFromUrl);
-  const [accessCode, setAccessCode] = useState('');
+  const [accessCode, setAccessCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [address, setAddress] = useState('');
+  const [error, setError] = useState("");
+  const [address, setAddress] = useState("");
   const [documents, setDocuments] = useState<any[]>([]);
   const [unlocked, setUnlocked] = useState(false);
-  const [viewingDoc, setViewingDoc] = useState<any>(null);
   const [showAccessForm, setShowAccessForm] = useState(false);
+
+  const storageKey = useMemo(() => {
+    return listingId ? `grtp_doc_access_code:${listingId}` : `grtp_doc_access_code:unknown`;
+  }, [listingId]);
+
+  // If they already unlocked this listing in this session, auto-fill code and unlock UI
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(storageKey) || "";
+      if (saved.trim()) {
+        setAccessCode(saved.trim());
+      }
+    } catch {}
+  }, [storageKey]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const res = await fetch('/api/documents/view', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/documents/view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ listingId, accessCode }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Invalid access code');
+        setError(data.error || "Invalid access code");
         return;
       }
 
@@ -41,8 +54,13 @@ function DocumentViewContent() {
       setDocuments(data.documents);
       setUnlocked(true);
       setShowAccessForm(false);
+
+      // Save code for this browser session
+      try {
+        sessionStorage.setItem(storageKey, String(accessCode || "").trim());
+      } catch {}
     } catch (e) {
-      setError('Something went wrong. Please try again.');
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -63,7 +81,7 @@ function DocumentViewContent() {
             <div className="text-5xl mb-3">🔒</div>
             <h2 className="text-xl font-bold text-[#1a2b4a]">Protected Documents</h2>
             <p className="text-gray-500 text-sm mt-1">
-              Your documents are secure and password protected
+              Click to unlock with the access code provided by your agent.
             </p>
           </div>
 
@@ -117,7 +135,7 @@ function DocumentViewContent() {
                   type="button"
                   onClick={() => {
                     setShowAccessForm(false);
-                    setError('');
+                    setError("");
                   }}
                   className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-xl font-bold transition"
                 >
@@ -128,9 +146,13 @@ function DocumentViewContent() {
                   disabled={loading || !accessCode || !listingId}
                   className="flex-1 bg-[#1a2b4a] hover:bg-[#243a63] text-white py-3 rounded-xl font-bold transition disabled:opacity-50"
                 >
-                  {loading ? 'Checking...' : 'Unlock'}
+                  {loading ? "Checking..." : "Unlock"}
                 </button>
               </div>
+
+              <p className="text-xs text-gray-400 text-center">
+                This access code is saved for this browser session only.
+              </p>
             </form>
           )}
         </div>
@@ -149,27 +171,25 @@ function DocumentViewContent() {
           ) : (
             <div className="space-y-3">
               {documents.map((d) => {
-                const isPdf = d.fileType?.includes('pdf');
-                const isImage = /image/i.test(d.fileType || '');
+                const isPdf = d.fileType?.includes("pdf");
+                const isImage = /image/i.test(d.fileType || "");
+                const href = `/documents/view/${encodeURIComponent(d.docId)}?id=${encodeURIComponent(
+                  listingId
+                )}`;
 
                 return (
                   <div
                     key={d.docId}
                     className="border-2 border-gray-100 rounded-xl hover:border-[#c9a227] transition"
                   >
-                    <button
-                      onClick={() => setViewingDoc(d)}
-                      className="w-full flex items-center gap-4 p-4 text-left"
-                    >
-                      <div className="text-3xl">
-                        {isPdf ? '📄' : isImage ? '🖼️' : '📎'}
-                      </div>
+                    <Link href={href} className="w-full flex items-center gap-4 p-4 text-left">
+                      <div className="text-3xl">{isPdf ? "📄" : isImage ? "🖼️" : "📎"}</div>
                       <div className="flex-1">
                         <p className="font-bold text-[#1a2b4a]">{d.label}</p>
                         <p className="text-xs text-gray-400">{d.fileName}</p>
                       </div>
-                      <div className="text-[#c9a227] font-bold text-sm">View &rarr;</div>
-                    </button>
+                      <div className="text-[#c9a227] font-bold text-sm">View →</div>
+                    </Link>
                   </div>
                 );
               })}
@@ -183,72 +203,6 @@ function DocumentViewContent() {
           </div>
         </div>
       )}
-
-      {viewingDoc && (() => {
-        const url = viewingDoc.downloadURL;
-        const isPdf = viewingDoc.fileType?.includes('pdf');
-        const isImage = /image/i.test(viewingDoc.fileType || '');
-
-        return (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-auto shadow-2xl">
-              <div className="sticky top-0 bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center rounded-t-2xl">
-                <div>
-                  <h3 className="font-bold text-[#1a2b4a]">{viewingDoc.label}</h3>
-                  <p className="text-xs text-gray-400">{viewingDoc.fileName}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <a
-                    href={url}
-                    download={viewingDoc.fileName}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-2 rounded-lg text-sm font-bold transition"
-                  >
-                    Download
-                  </a>
-                  <button
-                    onClick={() => setViewingDoc(null)}
-                    className="text-gray-400 hover:text-gray-700 text-2xl font-bold"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-              <div className="p-6">
-                {isPdf ? (
-                  <iframe
-                    src={url}
-                    className="w-full h-[600px] rounded-lg border border-gray-200"
-                    title="PDF Viewer"
-                  />
-                ) : isImage ? (
-                  <img
-                    src={url}
-                    alt={viewingDoc.label}
-                    className="max-w-full h-auto rounded-lg border border-gray-200 mx-auto"
-                  />
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500 mb-4">
-                      Preview not available for this file type
-                    </p>
-                    <a
-                      href={url}
-                      download={viewingDoc.fileName}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition"
-                    >
-                      Download File
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 }
