@@ -229,7 +229,7 @@ export default function VaultPage() {
                         </div>
                       </div>
                       <div className="flex gap-2 mt-auto">
-                        <Link href={'/listing/' + listing.id} className="flex-1 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 px-3 py-2 rounded-lg text-sm font-bold transition text-center border border-blue-500/40">View</Link>
+                        <Link href={'/documents/view?id=' + listing.id} className="flex-1 bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 px-3 py-2 rounded-lg text-sm font-bold transition text-center border border-purple-500/40">🔐 Vault</Link>
                         <Link href={'/workspace?edit=' + listing.id} className="flex-1 bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 px-3 py-2 rounded-lg text-sm font-bold transition text-center border border-amber-500/40">Edit</Link>
                         <button onClick={() => handleDelete(listing.id, listing.address || "Listing")} disabled={deleting === listing.id} className="bg-red-600/30 hover:bg-red-600/50 text-red-300 px-3 py-2 rounded-lg text-sm font-bold transition border border-red-500/40 disabled:opacity-50">
                           {deleting === listing.id ? "..." : "X"}
