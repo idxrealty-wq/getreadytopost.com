@@ -235,7 +235,17 @@ function WorkspaceContent() {
       setIfEmpty("lastSaleYear", parcel.sale_year);
 
       // Homestead
-      setIfEmpty("homestead", parcel.homestead);
+        setIfEmpty("homestead", parcel.homestead);
+
+        // Physical features from ATTOM
+        setIfEmpty("construction", parcel.construction);
+        setIfEmpty("garage", parcel.garage);
+        setIfEmpty("pool", parcel.pool);
+        setIfEmpty("subdivision", parcel.subdivision);
+        setIfEmpty("cooling", parcel.cooling);
+        setIfEmpty("fireplace", parcel.fireplace);
+        setIfEmpty("wallType", parcel.wall_type);
+        setIfEmpty("dor_uc", parcel.dor_uc);
 
       // Optional: enrich "features" with extra valuation fields if empty
       if (!next.features || String(next.features).trim() === "") {
