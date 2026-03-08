@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
+type Props = {
+  address: string;
+  propertyData: any;
+  nearby: any;
+  listing: string;
+  setListing: (v: string) => void;
+  onNext: () => void;
+};
+
 export default function Tab3Listing({
   address,
   propertyData,
@@ -11,7 +20,7 @@ export default function Tab3Listing({
   listing,
   setListing,
   onNext,
-}: any) {
+}: Props) {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [analysis, setAnalysis] = useState<any>(null);
@@ -40,12 +49,8 @@ export default function Tab3Listing({
     setSubmissionId(null);
 
     try {
-      if (!authReady) {
-        throw new Error("Auth is still loading. Try again in 1 second.");
-      }
-      if (!email) {
-        throw new Error("You must be signed in (email missing).");
-      }
+      if (!authReady) throw new Error("Auth is still loading. Try again in 1 second.");
+      if (!email) throw new Error("You must be signed in (email missing).");
 
       // 1) Create submission
       const createPayload = {
@@ -57,74 +62,64 @@ export default function Tab3Listing({
         email: String(email).trim(),
       };
 
-      console.log("[Tab3] Creating submission with payload:", createPayload);
-
       const createRes = await fetch("/api/submissions/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(createPayload),
       });
 
-      const createJson = await createRes.json().catch(() => ({}));
-      console.log("[Tab3] Create response:", createRes.status, createJson);
-
+      const createJson: any = await createRes.json().catch(() => ({}));
       if (!createRes.ok) {
-        throw new Error(
-          createJson?.error || createJson?.message || "Failed to create submission"
-        );
+        throw new Error(createJson?.error || createJson?.message || "Failed to create submission");
       }
 
       const subId = String(createJson?.submissionId || "").trim();
-      if (!subId) {
-        throw new Error("Create succeeded but no submissionId in response.");
-      }
+      if (!subId) throw new Error("Create succeeded but no submissionId in response.");
 
       setSubmissionId(subId);
-      console.log("[Tab3] Submission created:", subId);
 
       // 2) Run analysis
-      const analysisPayload = { submissionId: subId };
-      console.log("[Tab3] Running analysis with payload:", analysisPayload);
-
       const analysisRes = await fetch("/api/submissions/run-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(analysisPayload),
+        body: JSON.stringify({ submissionId: subId }),
       });
 
-      const analysisJson = await analysisRes.json().catch(() => ({}));
-      console.log("[Tab3] Analysis response:", analysisRes.status, analysisJson);
-
+      const analysisJson: any = await analysisRes.json().catch(() => ({}));
       if (!analysisRes.ok) {
-        throw new Error(
-          analysisJson?.error || analysisJson?.message || "Analysis failed"
-        );
+        throw new Error(analysisJson?.error || analysisJson?.message || "Analysis failed");
       }
 
-      // 3) Fetch completed submission
-      const getUrl = `/api/submissions/get?submissionId=${encodeURIComponent(subId)}`;
-      console.log("[Tab3] Fetching results from:", getUrl);
+      // Prefer direct response (prevents Firestore race)
+      const directRewrite = String(analysisJson?.rewriteText || "").trim();
+      const directAnalysis = analysisJson?.analysis || null;
 
-      const getRes = await fetch(getUrl);
-      const getJson = await getRes.json().catch(() => ({}));
-      console.log("[Tab3] Get response:", getRes.status, getJson);
+      if (directRewrite) {
+        setListing(directRewrite);
+        setAnalysis(directAnalysis);
+        return;
+      }
 
+      // 3) Fallback: fetch from Firestore
+      const getRes = await fetch(
+        `/api/submissions/get?submissionId=${encodeURIComponent(subId)}`
+      );
+      const getJson: any = await getRes.json().catch(() => ({}));
       if (!getRes.ok) {
         throw new Error(getJson?.error || getJson?.message || "Failed to fetch results");
       }
 
-      const rewriteText = String(getJson?.analysis?.rewrite?.text || "").trim();
-      if (!rewriteText) {
-        throw new Error("No rewrite text returned from analysis.");
-      }
+      const storedAnalysis = getJson?.submission?.analysis || getJson?.analysis || null;
+      const storedRewrite = String(
+        storedAnalysis?.rewrite?.text || getJson?.submission?.analysis?.rewrite?.text || ""
+      ).trim();
 
-      setListing(rewriteText);
-      setAnalysis(getJson?.analysis || null);
-      console.log("[Tab3] Success! Rewrite and analysis set.");
+      if (!storedRewrite) throw new Error("No rewrite text returned from analysis.");
+
+      setListing(storedRewrite);
+      setAnalysis(storedAnalysis);
     } catch (err: any) {
-      const msg = err?.message || "Failed to generate listing. Please try again.";
-      console.error("[Tab3] Error:", msg);
-      setError(msg);
+      setError(err?.message || "Failed to generate listing. Please try again.");
       setListing("");
       setAnalysis(null);
     } finally {
@@ -138,6 +133,7 @@ export default function Tab3Listing({
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
   return (
     <div className="space-y-6">
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
