@@ -8,7 +8,7 @@ export interface ComplianceViolation {
 }
 
 export const PROHIBITED_PHRASES: ComplianceViolation[] = [
-  // Fair Housing Act
+  // Fair Housing Act — Family Status
   {
     type: 'FAIR_HOUSING_ACT',
     phrase: 'great schools',
@@ -23,10 +23,36 @@ export const PROHIBITED_PHRASES: ComplianceViolation[] = [
   },
   {
     type: 'FAIR_HOUSING_ACT',
+    phrase: 'top-rated schools',
+    reason: 'Implies family-friendly, discriminates by familial status',
+    suggestedReplacement: 'Remove or mention specific school name with data',
+  },
+  {
+    type: 'FAIR_HOUSING_ACT',
+    phrase: 'rated schools',
+    reason: 'Implies family-friendly, discriminates by familial status',
+    suggestedReplacement: 'Remove or mention specific school name with data',
+  },
+  {
+    type: 'FAIR_HOUSING_ACT',
     phrase: 'school district',
     reason: 'Implies family-friendly, discriminates by familial status',
     suggestedReplacement: 'Remove or mention specific school name with data',
   },
+  {
+    type: 'FAIR_HOUSING_ACT',
+    phrase: 'perfect for families',
+    reason: 'Discriminates by familial status',
+    suggestedReplacement: 'Remove or describe property features only',
+  },
+  {
+    type: 'FAIR_HOUSING_ACT',
+    phrase: 'family friendly',
+    reason: 'Discriminates by familial status',
+    suggestedReplacement: 'Remove or describe property features only',
+  },
+
+  // Fair Housing Act — Gender/Master terminology
   {
     type: 'FAIR_HOUSING_ACT',
     phrase: 'master bedroom',
@@ -41,6 +67,20 @@ export const PROHIBITED_PHRASES: ComplianceViolation[] = [
   },
   {
     type: 'FAIR_HOUSING_ACT',
+    phrase: 'master suite',
+    reason: 'Replace with "Primary suite"',
+    suggestedReplacement: 'Primary suite',
+  },
+  {
+    type: 'FAIR_HOUSING_ACT',
+    phrase: 'master closet',
+    reason: 'Replace with "Primary closet"',
+    suggestedReplacement: 'Primary closet',
+  },
+
+  // Fair Housing Act — Neighborhood/Safety
+  {
+    type: 'FAIR_HOUSING_ACT',
     phrase: 'quiet neighborhood',
     reason: 'Implies exclusivity, discriminates by disability',
     suggestedReplacement: 'Remove or describe specific amenities',
@@ -51,6 +91,20 @@ export const PROHIBITED_PHRASES: ComplianceViolation[] = [
     reason: 'Implies exclusivity, discriminates by disability',
     suggestedReplacement: 'Remove or describe specific amenities',
   },
+  {
+    type: 'FAIR_HOUSING_ACT',
+    phrase: 'safe neighborhood',
+    reason: 'Implies others are unsafe, discriminates by race/national origin',
+    suggestedReplacement: 'Remove or describe specific amenities/features',
+  },
+  {
+    type: 'FAIR_HOUSING_ACT',
+    phrase: 'safe area',
+    reason: 'Implies others are unsafe, discriminates by race/national origin',
+    suggestedReplacement: 'Remove or describe specific amenities/features',
+  },
+
+  // Fair Housing Act — Age
   {
     type: 'FAIR_HOUSING_ACT',
     phrase: 'young professionals',
@@ -71,11 +125,20 @@ export const PROHIBITED_PHRASES: ComplianceViolation[] = [
   },
   {
     type: 'FAIR_HOUSING_ACT',
+    phrase: 'senior living',
+    reason: 'Age discrimination',
+    suggestedReplacement: 'Remove or describe property features',
+  },
+
+  // Fair Housing Act — Disability
+  {
+    type: 'FAIR_HOUSING_ACT',
     phrase: 'wheelchair accessible',
     reason: 'Discriminates by disability (state as fact, not selling point)',
     suggestedReplacement: 'State factually if true, not as benefit',
   },
-  // MLS Violations
+
+  // MLS Violations — Agent Opinion
   {
     type: 'MLS_VIOLATION',
     phrase: 'i love this home',
@@ -103,6 +166,7 @@ export const KEYWORD_DATABASE = {
     'open concept',
     'chef\'s kitchen',
     'primary bedroom',
+    'primary suite',
     'smart home',
     'energy-efficient',
   ],
