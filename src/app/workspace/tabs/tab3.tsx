@@ -1,7 +1,8 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function Tab3Listing({
   address,
@@ -17,6 +18,19 @@ export default function Tab3Listing({
   const [error, setError] = useState("");
   const [submissionId, setSubmissionId] = useState<string | null>(null);
 
+  const [authReady, setAuthReady] = useState(false);
+  const [uid, setUid] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUid(u?.uid || null);
+      setEmail(u?.email || null);
+      setAuthReady(true);
+    });
+    return () => unsub();
+  }, []);
+
   const generateListing = async () => {
     if (!address) return;
 
@@ -25,9 +39,9 @@ export default function Tab3Listing({
     setAnalysis(null);
 
     try {
-      const uid = auth.currentUser?.uid || null;
-      const email = auth.currentUser?.email || null;
-
+      if (!authReady) {
+        throw new Error("Auth is still loading. Try again in 1 second.");
+      }
       if (!email) {
         throw new Error("You must be signed in (email missing).");
       }
@@ -55,6 +69,7 @@ export default function Tab3Listing({
       if (!subId) throw new Error("Create succeeded but no submissionId returned.");
 
       setSubmissionId(subId);
+
       // 2) Run analysis
       const analysisRes = await fetch("/api/submissions/run-analysis", {
         method: "POST",
@@ -68,7 +83,9 @@ export default function Tab3Listing({
       }
 
       // 3) Fetch completed submission
-      const getRes = await fetch(`/api/submissions/get?submissionId=${encodeURIComponent(subId)}`);
+      const getRes = await fetch(
+        `/api/submissions/get?submissionId=${encodeURIComponent(subId)}`
+      );
       const getJson = await getRes.json().catch(() => ({}));
       if (!getRes.ok) {
         throw new Error(getJson?.error || "Failed to fetch results");
@@ -113,9 +130,11 @@ export default function Tab3Listing({
           {loading ? "Generating..." : listing ? "Regenerate Listing" : "Generate A+ Listing"}
         </button>
 
-        {submissionId && (
-          <p className="text-gray-400 text-xs mt-3">Submission: {submissionId}</p>
-        )}
+        <div className="text-gray-400 text-xs mt-3 space-y-1">
+          <div>Auth: {authReady ? "ready" : "loading..."}</div>
+          <div>Email: {email || "—"}</div>
+          {submissionId && <div>Submission: {submissionId}</div>}
+        </div>
       </div>
 
       {loading && (
