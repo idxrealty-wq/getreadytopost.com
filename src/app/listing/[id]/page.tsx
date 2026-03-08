@@ -320,123 +320,43 @@ export default function ListingViewPage() {
               <p className="text-gray-300">No documents uploaded yet</p>
             </div>
           )}
-        </div>
-      </div>
-    </main>
-  );
-}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+		            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
             <h2 className="text-2xl font-bold text-white mb-6">📍 Location</h2>
             <div className="aspect-video rounded-xl overflow-hidden">
-              <iframe
-                src={mapEmbedUrl}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+              <iframe src={mapEmbedUrl} width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
             </div>
           </div>
 
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
             <h2 className="text-2xl font-bold text-white mb-6">📋 Property Details</h2>
-
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-gray-200 text-sm">Year Built</p>
-                <p className="text-white font-bold text-lg">
-                  {(listing as any)?.propertyData?.yearBuilt || "N/A"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-gray-200 text-sm">Bedrooms</p>
-                <p className="text-white font-bold text-lg">
-                  {(listing as any)?.propertyData?.beds || "N/A"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-gray-200 text-sm">Bathrooms</p>
-                <p className="text-white font-bold text-lg">
-                  {(listing as any)?.propertyData?.baths || "N/A"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-gray-200 text-sm">Square Feet</p>
-                <p className="text-white font-bold text-lg">
-                  {(listing as any)?.propertyData?.sqft || "N/A"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-gray-200 text-sm">Lot Size</p>
-                <p className="text-white font-bold text-lg">
-                  {(listing as any)?.propertyData?.lotSize || "N/A"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-gray-200 text-sm">Price</p>
-                <p className="text-white font-bold text-lg">
-                  {(listing as any)?.propertyData?.price
-                    ? `$${(listing as any).propertyData.price}`
-                    : "N/A"}
-                </p>
-              </div>
-
-              <div className="col-span-2">
-                <p className="text-gray-200 text-sm">Date Added</p>
-                <p className="text-white font-bold text-lg">
-                  {(listing as any)?.propertyData?.dateAdded || "N/A"}
-                </p>
-              </div>
+              <div><p className="text-gray-200 text-sm">Year Built</p><p className="text-white font-bold text-lg">{(listing as any)?.propertyData?.yearBuilt || "N/A"}</p></div>
+              <div><p className="text-gray-200 text-sm">Bedrooms</p><p className="text-white font-bold text-lg">{(listing as any)?.propertyData?.beds || "N/A"}</p></div>
+              <div><p className="text-gray-200 text-sm">Bathrooms</p><p className="text-white font-bold text-lg">{(listing as any)?.propertyData?.baths || "N/A"}</p></div>
+              <div><p className="text-gray-200 text-sm">Square Feet</p><p className="text-white font-bold text-lg">{(listing as any)?.propertyData?.sqft || "N/A"}</p></div>
+              <div><p className="text-gray-200 text-sm">Lot Size</p><p className="text-white font-bold text-lg">{(listing as any)?.propertyData?.lotSize || "N/A"}</p></div>
+              <div><p className="text-gray-200 text-sm">Price</p><p className="text-white font-bold text-lg">{(listing as any)?.propertyData?.price ? `$${(listing as any).propertyData.price}` : "N/A"}</p></div>
+              <div className="col-span-2"><p className="text-gray-200 text-sm">Date Added</p><p className="text-white font-bold text-lg">{(listing as any)?.propertyData?.dateAdded || "N/A"}</p></div>
             </div>
-
-            {(listing as any)?.propertyData?.features && (
-              <div className="mt-6">
-                <p className="text-gray-400 text-sm mb-2">Features</p>
-                <p className="text-white">{(listing as any).propertyData.features}</p>
-              </div>
-            )}
+            {(listing as any)?.propertyData?.features && (<div className="mt-6"><p className="text-gray-400 text-sm mb-2">Features</p><p className="text-white">{(listing as any).propertyData.features}</p></div>)}
           </div>
 
           {(listing as any)?.aiListing && (
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white">✨ AI-Generated Listing</h2>
-                <button
-                  onClick={() => navigator.clipboard.writeText((listing as any).aiListing)}
-                  className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-2 rounded-lg font-bold transition text-sm"
-                >
-                  📋 Copy
-                </button>
+                <button onClick={() => navigator.clipboard.writeText((listing as any).aiListing)} className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-2 rounded-lg font-bold transition text-sm">📋 Copy</button>
               </div>
-
               <div className="bg-white/15 rounded-xl p-6 border border-white/20">
-                <p className="text-white whitespace-pre-wrap leading-relaxed">
-                  {(listing as any).aiListing}
-                </p>
+                <p className="text-white whitespace-pre-wrap leading-relaxed">{(listing as any).aiListing}</p>
               </div>
             </div>
           )}
 
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-            <h2 className="text-2xl font-bold text-white mb-6">
-              ✅ Pre-Listing Checklist ({completedChecklist}/{totalChecklist} complete)
-            </h2>
-
+            <h2 className="text-2xl font-bold text-white mb-6">✅ Pre-Listing Checklist ({completedChecklist}/{totalChecklist} complete)</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {listing?.checklistState &&
-                Object.entries(listing.checklistState).map(([key, checked]) => (
-                  <div key={key} className="flex items-center gap-3 bg-white/5 p-3 rounded-lg">
-                    <span className="text-2xl">{checked ? "✅" : "⬜"}</span>
-                    <span className={checked ? "text-green-300" : "text-gray-200"}>{key}</span>
-                  </div>
-                ))}
+              {listing?.checklistState && Object.entries(listing.checklistState).map(([key, checked]) => (<div key={key} className="flex items-center gap-3 bg-white/5 p-3 rounded-lg"><span className="text-2xl">{checked ? "✅" : "⬜"}</span><span className={checked ? "text-green-300" : "text-gray-200"}>{key}</span></div>))}
             </div>
           </div>
 
@@ -444,9 +364,7 @@ export default function ListingViewPage() {
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
               <h2 className="text-2xl font-bold text-white mb-6">📝 Notes</h2>
               <div className="bg-white/15 rounded-xl p-6 border border-white/20">
-                <p className="text-white whitespace-pre-wrap">
-                  {(listing as any).notes}
-                </p>
+                <p className="text-white whitespace-pre-wrap">{(listing as any).notes}</p>
               </div>
             </div>
           )}
@@ -455,3 +373,4 @@ export default function ListingViewPage() {
     </main>
   );
 }
+
