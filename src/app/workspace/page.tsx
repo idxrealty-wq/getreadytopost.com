@@ -284,6 +284,15 @@ function WorkspaceContent() {
         setIfEmpty("fireplace", parcel.fireplace);
         setIfEmpty("wallType", parcel.wall_type);
         setIfEmpty("dor_uc", parcel.dor_uc);
+        setIfEmpty("zoning", parcel.zoning);
+        setIfEmpty("ownerName", parcel.owner_name);
+        setIfEmpty("assessedValue", parcel.assessed_value);
+        setIfEmpty("justValue", parcel.just_value);
+        setIfEmpty("landValue", parcel.land_value);
+        setIfEmpty("buildingValue", parcel.building_value);
+        setIfEmpty("taxableValue", parcel.taxable_value);
+        setIfEmpty("lastSalePrice", parcel.sale_price);
+        setIfEmpty("lastSaleYear", parcel.sale_year);
 
       // Optional: enrich "features" with extra valuation fields if empty
       if (!next.features || String(next.features).trim() === "") {
