@@ -2,6 +2,19 @@
 import { useState } from "react";
 
 const TABS = ["Dashboard", "Users", "Submissions", "Listings"];
+const FB = "https://console.firebase.google.com/project/grtp2-5ba00/firestore/data";
+
+function CopyID({ id }: { id: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => { navigator.clipboard.writeText(id); setCopied(true); setTimeout(() => setCopied(false), 1500); };
+  return (
+    <span onClick={(e) => { e.stopPropagation(); copy(); }}
+      className="font-mono text-xs text-gray-500 hover:text-yellow-400 cursor-pointer transition"
+      title={id}>
+      {copied ? "✅ copied" : id.slice(0, 10) + "..."}
+    </span>
+  );
+}
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
@@ -37,9 +50,7 @@ export default function AdminPage() {
         <div className="bg-gray-900 border border-gray-700 rounded-2xl p-10 w-full max-w-md">
           <h1 className="text-3xl font-bold text-white mb-2">🔐 Admin</h1>
           <p className="text-gray-400 mb-6">GetReadyToPost Back Office</p>
-          <input
-            type="password"
-            value={password}
+          <input type="password" value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleLogin()}
             placeholder="Enter password"
@@ -66,8 +77,14 @@ export default function AdminPage() {
             <h1 className="text-3xl font-bold text-white">🏢 Back Office</h1>
             <p className="text-gray-400 text-sm mt-1">GetReadyToPost Admin Dashboard</p>
           </div>
-          <button onClick={() => { setAuthed(false); setPassword(""); setData(null); }}
-            className="text-gray-500 hover:text-red-400 text-sm">Logout</button>
+          <div className="flex items-center gap-3">
+            <a href={FB} target="_blank" rel="noreferrer"
+              className="text-xs bg-orange-500/20 border border-orange-500/40 text-orange-400 px-3 py-2 rounded-lg hover:bg-orange-500/30 transition">
+              🔥 Firebase Console
+            </a>
+            <button onClick={() => { setAuthed(false); setPassword(""); setData(null); }}
+              className="text-gray-500 hover:text-red-400 text-sm">Logout</button>
+          </div>
         </div>
 
         {/* STAT CARDS */}
@@ -109,7 +126,7 @@ export default function AdminPage() {
         {/* TABS */}
         <div className="flex gap-2 mb-4">
           {TABS.map((t) => (
-            <button key={t} onClick={() => setTab(t)}
+            <button key={t} onClick={() => { setTab(t); setSelectedUser(null); }}
               className={`px-4 py-2 rounded-xl text-sm font-bold transition ${tab === t ? "bg-yellow-500 text-black" : "bg-gray-800 text-gray-400 hover:text-white"}`}>
               {t}
             </button>
@@ -121,7 +138,14 @@ export default function AdminPage() {
             {selectedUser ? (
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-white font-bold text-lg">👤 {selectedUser.email}</h2>
+                  <div>
+                    <h2 className="text-white font-bold text-lg">👤 {selectedUser.email}</h2>
+                    <div className="flex items-center gap-3 mt-1">
+                      <CopyID id={selectedUser.id} />
+                      <a href={`${FB}/users/${selectedUser.id}`} target="_blank" rel="noreferrer"
+                        className="text-orange-400 text-xs hover:underline">🔥 Firebase</a>
+                    </div>
+                  </div>
                   <button onClick={() => setSelectedUser(null)} className="text-gray-400 hover:text-white text-sm">✕ Back</button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -141,25 +165,27 @@ export default function AdminPage() {
                 <table className="w-full text-left">
                   <thead>
                     <tr className="border-b border-gray-700">
+                      <th className="px-3 py-2 text-gray-500 text-xs">ID</th>
                       <th className="px-3 py-2 text-gray-500 text-xs">DATE</th>
                       <th className="px-3 py-2 text-gray-500 text-xs">PACKAGE</th>
                       <th className="px-3 py-2 text-gray-500 text-xs">CREDITS</th>
                       <th className="px-3 py-2 text-gray-500 text-xs">REVENUE</th>
-                      <th className="px-3 py-2 text-gray-500 text-xs">TX ID</th>
+                      <th className="px-3 py-2 text-gray-500 text-xs">SQUARE TX</th>
                     </tr>
                   </thead>
                   <tbody>
                     {selectedUser.transactions.map((tx: any) => (
                       <tr key={tx.id} className="border-b border-gray-800">
+                        <td className="px-3 py-2"><CopyID id={tx.id} /></td>
                         <td className="px-3 py-2 text-gray-400 text-xs">{tx.timestamp ? new Date(tx.timestamp).toLocaleDateString() : '—'}</td>
                         <td className="px-3 py-2 text-yellow-400 text-sm capitalize">{tx.packageType || '—'}</td>
                         <td className="px-3 py-2 text-white text-sm">{tx.creditsAdded}</td>
                         <td className="px-3 py-2 text-green-400 text-sm">{fmt(tx.revenue)}</td>
-                        <td className="px-3 py-2 text-gray-500 text-xs truncate max-w-xs">{tx.transactionId || '—'}</td>
+                        <td className="px-3 py-2"><CopyID id={tx.transactionId || '—'} /></td>
                       </tr>
                     ))}
                     {selectedUser.transactions.length === 0 && (
-                      <tr><td colSpan={5} className="px-3 py-4 text-gray-500 text-sm text-center">No transactions yet.</td></tr>
+                      <tr><td colSpan={6} className="px-3 py-4 text-gray-500 text-sm text-center">No transactions yet.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -169,11 +195,13 @@ export default function AdminPage() {
                 <thead>
                   <tr className="border-b border-gray-700 bg-gray-800/50">
                     <th className="px-4 py-3 text-gray-400 text-xs">#</th>
+                    <th className="px-4 py-3 text-gray-400 text-xs">ID</th>
                     <th className="px-4 py-3 text-gray-400 text-xs">EMAIL</th>
                     <th className="px-4 py-3 text-gray-400 text-xs">CREDITS</th>
                     <th className="px-4 py-3 text-gray-400 text-xs">SPENT</th>
                     <th className="px-4 py-3 text-gray-400 text-xs">TX COUNT</th>
                     <th className="px-4 py-3 text-gray-400 text-xs">JOINED</th>
+                    <th className="px-4 py-3 text-gray-400 text-xs">LINKS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -181,11 +209,17 @@ export default function AdminPage() {
                     <tr key={u.id} onClick={() => setSelectedUser(u)}
                       className="border-b border-gray-800 hover:bg-gray-800/50 cursor-pointer transition">
                       <td className="px-4 py-3 text-gray-500 text-sm">{i + 1}</td>
+                      <td className="px-4 py-3"><CopyID id={u.id} /></td>
                       <td className="px-4 py-3 text-white text-sm">{u.email || '—'}</td>
                       <td className="px-4 py-3 text-yellow-400 text-sm font-bold">{u.creditBalance}</td>
                       <td className="px-4 py-3 text-green-400 text-sm font-bold">{fmt(u.totalRevenue)}</td>
                       <td className="px-4 py-3 text-gray-300 text-sm">{u.transactions.length}</td>
                       <td className="px-4 py-3 text-gray-400 text-xs">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}</td>
+                      <td className="px-4 py-3">
+                        <a href={`${FB}/users/${u.id}`} target="_blank" rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-orange-400 text-xs hover:underline">🔥</a>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -201,16 +235,19 @@ export default function AdminPage() {
               <thead>
                 <tr className="border-b border-gray-700 bg-gray-800/50">
                   <th className="px-4 py-3 text-gray-400 text-xs">#</th>
+                  <th className="px-4 py-3 text-gray-400 text-xs">ID</th>
                   <th className="px-4 py-3 text-gray-400 text-xs">EMAIL</th>
                   <th className="px-4 py-3 text-gray-400 text-xs">ADDRESS</th>
                   <th className="px-4 py-3 text-gray-400 text-xs">STATUS</th>
                   <th className="px-4 py-3 text-gray-400 text-xs">DATE</th>
+                  <th className="px-4 py-3 text-gray-400 text-xs">LINKS</th>
                 </tr>
               </thead>
               <tbody>
                 {submissions.map((s: any, i: number) => (
                   <tr key={s.id} className="border-b border-gray-800 hover:bg-gray-800/50">
                     <td className="px-4 py-3 text-gray-500 text-sm">{i + 1}</td>
+                    <td className="px-4 py-3"><CopyID id={s.id} /></td>
                     <td className="px-4 py-3 text-white text-sm">{s.email || '—'}</td>
                     <td className="px-4 py-3 text-gray-300 text-sm">{s.address || '—'}</td>
                     <td className="px-4 py-3">
@@ -219,6 +256,12 @@ export default function AdminPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-400 text-xs">{s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—'}</td>
+                    <td className="px-4 py-3 flex gap-2">
+                      <a href={`/results/original/${s.id}`} target="_blank" rel="noreferrer"
+                        className="text-blue-400 text-xs hover:underline">📄 View</a>
+                      <a href={`${FB}/submissions/${s.id}`} target="_blank" rel="noreferrer"
+                        className="text-orange-400 text-xs hover:underline">🔥</a>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -232,6 +275,7 @@ export default function AdminPage() {
               <thead>
                 <tr className="border-b border-gray-700 bg-gray-800/50">
                   <th className="px-4 py-3 text-gray-400 text-xs">#</th>
+                  <th className="px-4 py-3 text-gray-400 text-xs">ID</th>
                   <th className="px-4 py-3 text-gray-400 text-xs">ADDRESS</th>
                   <th className="px-4 py-3 text-gray-400 text-xs">OWNER</th>
                   <th className="px-4 py-3 text-gray-400 text-xs">TYPE</th>
@@ -242,12 +286,14 @@ export default function AdminPage() {
                   <th className="px-4 py-3 text-gray-400 text-xs">AI</th>
                   <th className="px-4 py-3 text-gray-400 text-xs">FLOOD</th>
                   <th className="px-4 py-3 text-gray-400 text-xs">DATE</th>
+                  <th className="px-4 py-3 text-gray-400 text-xs">LINKS</th>
                 </tr>
               </thead>
               <tbody>
                 {listings.map((l: any, i: number) => (
                   <tr key={l.id} className="border-b border-gray-800 hover:bg-gray-800/50">
                     <td className="px-4 py-3 text-gray-500 text-sm">{i + 1}</td>
+                    <td className="px-4 py-3"><CopyID id={l.id} /></td>
                     <td className="px-4 py-3 text-white text-sm font-medium">{l.address || '—'}</td>
                     <td className="px-4 py-3 text-gray-300 text-sm">{l.ownerName || '—'}</td>
                     <td className="px-4 py-3 text-gray-300 text-sm">{l.propertyType || '—'}</td>
@@ -262,6 +308,12 @@ export default function AdminPage() {
                     <td className="px-4 py-3 text-sm">{l.aiListing}</td>
                     <td className="px-4 py-3 text-blue-400 text-sm">{l.flood_zone || '—'}</td>
                     <td className="px-4 py-3 text-gray-400 text-xs">{l.createdAt ? new Date(l.createdAt).toLocaleDateString() : '—'}</td>
+                    <td className="px-4 py-3 flex gap-2">
+                      <a href={`/listing/${l.id}`} target="_blank" rel="noreferrer"
+                        className="text-blue-400 text-xs hover:underline">🏠 View</a>
+                      <a href={`${FB}/listings/${l.id}`} target="_blank" rel="noreferrer"
+                        className="text-orange-400 text-xs hover:underline">🔥</a>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -278,8 +330,13 @@ export default function AdminPage() {
                 <h3 className="text-gray-400 text-sm font-bold mb-3">Latest Users</h3>
                 {users.slice(0, 5).map((u: any) => (
                   <div key={u.id} className="bg-gray-800 rounded-lg p-3 mb-2">
-                    <div className="text-white text-sm">{u.email || '—'}</div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-white text-sm">{u.email || '—'}</div>
+                      <a href={`${FB}/users/${u.id}`} target="_blank" rel="noreferrer"
+                        className="text-orange-400 text-xs hover:underline">🔥</a>
+                    </div>
                     <div className="text-gray-500 text-xs">Balance: {u.creditBalance} · Spent: {fmt(u.totalRevenue)}</div>
+                    <CopyID id={u.id} />
                   </div>
                 ))}
               </div>
@@ -287,8 +344,17 @@ export default function AdminPage() {
                 <h3 className="text-gray-400 text-sm font-bold mb-3">Latest Submissions</h3>
                 {submissions.slice(0, 5).map((s: any) => (
                   <div key={s.id} className="bg-gray-800 rounded-lg p-3 mb-2">
-                    <div className="text-white text-sm">{s.address || s.email || '—'}</div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-white text-sm">{s.address || s.email || '—'}</div>
+                      <div className="flex gap-2">
+                        <a href={`/results/original/${s.id}`} target="_blank" rel="noreferrer"
+                          className="text-blue-400 text-xs hover:underline">📄</a>
+                        <a href={`${FB}/submissions/${s.id}`} target="_blank" rel="noreferrer"
+                          className="text-orange-400 text-xs hover:underline">🔥</a>
+                      </div>
+                    </div>
                     <div className="text-gray-500 text-xs">{s.status} · {s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—'}</div>
+                    <CopyID id={s.id} />
                   </div>
                 ))}
               </div>
@@ -296,8 +362,17 @@ export default function AdminPage() {
                 <h3 className="text-gray-400 text-sm font-bold mb-3">Latest Listings</h3>
                 {listings.slice(0, 5).map((l: any) => (
                   <div key={l.id} className="bg-gray-800 rounded-lg p-3 mb-2">
-                    <div className="text-white text-sm">{l.address || '—'}</div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-white text-sm">{l.address || '—'}</div>
+                      <div className="flex gap-2">
+                        <a href={`/listing/${l.id}`} target="_blank" rel="noreferrer"
+                          className="text-blue-400 text-xs hover:underline">🏠</a>
+                        <a href={`${FB}/listings/${l.id}`} target="_blank" rel="noreferrer"
+                          className="text-orange-400 text-xs hover:underline">🔥</a>
+                      </div>
+                    </div>
                     <div className="text-gray-500 text-xs">{l.fieldCount} fields · {l.createdAt ? new Date(l.createdAt).toLocaleDateString() : '—'}</div>
+                    <CopyID id={l.id} />
                   </div>
                 ))}
               </div>
