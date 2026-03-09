@@ -118,14 +118,7 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
           </div>
           <div>
             <label className={labelClass}>Construction Type</label>
-            <select value={data.construction || ''} onChange={(e) => updateField('construction', e.target.value)} className={selectClass}>
-              <option value="">Select...</option>
-              <option value="CBS (Concrete Block)">CBS (Concrete Block)</option>
-              <option value="Frame">Frame</option>
-              <option value="Brick">Brick</option>
-              <option value="Stucco">Stucco</option>
-              <option value="Mixed">Mixed</option>
-            </select>
+            <input type="text" value={data.construction || ''} onChange={(e) => updateField('construction', e.target.value)} className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>School District</label>
@@ -209,18 +202,6 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
         <h3 className={sectionTitle}>Florida-Specific Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className={labelClass}>Flood Zone</label>
-            <select value={data.floodZone || ''} onChange={(e) => updateField('floodZone', e.target.value)} className={selectClass}>
-              <option value="">Select...</option>
-              <option value="X (No flood risk)">X (No flood risk)</option>
-              <option value="AE (High risk)">AE (High risk)</option>
-              <option value="AH">AH</option>
-              <option value="VE (Coastal high risk)">VE (Coastal high risk)</option>
-              <option value="A">A</option>
-              <option value="Unknown">Unknown</option>
-            </select>
-          </div>
-          <div>
             <label className={labelClass}>Water</label>
             <select value={data.water || ''} onChange={(e) => updateField('water', e.target.value)} className={selectClass}>
               <option value="">Select...</option>
@@ -300,10 +281,13 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
               <option value="Unknown">Unknown</option>
             </select>
           </div>
-		    {data.exemptions && (
+		              {data.exemptions && (
             <div>
               <label className={labelClass}>Tax Exemptions</label>
-			            {data.flood_zone && (
+              <input type="text" value={data.exemptions || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.flood_zone && (
             <div className="col-span-2 mt-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
               <label className={labelClass}>🌊 Flood Zone</label>
               <div className="text-sm mt-1">
@@ -315,11 +299,6 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
               </div>
             </div>
           )}
-
-              <input type="text" value={data.exemptions || ''} readOnly className={inputClass + " bg-gray-100"} />
-            </div>
-          )}
-
         </div>
       </div>
 
