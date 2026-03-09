@@ -76,8 +76,7 @@ function WorkspaceContent() {
     dataDate: "",
     latitude: "",
     longitude: "",
-  });
- });
+  }));
   const [virtualTourUrl, setVirtualTourUrl] = useState("");
   const [droneUrl, setDroneUrl] = useState("");
   const [nearby, setNearby] = useState<any>(null);
