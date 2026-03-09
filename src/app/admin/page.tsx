@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-const TABS = ["Dashboard", "Users", "Submissions", "Listings"];
+const TABS = ["Dashboard", "Users", "Submissions", "Listings", "Errors"];
 const FB = "https://console.firebase.google.com/project/grtp2-5ba00/firestore/data";
 
 function CopyID({ id }: { id: string }) {
@@ -380,7 +380,48 @@ export default function AdminPage() {
           </div>
         )}
 
+              {/* ERRORS TAB */}
+        {tab === "Errors" && (
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-gray-700 bg-gray-800/50">
+                  <th className="px-4 py-3 text-gray-400 text-xs">#</th>
+                  <th className="px-4 py-3 text-gray-400 text-xs">ID</th>
+                  <th className="px-4 py-3 text-gray-400 text-xs">SOURCE</th>
+                  <th className="px-4 py-3 text-gray-400 text-xs">SUBMISSION ID</th>
+                  <th className="px-4 py-3 text-gray-400 text-xs">ERROR</th>
+                  <th className="px-4 py-3 text-gray-400 text-xs">DATE</th>
+                  <th className="px-4 py-3 text-gray-400 text-xs">LINKS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(data.errors || []).map((e: any, i: number) => (
+                  <tr key={e.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                    <td className="px-4 py-3 text-gray-500 text-sm">{i + 1}</td>
+                    <td className="px-4 py-3"><CopyID id={e.id} /></td>
+                    <td className="px-4 py-3 text-red-400 text-sm font-bold">{e.source || '—'}</td>
+                    <td className="px-4 py-3"><CopyID id={e.submissionId || '—'} /></td>
+                    <td className="px-4 py-3 text-yellow-300 text-xs max-w-xs truncate">{e.error || '—'}</td>
+                    <td className="px-4 py-3 text-gray-400 text-xs">{e.createdAt ? new Date(e.createdAt).toLocaleDateString() : '—'}</td>
+                    <td className="px-4 py-3 flex gap-2">
+                      <a href={`/results/original/${e.submissionId}`} target="_blank" rel="noreferrer"
+                        className="text-blue-400 text-xs hover:underline">📄 View</a>
+                      <a href={`${FB}/errors/${e.id}`} target="_blank" rel="noreferrer"
+                        className="text-orange-400 text-xs hover:underline">🔥</a>
+                    </td>
+                  </tr>
+                ))}
+                {(data.errors || []).length === 0 && (
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-green-400 text-sm">✅ No errors logged!</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
       </div>
     </div>
   );
 }
+

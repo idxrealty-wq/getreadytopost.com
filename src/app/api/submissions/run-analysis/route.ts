@@ -626,9 +626,45 @@ export async function POST(req: NextRequest) {
       analysis,
       rewriteText: analysis.rewrite.text,
     });
-  } catch (e: any) {
+} catch (e: any) {
     console.error("[run-analysis] Fatal:", e?.message);
     console.error("[run-analysis] Stack:", e?.stack);
+
+    // Log error to Firestore
+    try {
+      initAdmin();
+      const db = admin.firestore();
+      await db.collection("errors").add({
+        source: "run-analysis",
+        submissionId: (await req.json().catch(() => ({})))?.submissionId || "unknown",
+        error: e?.message || "Unknown error",
+        stack: e?.stack || "",
+        createdAt: new Date().toISOString(),
+      });
+    } catch (logErr: any) {
+      console.error("[run-analysis] Failed to log error:", logErr?.message);
+    }
+
+    // Send email alert
+    try {
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      await resend.emails.send({
+        from: "onboarding@resend.dev",
+        to: "idxrealty@gmail.com",
+        subject: "🚨 GRTP Submission Failed",
+        html: `
+          <h2>Submission Analysis Failed</h2>
+          <p><strong>Error:</strong> ${e?.message || "Unknown error"}</p>
+          <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+          <p><strong>Stack:</strong></p>
+          <pre>${e?.stack || "No stack trace"}</pre>
+        `,
+      });
+    } catch (emailErr: any) {
+      console.error("[run-analysis] Failed to send error email:", emailErr?.message);
+    }
+
     return NextResponse.json(
       { error: e?.message || "Server error" },
       { status: 500 }

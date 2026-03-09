@@ -135,6 +135,19 @@ export async function POST(req: NextRequest) {
     const newUsersToday = users.filter(u => u.createdAt?.startsWith(today)).length;
     const submissionsToday = submissions.filter(s => s.createdAt?.startsWith(today)).length;
     const listingsToday = listings.filter(l => l.createdAt?.startsWith(today)).length;
+        // ERRORS
+    const errSnap = await db.collection("errors").orderBy("createdAt", "desc").get();
+    const errors: any[] = [];
+    errSnap.forEach((doc) => {
+      const d = doc.data();
+      errors.push({
+        id: doc.id,
+        source: d.source || '',
+        submissionId: d.submissionId || '',
+        error: d.error || '',
+        createdAt: d.createdAt || '',
+      });
+    });
 
     return NextResponse.json({
       stats: {
@@ -143,14 +156,16 @@ export async function POST(req: NextRequest) {
         totalCredits,
         totalSubmissions: submissions.length,
         totalListings: listings.length,
+		totalErrors: errors.length,
         newUsersToday,
         submissionsToday,
         listingsToday,
         revenueByPackage,
       },
       users: users.sort((a, b) => (b.totalRevenue - a.totalRevenue)),
-      submissions,
+            submissions,
       listings,
+      errors,
     });
   } catch (err: any) {
     console.error("Admin error:", err);
