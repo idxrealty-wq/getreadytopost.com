@@ -40,7 +40,7 @@ function WorkspaceContent() {
     pool: "",
     construction: "",
     schoolDistrict: "",
-    schools: [] as any[],
+    schools: [],
     hoa: "",
     hoaAmount: "",
     hoaName: "",
@@ -76,7 +76,7 @@ function WorkspaceContent() {
     dataDate: "",
     latitude: "",
     longitude: "",
-  }));
+  });
   const [virtualTourUrl, setVirtualTourUrl] = useState("");
   const [droneUrl, setDroneUrl] = useState("");
   const [nearby, setNearby] = useState<any>(null);
