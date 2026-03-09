@@ -83,8 +83,11 @@ export async function POST(req: NextRequest) {
 
     console.log(`[Webhook] Successfully credited ${creditsToAdd} credits to ${userId}`);
     return NextResponse.json({ success: true, userId, creditsAdded: creditsToAdd });
-  } catch (e) {
+  } catch (e: any) {
     console.error('[Webhook] Error:', e);
+    await import("@/lib/logError").then(({ logError }) =>
+      logError({ source: "square-webhook", error: e, context: {} })
+    );
     return NextResponse.json({ error: 'Failed', details: String(e) }, { status: 500 });
   }
 }
