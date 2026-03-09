@@ -120,6 +120,11 @@ export async function GET(req: NextRequest) {
 		latitude: p?.location?.latitude || '',
         longitude: p?.location?.longitude || '',
         fireplace: p?.building?.interior?.fplcInd === 'Y' ? `Yes (${p?.building?.interior?.fplcCount || 1})` : '',
+		homestead: p?.assessment?.tax?.exemptiontype?.Homeowner === 'Y' ? 'Yes' : 'No',
+        exemptions: Object.entries(p?.assessment?.tax?.exemptiontype || {})
+          .filter(([_, v]) => v === 'Y')
+          .map(([k]) => k)
+          .join(', '),
         wall_type: p?.building?.construction?.wallType || '',
         improvements_year: p?.building?.construction?.propertyStructureMajorImprovementsYear || '',
         assessed_value: String(p?.assessment?.assessed?.assdTtlValue || ''),
