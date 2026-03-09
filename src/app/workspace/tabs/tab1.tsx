@@ -130,6 +130,23 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             <label className={labelClass}>School District</label>
             <input type="text" value={data.schoolDistrict || ''} onChange={(e) => updateField('schoolDistrict', e.target.value)} placeholder="e.g., Orange County Public Schools" className={inputClass} />
           </div>
+          {data.schools && data.schools.length > 0 && (
+            <div className="md:col-span-2">
+              <label className={labelClass}>Nearby Schools</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {data.schools.filter((s: any) => s.name && !s.name.toLowerCase().includes('virtual')).map((s: any, i: number) => (
+                  <div key={i} className="bg-white/10 border border-white/20 rounded-xl p-4">
+                    <div className="font-bold text-white text-sm">{s.name}</div>
+                    <div className="text-gray-300 text-xs mt-1">
+                      {s.type} | Grades {s.grades}
+                      {s.rating && <span className="ml-2 text-[#c9a227] font-bold">Rating: {s.rating}</span>}
+                    </div>
+                    <div className="text-gray-400 text-xs mt-1">{s.distance} mi away</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="md:col-span-2">
             <label className={labelClass}>Virtual Tour URL</label>
             <input type="url" value={data.virtualTourUrl || ''} onChange={(e) => updateField('virtualTourUrl', e.target.value)} placeholder="e.g., https://my.matterport.com/show/?m=abc123" className={inputClass} />

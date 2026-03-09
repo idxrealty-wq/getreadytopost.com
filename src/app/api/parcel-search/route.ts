@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
       const id = m?.identifier?.attomId || m?.identifier?.Id;
       if (!id) continue;
 
-      const r2 = await fetch(`${BASE}/property/expandedprofile?attomid=${id}`, {
+      const r2 = await fetch(`${BASE}/property/detailwithschools?attomid=${id}`, {
         headers: { apikey: KEY, Accept: 'application/json' },
         cache: 'no-store',
       });
@@ -116,8 +116,22 @@ export async function GET(req: NextRequest) {
         sale_price: String(p?.sale?.amount?.saleAmt || ''),
         sale_year: String(p?.sale?.salesSearchDate ? new Date(p.sale.salesSearchDate).getFullYear() : ''),
         last_modified: p?.vintage?.lastModified || '',
-        dor_uc: p?.area?.countyUse1?.trim() || '',
+                dor_uc: p?.area?.countyuse1?.trim() || p?.area?.countyUse1?.trim() || '',
+        school_district: p?.schoolDistrict?.districtname || '',
+        school_district_type: p?.schoolDistrict?.districttype || '',
+        school_district_lat: p?.schoolDistrict?.districtlatitude || '',
+        school_district_lng: p?.schoolDistrict?.districtlongitude || '',
+        schools: (p?.school || []).map((s: any) => ({
+          name: s?.InstitutionName || '',
+          rating: s?.schoolRating || '',
+          grades: `${s?.gradelevel1lotext || ''}-${s?.gradelevel1hitext || ''}`,
+          type: s?.Filetypetext || '',
+          distance: s?.distance || 0,
+          lat: s?.geocodinglatitude || '',
+          lng: s?.geocodinglongitude || '',
+        })),
         search_key: q.toLowerCase(),
+
       });
     }
 
