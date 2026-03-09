@@ -465,6 +465,7 @@ function WorkspaceContent() {
                 <option value="West Virginia">West Virginia</option>
                 <option value="Wisconsin">Wisconsin</option>
                 <option value="Wyoming">Wyoming</option>
+				<option value="District of Columbia">Washington D.C.</option>
               </select>
             </div>
             <div>
