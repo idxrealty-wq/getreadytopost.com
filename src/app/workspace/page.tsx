@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
@@ -20,7 +19,6 @@ function WorkspaceContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
   const router = useRouter();
-
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -29,10 +27,7 @@ function WorkspaceContent() {
   const [address, setAddress] = useState("");
   const [searchState, setSearchState] = useState("Florida");
   const [searchCity, setSearchCity] = useState("");
-
-
   const [propertyData, setPropertyData] = useState({
-  
     taxId: "",
     yearBuilt: "",
     beds: "",
@@ -45,6 +40,7 @@ function WorkspaceContent() {
     pool: "",
     construction: "",
     schoolDistrict: "",
+    schools: [] as any[],
     hoa: "",
     hoaAmount: "",
     hoaName: "",
@@ -70,7 +66,15 @@ function WorkspaceContent() {
     taxableValue: "",
     landValue: "",
     buildingValue: "",
-	 });
+    annualTax: "",
+    taxYear: "",
+    subdivision: "",
+    cooling: "",
+    fireplace: "",
+    wallType: "",
+    dor_uc: "",
+    dataDate: "",
+  });
   const [virtualTourUrl, setVirtualTourUrl] = useState("");
   const [droneUrl, setDroneUrl] = useState("");
   const [nearby, setNearby] = useState<any>(null);
@@ -182,7 +186,6 @@ function WorkspaceContent() {
       return merged;
     });
   };
-
   const handleParcelSelect = (parcel: any) => {
     setPropertyData((prev: any) => {
       const next: any = { ...prev };
@@ -194,10 +197,8 @@ function WorkspaceContent() {
           cur === null ||
           String(cur).trim() === "" ||
           cur === 0;
-
         const v = val === undefined || val === null ? "" : String(val).trim();
         if (!v) return;
-
         if (curEmpty) next[key] = v;
       };
 
@@ -220,20 +221,19 @@ function WorkspaceContent() {
       }
 
       // Classification
-              const normalizePropType = (v: string) => {
-          if (!v) return '';
-          const u = v.toUpperCase();
-          if (u.includes('SINGLE') || u.includes('RESIDENTIAL') || u.includes('SFR')) return 'Single Family';
-          if (u.includes('CONDO')) return 'Condo';
-          if (u.includes('TOWN')) return 'Townhome';
-          if (u.includes('MULTI') || u.includes('DUPLEX') || u.includes('TRIPLEX')) return 'Multi-Family';
-          if (u.includes('LAND') || u.includes('VACANT') || u.includes('LOT')) return 'Land';
-          if (u.includes('MOBILE') || u.includes('MANUFACTURED')) return 'Mobile Home';
-          if (u.includes('COMMERCIAL') || u.includes('OFFICE') || u.includes('RETAIL') || u.includes('INDUSTRIAL')) return 'Commercial';
-          return '';
-        };
-        setIfEmpty("propertyType", normalizePropType(parcel.property_type));
-
+      const normalizePropType = (v: string) => {
+        if (!v) return '';
+        const u = v.toUpperCase();
+        if (u.includes('SINGLE') || u.includes('RESIDENTIAL') || u.includes('SFR')) return 'Single Family';
+        if (u.includes('CONDO')) return 'Condo';
+        if (u.includes('TOWN')) return 'Townhome';
+        if (u.includes('MULTI') || u.includes('DUPLEX') || u.includes('TRIPLEX')) return 'Multi-Family';
+        if (u.includes('LAND') || u.includes('VACANT') || u.includes('LOT')) return 'Land';
+        if (u.includes('MOBILE') || u.includes('MANUFACTURED')) return 'Mobile Home';
+        if (u.includes('COMMERCIAL') || u.includes('OFFICE') || u.includes('RETAIL') || u.includes('INDUSTRIAL')) return 'Commercial';
+        return '';
+      };
+      setIfEmpty("propertyType", normalizePropType(parcel.property_type));
       setIfEmpty("zoning", parcel.zoning);
 
       // Legal / ownership
@@ -244,88 +244,76 @@ function WorkspaceContent() {
       setIfEmpty("assessedValue", parcel.assessed_value || parcel.just_value);
       setIfEmpty("justValue", parcel.just_value);
       setIfEmpty("taxableValue", parcel.taxable_value);
-	  setIfEmpty("annualTax", parcel.annual_tax);
+      setIfEmpty("annualTax", parcel.annual_tax);
       setIfEmpty("taxYear", parcel.tax_year);
-
       setIfEmpty("landValue", parcel.land_value);
       setIfEmpty("buildingValue", parcel.building_value);
-
       setIfEmpty("lastSalePrice", parcel.sale_price);
       setIfEmpty("lastSaleYear", parcel.sale_year);
 
       // Homestead
-        setIfEmpty("homestead", parcel.homestead);
+      setIfEmpty("homestead", parcel.homestead);
 
-        // Physical features from ATTOM
-        // Normalize ATTOM values to match dropdown options
-        const normalizeConstruction = (v: string) => {
-          if (!v) return '';
-          const u = v.toUpperCase();
-          if (u.includes('CONCRETE') || u.includes('CBS') || u.includes('BLOCK')) return 'CBS (Concrete Block)';
-          if (u.includes('BRICK')) return 'Brick';
-          if (u.includes('FRAME') || u.includes('WOOD')) return 'Frame';
-          if (u.includes('STUCCO')) return 'Stucco';
-          return 'Mixed';
-        };
-        const normalizeGarage = (v: string) => {
-          if (!v) return '';
-          const u = v.toUpperCase();
-          if (u.includes('CARPORT')) return 'Carport';
-          if (u.includes('3')) return '3-Car';
-          if (u.includes('2')) return '2-Car';
-          if (u.includes('1') || u.includes('SINGLE')) return '1-Car';
-          if (u.includes('NONE') || u.includes('NO ')) return 'None';
-          return '';
-        };
-        const normalizePool = (v: string) => {
-          if (!v) return '';
-          const u = v.toUpperCase();
-          if (u.includes('SPA') || u.includes('HOT TUB')) return 'In-Ground + Spa';
-          if (u.includes('ABOVE')) return 'Above-Ground';
-          if (u.includes('YES') || u.includes('POOL') || u.includes('IN-GROUND')) return 'In-Ground';
-          if (u.includes('NONE') || u.includes('NO')) return 'None';
-          return '';
-        };
-        const normalizeStories = (v: string) => {
-          if (!v) return '';
-          if (v === '1') return '1';
-          if (v === '2') return '2';
-          if (Number(v) >= 3) return '3';
-          return '';
-        };
+      // Physical features — normalize to match dropdowns
+      const normalizeConstruction = (v: string) => {
+        if (!v) return '';
+        const u = v.toUpperCase();
+        if (u.includes('CONCRETE') || u.includes('CBS') || u.includes('BLOCK')) return 'CBS (Concrete Block)';
+        if (u.includes('BRICK')) return 'Brick';
+        if (u.includes('FRAME') || u.includes('WOOD')) return 'Frame';
+        if (u.includes('STUCCO')) return 'Stucco';
+        return 'Mixed';
+      };
+      const normalizeGarage = (v: string) => {
+        if (!v) return '';
+        const u = v.toUpperCase();
+        if (u.includes('CARPORT')) return 'Carport';
+        if (u.includes('3')) return '3-Car';
+        if (u.includes('2')) return '2-Car';
+        if (u.includes('1') || u.includes('SINGLE')) return '1-Car';
+        if (u.includes('NONE') || u.includes('NO ')) return 'None';
+        return '';
+      };
+      const normalizePool = (v: string) => {
+        if (!v) return '';
+        const u = v.toUpperCase();
+        if (u.includes('SPA') || u.includes('HOT TUB')) return 'In-Ground + Spa';
+        if (u.includes('ABOVE')) return 'Above-Ground';
+        if (u.includes('YES') || u.includes('POOL') || u.includes('IN-GROUND')) return 'In-Ground';
+        if (u.includes('NONE') || u.includes('NO')) return 'None';
+        return '';
+      };
+      const normalizeStories = (v: string) => {
+        if (!v) return '';
+        if (v === '1') return '1';
+        if (v === '2') return '2';
+        if (Number(v) >= 3) return '3';
+        return '';
+      };
 
-        setIfEmpty("construction", normalizeConstruction(parcel.construction));
-        setIfEmpty("garage", normalizeGarage(parcel.garage));
-        setIfEmpty("pool", normalizePool(parcel.pool));
-        setIfEmpty("stories", normalizeStories(parcel.stories));
-        setIfEmpty("subdivision", parcel.subdivision);
-        setIfEmpty("cooling", parcel.cooling);
-        setIfEmpty("fireplace", parcel.fireplace);
-        setIfEmpty("wallType", parcel.wall_type);
-        setIfEmpty("dor_uc", parcel.dor_uc);
-        setIfEmpty("zoning", parcel.zoning);
-        setIfEmpty("ownerName", parcel.owner_name);
-        setIfEmpty("assessedValue", parcel.assessed_value);
-        setIfEmpty("justValue", parcel.just_value);
-        setIfEmpty("landValue", parcel.land_value);
-        setIfEmpty("buildingValue", parcel.building_value);
-        setIfEmpty("taxableValue", parcel.taxable_value);
-		setIfEmpty("annualTax", parcel.annual_tax);
-        setIfEmpty("taxYear", parcel.tax_year);
-        setIfEmpty("lastSalePrice", parcel.sale_price);
-        setIfEmpty("lastSaleYear", parcel.sale_year);
+      setIfEmpty("construction", normalizeConstruction(parcel.construction));
+      setIfEmpty("garage", normalizeGarage(parcel.garage));
+      setIfEmpty("pool", normalizePool(parcel.pool));
+      setIfEmpty("stories", normalizeStories(parcel.stories));
+      setIfEmpty("subdivision", parcel.subdivision);
+      setIfEmpty("cooling", parcel.cooling);
+      setIfEmpty("fireplace", parcel.fireplace);
+      setIfEmpty("wallType", parcel.wall_type);
+      setIfEmpty("dor_uc", parcel.dor_uc);
 
-      // Optional: enrich "features" with extra valuation fields if empty
-      if (!next.features || String(next.features).trim() === "") {
-        const extras: string[] = [];
-        const pushMoney = (label: string, v: any) => {
-          const s = String(v || "").trim();
-          if (!s) return;
-          const n = Number(String(s).replace(/[^0-9.]/g, ""));
-          if (Number.isFinite(n) && n > 0) extras.push(`${label}: $${n.toLocaleString()}`);
-        };
-        pushMoney("Feature Value", parcel.feature_value);
-        if (extras.length) next.features = extras.join("\n");
+      // ✅ Schools — always overwrite with fresh API data
+      if (parcel.school_district) {
+        next.schoolDistrict = parcel.school_district;
+      }
+      if (Array.isArray(parcel.schools) && parcel.schools.length > 0) {
+        next.schools = parcel.schools.filter(
+          (s: any) => s.name && !s.name.toLowerCase().includes('virtual')
+        );
+      }
+
+      // ✅ Data freshness date
+      if (parcel.last_modified) {
+        next.dataDate = parcel.last_modified;
       }
 
       return next;
@@ -365,7 +353,6 @@ function WorkspaceContent() {
         />
         <div className="absolute inset-0 bg-[#1a2b4a]/85"></div>
       </div>
-
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
@@ -375,7 +362,6 @@ function WorkspaceContent() {
             {editId ? "Update your listing details" : "Your complete pre-listing command center"}
           </p>
         </div>
-
         {!authLoading && !user && (
           <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6 text-center">
             <h2 className="text-2xl font-bold text-white mb-3">Sign In Required</h2>
@@ -388,9 +374,8 @@ function WorkspaceContent() {
             </button>
           </div>
         )}
-
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
-                    <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-gray-300 text-sm font-bold mb-2">State</label>
               <select
@@ -462,15 +447,13 @@ function WorkspaceContent() {
             </div>
           </div>
           <AddressAutosuggest
-              value={address}
-              onChange={setAddress}
-              onSelect={handleParcelSelect}
-              state={searchState}
-              city={searchCity}
-
+            value={address}
+            onChange={setAddress}
+            onSelect={handleParcelSelect}
+            state={searchState}
+            city={searchCity}
           />
         </div>
-
         <div className="flex justify-end mb-4">
           <button
             onClick={() => {
@@ -482,7 +465,6 @@ function WorkspaceContent() {
             View in Vault
           </button>
         </div>
-
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {tabs.map((tab) => (
             <button
@@ -504,7 +486,6 @@ function WorkspaceContent() {
             </button>
           ))}
         </div>
-
         {activeTab === 1 && (
           <>
             <CSVImport onImport={handleCSVImport} />
@@ -516,7 +497,6 @@ function WorkspaceContent() {
             />
           </>
         )}
-
         {activeTab === 2 && (
           <Tab2Neighborhood
             address={address}
@@ -525,7 +505,6 @@ function WorkspaceContent() {
             onNext={() => setActiveTab(3)}
           />
         )}
-
         {activeTab === 3 && (
           <Tab3Listing
             address={address}
@@ -536,7 +515,6 @@ function WorkspaceContent() {
             onNext={() => setActiveTab(4)}
           />
         )}
-
         {activeTab === 4 && (
           <Tab4Checklist
             listingId={listingId}
@@ -554,7 +532,6 @@ function WorkspaceContent() {
             setDocumentAccessCode={setDocumentAccessCode}
           />
         )}
-
         {activeTab === 5 && (
           <Tab5Save
             address={address}
@@ -573,11 +550,10 @@ function WorkspaceContent() {
             existingDocuments={existingDocuments}
             documentAccessCode={documentAccessCode}
             saveNowNonce={saveNowNonce}
-			virtualTourUrl={virtualTourUrl}
+            virtualTourUrl={virtualTourUrl}
             droneUrl={droneUrl}
           />
         )}
-
         {activeTab === 6 && (
           <Tab6ClosingCosts
             listingId={listingId}
@@ -587,7 +563,6 @@ function WorkspaceContent() {
           />
         )}
       </div>
-
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
@@ -596,6 +571,7 @@ function WorkspaceContent() {
     </main>
   );
 }
+
 export default function WorkspacePage() {
   return (
     <Suspense
