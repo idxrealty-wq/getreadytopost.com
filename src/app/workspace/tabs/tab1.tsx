@@ -287,9 +287,12 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
               <input type="text" value={data.exemptions || ''} readOnly className={inputClass + " bg-gray-100"} />
             </div>
           )}
-          {data.flood_zone && (
-            <div className="col-span-2 mt-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
-              <label className={labelClass}>🌊 Flood Zone</label>
+                    {data.flood_zone && (
+            <div className="col-span-2 mt-2 p-3 rounded-lg bg-blue-50 border border-blue-200 relative">
+              <div className="flex items-center gap-2">
+                <label className={labelClass}>🌊 Flood Zone</label>
+                <button type="button" onClick={() => setData((prev: any) => ({ ...prev, _showFloodInfo: !prev._showFloodInfo }))} className="text-blue-500 hover:text-blue-700 text-xs font-bold border border-blue-300 rounded-full w-5 h-5 flex items-center justify-center">?</button>
+              </div>
               <div className="text-sm mt-1">
                 <span className="font-semibold">{data.flood_zone}</span>
                 {data.flood_subtype && <span className="ml-2 text-gray-600">— {data.flood_subtype}</span>}
@@ -297,6 +300,18 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
               <div className="text-xs mt-1 text-gray-500">
                 Special Flood Hazard Area: {data.flood_sfha || 'N/A'}
               </div>
+              {data._showFloodInfo && (
+                <div className="mt-3 p-3 bg-white rounded-lg border border-blue-200 text-xs text-gray-700 space-y-1">
+                  <div className="font-bold text-gray-900 mb-1">FEMA Flood Zone Guide</div>
+                  <div><span className="font-bold text-green-700">X</span> — Minimal risk. No federal flood insurance required.</div>
+                  <div><span className="font-bold text-yellow-600">X (Shaded)</span> — Moderate risk (500-year floodplain). Insurance recommended.</div>
+                  <div><span className="font-bold text-orange-600">A / AE</span> — High risk (100-year floodplain). Flood insurance required with a federally backed mortgage.</div>
+                  <div><span className="font-bold text-orange-600">AH / AO</span> — High risk, shallow flooding (1–3 ft). Insurance required.</div>
+                  <div><span className="font-bold text-red-600">V / VE</span> — Coastal high hazard. Wave action + flooding. Strictest building codes. Insurance required.</div>
+                  <div><span className="font-bold text-blue-600">D</span> — Undetermined risk. Flood hazard possible but not mapped.</div>
+                  <div className="mt-2 text-gray-500 italic">Source: FEMA National Flood Hazard Layer</div>
+                </div>
+              )}
             </div>
           )}
         </div>
