@@ -323,6 +323,27 @@ function WorkspaceContent() {
 	  setIfEmpty("flood_zone", parcel.flood_zone);
       setIfEmpty("flood_subtype", parcel.flood_subtype);
       setIfEmpty("flood_sfha", parcel.flood_sfha);
+      setIfEmpty("heating_type", parcel.heating_type);
+      setIfEmpty("heating_fuel", parcel.heating_fuel);
+      setIfEmpty("condition", parcel.condition);
+      setIfEmpty("roof_cover", parcel.roof_cover);
+      setIfEmpty("roof_shape", parcel.roof_shape);
+      setIfEmpty("garage_sqft", parcel.garage_sqft);
+      setIfEmpty("zoning_code", parcel.zoning_code);
+      setIfEmpty("lot_num", parcel.lot_num);
+      setIfEmpty("story_desc", parcel.story_desc);
+      setIfEmpty("owner2_name", parcel.owner2_name);
+      setIfEmpty("owner_type", parcel.owner_type);
+      setIfEmpty("absentee_owner", parcel.absentee_owner);
+      setIfEmpty("mailing_address", parcel.mailing_address);
+      setIfEmpty("title_company", parcel.title_company);
+      setIfEmpty("deed_type", parcel.deed_type);
+      setIfEmpty("sale_trans_type", parcel.sale_trans_type);
+      setIfEmpty("sale_doc_type", parcel.sale_doc_type);
+      setIfEmpty("seller_name", parcel.seller_name);
+      setIfEmpty("sale_date", parcel.sale_date);
+      setIfEmpty("price_per_sqft", parcel.price_per_sqft);
+      setIfEmpty("price_per_bed", parcel.price_per_bed);
 
 	        // ✅ Geocodes for map
       if (parcel.latitude) next.latitude = parcel.latitude;

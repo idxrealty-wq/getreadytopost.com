@@ -21,6 +21,7 @@ const STATE_MAP: Record<string, string> = {
   VERMONT: 'VT', VIRGINIA: 'VA', WASHINGTON: 'WA', 'WEST VIRGINIA': 'WV', WISCONSIN: 'WI',
   WYOMING: 'WY',
 };
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get('q') || '').trim();
@@ -56,6 +57,7 @@ export async function GET(req: NextRequest) {
     if (!matches.length) return NextResponse.json({ results: [] });
 
     const results = [];
+
     for (const m of matches) {
       const id = m?.identifier?.attomId || m?.identifier?.Id;
       if (!id) continue;
@@ -108,14 +110,23 @@ export async function GET(req: NextRequest) {
         property_type: p?.summary?.propType || p?.summary?.propLandUse || '',
         legal_description: p?.summary?.legal1 || '',
         stories: String(p?.building?.summary?.levels || ''),
+        story_desc: p?.building?.summary?.storyDesc || '',
         construction: p?.building?.construction?.constructionType || '',
+        condition: p?.building?.construction?.condition || '',
+        roof_cover: p?.building?.construction?.roofCover || '',
+        roof_shape: p?.building?.construction?.roofShape || '',
         garage: p?.building?.parking?.garageType || '',
+        garage_sqft: String(p?.building?.parking?.prkgSize || ''),
         pool: p?.lot?.poolType || (p?.lot?.poolInd === 'YES' ? 'Yes' : ''),
         subdivision: p?.area?.subdName || '',
         zoning: p?.lot?.zoningType || '',
+        zoning_code: p?.lot?.siteZoningIdent || '',
+        lot_num: p?.lot?.lotNum || '',
         land_sqft: String(p?.lot?.lotSize2 || ''),
         acres: String(p?.lot?.lotSize1 || ''),
         cooling: p?.utilities?.coolingType || '',
+        heating_type: p?.utilities?.heatingType || '',
+        heating_fuel: p?.utilities?.heatingFuel || '',
         latitude: p?.location?.latitude || '',
         longitude: p?.location?.longitude || '',
         fireplace: p?.building?.interior?.fplcInd === 'Y' ? `Yes (${p?.building?.interior?.fplcCount || 1})` : '',
@@ -137,8 +148,20 @@ export async function GET(req: NextRequest) {
         annual_tax: String(p?.assessment?.tax?.taxAmt || ''),
         tax_year: String(p?.assessment?.tax?.taxYear || ''),
         owner_name: p?.assessment?.owner?.owner1?.fullName || '',
+        owner2_name: p?.assessment?.owner?.owner2?.fullName || '',
+        owner_type: p?.assessment?.owner?.description || '',
+        absentee_owner: p?.assessment?.owner?.absenteeOwnerStatus === 'O' ? 'Owner Occupied' : 'Absentee',
+        mailing_address: p?.assessment?.owner?.mailingAddressOneLine || '',
+        title_company: p?.assessment?.mortgage?.title?.companyName || '',
+        deed_type: p?.assessment?.mortgage?.FirstConcurrent?.deedType || '',
         sale_price: String(p?.sale?.amount?.saleAmt || ''),
-        sale_year: String(p?.sale?.salesSearchDate ? new Date(p.sale.salesSearchDate).getFullYear() : ''),
+        sale_trans_type: p?.sale?.amount?.saleTransType || '',
+        sale_doc_type: p?.sale?.amount?.saleDocType || '',
+        seller_name: p?.sale?.sellerName || '',
+        sale_date: p?.sale?.saleTransDate || '',
+        sale_year: String(p?.sale?.saleSearchDate ? new Date(p.sale.saleSearchDate).getFullYear() : ''),
+        price_per_sqft: String(p?.sale?.calculation?.pricePerSizeUnit || ''),
+        price_per_bed: String(p?.sale?.calculation?.pricePerBed || ''),
         last_modified: p?.vintage?.lastModified || '',
         dor_uc: p?.area?.countyuse1?.trim() || p?.area?.countyUse1?.trim() || '',
         school_district: s?.schoolDistrict?.districtname || '',

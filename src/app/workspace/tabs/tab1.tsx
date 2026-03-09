@@ -1,8 +1,8 @@
 ﻿"use client";
 import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
-
 const SchoolMap = dynamic(() => import('@/components/SchoolMap'), { ssr: false });
+
 export default function Tab1PropertyBasics({ data, setData, onNext, address }: any) {
   useEffect(() => {
     if (!data.dateAdded) {
@@ -62,6 +62,12 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             <label className={labelClass}>Zoning</label>
             <input type="text" value={data.zoning || ''} onChange={(e) => updateField('zoning', e.target.value)} placeholder="e.g., R-1, R-2, PD, A-1, C-1" className={inputClass} />
           </div>
+          {data.zoning_code && (
+            <div>
+              <label className={labelClass}>Zoning Code</label>
+              <input type="text" value={data.zoning_code || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
           <div>
             <label className={labelClass}>Year Built *</label>
             <input type="text" value={data.yearBuilt || ''} onChange={(e) => updateField('yearBuilt', e.target.value)} placeholder="e.g., 2005" className={inputClass} />
@@ -86,6 +92,12 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             <label className={labelClass}>Lot Size</label>
             <input type="text" value={data.lotSize || ''} onChange={(e) => updateField('lotSize', e.target.value)} placeholder="e.g., 0.25 acres or 10,890 sqft" className={inputClass} />
           </div>
+          {data.lot_num && (
+            <div>
+              <label className={labelClass}>Lot Number</label>
+              <input type="text" value={data.lot_num || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
           <div>
             <label className={labelClass}>Stories</label>
             <select value={data.stories || ''} onChange={(e) => updateField('stories', e.target.value)} className={selectClass}>
@@ -106,6 +118,12 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
               <option value="Carport">Carport</option>
             </select>
           </div>
+          {data.garage_sqft && (
+            <div>
+              <label className={labelClass}>Garage / Parking Sqft</label>
+              <input type="text" value={data.garage_sqft || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
           <div>
             <label className={labelClass}>Pool</label>
             <select value={data.pool || ''} onChange={(e) => updateField('pool', e.target.value)} className={selectClass}>
@@ -120,6 +138,40 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             <label className={labelClass}>Construction Type</label>
             <input type="text" value={data.construction || ''} onChange={(e) => updateField('construction', e.target.value)} className={inputClass} />
           </div>
+          {data.condition && (
+            <div>
+              <label className={labelClass}>Condition</label>
+              <input type="text" value={data.condition || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.roof_cover && (
+            <div>
+              <label className={labelClass}>Roof Cover</label>
+              <input type="text" value={data.roof_cover || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.roof_shape && (
+            <div>
+              <label className={labelClass}>Roof Shape</label>
+              <input type="text" value={data.roof_shape || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          <div>
+            <label className={labelClass}>Cooling</label>
+            <input type="text" value={data.cooling || ''} onChange={(e) => updateField('cooling', e.target.value)} className={inputClass} />
+          </div>
+          {data.heating_type && (
+            <div>
+              <label className={labelClass}>Heating Type</label>
+              <input type="text" value={data.heating_type || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.heating_fuel && (
+            <div>
+              <label className={labelClass}>Heating Fuel</label>
+              <input type="text" value={data.heating_fuel || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
           <div>
             <label className={labelClass}>School District</label>
             <input type="text" value={data.schoolDistrict || ''} onChange={(e) => updateField('schoolDistrict', e.target.value)} placeholder="e.g., Orange County Public Schools" className={inputClass} />
@@ -140,11 +192,7 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
                 ))}
               </div>
               {data.latitude && data.longitude && (
-                <SchoolMap
-                  propertyLat={data.latitude}
-                  propertyLng={data.longitude}
-                  schools={data.schools}
-                />
+                <SchoolMap propertyLat={data.latitude} propertyLng={data.longitude} schools={data.schools} />
               )}
             </div>
           )}
@@ -235,17 +283,33 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             <label className={labelClass}>Owner Name</label>
             <input type="text" value={(data as any).ownerName || ''} onChange={(e) => updateField('ownerName', e.target.value)} placeholder="e.g., SMITH JOHN A" className={inputClass} />
           </div>
+          {data.owner2_name && (
+            <div>
+              <label className={labelClass}>Owner 2</label>
+              <input type="text" value={data.owner2_name || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.owner_type && (
+            <div>
+              <label className={labelClass}>Owner Type</label>
+              <input type="text" value={data.owner_type || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.absentee_owner && (
+            <div>
+              <label className={labelClass}>Occupancy Status</label>
+              <input type="text" value={data.absentee_owner || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.mailing_address && (
+            <div className="md:col-span-2">
+              <label className={labelClass}>Mailing Address</label>
+              <input type="text" value={data.mailing_address || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
           <div>
             <label className={labelClass}>Assessed Value (County)</label>
             <input type="text" value={formatCurrency(data.assessedValue)} onChange={(e) => updateField('assessedValue', e.target.value)} placeholder="e.g., $285,000" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Last Sale Price</label>
-            <input type="text" value={formatCurrency(data.lastSalePrice)} onChange={(e) => updateField('lastSalePrice', e.target.value)} placeholder="e.g., $310,000" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Last Sale Year</label>
-            <input type="text" value={data.lastSaleYear || ''} onChange={(e) => updateField('lastSaleYear', e.target.value)} placeholder="e.g., 2021" className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Just / Market Value</label>
@@ -263,7 +327,7 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             <label className={labelClass}>Taxable Value</label>
             <input type="text" value={formatCurrency((data as any).taxableValue)} onChange={(e) => updateField('taxableValue', e.target.value)} placeholder="e.g., $300,000" className={inputClass} />
           </div>
-		    <div>
+          <div>
             <label className={labelClass}>Annual Tax</label>
             <input type="text" value={formatCurrency((data as any).annualTax)} onChange={(e) => updateField('annualTax', e.target.value)} placeholder="e.g., $4,500" className={inputClass} />
           </div>
@@ -271,7 +335,6 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
             <label className={labelClass}>Tax Year</label>
             <input type="text" value={(data as any).taxYear || ''} onChange={(e) => updateField('taxYear', e.target.value)} placeholder="e.g., 2024" className={inputClass} />
           </div>
-
           <div>
             <label className={labelClass}>Homestead Exemption</label>
             <select value={data.homestead || ''} onChange={(e) => updateField('homestead', e.target.value)} className={selectClass}>
@@ -281,13 +344,57 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
               <option value="Unknown">Unknown</option>
             </select>
           </div>
-		              {data.exemptions && (
+          {data.exemptions && (
             <div>
               <label className={labelClass}>Tax Exemptions</label>
               <input type="text" value={data.exemptions || ''} readOnly className={inputClass + " bg-gray-100"} />
             </div>
           )}
-                    {data.flood_zone && (
+          <div>
+            <label className={labelClass}>Last Sale Price</label>
+            <input type="text" value={formatCurrency(data.lastSalePrice)} onChange={(e) => updateField('lastSalePrice', e.target.value)} placeholder="e.g., $310,000" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Last Sale Year</label>
+            <input type="text" value={data.lastSaleYear || ''} onChange={(e) => updateField('lastSaleYear', e.target.value)} placeholder="e.g., 2021" className={inputClass} />
+          </div>
+          {data.sale_date && (
+            <div>
+              <label className={labelClass}>Sale Date</label>
+              <input type="text" value={data.sale_date || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.seller_name && (
+            <div>
+              <label className={labelClass}>Seller Name</label>
+              <input type="text" value={data.seller_name || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.sale_trans_type && (
+            <div>
+              <label className={labelClass}>Sale Type</label>
+              <input type="text" value={data.sale_trans_type || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.price_per_sqft && (
+            <div>
+              <label className={labelClass}>Price Per Sqft</label>
+              <input type="text" value={'$' + Number(data.price_per_sqft).toLocaleString()} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.title_company && (
+            <div>
+              <label className={labelClass}>Title Company</label>
+              <input type="text" value={data.title_company || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.deed_type && (
+            <div>
+              <label className={labelClass}>Deed Type</label>
+              <input type="text" value={data.deed_type || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+          {data.flood_zone && (
             <div className="col-span-2 mt-2 p-3 rounded-lg bg-blue-50 border border-blue-200 relative">
               <div className="flex items-center gap-2">
                 <label className={labelClass}>🌊 Flood Zone</label>
