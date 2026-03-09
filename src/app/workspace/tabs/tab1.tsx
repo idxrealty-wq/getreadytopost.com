@@ -303,6 +303,19 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
 		    {data.exemptions && (
             <div>
               <label className={labelClass}>Tax Exemptions</label>
+			            {data.flood_zone && (
+            <div className="col-span-2 mt-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
+              <label className={labelClass}>🌊 Flood Zone</label>
+              <div className="text-sm mt-1">
+                <span className="font-semibold">{data.flood_zone}</span>
+                {data.flood_subtype && <span className="ml-2 text-gray-600">— {data.flood_subtype}</span>}
+              </div>
+              <div className="text-xs mt-1 text-gray-500">
+                Special Flood Hazard Area: {data.flood_sfha || 'N/A'}
+              </div>
+            </div>
+          )}
+
               <input type="text" value={data.exemptions || ''} readOnly className={inputClass + " bg-gray-100"} />
             </div>
           )}

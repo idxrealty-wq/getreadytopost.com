@@ -320,6 +320,10 @@ function WorkspaceContent() {
 	        // ✅ Homestead + exemptions
       setIfEmpty("homestead", parcel.homestead);
       setIfEmpty("exemptions", parcel.exemptions);
+	  setIfEmpty("flood_zone", parcel.flood_zone);
+      setIfEmpty("flood_subtype", parcel.flood_subtype);
+      setIfEmpty("flood_sfha", parcel.flood_sfha);
+
 	        // ✅ Geocodes for map
       if (parcel.latitude) next.latitude = parcel.latitude;
       if (parcel.longitude) next.longitude = parcel.longitude;

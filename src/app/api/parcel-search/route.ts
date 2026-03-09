@@ -4,13 +4,8 @@ const KEY = '343bc00b6e80a125e9a2ad10a53aabd1';
 const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
 
 type ParcelMatch = {
-  address?: {
-    countrySubd?: string | null;
-  } | null;
-  identifier?: {
-    attomId?: number | string | null;
-    Id?: number | string | null;
-  } | null;
+  address?: { countrySubd?: string | null; } | null;
+  identifier?: { attomId?: number | string | null; Id?: number | string | null; } | null;
 };
 
 const STATE_MAP: Record<string, string> = {
@@ -26,7 +21,6 @@ const STATE_MAP: Record<string, string> = {
   VERMONT: 'VT', VIRGINIA: 'VA', WASHINGTON: 'WA', 'WEST VIRGINIA': 'WV', WISCONSIN: 'WI',
   WYOMING: 'WY',
 };
-
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get('q') || '').trim();
@@ -48,54 +42,59 @@ export async function GET(req: NextRequest) {
   try {
     const r1 = await fetch(
       `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
-      {
-        headers: { apikey: KEY, Accept: 'application/json' },
-        cache: 'no-store',
-      }
+      { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
     );
-
     const d1 = await r1.json();
     let matches: ParcelMatch[] = Array.isArray(d1?.property) ? (d1.property as ParcelMatch[]) : [];
-
     if (stateParam) {
       matches = matches.filter((m: ParcelMatch) => {
         const st = (m?.address?.countrySubd || '').toUpperCase();
         return st === stateNormalized;
       });
     }
-
     matches = matches.slice(0, 3);
     if (!matches.length) return NextResponse.json({ results: [] });
 
     const results = [];
-
     for (const m of matches) {
       const id = m?.identifier?.attomId || m?.identifier?.Id;
       if (!id) continue;
 
-      /* Call 1: expandedprofile — all property + assessment data */
       const r2 = await fetch(
         `${BASE}/property/expandedprofile?attomid=${id}`,
-        {
-          headers: { apikey: KEY, Accept: 'application/json' },
-          cache: 'no-store',
-        }
+        { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
       );
       const d2 = await r2.json();
       const p = d2?.property?.[0];
       if (!p) continue;
 
-      /* Call 2: detailwithschools — school district + nearby schools */
       const r3 = await fetch(
         `${BASE}/property/detailwithschools?attomid=${id}`,
-        {
-          headers: { apikey: KEY, Accept: 'application/json' },
-          cache: 'no-store',
-        }
+        { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
       );
       const d3 = await r3.json();
       const s = d3?.property?.[0];
 
+      /* Flood data from FEMA */
+      let floodZone = '';
+      let floodSubtype = '';
+      let floodSFHA = '';
+      try {
+        const lat = p?.location?.latitude;
+        const lng = p?.location?.longitude;
+        if (lat && lng) {
+          const femaRes = await fetch(
+            `https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query?geometry=${lng},${lat}&geometryType=esriGeometryPoint&spatialRel=esriSpatialRelIntersects&outFields=FLD_ZONE,ZONE_SUBTY,SFHA_TF&f=json&inSR=4326`
+          );
+          const femaData = await femaRes.json();
+          const attrs = femaData?.features?.[0]?.attributes;
+          if (attrs) {
+            floodZone = attrs.FLD_ZONE || '';
+            floodSubtype = attrs.ZONE_SUBTY || '';
+            floodSFHA = attrs.SFHA_TF === 'T' ? 'Yes' : 'No';
+          }
+        }
+      } catch { /* silent fail */ }
       results.push({
         parcel_id: p?.identifier?.apn || '',
         address: p?.address?.line1 || '',
@@ -117,14 +116,17 @@ export async function GET(req: NextRequest) {
         land_sqft: String(p?.lot?.lotSize2 || ''),
         acres: String(p?.lot?.lotSize1 || ''),
         cooling: p?.utilities?.coolingType || '',
-		latitude: p?.location?.latitude || '',
+        latitude: p?.location?.latitude || '',
         longitude: p?.location?.longitude || '',
         fireplace: p?.building?.interior?.fplcInd === 'Y' ? `Yes (${p?.building?.interior?.fplcCount || 1})` : '',
-		homestead: p?.assessment?.tax?.exemptiontype?.Homeowner === 'Y' ? 'Yes' : 'No',
+        homestead: p?.assessment?.tax?.exemptiontype?.Homeowner === 'Y' ? 'Yes' : 'No',
         exemptions: Object.entries(p?.assessment?.tax?.exemptiontype || {})
           .filter(([_, v]) => v === 'Y')
           .map(([k]) => k)
           .join(', '),
+        flood_zone: floodZone,
+        flood_subtype: floodSubtype,
+        flood_sfha: floodSFHA,
         wall_type: p?.building?.construction?.wallType || '',
         improvements_year: p?.building?.construction?.propertyStructureMajorImprovementsYear || '',
         assessed_value: String(p?.assessment?.assessed?.assdTtlValue || ''),
@@ -139,8 +141,6 @@ export async function GET(req: NextRequest) {
         sale_year: String(p?.sale?.salesSearchDate ? new Date(p.sale.salesSearchDate).getFullYear() : ''),
         last_modified: p?.vintage?.lastModified || '',
         dor_uc: p?.area?.countyuse1?.trim() || p?.area?.countyUse1?.trim() || '',
-
-        /* School data from detailwithschools */
         school_district: s?.schoolDistrict?.districtname || '',
         school_district_type: s?.schoolDistrict?.districttype || '',
         school_district_lat: s?.schoolDistrict?.districtlatitude || '',
@@ -154,11 +154,9 @@ export async function GET(req: NextRequest) {
           lat: sc?.geocodinglatitude || '',
           lng: sc?.geocodinglongitude || '',
         })),
-
         search_key: q.toLowerCase(),
       });
     }
-
     return NextResponse.json({ results });
   } catch (e) {
     return NextResponse.json({ results: [] });
