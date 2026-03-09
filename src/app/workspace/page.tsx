@@ -317,6 +317,9 @@ function WorkspaceContent() {
       if (parcel.last_modified) {
         next.dataDate = parcel.last_modified;
       }
+	        // ✅ Homestead + exemptions
+      setIfEmpty("homestead", parcel.homestead);
+      setIfEmpty("exemptions", parcel.exemptions);
 	        // ✅ Geocodes for map
       if (parcel.latitude) next.latitude = parcel.latitude;
       if (parcel.longitude) next.longitude = parcel.longitude;

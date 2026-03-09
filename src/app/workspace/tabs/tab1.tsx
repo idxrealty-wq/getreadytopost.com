@@ -300,6 +300,13 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
               <option value="Unknown">Unknown</option>
             </select>
           </div>
+		    {data.exemptions && (
+            <div>
+              <label className={labelClass}>Tax Exemptions</label>
+              <input type="text" value={data.exemptions || ''} readOnly className={inputClass + " bg-gray-100"} />
+            </div>
+          )}
+
         </div>
       </div>
 
