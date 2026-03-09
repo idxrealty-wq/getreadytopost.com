@@ -74,7 +74,10 @@ function WorkspaceContent() {
     wallType: "",
     dor_uc: "",
     dataDate: "",
+    latitude: "",
+    longitude: "",
   });
+ });
   const [virtualTourUrl, setVirtualTourUrl] = useState("");
   const [droneUrl, setDroneUrl] = useState("");
   const [nearby, setNearby] = useState<any>(null);
@@ -315,7 +318,9 @@ function WorkspaceContent() {
       if (parcel.last_modified) {
         next.dataDate = parcel.last_modified;
       }
-
+	        // ✅ Geocodes for map
+      if (parcel.latitude) next.latitude = parcel.latitude;
+      if (parcel.longitude) next.longitude = parcel.longitude;
       return next;
     });
 

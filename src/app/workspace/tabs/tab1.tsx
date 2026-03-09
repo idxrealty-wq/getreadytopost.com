@@ -1,7 +1,8 @@
 ﻿"use client";
-
 import { useEffect } from 'react';
+import dynamic from 'next/dynamic';
 
+const SchoolMap = dynamic(() => import('@/components/SchoolMap'), { ssr: false });
 export default function Tab1PropertyBasics({ data, setData, onNext, address }: any) {
   useEffect(() => {
     if (!data.dateAdded) {
@@ -145,6 +146,13 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
                   </div>
                 ))}
               </div>
+              {data.latitude && data.longitude && (
+                <SchoolMap
+                  propertyLat={data.latitude}
+                  propertyLng={data.longitude}
+                  schools={data.schools}
+                />
+              )}
             </div>
           )}
           <div className="md:col-span-2">
