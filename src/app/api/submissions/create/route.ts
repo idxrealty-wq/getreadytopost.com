@@ -1,20 +1,18 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { logError } from "@/lib/logError";
 
 export const dynamic = "force-dynamic";
 
 function initAdmin() {
   if (getApps().length > 0) return;
-
   const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   if (!json) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON missing");
-
   const sa: any = JSON.parse(json);
   if (!sa.private_key || typeof sa.private_key !== "string") {
     throw new Error('Service account object must contain a string "private_key" property.');
   }
-
   sa.private_key = sa.private_key.replace(/\\n/g, "\n");
   initializeApp({ credential: cert(sa) });
 }
@@ -24,23 +22,11 @@ export async function POST(req: NextRequest) {
     initAdmin();
     const db = getFirestore();
     const body = await req.json();
-
-    // Accept either listingDescription (legacy) or listingText (current)
-    const listingText =
-      String(body?.listingText || body?.listingDescription || "").trim();
-
-    // Accept email from body
+    const listingText = String(body?.listingText || body?.listingDescription || "").trim();
     const email = String(body?.email || "").trim();
-
-    // Validate: need at least email (listing can be empty initially)
     if (!email) {
-      return NextResponse.json(
-        { error: "email is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "email is required" }, { status: 400 });
     }
-
-    // Build submission doc
     const submission = {
       listingText,
       email,
@@ -51,12 +37,11 @@ export async function POST(req: NextRequest) {
       status: "created",
       createdAt: new Date().toISOString(),
     };
-
     const docRef = await db.collection("submissions").add(submission);
-
     return NextResponse.json({ submissionId: docRef.id, ok: true });
   } catch (e: any) {
     console.error("[submissions/create] Error:", e?.message);
+    await logError({ source: "submissions-create", error: e, context: {} });
     return NextResponse.json(
       { error: "Create failed", message: String(e?.message || e) },
       { status: 500 }

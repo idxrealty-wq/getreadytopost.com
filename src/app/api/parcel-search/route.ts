@@ -170,7 +170,7 @@ export async function GET(req: NextRequest) {
         school_district_lat: s?.schoolDistrict?.districtlatitude || '',
         school_district_lng: s?.schoolDistrict?.districtlongitude || '',
         schools: (s?.school || []).map((sc: any) => ({
-          name: sc?.InstitutionName || '',
+          name: sc?.InstitutionName || '', 
           rating: sc?.schoolRating || '',
           grades: `${sc?.gradelevel1lotext || ''}-${sc?.gradelevel1hitext || ''}`,
           type: sc?.Filetypetext || '',
@@ -182,7 +182,10 @@ export async function GET(req: NextRequest) {
       });
     }
     return NextResponse.json({ results });
-  } catch (e) {
+  } catch (e: any) {
+    await import("@/lib/logError").then(({ logError }) =>
+      logError({ source: "parcel-search", error: e, context: {} })
+    );
     return NextResponse.json({ results: [] });
   }
 }

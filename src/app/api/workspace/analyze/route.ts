@@ -1,5 +1,6 @@
 ﻿// @ts-nocheck
 import { NextResponse } from 'next/server';
+import { logError } from "@/lib/logError";
 
 var GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 var OPENAI_KEY = process.env.OPENAI_API_KEY || '';
@@ -48,11 +49,9 @@ async function generateListing(address, propertyDetails, nearbyData) {
   }
   var nearbyText = nearbyLines.join('\n');
   var nl = '\n';
-
   var prompt = 'You are an elite MLS listing copywriter. Write a professional buyer-focused listing description.' + nl + nl;
   prompt += 'PROPERTY:' + nl;
   prompt += 'Address: ' + address + nl;
-
   if (propertyDetails.propertyType) prompt += 'Property Type: ' + propertyDetails.propertyType + nl;
   if (propertyDetails.beds)         prompt += 'Bedrooms: ' + propertyDetails.beds + nl;
   if (propertyDetails.baths)        prompt += 'Bathrooms: ' + propertyDetails.baths + nl;
@@ -80,7 +79,6 @@ async function generateListing(address, propertyDetails, nearbyData) {
   if (propertyDetails.homestead)    prompt += 'Homestead Exemption: ' + propertyDetails.homestead + nl;
   if (propertyDetails.features)     prompt += 'Key Features: ' + propertyDetails.features + nl;
   if (propertyDetails.virtualTourUrl) prompt += 'Virtual Tour Available: Yes' + nl;
-
   prompt += nl + 'NEARBY AMENITIES (mention by name with distance):' + nl + nearbyText + nl + nl;
   prompt += 'RULES:' + nl;
   prompt += '- 140-160 words exactly' + nl;
@@ -90,7 +88,6 @@ async function generateListing(address, propertyDetails, nearbyData) {
   prompt += '- Vivid sensory language, buyer psychology' + nl;
   prompt += '- Strong call to action at the end' + nl;
   prompt += '- Write ONLY the listing description, no intro or labels';
-
   try {
     var res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -115,19 +112,15 @@ export async function POST(request) {
     var body = await request.json();
     var address = body.address;
     var propertyDetails = body.propertyDetails || {};
-
     if (!address) {
       return NextResponse.json({ error: 'Address is required' }, { status: 400 });
     }
-
     var location = await geocodeAddress(address);
     if (!location) {
       return NextResponse.json({ error: 'Could not find that address' }, { status: 400 });
     }
-
     var lat = location.lat;
     var lng = location.lng;
-
     var results = await Promise.all([
       nearbySearch(lat, lng, 'school'),
       nearbySearch(lat, lng, 'restaurant'),
@@ -140,7 +133,6 @@ export async function POST(request) {
       nearbySearch(lat, lng, 'utility company'),
       nearbySearch(lat, lng, 'shopping mall')
     ]);
-
     var distResults = await Promise.all([
       getDistances(lat, lng, results[0]),
       getDistances(lat, lng, results[1]),
@@ -153,7 +145,6 @@ export async function POST(request) {
       getDistances(lat, lng, results[8]),
       getDistances(lat, lng, results[9])
     ]);
-
     var nearbyData = {
       Schools: distResults[0],
       Restaurants: distResults[1],
@@ -166,19 +157,11 @@ export async function POST(request) {
       Utilities: distResults[8],
       Shopping: distResults[9]
     };
-
     var listing = await generateListing(address, propertyDetails, nearbyData);
-
-    return NextResponse.json({
-      address,
-      lat,
-      lng,
-      nearby: nearbyData,
-      listing
-    });
-
-  } catch (error) {
+    return NextResponse.json({ address, lat, lng, nearby: nearbyData, listing });
+  } catch (error: any) {
     console.error('Workspace error:', error);
+    await logError({ source: "workspace-analyze", error, context: {} });
     return NextResponse.json({ error: 'Analysis failed' }, { status: 500 });
   }
 }
