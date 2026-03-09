@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     initAdmin();
     const db = getFirestore();
     const { password, query } = await req.json();
-    if (password !== "GRTP2026Geocode!") {
+    if (password !== "admin123") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     // USERS
