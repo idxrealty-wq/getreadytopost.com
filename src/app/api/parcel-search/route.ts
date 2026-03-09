@@ -117,6 +117,8 @@ export async function GET(req: NextRequest) {
         land_sqft: String(p?.lot?.lotSize2 || ''),
         acres: String(p?.lot?.lotSize1 || ''),
         cooling: p?.utilities?.coolingType || '',
+		latitude: p?.location?.latitude || '',
+        longitude: p?.location?.longitude || '',
         fireplace: p?.building?.interior?.fplcInd === 'Y' ? `Yes (${p?.building?.interior?.fplcCount || 1})` : '',
         wall_type: p?.building?.construction?.wallType || '',
         improvements_year: p?.building?.construction?.propertyStructureMajorImprovementsYear || '',
