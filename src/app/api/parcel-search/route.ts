@@ -73,70 +73,86 @@ export async function GET(req: NextRequest) {
       const id = m?.identifier?.attomId || m?.identifier?.Id;
       if (!id) continue;
 
-      const r2 = await fetch(`${BASE}/property/detailwithschools?attomid=${id}`, {
-        headers: { apikey: KEY, Accept: 'application/json' },
-        cache: 'no-store',
-      });
-
+      /* Call 1: expandedprofile — all property + assessment data */
+      const r2 = await fetch(
+        `${BASE}/property/expandedprofile?attomid=${id}`,
+        {
+          headers: { apikey: KEY, Accept: 'application/json' },
+          cache: 'no-store',
+        }
+      );
       const d2 = await r2.json();
       const p = d2?.property?.[0];
       if (!p) continue;
+
+      /* Call 2: detailwithschools — school district + nearby schools */
+      const r3 = await fetch(
+        `${BASE}/property/detailwithschools?attomid=${id}`,
+        {
+          headers: { apikey: KEY, Accept: 'application/json' },
+          cache: 'no-store',
+        }
+      );
+      const d3 = await r3.json();
+      const s = d3?.property?.[0];
+
       results.push({
         parcel_id: p?.identifier?.apn || '',
         address: p?.address?.line1 || '',
         city: p?.address?.locality || '',
         zip: p?.address?.postal1 || '',
         county: p?.area?.countrySecSubd || '',
-        year_built: String(p?.summary?.yearBuilt || p?.summary?.yearbuilt || ''),
-        sqft: String(p?.building?.size?.livingSize || p?.building?.size?.livingsize || ''),
+        year_built: String(p?.summary?.yearBuilt || ''),
+        sqft: String(p?.building?.size?.livingSize || ''),
         beds: String(p?.building?.rooms?.beds || ''),
-        baths: String(p?.building?.rooms?.bathsTotal || p?.building?.rooms?.bathstotal || ''),
+        baths: String(p?.building?.rooms?.bathsTotal || ''),
         property_type: p?.summary?.propType || p?.summary?.propLandUse || '',
         legal_description: p?.summary?.legal1 || '',
         stories: String(p?.building?.summary?.levels || ''),
-        construction: p?.building?.construction?.constructionType || p?.building?.construction?.constructiontype || '',
-        garage: p?.building?.parking?.garageType || p?.building?.parking?.garagetype || '',
-        pool: p?.lot?.poolType || p?.lot?.pooltype || (p?.lot?.poolind === 'YES' ? 'Yes' : ''),
-        subdivision: p?.area?.subdName || p?.area?.subdname || '',
+        construction: p?.building?.construction?.constructionType || '',
+        garage: p?.building?.parking?.garageType || '',
+        pool: p?.lot?.poolType || (p?.lot?.poolInd === 'YES' ? 'Yes' : ''),
+        subdivision: p?.area?.subdName || '',
         zoning: p?.lot?.zoningType || '',
-        land_sqft: String(p?.lot?.lotSize2 || p?.lot?.lotsize2 || ''),
-        acres: String(p?.lot?.lotSize1 || p?.lot?.lotsize1 || ''),
+        land_sqft: String(p?.lot?.lotSize2 || ''),
+        acres: String(p?.lot?.lotSize1 || ''),
         cooling: p?.utilities?.coolingType || '',
         fireplace: p?.building?.interior?.fplcInd === 'Y' ? `Yes (${p?.building?.interior?.fplcCount || 1})` : '',
         wall_type: p?.building?.construction?.wallType || '',
         improvements_year: p?.building?.construction?.propertyStructureMajorImprovementsYear || '',
-        assessed_value: String(p?.assessment?.assessed?.assdTtlValue || p?.assessment?.assessed?.assdttlvalue || ''),
-        just_value: String(p?.assessment?.market?.mktTtlValue || p?.assessment?.market?.mktttlvalue || ''),
-        land_value: String(p?.assessment?.assessed?.assdLandValue || p?.assessment?.assessed?.assdlandvalue || ''),
-        building_value: String(p?.assessment?.assessed?.assdImprValue || p?.assessment?.assessed?.assdimprvalue || ''),
-        taxable_value: String(p?.assessment?.assessed?.assdTtlValue || p?.assessment?.assessed?.assdttlvalue || ''),
-        annual_tax: String(p?.assessment?.tax?.taxAmt || p?.assessment?.tax?.taxamt || ''),
-        tax_year: String(p?.assessment?.tax?.taxYear || p?.assessment?.tax?.taxyear || ''),
-        owner_name: p?.assessment?.owner?.owner1?.fullName || p?.assessment?.owner?.owner1?.fullname || '',
+        assessed_value: String(p?.assessment?.assessed?.assdTtlValue || ''),
+        just_value: String(p?.assessment?.market?.mktTtlValue || ''),
+        land_value: String(p?.assessment?.assessed?.assdLandValue || ''),
+        building_value: String(p?.assessment?.assessed?.assdImprValue || ''),
+        taxable_value: String(p?.assessment?.assessed?.assdTtlValue || ''),
+        annual_tax: String(p?.assessment?.tax?.taxAmt || ''),
+        tax_year: String(p?.assessment?.tax?.taxYear || ''),
+        owner_name: p?.assessment?.owner?.owner1?.fullName || '',
         sale_price: String(p?.sale?.amount?.saleAmt || ''),
         sale_year: String(p?.sale?.salesSearchDate ? new Date(p.sale.salesSearchDate).getFullYear() : ''),
         last_modified: p?.vintage?.lastModified || '',
         dor_uc: p?.area?.countyuse1?.trim() || p?.area?.countyUse1?.trim() || '',
-        school_district: p?.schoolDistrict?.districtname || '',
-        school_district_type: p?.schoolDistrict?.districttype || '',
-        school_district_lat: p?.schoolDistrict?.districtlatitude || '',
-        school_district_lng: p?.schoolDistrict?.districtlongitude || '',
-        schools: (p?.school || []).map((s: any) => ({
-          name: s?.InstitutionName || '',
-          rating: s?.schoolRating || '',
-          grades: `${s?.gradelevel1lotext || ''}-${s?.gradelevel1hitext || ''}`,
-          type: s?.Filetypetext || '',
-          distance: s?.distance || 0,
-          lat: s?.geocodinglatitude || '',
-          lng: s?.geocodinglongitude || '',
-        })),
-        search_key: q.toLowerCase(),
 
+        /* School data from detailwithschools */
+        school_district: s?.schoolDistrict?.districtname || '',
+        school_district_type: s?.schoolDistrict?.districttype || '',
+        school_district_lat: s?.schoolDistrict?.districtlatitude || '',
+        school_district_lng: s?.schoolDistrict?.districtlongitude || '',
+        schools: (s?.school || []).map((sc: any) => ({
+          name: sc?.InstitutionName || '',
+          rating: sc?.schoolRating || '',
+          grades: `${sc?.gradelevel1lotext || ''}-${sc?.gradelevel1hitext || ''}`,
+          type: sc?.Filetypetext || '',
+          distance: sc?.distance || 0,
+          lat: sc?.geocodinglatitude || '',
+          lng: sc?.geocodinglongitude || '',
+        })),
+
+        search_key: q.toLowerCase(),
       });
     }
 
     return NextResponse.json({ results });
-
   } catch (e) {
     return NextResponse.json({ results: [] });
   }
