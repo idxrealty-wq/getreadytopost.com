@@ -61,6 +61,7 @@ export async function GET(req: NextRequest) {
       `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
       { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
     );
+	console.log("[PARCEL DEBUG]", { status: r1.status, ok: r1.ok });
     const d1 = await r1.json();
     let matches: ParcelMatch[] = Array.isArray(d1?.property) ? (d1.property as ParcelMatch[]) : [];
     if (stateParam) {
