@@ -509,8 +509,51 @@ function WorkspaceContent() {
             state={searchState}
             city={searchCity}
           />
-        </div>
-        <div className="flex justify-end mb-4">
+                </div>
+        <div className="flex justify-between mb-4">
+          <button
+            onClick={() => {
+              setAddress("");
+              setSearchCity("");
+              setSearchState("Florida");
+              setActiveTab(1);
+              setNearby(null);
+              setListing("");
+              setSaved(false);
+              setSavedEstimate(null);
+              setListingId(null);
+              setVirtualTourUrl("");
+              setDroneUrl("");
+              setChecklistState({});
+              setNotes("");
+              setDocumentAccessCode("");
+              setExistingPhotos([]);
+              setPhotos({});
+              setPropertyData({
+                taxId: "", yearBuilt: "", beds: "", baths: "", legalDescription: "",
+                propertyType: "", zoning: "", stories: "", garage: "", pool: "",
+                construction: "", schoolDistrict: "", schools: [], hoa: "", hoaAmount: "",
+                hoaName: "", amenities: "", floodZone: "", water: "", sewer: "",
+                roofYear: "", acYear: "", waterHeaterYear: "", assessedValue: "",
+                lastSalePrice: "", lastSaleYear: "", homestead: "", sqft: "", lotSize: "",
+                price: "", features: "", dateAdded: "", propertyLink: "", ownerName: "",
+                justValue: "", taxableValue: "", landValue: "", buildingValue: "",
+                annualTax: "", taxYear: "", subdivision: "", cooling: "", fireplace: "",
+                wallType: "", dor_uc: "", dataDate: "", latitude: "", longitude: "",
+                avm_value: "", avm_high: "", avm_low: "", avm_date: "",
+                assessment_history: [], sale_history: [], building_permits: [],
+                mortgage_lender: "", mortgage_amount: "", mortgage_rate: "",
+                mortgage_type: "", mortgage_term: "", mortgage_date: "",
+                mortgage_due_date: "", county: "",
+              });
+              const newId = "listing_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+              setListingId(newId);
+              router.replace("/workspace?edit=" + newId);
+            }}
+            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition"
+          >
+            🔄 New Search
+          </button>
           <button
             onClick={() => {
               setSaveNowNonce((n) => n + 1);
@@ -521,6 +564,7 @@ function WorkspaceContent() {
             View in Vault
           </button>
         </div>
+
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {tabs.map((tab) => (
             <button

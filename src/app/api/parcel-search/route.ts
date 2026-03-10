@@ -83,13 +83,12 @@ export async function GET(req: NextRequest) {
       // AVM
       const avmProp = avmData?.property?.[0];
       const avm = {
-        value: String(avmProp?.avm?.amount?.value || ''),
-        high: String(avmProp?.avm?.amount?.high || ''),
-        low: String(avmProp?.avm?.amount?.low || ''),
-        confidence: String(avmProp?.avm?.amount?.valueRange || avmProp?.avm?.confidence?.score || ''),
-        date: avmProp?.avm?.eventDate || '',
-      };
-
+      value: String(avmProp?.avm?.amount?.value || ''),
+      high: String(avmProp?.avm?.amount?.high || ''),
+      low: String(avmProp?.avm?.amount?.low || ''),
+      confidence: String(avmProp?.avm?.amount?.scr || ''),
+      date: avmProp?.avm?.eventDate || '',
+     };
       // Sale History
       const saleHistory = (saleHistData?.property?.[0]?.saleHistory || saleHistData?.property || []).map((sh: any) => ({
         date: sh?.sale?.saleTransDate || sh?.saleTransDate || '',
