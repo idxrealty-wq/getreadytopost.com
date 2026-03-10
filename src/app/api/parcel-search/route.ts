@@ -31,15 +31,24 @@ async function fetchATTOM(path: string) {
     });
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
-      console.error(`[ATTOM FAIL] ${res.status} ${path} — ${errText.slice(0, 200)}`);
+      const msg = `[ATTOM FAIL] ${res.status} ${path} — ${errText.slice(0, 200)}`;
+      console.error(msg);
+      await import("@/lib/logError").then(({ logError }) =>
+        logError({ source: "parcel-search-attom", error: new Error(msg), context: { path, status: res.status } })
+      ).catch(() => {});
       return null;
     }
     return res.json();
   } catch (e: any) {
-    console.error(`[ATTOM ERROR] ${path} — ${e?.message || e}`);
+    const msg = `[ATTOM ERROR] ${path} — ${e?.message || e}`;
+    console.error(msg);
+    await import("@/lib/logError").then(({ logError }) =>
+      logError({ source: "parcel-search-attom", error: e, context: { path } })
+    ).catch(() => {});
     return null;
   }
 }
+
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
