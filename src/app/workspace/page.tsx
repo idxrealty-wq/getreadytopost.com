@@ -14,6 +14,10 @@ import Tab3Listing from "./tabs/tab3";
 import Tab4Checklist from "./tabs/tab4";
 import Tab5Save from "./tabs/tab5";
 import Tab6ClosingCosts from "./tabs/tab6";
+import Tab7Valuation from "./tabs/tab7";
+import Tab8History from "./tabs/tab8";
+import Tab9MortgageOwner from "./tabs/tab9";
+
 
 function WorkspaceContent() {
   const searchParams = useSearchParams();
@@ -76,6 +80,22 @@ function WorkspaceContent() {
     dataDate: "",
     latitude: "",
     longitude: "",
+	avm_value: "",
+    avm_high: "",
+    avm_low: "",
+    avm_date: "",
+    assessment_history: [],
+    sale_history: [],
+    building_permits: [],
+    mortgage_lender: "",
+    mortgage_amount: "",
+    mortgage_rate: "",
+    mortgage_type: "",
+    mortgage_term: "",
+    mortgage_date: "",
+    mortgage_due_date: "",
+    county: "",
+
   });
   const [virtualTourUrl, setVirtualTourUrl] = useState("");
   const [droneUrl, setDroneUrl] = useState("");
@@ -363,6 +383,9 @@ function WorkspaceContent() {
     { num: 4, label: "Documents", icon: "", done: false },
     { num: 5, label: "Save", icon: "", done: saved },
     { num: 6, label: "Closing Costs", icon: "", done: !!savedEstimate },
+    { num: 7, label: "Valuation", icon: "", done: !!propertyData.avm_value },
+    { num: 8, label: "History", icon: "", done: !!propertyData.sale_history },
+    { num: 9, label: "Mortgage", icon: "", done: !!propertyData.mortgage_lender },
   ];
 
   if (loadingListing) {
@@ -594,6 +617,15 @@ function WorkspaceContent() {
             propertyData={propertyData}
             savedEstimate={savedEstimate}
           />
+        )}
+        {activeTab === 7 && (
+          <Tab7Valuation data={propertyData} />
+        )}
+        {activeTab === 8 && (
+          <Tab8History data={propertyData} />
+        )}
+        {activeTab === 9 && (
+          <Tab9MortgageOwner data={propertyData} />
         )}
       </div>
       <AuthModal
