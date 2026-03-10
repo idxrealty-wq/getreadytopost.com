@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-const KEY = '343bc00b6e80a125e9a2ad10a53aabd1';
+const KEY = '665a658dd46c48d01a9116ef679c1bb8';
 const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
 
 type ParcelMatch = {
