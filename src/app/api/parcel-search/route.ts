@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 
 const KEY = '343bc00b6e80a125e9a2ad10a53aabd1';
 const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
@@ -31,12 +31,12 @@ async function fetchATTOM(path: string) {
     });
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
-      console.error(`[ATTOM FAIL] ${res.status} ${path} — ${errText.slice(0, 200)}`);
+      console.error(`[ATTOM FAIL] ${res.status} ${path} â€” ${errText.slice(0, 200)}`);
       return null;
     }
     return res.json();
   } catch (e: any) {
-    console.error(`[ATTOM ERROR] ${path} — ${e?.message || e}`);
+    console.error(`[ATTOM ERROR] ${path} â€” ${e?.message || e}`);
     return null;
   }
 }
@@ -130,7 +130,7 @@ export async function GET(req: NextRequest) {
         cost: String(bp?.jobValue || bp?.totalProjectValue || ''),
       })).filter((bp: any) => bp.date || bp.type);
 
-      // Mortgage — fixed: lenderLastName not lenderName
+      // Mortgage â€” fixed: lenderLastName not lenderName
       const mtg = mortgageData?.property?.[0];
       const mortgage = {
         lender: mtg?.mortgage?.FirstConcurrent?.lenderLastName || mtg?.mortgage?.FirstConcurrent?.lenderName || '',
@@ -268,3 +268,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ results: [] });
   }
 }
+
