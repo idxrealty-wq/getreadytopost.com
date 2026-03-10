@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 const KEY = '343bc00b6e80a125e9a2ad10a53aabd1';
 const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
 
@@ -22,12 +23,22 @@ const STATE_MAP: Record<string, string> = {
 };
 
 async function fetchATTOM(path: string) {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { apikey: KEY, Accept: 'application/json' },
-    cache: 'no-store',
-  });
-  if (!res.ok) return null;
-  return res.json();
+  const url = `${BASE}${path}`;
+  try {
+    const res = await fetch(url, {
+      headers: { apikey: KEY, Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      console.error(`[ATTOM FAIL] ${res.status} ${path} — ${errText.slice(0, 200)}`);
+      return null;
+    }
+    return res.json();
+  } catch (e: any) {
+    console.error(`[ATTOM ERROR] ${path} — ${e?.message || e}`);
+    return null;
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -44,6 +55,7 @@ export async function GET(req: NextRequest) {
   const addr2 = addr2Parts.join(', ') || '';
   const stateUpperRaw = stateParam.toUpperCase();
   const stateNormalized = stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw.substring(0, 2));
+
   try {
     const r1 = await fetch(
       `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
@@ -65,15 +77,14 @@ export async function GET(req: NextRequest) {
       const id = m?.identifier?.attomId || m?.identifier?.Id;
       if (!id) continue;
 
-      // Parallel fetch: expandedprofile, schools, AVM, sale history, assessment history, building permits, mortgage
       const [d2, d3, avmData, saleHistData, assessHistData, permitData, mortgageData] = await Promise.all([
         fetchATTOM(`/property/expandedprofile?attomid=${id}`),
         fetchATTOM(`/property/detailwithschools?attomid=${id}`),
-        fetchATTOM(`/attomavm/detail?attomid=${id}`).catch(() => null),
-        fetchATTOM(`/property/salehistory?attomid=${id}`).catch(() => null),
-        fetchATTOM(`/property/assessmenthistory?attomid=${id}`).catch(() => null),
-        fetchATTOM(`/property/buildingpermits?attomid=${id}`).catch(() => null),
-        fetchATTOM(`/property/detailmortgage?attomid=${id}`).catch(() => null),
+        fetchATTOM(`/attomavm/detail?attomid=${id}`),
+        fetchATTOM(`/property/salehistory?attomid=${id}`),
+        fetchATTOM(`/property/assessmenthistory?attomid=${id}`),
+        fetchATTOM(`/property/buildingpermits?attomid=${id}`),
+        fetchATTOM(`/property/detailmortgage?attomid=${id}`),
       ]);
 
       const p = d2?.property?.[0];
@@ -83,12 +94,13 @@ export async function GET(req: NextRequest) {
       // AVM
       const avmProp = avmData?.property?.[0];
       const avm = {
-      value: String(avmProp?.avm?.amount?.value || ''),
-      high: String(avmProp?.avm?.amount?.high || ''),
-      low: String(avmProp?.avm?.amount?.low || ''),
-      confidence: String(avmProp?.avm?.amount?.scr || ''),
-      date: avmProp?.avm?.eventDate || '',
-     };
+        value: String(avmProp?.avm?.amount?.value || ''),
+        high: String(avmProp?.avm?.amount?.high || ''),
+        low: String(avmProp?.avm?.amount?.low || ''),
+        confidence: String(avmProp?.avm?.amount?.scr || ''),
+        date: avmProp?.avm?.eventDate || '',
+      };
+
       // Sale History
       const saleHistory = (saleHistData?.property?.[0]?.saleHistory || saleHistData?.property || []).map((sh: any) => ({
         date: sh?.sale?.saleTransDate || sh?.saleTransDate || '',
@@ -118,18 +130,17 @@ export async function GET(req: NextRequest) {
         cost: String(bp?.jobValue || bp?.totalProjectValue || ''),
       })).filter((bp: any) => bp.date || bp.type);
 
-      // Mortgage
+      // Mortgage — fixed: lenderLastName not lenderName
       const mtg = mortgageData?.property?.[0];
       const mortgage = {
-        lender: mtg?.mortgage?.FirstConcurrent?.lenderName || '',
+        lender: mtg?.mortgage?.FirstConcurrent?.lenderLastName || mtg?.mortgage?.FirstConcurrent?.lenderName || '',
         amount: String(mtg?.mortgage?.FirstConcurrent?.amount || ''),
         rate: String(mtg?.mortgage?.FirstConcurrent?.interestRate || ''),
-        type: mtg?.mortgage?.FirstConcurrent?.loanType || '',
+        type: mtg?.mortgage?.FirstConcurrent?.loanTypeCode || mtg?.mortgage?.FirstConcurrent?.loanType || '',
         term: String(mtg?.mortgage?.FirstConcurrent?.term || ''),
         dueDate: mtg?.mortgage?.FirstConcurrent?.dueDate || '',
         date: mtg?.mortgage?.FirstConcurrent?.date || '',
       };
-
       // FEMA Flood
       let floodZone = '';
       let floodSubtype = '';
@@ -150,6 +161,7 @@ export async function GET(req: NextRequest) {
           }
         }
       } catch { /* silent fail */ }
+
       results.push({
         parcel_id: p?.identifier?.apn || '',
         address: p?.address?.line1 || '',
@@ -217,13 +229,11 @@ export async function GET(req: NextRequest) {
         price_per_bed: String(p?.sale?.calculation?.pricePerBed || ''),
         last_modified: p?.vintage?.lastModified || '',
         dor_uc: p?.area?.countyuse1?.trim() || p?.area?.countyUse1?.trim() || '',
-        // NEW: AVM
         avm_value: avm.value,
         avm_high: avm.high,
         avm_low: avm.low,
         avm_confidence: avm.confidence,
         avm_date: avm.date,
-        // NEW: Mortgage
         mortgage_lender: mortgage.lender,
         mortgage_amount: mortgage.amount,
         mortgage_rate: mortgage.rate,
@@ -231,13 +241,9 @@ export async function GET(req: NextRequest) {
         mortgage_term: mortgage.term,
         mortgage_due_date: mortgage.dueDate,
         mortgage_date: mortgage.date,
-        // NEW: Sale History array
         sale_history: saleHistory,
-        // NEW: Assessment History array
         assessment_history: assessHistory,
-        // NEW: Building Permits array
         building_permits: permits,
-        // Schools
         school_district: s?.schoolDistrict?.districtname || '',
         school_district_type: s?.schoolDistrict?.districttype || '',
         school_district_lat: s?.schoolDistrict?.districtlatitude || '',
