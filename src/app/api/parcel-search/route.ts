@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const KEY = '343bc00b6e80a125e9a2ad10a53aabd1';
-const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
+const KEY = process.env.ATTOM_API_KEY || "";
+const BASE = "https://api.developer.attomdata.com/propertyapi/v1.0.0";
+if (!KEY) {
+  console.error("[ATTOM] Missing ATTOM_API_KEY env var");
+}
+
 
 type ParcelMatch = {
   address?: { countrySubd?: string | null; } | null;
@@ -90,8 +94,8 @@ export async function GET(req: NextRequest) {
         fetchATTOM(`/property/expandedprofile?attomid=${id}`),
         fetchATTOM(`/property/detailwithschools?attomid=${id}`),
         fetchATTOM(`/attomavm/detail?attomid=${id}`),
-        fetchATTOM(`/property/salehistory?attomid=${id}`),
-        fetchATTOM(`/property/assessmenthistory?attomid=${id}`),
+        fetchATTOM(`/saleshistory/detail?attomid=${id}`),
+        Promise.resolve(null),
         fetchATTOM(`/property/buildingpermits?attomid=${id}`),
         fetchATTOM(`/property/detailmortgage?attomid=${id}`),
       ]);
@@ -120,16 +124,8 @@ export async function GET(req: NextRequest) {
         docType: sh?.sale?.amount?.saleDocType || sh?.amount?.saleDocType || '',
       })).filter((sh: any) => sh.date || sh.price);
 
-      // Assessment History
-      const assessHistory = (assessHistData?.property?.[0]?.assessmentHistory || assessHistData?.property || []).map((ah: any) => ({
-        year: String(ah?.assessment?.tax?.taxYear || ah?.tax?.taxYear || ''),
-        assessed: String(ah?.assessment?.assessed?.assdTtlValue || ah?.assessed?.assdTtlValue || ''),
-        market: String(ah?.assessment?.market?.mktTtlValue || ah?.market?.mktTtlValue || ''),
-        land: String(ah?.assessment?.assessed?.assdLandValue || ah?.assessed?.assdLandValue || ''),
-        building: String(ah?.assessment?.assessed?.assdImprValue || ah?.assessed?.assdImprValue || ''),
-        tax: String(ah?.assessment?.tax?.taxAmt || ah?.tax?.taxAmt || ''),
-      })).filter((ah: any) => ah.year);
-
+            // Assessment History (not in current ATTOM plan)
+      const assessHistory: any[] = [];
       // Building Permits
       const permits = (permitData?.property?.[0]?.buildingPermits || permitData?.property || []).map((bp: any) => ({
         date: bp?.effectiveDate || bp?.issuedDate || '',
