@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const r1 = await fetch(
-      `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
+      `${BASE}/property/address?address=${encodeURIComponent(addr1)}&city=${encodeURIComponent(cityParam)}&state=${encodeURIComponent(stateParam)}&zip=${encodeURIComponent(searchParams.get('zip') || '')}`,
       { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
     );
 
