@@ -1,7 +1,11 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 
-const KEY = '343bc00b6e80a125e9a2ad10a53aabd1';
-const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
+const KEY = process.env.ATTOM_API_KEY || "";
+const BASE = "https://api.developer.attomdata.com/propertyapi/v1.0.0";
+
+if (!KEY) {
+  console.error("[ATTOM] Missing ATTOM_API_KEY env var");
+}
 
 type ParcelMatch = {
   address?: { countrySubd?: string | null; } | null;
@@ -31,68 +35,90 @@ async function fetchATTOM(path: string) {
     });
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
-      console.error(`[ATTOM FAIL] ${res.status} ${path} â€” ${errText.slice(0, 200)}`);
+      const msg = `[ATTOM FAIL] ${res.status} ${path} — ${errText.slice(0, 200)}`;
+      console.error(msg);
+      await import("@/lib/logError").then(({ logError }) =>
+        logError({ source: "parcel-search-attom", error: new Error(msg), context: { path, status: res.status } })
+      ).catch(() => {});
       return null;
     }
     return res.json();
   } catch (e: any) {
-    console.error(`[ATTOM ERROR] ${path} â€” ${e?.message || e}`);
+    const msg = `[ATTOM ERROR] ${path} — ${e?.message || e}`;
+    console.error(msg);
+    await import("@/lib/logError").then(({ logError }) =>
+      logError({ source: "parcel-search-attom", error: e, context: { path } })
+    ).catch(() => {});
     return null;
   }
 }
-
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get('q') || '').trim();
   const stateParam = (searchParams.get('state') || '').trim();
   const cityParam = (searchParams.get('city') || '').trim();
+
   if (!q || q.length < 5) return NextResponse.json({ results: [] });
 
   const addr1 = q;
-  const addr2Parts = [];
+  const addr2Parts: string[] = [];
   if (cityParam) addr2Parts.push(cityParam);
   if (stateParam) addr2Parts.push(stateParam);
   const addr2 = addr2Parts.join(', ') || '';
+
   const stateUpperRaw = stateParam.toUpperCase();
-  const stateNormalized = stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw.substring(0, 2));
+  const stateNormalized =
+    stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw.substring(0, 2));
 
   try {
     const r1 = await fetch(
       `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
       { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
     );
-	console.log("[PARCEL DEBUG]", { status: r1.status, ok: r1.ok });
+
+    if (!r1.ok) {
+      const errText = await r1.text().catch(() => '');
+      const msg = `[ATTOM FAIL] ${r1.status} /property/address — ${errText.slice(0, 200)}`;
+      console.error(msg);
+      await import("@/lib/logError").then(({ logError }) =>
+        logError({ source: "parcel-search-attom", error: new Error(msg), context: { path: "/property/address", status: r1.status } })
+      ).catch(() => {});
+      return NextResponse.json({ results: [] });
+    }
+
     const d1 = await r1.json();
     let matches: ParcelMatch[] = Array.isArray(d1?.property) ? (d1.property as ParcelMatch[]) : [];
+
     if (stateParam) {
       matches = matches.filter((m: ParcelMatch) => {
         const st = (m?.address?.countrySubd || '').toUpperCase();
         return st === stateNormalized;
       });
     }
+
     matches = matches.slice(0, 3);
     if (!matches.length) return NextResponse.json({ results: [] });
 
-    const results = [];
+    const results: any[] = [];
+
     for (const m of matches) {
       const id = m?.identifier?.attomId || m?.identifier?.Id;
       if (!id) continue;
 
       const [d2, d3, avmData, saleHistData, assessHistData, permitData, mortgageData] = await Promise.all([
-        fetchATTOM(`/property/expandedprofile?attomid=${id}`),
-        fetchATTOM(`/property/detailwithschools?attomid=${id}`),
-        fetchATTOM(`/attomavm/detail?attomid=${id}`),
-        fetchATTOM(`/property/salehistory?attomid=${id}`),
-        fetchATTOM(`/property/assessmenthistory?attomid=${id}`),
-        fetchATTOM(`/property/buildingpermits?attomid=${id}`),
-        fetchATTOM(`/property/detailmortgage?attomid=${id}`),
+        fetchATTOM(`/property/expandedprofile?attomId=${id}`),
+        fetchATTOM(`/property/detailwithschools?attomId=${id}`),
+        fetchATTOM(`/attomavm/detail?attomId=${id}`),
+        fetchATTOM(`/saleshistory/detail?attomId=${id}`),
+        Promise.resolve(null), // assessment history not in current plan
+        fetchATTOM(`/property/buildingpermits?attomId=${id}`),
+        fetchATTOM(`/property/detailmortgage?attomId=${id}`),
       ]);
 
       const p = d2?.property?.[0];
       if (!p) continue;
       const s = d3?.property?.[0];
 
-      // AVM
       const avmProp = avmData?.property?.[0];
       const avm = {
         value: String(avmProp?.avm?.amount?.value || ''),
@@ -102,36 +128,28 @@ export async function GET(req: NextRequest) {
         date: avmProp?.avm?.eventDate || '',
       };
 
-      // Sale History
-      const saleHistory = (saleHistData?.property?.[0]?.saleHistory || saleHistData?.property || []).map((sh: any) => ({
-        date: sh?.sale?.saleTransDate || sh?.saleTransDate || '',
-        price: String(sh?.sale?.amount?.saleAmt || sh?.amount?.saleAmt || ''),
-        seller: sh?.sale?.sellerName || sh?.sellerName || '',
-        buyer: sh?.sale?.buyerName || sh?.buyerName || '',
-        type: sh?.sale?.amount?.saleTransType || sh?.amount?.saleTransType || '',
-        docType: sh?.sale?.amount?.saleDocType || sh?.amount?.saleDocType || '',
-      })).filter((sh: any) => sh.date || sh.price);
+      const saleHistory = (saleHistData?.property?.[0]?.saleHistory || saleHistData?.property || [])
+        .map((sh: any) => ({
+          date: sh?.sale?.saleTransDate || sh?.saleTransDate || '',
+          price: String(sh?.sale?.amount?.saleAmt || sh?.amount?.saleAmt || ''),
+          seller: sh?.sale?.sellerName || sh?.sellerName || '',
+          buyer: sh?.sale?.buyerName || sh?.buyerName || '',
+          type: sh?.sale?.amount?.saleTransType || sh?.amount?.saleTransType || '',
+          docType: sh?.sale?.amount?.saleDocType || sh?.amount?.saleDocType || '',
+        }))
+        .filter((sh: any) => sh.date || sh.price);
 
-      // Assessment History
-      const assessHistory = (assessHistData?.property?.[0]?.assessmentHistory || assessHistData?.property || []).map((ah: any) => ({
-        year: String(ah?.assessment?.tax?.taxYear || ah?.tax?.taxYear || ''),
-        assessed: String(ah?.assessment?.assessed?.assdTtlValue || ah?.assessed?.assdTtlValue || ''),
-        market: String(ah?.assessment?.market?.mktTtlValue || ah?.market?.mktTtlValue || ''),
-        land: String(ah?.assessment?.assessed?.assdLandValue || ah?.assessed?.assdLandValue || ''),
-        building: String(ah?.assessment?.assessed?.assdImprValue || ah?.assessed?.assdImprValue || ''),
-        tax: String(ah?.assessment?.tax?.taxAmt || ah?.tax?.taxAmt || ''),
-      })).filter((ah: any) => ah.year);
+      const assessHistory: any[] = [];
+      const permits = (permitData?.property?.[0]?.buildingPermits || permitData?.property || [])
+        .map((bp: any) => ({
+          date: bp?.effectiveDate || bp?.issuedDate || '',
+          type: bp?.type || bp?.permitType || '',
+          description: bp?.description || bp?.workDescription || '',
+          status: bp?.status || '',
+          cost: String(bp?.jobValue || bp?.totalProjectValue || ''),
+        }))
+        .filter((bp: any) => bp.date || bp.type);
 
-      // Building Permits
-      const permits = (permitData?.property?.[0]?.buildingPermits || permitData?.property || []).map((bp: any) => ({
-        date: bp?.effectiveDate || bp?.issuedDate || '',
-        type: bp?.type || bp?.permitType || '',
-        description: bp?.description || bp?.workDescription || '',
-        status: bp?.status || '',
-        cost: String(bp?.jobValue || bp?.totalProjectValue || ''),
-      })).filter((bp: any) => bp.date || bp.type);
-
-      // Mortgage â€” fixed: lenderLastName not lenderName
       const mtg = mortgageData?.property?.[0];
       const mortgage = {
         lender: mtg?.mortgage?.FirstConcurrent?.lenderLastName || mtg?.mortgage?.FirstConcurrent?.lenderName || '',
@@ -142,7 +160,7 @@ export async function GET(req: NextRequest) {
         dueDate: mtg?.mortgage?.FirstConcurrent?.dueDate || '',
         date: mtg?.mortgage?.FirstConcurrent?.date || '',
       };
-      // FEMA Flood
+
       let floodZone = '';
       let floodSubtype = '';
       let floodSFHA = '';
@@ -161,7 +179,7 @@ export async function GET(req: NextRequest) {
             floodSFHA = attrs.SFHA_TF === 'T' ? 'Yes' : 'No';
           }
         }
-      } catch { /* silent fail */ }
+      } catch {}
 
       results.push({
         parcel_id: p?.identifier?.apn || '',
@@ -229,7 +247,7 @@ export async function GET(req: NextRequest) {
         price_per_sqft: String(p?.sale?.calculation?.pricePerSizeUnit || ''),
         price_per_bed: String(p?.sale?.calculation?.pricePerBed || ''),
         last_modified: p?.vintage?.lastModified || '',
-        dor_uc: p?.area?.countyuse1?.trim() || p?.area?.countyUse1?.trim() || '',
+        dor_uc: (p?.area?.countyuse1 || p?.area?.countyUse1 || '').trim(),
         avm_value: avm.value,
         avm_high: avm.high,
         avm_low: avm.low,
@@ -265,8 +283,7 @@ export async function GET(req: NextRequest) {
   } catch (e: any) {
     await import("@/lib/logError").then(({ logError }) =>
       logError({ source: "parcel-search", error: e, context: {} })
-    );
+    ).catch(() => {});
     return NextResponse.json({ results: [] });
   }
 }
-
