@@ -87,6 +87,7 @@ export async function GET(req: NextRequest) {
     }
 
     const d1 = await r1.json();
+	return NextResponse.json({ debug_address_response: d1, status: r1.status });
     let matches: ParcelMatch[] = Array.isArray(d1?.property) ? (d1.property as ParcelMatch[]) : [];
 
     if (stateParam) {
