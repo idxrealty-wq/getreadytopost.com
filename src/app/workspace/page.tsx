@@ -614,6 +614,40 @@ function WorkspaceContent() {
           >
             View in Vault
           </button>
+		  <button
+  onClick={async () => {
+    if (!listingId) {
+      alert("No listingId yet. Save or load a listing first.");
+      return;
+    }
+    const slug = prompt("Enter preview slug (e.g., easy-street):", "easy-street");
+    if (!slug) return;
+
+    try {
+      const res = await fetch(
+        `/.netlify/functions/publish-preview-from-listing?key=seed123`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ listingId, slug }),
+        }
+      );
+      const data = await res.json();
+      if (data?.ok) {
+        alert(`Published! View at: ${data.previewUrl}`);
+        window.open(data.previewUrl, "_blank");
+      } else {
+        alert(`Error: ${data?.error || "Unknown error"}`);
+      }
+    } catch (err: any) {
+      alert(`Failed to publish: ${err?.message || "Unknown error"}`);
+    }
+  }}
+  className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition"
+>
+  Publish Preview
+</button>
+
         </div>
          {isManualEntry && (
   <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6">

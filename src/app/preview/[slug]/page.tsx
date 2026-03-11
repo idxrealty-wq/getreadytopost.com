@@ -1,5 +1,4 @@
 'use client';
-
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -43,9 +42,7 @@ function prettyKey(k: string) {
     sale_history: "Sale History",
     viewCount: "Views",
   };
-
   if (map[k]) return map[k];
-
   return k
     .replace(/_/g, " ")
     .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -56,40 +53,53 @@ function prettyKey(k: string) {
 
 function formatValue(v: any) {
   if (v === null || v === undefined || v === "") return "—";
-
   if (typeof v === "boolean") return v ? "Yes" : "No";
-
   if (typeof v === "number") {
     if (Math.abs(v) >= 1000) return v.toLocaleString();
     return String(v);
   }
-
   if (typeof v === "string" && /^\d+(\.\d+)?$/.test(v)) {
     const n = Number(v);
     if (!Number.isNaN(n) && Math.abs(n) >= 1000) return n.toLocaleString();
     return v;
   }
-
   if (Array.isArray(v)) {
     return `${v.length} item${v.length === 1 ? "" : "s"}`;
   }
-
   if (typeof v === "object") {
     const keys = Object.keys(v);
     return keys.length
       ? `Object (${keys.slice(0, 3).join(", ")}${keys.length > 3 ? ", …" : ""})`
       : "Object";
   }
-
   return String(v);
 }
+
 export default function PreviewPage() {
   const params = useParams();
   const slug = (params?.slug as string) || '';
-
   const [property, setProperty] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+
+  const photos = (property as any)?.photos || [];
+  const hasPhotos = Array.isArray(photos) && photos.length > 0;
+
+  const nextPhoto = () => {
+    if (!hasPhotos) return;
+    setCurrentPhotoIndex((prev) => (prev + 1) % photos.length);
+  };
+
+  const prevPhoto = () => {
+    if (!hasPhotos) return;
+    setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
+  };
+
+  const documents = (property as any)?.documents || [];
+  const hasDocuments = Array.isArray(documents) && documents.length > 0;
+
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
   const highlight = useMemo(() => {
     const p = property || {};
@@ -107,7 +117,7 @@ export default function PreviewPage() {
       ownerName: p.ownerName ?? p.owner_name ?? '',
       owner2: p.owner2 ?? p.owner2_name ?? '',
       mailingAddress: p.mailingAddress ?? p.mailing_address ?? '',
-	  propertyLat: String(p.latitude ?? p.lat ?? ''),
+      propertyLat: String(p.latitude ?? p.lat ?? ''),
       propertyLng: String(p.longitude ?? p.lng ?? ''),
       viewCount: p.viewCount ?? 0,
       schools: Array.isArray(p.schools) ? p.schools : [],
@@ -122,21 +132,16 @@ export default function PreviewPage() {
       setLoading(true);
       setError('');
       setProperty(null);
-
       try {
         const ref = doc(db, 'public_previews', slug);
         const snap = await getDoc(ref);
-
         if (!snap.exists()) {
           setError('Property not found');
           setLoading(false);
           return;
         }
-
         const data = snap.data();
         setProperty(data);
-
-        // Increment view count (server-side)
         try {
           const res = await fetch(
             `/.netlify/functions/increment-preview-views?slug=${encodeURIComponent(slug)}`
@@ -146,7 +151,6 @@ export default function PreviewPage() {
             setProperty((prev: any) => ({ ...(prev || {}), viewCount: j.viewCount }));
           }
         } catch (e) {
-          // non-fatal
           console.error('View counter error', e);
         }
       } catch (e: any) {
@@ -155,7 +159,6 @@ export default function PreviewPage() {
         setLoading(false);
       }
     };
-
     if (slug) run();
   }, [slug]);
 
@@ -183,6 +186,7 @@ export default function PreviewPage() {
       </main>
     );
   }
+
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
       {/* Hero */}
@@ -205,7 +209,6 @@ export default function PreviewPage() {
           <p className="text-gray-300 mb-6">
             {[highlight.city, highlight.state, highlight.zip].filter(Boolean).join(', ')}
           </p>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {highlight.taxAmount !== '' && (
               <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/40 rounded-lg p-4">
@@ -215,21 +218,18 @@ export default function PreviewPage() {
                 </p>
               </div>
             )}
-
             {highlight.floodZone && (
               <div className="bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-orange-500/40 rounded-lg p-4">
                 <p className="text-sm text-gray-300 font-semibold">Flood Zone</p>
                 <p className="text-lg font-bold text-orange-300">{String(highlight.floodZone)}</p>
               </div>
             )}
-
             {highlight.schools?.length > 0 && (
               <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/40 rounded-lg p-4">
                 <p className="text-sm text-gray-300 font-semibold">Schools</p>
                 <p className="text-lg font-bold text-purple-300">{highlight.schools.length} Nearby</p>
               </div>
             )}
-
             {highlight.assessedValue !== '' && (
               <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/40 rounded-lg p-4">
                 <p className="text-sm text-gray-300 font-semibold">Assessed Value</p>
@@ -240,7 +240,6 @@ export default function PreviewPage() {
             )}
           </div>
         </div>
-
         {/* Quick facts + Owner */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
@@ -262,7 +261,6 @@ export default function PreviewPage() {
               </div>
             </div>
           </div>
-
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
             <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">
               Owner
@@ -303,9 +301,9 @@ export default function PreviewPage() {
                 </div>
               ))}
             </div>
-			          <div className="mt-6">
-            <SchoolMap propertyLat={String(property.latitude)} propertyLng={String(property.longitude)} schools={highlight.schools} />
-          </div>
+            <div className="mt-6">
+              <SchoolMap propertyLat={String(property.latitude)} propertyLng={String(property.longitude)} schools={highlight.schools} />
+            </div>
           </div>
         )}
 
@@ -328,6 +326,101 @@ export default function PreviewPage() {
           </div>
         )}
 
+        {/* Photos Section */}
+        {hasPhotos ? (
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 border border-white/20">
+            <h2 className="text-2xl font-bold text-white mb-6">📸 Property Photos</h2>
+            <div className="relative">
+              <div className="aspect-video bg-black rounded-xl overflow-hidden">
+                <img
+                  src={photos[currentPhotoIndex]?.downloadURL || photos[currentPhotoIndex]?.url || ""}
+                  alt={`Property photo ${currentPhotoIndex + 1}`}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              {photos.length > 1 && (
+                <>
+                  <button
+                    onClick={prevPhoto}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={nextPhoto}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition"
+                  >
+                    →
+                  </button>
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm">
+                    {currentPhotoIndex + 1} / {photos.length}
+                  </div>
+                </>
+              )}
+            </div>
+            {photos.length > 1 && (
+              <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+                {photos.map((photo: any, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentPhotoIndex(idx)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition ${
+                      idx === currentPhotoIndex ? "border-[#c9a227]" : "border-white/20"
+                    }`}
+                  >
+                    <img
+                      src={photo?.downloadURL || photo?.url || ""}
+                      alt={`Thumbnail ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 border border-white/20 text-center">
+            <div className="text-6xl mb-4">📷</div>
+            <p className="text-gray-300">No photos uploaded yet</p>
+          </div>
+        )}
+
+        {/* Documents Section */}
+        {hasDocuments ? (
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 border border-white/20">
+            <h2 className="text-2xl font-bold text-white mb-3">📄 Documents</h2>
+            <p className="text-gray-300 mb-6">{documents.length} document(s) available</p>
+            <a
+              href={`/documents/view?id=${encodeURIComponent((property as any)?.publishedFromListingId || "")}`}
+              className="inline-block bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 px-6 py-3 rounded-xl font-bold transition border border-purple-500/40"
+            >
+              🔐 View Documents in Vault
+            </a>
+            <p className="text-gray-400 text-xs mt-3">
+              Documents are protected and only accessible through the vault.
+            </p>
+          </div>
+        ) : (
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 border border-white/20 text-center">
+            <div className="text-6xl mb-4">📄</div>
+            <p className="text-gray-300">No documents uploaded yet</p>
+          </div>
+        )}
+
+        {/* Share Section */}
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 border border-white/20">
+          <h2 className="text-2xl font-bold text-white mb-4">🔗 Share</h2>
+          <button
+            onClick={() => {
+              if (!shareUrl) return;
+              navigator.clipboard.writeText(shareUrl);
+              alert("Link copied to clipboard!");
+            }}
+            className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition"
+          >
+            📋 Copy Preview Link
+          </button>
+        </div>
         {/* Full Data (All Fields) */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 border border-white/20">
           <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">
