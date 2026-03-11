@@ -5,26 +5,84 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-
 function prettyKey(k: string) {
+  const map: Record<string, string> = {
+    address1: "Street Address",
+    address: "Street Address",
+    city: "City",
+    state: "State",
+    zip: "ZIP Code",
+    taxAmount: "Annual Property Tax",
+    annualTax: "Annual Property Tax",
+    assessedValue: "Assessed Value",
+    justValue: "Just Value",
+    taxableValue: "Taxable Value",
+    avm_value: "AVM Value",
+    avm_high: "AVM High",
+    avm_low: "AVM Low",
+    avm_date: "AVM Date",
+    avm_confidence: "AVM Confidence",
+    beds: "Bedrooms",
+    bedrooms: "Bedrooms",
+    baths: "Bathrooms",
+    bathrooms: "Bathrooms",
+    sqft: "Square Feet",
+    lotSize: "Lot Size",
+    yearBuilt: "Year Built",
+    year_built: "Year Built",
+    floodZone: "Flood Zone",
+    flood_zone: "Flood Zone",
+    ownerName: "Owner Name",
+    owner_name: "Owner Name",
+    mailingAddress: "Mailing Address",
+    mailing_address: "Mailing Address",
+    building_permits: "Building Permits",
+    assessment_history: "Assessment History",
+    sale_history: "Sale History",
+    viewCount: "Views",
+  };
+
+  if (map[k]) return map[k];
+
   return k
-    .replace(/_/g, ' ')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/\s+/g, ' ')
-    .trim();
+    .replace(/_/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
 
 function formatValue(v: any) {
-  if (v === null || v === undefined) return '';
-  if (typeof v === 'number') return String(v);
-  if (typeof v === 'boolean') return v ? 'true' : 'false';
-  if (typeof v === 'string') return v;
-  try {
-    return JSON.stringify(v);
-  } catch {
+  if (v === null || v === undefined || v === "") return "—";
+
+  if (typeof v === "boolean") return v ? "Yes" : "No";
+
+  if (typeof v === "number") {
+    if (Math.abs(v) >= 1000) return v.toLocaleString();
     return String(v);
   }
+
+  if (typeof v === "string" && /^\d+(\.\d+)?$/.test(v)) {
+    const n = Number(v);
+    if (!Number.isNaN(n) && Math.abs(n) >= 1000) return n.toLocaleString();
+    return v;
+  }
+
+  if (Array.isArray(v)) {
+    return `${v.length} item${v.length === 1 ? "" : "s"}`;
+  }
+
+  if (typeof v === "object") {
+    const keys = Object.keys(v);
+    return keys.length
+      ? `Object (${keys.slice(0, 3).join(", ")}${keys.length > 3 ? ", …" : ""})`
+      : "Object";
+  }
+
+  return String(v);
 }
+
 
 export default function PreviewPage() {
   const params = useParams();
