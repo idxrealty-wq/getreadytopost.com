@@ -64,6 +64,7 @@ export default function Tab4MediaTours({
   setDroneUrl,
 }: any) {
   const [uploads, setUploads] = useState<Record<string, any>>({});
+  const [localAccessCode, setLocalAccessCode] = useState(documentAccessCode || "");
   const [docMeta, setDocMeta] = useState<
     Record<
       string,
@@ -355,11 +356,13 @@ export default function Tab4MediaTours({
           <div className="flex-1 flex gap-2">
             <input
               type={showGlobalCode ? "text" : "password"}
-              value={documentAccessCode}
-              onChange={(e) => {
-                setDocumentAccessCode(e.target.value);
-                setCodeSaved(false);
-              }}
+              value={localAccessCode}
+   onChange={(e) => {
+   const v = e.target.value;
+   setLocalAccessCode(v);
+   setDocumentAccessCode(v);
+   setCodeSaved(false);
+   }}
               placeholder="Set access code (e.g. SMITH2024)"
               className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black"
             />
