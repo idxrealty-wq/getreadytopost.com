@@ -214,8 +214,6 @@ export default function PreviewPage() {
   <div className="bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-orange-500/40 rounded-lg p-4">
     <p className="text-sm text-gray-300 font-semibold">Flood Zone</p>
     <p className="text-lg font-bold text-orange-300">{String(highlight.floodZone)}</p>
-    <p className="text-xs text-gray-300 mt-2 leading-snug">
-      Flood zones can impact insurance costs and lender requirements. Always verify with FEMA and local maps before marketing.
     </p>
   </div>
 )}
@@ -230,15 +228,7 @@ export default function PreviewPage() {
           <div className="text-white font-bold">{s?.name || 'School'}</div>
           <div className="text-gray-300 text-sm">{s?.type || ''}</div>
           {s?.distance && <div className="text-gray-300 text-sm">Distance: {s.distance}</div>}
-          {s?.name && (
-            <a
-              href={`https://www.google.com/maps/search/${encodeURIComponent(s.name)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#c9a227] hover:text-yellow-300 text-sm font-semibold mt-2 inline-block"
-            >
-              View on Maps →
-            </a>
+          </a>
           )}
         </div>
       ))}
