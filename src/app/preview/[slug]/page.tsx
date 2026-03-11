@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+
 function prettyKey(k: string) {
   const map: Record<string, string> = {
     address1: "Street Address",
@@ -52,7 +53,6 @@ function prettyKey(k: string) {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-
 function formatValue(v: any) {
   if (v === null || v === undefined || v === "") return "—";
 
@@ -82,8 +82,6 @@ function formatValue(v: any) {
 
   return String(v);
 }
-
-
 export default function PreviewPage() {
   const params = useParams();
   const slug = (params?.slug as string) || '';
@@ -110,7 +108,9 @@ export default function PreviewPage() {
       mailingAddress: p.mailingAddress ?? p.mailing_address ?? '',
       viewCount: p.viewCount ?? 0,
       schools: Array.isArray(p.schools) ? p.schools : [],
-      saleHistory: Array.isArray(p.saleHistory) ? p.saleHistory : (Array.isArray(p.sale_history) ? p.sale_history : []),
+      saleHistory: Array.isArray(p.saleHistory)
+        ? p.saleHistory
+        : (Array.isArray(p.sale_history) ? p.sale_history : []),
     };
   }, [property]);
 
@@ -135,7 +135,9 @@ export default function PreviewPage() {
 
         // Increment view count (server-side)
         try {
-          const res = await fetch(`/.netlify/functions/increment-preview-views?slug=${encodeURIComponent(slug)}`);
+          const res = await fetch(
+            `/.netlify/functions/increment-preview-views?slug=${encodeURIComponent(slug)}`
+          );
           const j = await res.json();
           if (j && typeof j.viewCount === 'number') {
             setProperty((prev: any) => ({ ...(prev || {}), viewCount: j.viewCount }));
@@ -178,14 +180,15 @@ export default function PreviewPage() {
       </main>
     );
   }
-
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f]">
       {/* Hero */}
       <div className="bg-gradient-to-r from-[#c9a227] to-yellow-500 text-white py-10 px-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold mb-2">See What You Get</h1>
-          <p className="text-yellow-100 text-lg mb-3">Full property data, documents, and insights—all in one place</p>
+          <p className="text-yellow-100 text-lg mb-3">
+            Full property data, documents, and insights—all in one place
+          </p>
           <div className="text-sm text-yellow-100">
             Views: <span className="font-bold text-xl text-white">{highlight.viewCount || 0}</span>
           </div>
@@ -211,31 +214,18 @@ export default function PreviewPage() {
             )}
 
             {highlight.floodZone && (
-  <div className="bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-orange-500/40 rounded-lg p-4">
-    <p className="text-sm text-gray-300 font-semibold">Flood Zone</p>
-    <p className="text-lg font-bold text-orange-300">{String(highlight.floodZone)}</p>
-    </p>
-  </div>
-)}
-
+              <div className="bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-orange-500/40 rounded-lg p-4">
+                <p className="text-sm text-gray-300 font-semibold">Flood Zone</p>
+                <p className="text-lg font-bold text-orange-300">{String(highlight.floodZone)}</p>
+              </div>
+            )}
 
             {highlight.schools?.length > 0 && (
-  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 border border-white/20">
-    <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">Schools</h3>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {highlight.schools.map((s: any, idx: number) => (
-        <div key={idx} className="bg-black/20 border border-white/10 rounded-lg p-4">
-          <div className="text-white font-bold">{s?.name || 'School'}</div>
-          <div className="text-gray-300 text-sm">{s?.type || ''}</div>
-          {s?.distance && <div className="text-gray-300 text-sm">Distance: {s.distance}</div>}
-          </a>
-          )}
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
+              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/40 rounded-lg p-4">
+                <p className="text-sm text-gray-300 font-semibold">Schools</p>
+                <p className="text-lg font-bold text-purple-300">{highlight.schools.length} Nearby</p>
+              </div>
+            )}
 
             {highlight.assessedValue !== '' && (
               <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/40 rounded-lg p-4">
@@ -248,10 +238,12 @@ export default function PreviewPage() {
           </div>
         </div>
 
-        {/* Quick facts */}
+        {/* Quick facts + Owner */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-            <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">Quick Facts</h3>
+            <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">
+              Quick Facts
+            </h3>
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-gray-400">Square Feet</p>
@@ -269,7 +261,9 @@ export default function PreviewPage() {
           </div>
 
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-            <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">Owner</h3>
+            <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">
+              Owner
+            </h3>
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-gray-400">Owner Name</p>
@@ -281,22 +275,28 @@ export default function PreviewPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-400">Mailing Address</p>
-                <p className="text-lg font-semibold text-white">{highlight.mailingAddress || 'N/A'}</p>
+                <p className="text-lg font-semibold text-white">
+                  {highlight.mailingAddress || 'N/A'}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Schools */}
+        {/* Schools (details) */}
         {highlight.schools?.length > 0 && (
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 border border-white/20">
-            <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">Schools</h3>
+            <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">
+              Schools
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {highlight.schools.map((s: any, idx: number) => (
                 <div key={idx} className="bg-black/20 border border-white/10 rounded-lg p-4">
                   <div className="text-white font-bold">{s?.name || 'School'}</div>
                   <div className="text-gray-300 text-sm">{s?.type || ''}</div>
-                  {s?.distance && <div className="text-gray-300 text-sm">Distance: {s.distance}</div>}
+                  {s?.distance && (
+                    <div className="text-gray-300 text-sm">Distance: {s.distance}</div>
+                  )}
                 </div>
               ))}
             </div>
@@ -306,7 +306,9 @@ export default function PreviewPage() {
         {/* Sale history */}
         {highlight.saleHistory?.length > 0 && (
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 border border-white/20">
-            <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">Sale History</h3>
+            <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">
+              Sale History
+            </h3>
             <div className="space-y-3">
               {highlight.saleHistory.slice(0, 10).map((sale: any, idx: number) => (
                 <div key={idx} className="bg-black/20 border border-white/10 rounded-lg p-4">
@@ -320,18 +322,19 @@ export default function PreviewPage() {
           </div>
         )}
 
-        {/* FULL PAYLOAD RENDERER (this is what you’re missing) */}
+        {/* Full Data (All Fields) */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 border border-white/20">
           <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">
             Full Data (All Fields)
           </h3>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(property || {})
               .sort(([a], [b]) => a.localeCompare(b))
               .map(([k, v]) => (
                 <div key={k} className="bg-black/20 border border-white/10 rounded-lg p-4">
-                  <div className="text-xs text-gray-300 font-bold mb-1 break-words">{prettyKey(k)}</div>
+                  <div className="text-xs text-gray-300 font-bold mb-1 break-words">
+                    {prettyKey(k)}
+                  </div>
                   <div className="text-sm text-white break-words">{formatValue(v) || '—'}</div>
                 </div>
               ))}
