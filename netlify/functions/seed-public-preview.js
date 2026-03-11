@@ -1,66 +1,60 @@
 ﻿// netlify/functions/seed-public-preview.js
-const admin = require("firebase-admin");
+const admin = require('firebase-admin');
 
-function initFirebaseAdmin() {
+function initAdmin() {
   if (admin.apps.length) return;
 
-  const svcJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  const svc = process.env.FIREBASE_SERVICE_ACCOUNT
+    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+    : null;
 
-  if (svcJson) {
-    const serviceAccount = JSON.parse(svcJson);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-    return;
-  }
+  if (!svc) throw new Error('Missing FIREBASE_SERVICE_ACCOUNT env var (JSON).');
 
-  if (
-    process.env.FIREBASE_PROJECT_ID &&
-    process.env.FIREBASE_CLIENT_EMAIL &&
-    process.env.FIREBASE_PRIVATE_KEY
-  ) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-      }),
-    });
-    return;
-  }
-
-  throw new Error(
-    "Missing Firebase Admin credentials. Set FIREBASE_SERVICE_ACCOUNT_JSON (recommended) or FIREBASE_PROJECT_ID/FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY."
-  );
+  admin.initializeApp({
+    credential: admin.credential.cert(svc),
+  });
 }
 
 exports.handler = async (event) => {
   try {
-    const auth = event.headers["x-seed-key"] || event.headers["X-Seed-Key"];
-    if (!process.env.SEED_KEY || auth !== process.env.SEED_KEY) {
-      return { statusCode: 401, body: "Unauthorized" };
+    initAdmin();
+
+    const qsKey = event.queryStringParameters?.key;
+    const headerKey = event.headers?.['x-seed-key'] || event.headers?.['X-Seed-Key'];
+    const key = qsKey || headerKey;
+
+    if (!process.env.SEED_KEY) {
+      return { statusCode: 500, body: JSON.stringify({ ok: false, error: 'SEED_KEY not set in env' }) };
+    }
+    if (key !== process.env.SEED_KEY) {
+      return { statusCode: 403, body: JSON.stringify({ ok: false, error: 'Invalid seed key' }) };
     }
 
-    initFirebaseAdmin();
+    if (!event.body) {
+      return { statusCode: 400, body: JSON.stringify({ ok: false, error: 'Missing body' }) };
+    }
+
+    const payload = JSON.parse(event.body);
+
     const db = admin.firestore();
+    const ref = db.collection('public_previews').doc('easy-street');
 
-    const preview = JSON.parse(event.body || "{}");
-    if (!preview.slug) preview.slug = "easy-street";
-
-    const docId = preview.slug;
-    await db.collection("public_previews").doc(docId).set(
+    await ref.set(
       {
-        ...preview,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        ...payload,
+        slug: 'easy-street',
+        updatedAt: new Date().toISOString(),
+        createdAt: payload.createdAt || new Date().toISOString(),
+        viewCount: payload.viewCount || 0,
       },
       { merge: true }
     );
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ ok: true, path: `public_previews/${docId}` }),
+      body: JSON.stringify({ ok: true, slug: 'easy-street' }),
     };
-  } catch (e) {
-    return { statusCode: 500, body: e.message || "Seed failed" };
+  } catch (err) {
+    return { statusCode: 500, body: JSON.stringify({ ok: false, error: err.message || 'Server error' }) };
   }
 };
