@@ -1,14 +1,14 @@
-﻿// netlify/functions/seed-public-preview.js
+// netlify/functions/seed-public-preview.js
 const admin = require('firebase-admin');
 
 function initAdmin() {
   if (admin.apps.length) return;
 
-  const svc = process.env.FIREBASE_SERVICE_ACCOUNT
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+  const svc = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
+    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
     : null;
 
-  if (!svc) throw new Error('Missing FIREBASE_SERVICE_ACCOUNT env var (JSON).');
+  if (!svc) throw new Error('Missing FIREBASE_SERVICE_ACCOUNT_JSON env var (JSON).');
 
   admin.initializeApp({
     credential: admin.credential.cert(svc),

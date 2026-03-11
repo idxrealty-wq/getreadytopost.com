@@ -4,12 +4,12 @@ const admin = require('firebase-admin');
 function initAdmin() {
   if (admin.apps.length) return;
 
-  const svc = process.env.FIREBASE_SERVICE_ACCOUNT
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+  const svc = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
+    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
     : null;
 
   if (!svc) {
-    throw new Error('Missing FIREBASE_SERVICE_ACCOUNT env var (JSON).');
+    throw new Error('Missing FIREBASE_SERVICE_ACCOUNT_JSON env var (JSON).');
   }
 
   admin.initializeApp({
