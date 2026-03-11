@@ -213,6 +213,35 @@ function WorkspaceContent() {
   setDocumentAccessCode("");
   setExistingPhotos([]);
   setPhotos({});
+  setPropertyData((prev: any) => ({
+    ...prev,
+    taxId: "MANUAL",
+    propertyLink: "",
+    latitude: "",
+    longitude: "",
+    manual_entry: "true",
+    verification_status: "UNVERIFIED",
+    verification_note: "Manual entry — confirm property exists and address is valid before using for clients.",
+  }));
+  const newId = "listing_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+  setListingId(newId);
+  router.replace("/workspace?edit=" + newId);
+}; = () => {
+  setIsManualEntry(true);
+  setAddress("Manual Entry (no parcel match)");
+  setSearchCity("");
+  setSearchState("Florida");
+  setNearby(null);
+  setListing("");
+  setSaved(false);
+  setSavedEstimate(null);
+  setVirtualTourUrl("");
+  setDroneUrl("");
+  setChecklistState({});
+  setNotes("");
+  setDocumentAccessCode("");
+  setExistingPhotos([]);
+  setPhotos({});
 
   setPropertyData((prev: any) => ({
     ...prev,
