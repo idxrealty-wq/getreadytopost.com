@@ -1,0 +1,20 @@
+[33m82cd133[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m Fix Tab4 access code input resetting
+[33m247047e[m Fix Tab4 document upload UI state + dedupe + delete sync
+[33m65b378c[m Add publish preview button, Netlify function, preview photos/docs/share
+[33m6c3f75a[m Preview: fix SchoolMap coords to use property.latitude/longitude
+[33m6d628ab[m Preview: add SchoolMap with property lat/lng
+[33mf826825[m Preview: rewrite clean; remove helper text and map links; fix JSX
+[33m1eca8ef[m Preview: remove flood helper text and school map links
+[33m5def6fc[m Preview: add Google Maps links to schools
+[33m8968bbe[m Netlify: force base directory to repo root
+[33md5276e8[m Preview: add flood zone advisory helper text
+[33md611f48[m Preview: prettify field labels + values
+[33m6473f5b[m Workspace: Manual Entry + UNVERIFIED flag + warning banner
+[33m4e54574[m Fix: repair startManualEntry declaration
+[33md3672ef[m Fix: syntax error in startManualEntry function
+[33m98e937b[m Workspace: add Manual Entry with UNVERIFIED flag + warning banner
+[33mabb3d4c[m Preview: render all fields from Firestore
+[33m39d86ac[m Fix Firebase service account env var name
+[33md410101[m Add preview seeder function
+[33mcc037ee[m Add public preview page + view counter
+[33m36524d9[m Add seed-public-preview function for Firestore preview property

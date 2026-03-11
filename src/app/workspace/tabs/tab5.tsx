@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { saveListing } from '@/lib/listings';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc } from "firebase/firestore";
 import { db } from '@/lib/firebase';
 
 export default function Tab5Save({
@@ -47,20 +47,28 @@ export default function Tab5Save({
     try {
       if (editId) {
         const listingRef = doc(db, 'listings', editId);
-        await updateDoc(listingRef, {
-          address,
-          propertyData,
-          nearby,
-          aiListing: listing,
-          checklistState,
-          notes,
-          documentAccessCode,
-          media: {
-            virtualTourUrl: virtualTourUrl || '',
-            droneUrl: droneUrl || '',
-          },
-          updatedAt: new Date().toISOString(),
-        });
+        await setDoc(
+  listingRef,
+  {
+    userId: user.uid,
+    address,
+    propertyData,
+    nearby,
+    aiListing: listing,
+    checklistState,
+    notes,
+    documents: Array.isArray(existingDocuments) ? existingDocuments : [],
+    photos: Array.isArray(existingPhotos) ? existingPhotos : [],
+    documentAccessCode,
+    media: {
+      virtualTourUrl: virtualTourUrl || "",
+      droneUrl: droneUrl || "",
+    },
+    updatedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+  },
+  { merge: true }
+);
       } else {
         await saveListing(
           user.uid,
