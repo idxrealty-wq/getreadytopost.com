@@ -211,11 +211,15 @@ export default function PreviewPage() {
             )}
 
             {highlight.floodZone && (
-              <div className="bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-orange-500/40 rounded-lg p-4">
-                <p className="text-sm text-gray-300 font-semibold">Flood Zone</p>
-                <p className="text-lg font-bold text-orange-300">{String(highlight.floodZone)}</p>
-              </div>
-            )}
+  <div className="bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-orange-500/40 rounded-lg p-4">
+    <p className="text-sm text-gray-300 font-semibold">Flood Zone</p>
+    <p className="text-lg font-bold text-orange-300">{String(highlight.floodZone)}</p>
+    <p className="text-xs text-gray-300 mt-2 leading-snug">
+      Flood zones can impact insurance costs and lender requirements. Always verify with FEMA and local maps before marketing.
+    </p>
+  </div>
+)}
+
 
             {highlight.schools?.length > 0 && (
               <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/40 rounded-lg p-4">
