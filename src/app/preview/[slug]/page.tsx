@@ -222,11 +222,30 @@ export default function PreviewPage() {
 
 
             {highlight.schools?.length > 0 && (
-              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/40 rounded-lg p-4">
-                <p className="text-sm text-gray-300 font-semibold">Schools</p>
-                <p className="text-lg font-bold text-purple-300">{highlight.schools.length} Nearby</p>
-              </div>
-            )}
+  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 border border-white/20">
+    <h3 className="text-xl font-bold text-white mb-6 border-b border-white/20 pb-3">Schools</h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {highlight.schools.map((s: any, idx: number) => (
+        <div key={idx} className="bg-black/20 border border-white/10 rounded-lg p-4">
+          <div className="text-white font-bold">{s?.name || 'School'}</div>
+          <div className="text-gray-300 text-sm">{s?.type || ''}</div>
+          {s?.distance && <div className="text-gray-300 text-sm">Distance: {s.distance}</div>}
+          {s?.name && (
+            <a
+              href={`https://www.google.com/maps/search/${encodeURIComponent(s.name)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#c9a227] hover:text-yellow-300 text-sm font-semibold mt-2 inline-block"
+            >
+              View on Maps →
+            </a>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
 
             {highlight.assessedValue !== '' && (
               <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/40 rounded-lg p-4">
