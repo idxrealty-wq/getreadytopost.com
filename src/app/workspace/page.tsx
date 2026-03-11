@@ -226,7 +226,8 @@ function WorkspaceContent() {
   const newId = "listing_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
   setListingId(newId);
   router.replace("/workspace?edit=" + newId);
-}; = () => {
+  };
+const startManualEntry = () => {
   setIsManualEntry(true);
   setAddress("Manual Entry (no parcel match)");
   setSearchCity("");
