@@ -29,6 +29,7 @@ function WorkspaceContent() {
   const [loadingListing, setLoadingListing] = useState(false);
   const [activeTab, setActiveTab] = useState(1);
   const [address, setAddress] = useState("");
+  const [isManualEntry, setIsManualEntry] = useState(false);
   const [searchState, setSearchState] = useState("Florida");
   const [searchCity, setSearchCity] = useState("");
   const [propertyData, setPropertyData] = useState({
@@ -196,6 +197,43 @@ function WorkspaceContent() {
       }
     }
   }, []);
+  const startManualEntry = () => {
+  setIsManualEntry(true);
+  setAddress("Manual Entry (no parcel match)");
+  setSearchCity("");
+  setSearchState("Florida");
+  setNearby(null);
+  setListing("");
+  setSaved(false);
+  setSavedEstimate(null);
+  setVirtualTourUrl("");
+  setDroneUrl("");
+  setChecklistState({});
+  setNotes("");
+  setDocumentAccessCode("");
+  setExistingPhotos([]);
+  setPhotos({});
+
+  setPropertyData((prev: any) => ({
+    ...prev,
+    taxId: "MANUAL",
+    propertyLink: "",
+    latitude: "",
+    longitude: "",
+    manual_entry: "true",
+    verification_status: "UNVERIFIED",
+    verification_note: "Manual entry — confirm property exists and address is valid before using for clients.",
+  }));
+
+  const newId =
+    "listing_" +
+    Date.now() +
+    "_" +
+    Math.random().toString(36).substr(2, 9);
+
+  setListingId(newId);
+  router.replace("/workspace?edit=" + newId);
+};
 
   const handleCSVImport = (imported: any) => {
     if (!address) setAddress(imported.address);
@@ -427,7 +465,23 @@ function WorkspaceContent() {
             >
               Sign In / Create Account
             </button>
+			<button
+    onClick={startManualEntry}
+    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition"
+    >
+  ✍️ Manual Entry
+   </button>
+
           </div>
+		  {isManualEntry && (
+  <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6">
+    <div className="text-white font-bold text-xl mb-2">⚠️ UNVERIFIED MANUAL ENTRY</div>
+    <div className="text-gray-200">
+      This listing was created without a parcel match. Confirm the address and property details are accurate before using for clients.
+    </div>
+  </div>
+)}
+
         )}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
           <div className="grid grid-cols-2 gap-4 mb-4">
