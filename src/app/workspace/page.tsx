@@ -213,36 +213,6 @@ function WorkspaceContent() {
   setDocumentAccessCode("");
   setExistingPhotos([]);
   setPhotos({});
-  setPropertyData((prev: any) => ({
-    ...prev,
-    taxId: "MANUAL",
-    propertyLink: "",
-    latitude: "",
-    longitude: "",
-    manual_entry: "true",
-    verification_status: "UNVERIFIED",
-    verification_note: "Manual entry — confirm property exists and address is valid before using for clients.",
-  }));
-  const newId = "listing_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
-  setListingId(newId);
-  router.replace("/workspace?edit=" + newId);
-  };
-const startManualEntry = () => {
-  setIsManualEntry(true);
-  setAddress("Manual Entry (no parcel match)");
-  setSearchCity("");
-  setSearchState("Florida");
-  setNearby(null);
-  setListing("");
-  setSaved(false);
-  setSavedEstimate(null);
-  setVirtualTourUrl("");
-  setDroneUrl("");
-  setChecklistState({});
-  setNotes("");
-  setDocumentAccessCode("");
-  setExistingPhotos([]);
-  setPhotos({});
 
   setPropertyData((prev: any) => ({
     ...prev,
@@ -252,7 +222,7 @@ const startManualEntry = () => {
     longitude: "",
     manual_entry: "true",
     verification_status: "UNVERIFIED",
-    verification_note: "Manual entry — confirm property exists and address is valid before using for clients.",
+    verification_note: "Manual entry - confirm property exists and address is valid before using for clients.",
   }));
 
   const newId =
@@ -344,7 +314,7 @@ const startManualEntry = () => {
       // Homestead
       setIfEmpty("homestead", parcel.homestead);
 
-      // Physical features — normalize to match dropdowns
+      // Physical features normalize to match dropdowns
       const normalizeConstruction = (v: string) => {
         if (!v) return '';
         const u = v.toUpperCase();
@@ -391,7 +361,7 @@ const startManualEntry = () => {
       setIfEmpty("wallType", parcel.wall_type);
       setIfEmpty("dor_uc", parcel.dor_uc);
 
-      // ✅ Schools — always overwrite with fresh API data
+      // Schools G always overwrite with fresh API data
       if (parcel.school_district) {
         next.schoolDistrict = parcel.school_district;
       }
@@ -401,11 +371,11 @@ const startManualEntry = () => {
         );
       }
 
-      // ✅ Data freshness date
+      // G Data freshness date
       if (parcel.last_modified) {
         next.dataDate = parcel.last_modified;
       }
-	        // ✅ Homestead + exemptions
+	        // G Homestead + exemptions
       setIfEmpty("homestead", parcel.homestead);
       setIfEmpty("exemptions", parcel.exemptions);
 	  setIfEmpty("flood_zone", parcel.flood_zone);
@@ -433,7 +403,7 @@ const startManualEntry = () => {
       setIfEmpty("price_per_sqft", parcel.price_per_sqft);
       setIfEmpty("price_per_bed", parcel.price_per_bed);
 
-	        // ✅ Geocodes for map
+	        // G Geocodes for map
       if (parcel.latitude) next.latitude = parcel.latitude;
       if (parcel.longitude) next.longitude = parcel.longitude;
       return next;
@@ -496,22 +466,12 @@ const startManualEntry = () => {
               Sign In / Create Account
             </button>
 			<button
-    onClick={startManualEntry}
-    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition"
-    >
-  ✍️ Manual Entry
-   </button>
-
+  onClick={startManualEntry}
+  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition"
+>
+  ?? Manual Entry
+</button>
           </div>
-		  {isManualEntry && (
-  <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6">
-    <div className="text-white font-bold text-xl mb-2">⚠️ UNVERIFIED MANUAL ENTRY</div>
-    <div className="text-gray-200">
-      This listing was created without a parcel match. Confirm the address and property details are accurate before using for clients.
-    </div>
-  </div>
-)}
-
         )}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -636,9 +596,16 @@ const startManualEntry = () => {
             }}
             className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition"
           >
-            🔄 New Search
+            = New Search
           </button>
-          <button
+		  
+		  <button
+  onClick={startManualEntry}
+  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition"
+>  Manual Entry
+</button>
+
+          <button 
             onClick={() => {
               setSaveNowNonce((n) => n + 1);
               setTimeout(() => window.open("/agent-vault", "_blank"), 600);
@@ -648,7 +615,14 @@ const startManualEntry = () => {
             View in Vault
           </button>
         </div>
-
+         {isManualEntry && (
+  <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6">
+    <div className="text-white font-bold text-xl mb-2">UNVERIFIED MANUAL ENTRY</div>
+    <div className="text-gray-200">
+      This listing was created without a parcel match. Confirm the address and property details are accurate before using for clients.
+    </div>
+  </div>
+)}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {tabs.map((tab) => (
             <button
@@ -780,3 +754,4 @@ export default function WorkspacePage() {
     </Suspense>
   );
 }
+
