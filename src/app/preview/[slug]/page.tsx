@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import SchoolMap from '@/components/SchoolMap';
 
 function prettyKey(k: string) {
   const map: Record<string, string> = {
@@ -106,6 +107,8 @@ export default function PreviewPage() {
       ownerName: p.ownerName ?? p.owner_name ?? '',
       owner2: p.owner2 ?? p.owner2_name ?? '',
       mailingAddress: p.mailingAddress ?? p.mailing_address ?? '',
+	  propertyLat: String(p.latitude ?? p.lat ?? ''),
+      propertyLng: String(p.longitude ?? p.lng ?? ''),
       viewCount: p.viewCount ?? 0,
       schools: Array.isArray(p.schools) ? p.schools : [],
       saleHistory: Array.isArray(p.saleHistory)
@@ -300,6 +303,9 @@ export default function PreviewPage() {
                 </div>
               ))}
             </div>
+			          <div className="mt-6">
+            <SchoolMap propertyLat={highlight.propertyLat} propertyLng={highlight.propertyLng} schools={highlight.schools} />
+          </div>
           </div>
         )}
 
