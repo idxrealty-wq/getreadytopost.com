@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { storage, db } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
@@ -90,6 +89,7 @@ export default function Tab4MediaTours({
   const [codeSaved, setCodeSaved] = useState(false);
   const [showShareConfirm, setShowShareConfirm] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
+
   useEffect(() => {
     if (listingId) setShareUrl("https://getreadytopost.com/documents/view?id=" + listingId);
   }, [listingId]);
@@ -106,7 +106,8 @@ export default function Tab4MediaTours({
           storagePath: d.storagePath || null,
         };
       });
-      setUploads(loaded);
+      setUploads((prev) => ({ ...(prev || {}), ...loaded }));
+
       const metaUpdate: Record<string, any> = {};
       existingDocuments.forEach((d: any) => {
         metaUpdate[d.docId] = {
@@ -156,12 +157,9 @@ export default function Tab4MediaTours({
     if (!listingId) return;
     setSavingCode(true);
     try {
-      await updateDoc(doc(db, "listings", listingId), { 
+      await updateDoc(doc(db, "listings", listingId), {
         documentAccessCode,
-        media: {
-          virtualTourUrl: virtualTourUrl || "",
-          droneUrl: droneUrl || "",
-        }
+        media: { virtualTourUrl: virtualTourUrl || "", droneUrl: droneUrl || "" },
       });
       setCodeSaved(true);
     } catch (e) {
@@ -201,13 +199,7 @@ export default function Tab4MediaTours({
       const updated = allDocs.map((d: any) => {
         if (d.docId !== docId) return d;
         found = true;
-        return {
-          ...d,
-          accessCode: meta.accessCode || "",
-          price: meta.price || "",
-          party: meta.party || "Buyer",
-          sharedWithBuyer: meta.sharedWithBuyer === true,
-        };
+        return { ...d, accessCode: meta.accessCode || "", price: meta.price || "", party: meta.party || "Buyer", sharedWithBuyer: meta.sharedWithBuyer === true };
       });
       if (!found) {
         alert("Doc not found in Firestore. Total docs: " + allDocs.length);
@@ -224,12 +216,10 @@ export default function Tab4MediaTours({
       setUploads((prev) => ({ ...prev, [docId]: null }));
       return;
     }
-
     setUploads((prev) => ({
       ...prev,
       [docId]: { file, date: new Date().toLocaleString(), uploading: true },
     }));
-
     try {
       const storagePath = "documents/" + (listingId || "temp") + "/" + docId + "/" + file.name;
       const storageRef = ref(storage, storagePath);
@@ -256,7 +246,14 @@ export default function Tab4MediaTours({
         };
 
         await updateDoc(doc(db, "listings", listingId), { documents: arrayUnion(docMetaItem) });
-        if (setExistingDocuments) setExistingDocuments((prev: any[]) => [...prev, docMetaItem]);
+
+        if (setExistingDocuments) {
+          setExistingDocuments((prev: any[]) => {
+            const arr = Array.isArray(prev) ? prev : [];
+            if (arr.some((d: any) => d.docId === docId)) return arr;
+            return [...arr, docMetaItem];
+          });
+        }
       }
     } catch (e) {
       console.error("[Tab4] upload failed", e);
@@ -278,7 +275,14 @@ export default function Tab4MediaTours({
           await updateDoc(doc(db, "listings", listingId), { documents: updated });
         }
       }
+
       setUploads((prev) => ({ ...prev, [docId]: null }));
+
+      if (setExistingDocuments) {
+        setExistingDocuments((prev: any[]) =>
+          (Array.isArray(prev) ? prev : []).filter((d: any) => d.docId !== docId)
+        );
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -336,14 +340,13 @@ export default function Tab4MediaTours({
     return acc;
   }, {});
   const sharedCount = DOCUMENT_SLOTS.filter((slot) => docMeta[slot.id]?.sharedWithBuyer).length;
+
   return (
     <div className="space-y-8">
-      {/* Share Link */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-2">Buyer Document Share Link</h2>
         <p className="text-gray-300 mb-6 text-sm">
-          Set an access code and choose which documents to share. Only documents marked "Include in share link" will be
-          visible to the buyer.{" "}
+          Set an access code and choose which documents to share. Only documents marked "Include in share link" will be visible to the buyer.{" "}
           <span className="text-[#c9a227] font-semibold">
             {sharedCount} document{sharedCount !== 1 ? "s" : ""} selected for sharing.
           </span>
@@ -395,12 +398,9 @@ export default function Tab4MediaTours({
         )}
       </div>
 
-      {/* Virtual Tour & Drone Section */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-6">🎥 Media & Tours</h2>
-        
+        <h2 className="text-2xl font-bold text-white mb-6">Media & Tours</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Virtual Tour */}
           <div>
             <label className="block text-white font-bold mb-2">Virtual Tour URL</label>
             <input
@@ -412,10 +412,8 @@ export default function Tab4MediaTours({
             />
             <p className="text-gray-400 text-xs mt-2">Paste Matterport, YouTube, or other virtual tour URL</p>
           </div>
-
-          {/* Drone Footage */}
           <div>
-            <label className="block text-white font-bold mb-2">🛸 Drone Footage URL</label>
+            <label className="block text-white font-bold mb-2">Drone Footage URL</label>
             <input
               type="url"
               value={droneUrl}
@@ -426,7 +424,6 @@ export default function Tab4MediaTours({
             <p className="text-gray-400 text-xs mt-2">Paste YouTube, Vimeo, or drone footage URL</p>
           </div>
         </div>
-
         <button
           onClick={handleSaveAccessCode}
           disabled={savingCode}
@@ -436,7 +433,6 @@ export default function Tab4MediaTours({
         </button>
       </div>
 
-      {/* Documents */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-2">Transaction Documents</h2>
         <p className="text-gray-300 mb-6 text-sm">
@@ -447,8 +443,7 @@ export default function Tab4MediaTours({
             <div key={docSlot.id} className="bg-white/5 rounded-xl p-5 border border-white/20">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-white font-bold">
-                  {docSlot.label}{" "}
-                  {docSlot.required && <span className="text-red-400 text-xs ml-1">Required</span>}
+                  {docSlot.label} {docSlot.required && <span className="text-red-400 text-xs ml-1">Required</span>}
                 </h3>
                 {uploads[docSlot.id]?.url && (
                   <div className="flex gap-2">
@@ -468,7 +463,6 @@ export default function Tab4MediaTours({
                   </div>
                 )}
               </div>
-
               {uploads[docSlot.id] ? (
                 <div className="mb-3 text-sm text-gray-300">
                   {uploads[docSlot.id].uploading ? (
@@ -487,7 +481,6 @@ export default function Tab4MediaTours({
                   className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer mb-3"
                 />
               )}
-
               {uploads[docSlot.id]?.url && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                   <div className="col-span-2">
@@ -524,7 +517,6 @@ export default function Tab4MediaTours({
                       )}
                     </label>
                   </div>
-
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Access Code (optional)</label>
                     <div className="flex gap-2">
@@ -554,7 +546,6 @@ export default function Tab4MediaTours({
                       </button>
                     </div>
                   </div>
-
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Visible To</label>
                     <select
@@ -573,7 +564,6 @@ export default function Tab4MediaTours({
                       <option>Agent Only</option>
                     </select>
                   </div>
-
                   <div className="col-span-2">
                     <button
                       onClick={() => handleSaveDocMeta(docSlot.id)}
@@ -588,12 +578,9 @@ export default function Tab4MediaTours({
           ))}
         </div>
       </div>
-
-      {/* Property Photos */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">Property Photos</h2>
         <p className="text-gray-300 mb-6">Upload photos organized by category. Total: {totalPhotos}/20</p>
-
         <div className="space-y-6">
           {PHOTO_CATEGORIES.map((cat) => (
             <div key={cat.id} className="bg-white/5 rounded-xl p-4 border border-white/20">
@@ -605,7 +592,6 @@ export default function Tab4MediaTours({
                 onChange={(e) => handlePhotoUpload(cat.id, e.target.files)}
                 className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer mb-3"
               />
-
               {(() => {
                 const catSaved = savedPhotos.filter((p) => p.categoryId === cat.id);
                 const catLocal = photos[cat.id] || [];
@@ -656,7 +642,7 @@ export default function Tab4MediaTours({
           ))}
         </div>
       </div>
-      {/* Pre-Listing Checklist */}
+
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">Pre-Listing Checklist</h2>
         <p className="text-gray-300 mb-6">
@@ -689,7 +675,6 @@ export default function Tab4MediaTours({
         </div>
       </div>
 
-      {/* Notes */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">Notes</h2>
         <textarea
@@ -701,14 +686,12 @@ export default function Tab4MediaTours({
         />
       </div>
 
-      {/* No-Code Warning Modal */}
       {showShareConfirm && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-md p-8">
             <h3 className="text-white font-bold text-xl mb-3 text-center">No Access Code Set</h3>
             <p className="text-gray-400 text-sm mb-6 text-center">
-              This link is not password protected. Anyone with the link can view all shared documents. Do you want to add
-              an access code first?
+              This link is not password protected. Anyone with the link can view all shared documents. Do you want to add an access code first?
             </p>
             <div className="flex gap-3">
               <button
@@ -731,7 +714,6 @@ export default function Tab4MediaTours({
         </div>
       )}
 
-      {/* Access Code Prompt Modal */}
       {viewCodePending && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-md p-8">
@@ -773,7 +755,6 @@ export default function Tab4MediaTours({
         </div>
       )}
 
-      {/* Document Viewer Modal */}
       {viewingDoc &&
         uploads[viewingDoc]?.url &&
         (() => {
@@ -815,7 +796,6 @@ export default function Tab4MediaTours({
           );
         })()}
 
-      {/* Next Button */}
       <div className="flex justify-end">
         <button
           onClick={onNext}
