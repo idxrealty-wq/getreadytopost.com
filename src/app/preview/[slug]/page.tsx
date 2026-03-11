@@ -304,7 +304,7 @@ export default function PreviewPage() {
               ))}
             </div>
 			          <div className="mt-6">
-            <SchoolMap propertyLat={highlight.propertyLat} propertyLng={highlight.propertyLng} schools={highlight.schools} />
+            <SchoolMap propertyLat={String(property.latitude)} propertyLng={String(property.longitude)} schools={highlight.schools} />
           </div>
           </div>
         )}
