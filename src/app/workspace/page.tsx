@@ -319,6 +319,11 @@ function WorkspaceContent() {
     const v = (val: any) => val || '';
     return {
       ...prev,
+	  address: prev.address || v(p.address),
+      city: prev.city || v(p.city),
+      zip: prev.zip || v(p.zip),
+      parcelId: prev.parcelId || v(p.parcel_id),
+
       taxId: prev.taxId || v(p.parcel_id),
       yearBuilt: prev.yearBuilt || v(p.year_built),
       sqft: prev.sqft || v(p.sqft),

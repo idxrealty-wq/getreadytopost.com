@@ -1,47 +1,47 @@
 export const CHARGEABLE_FIELDS = [
-  // Core Property
-  { key: 'parcel_id', label: 'Parcel ID', section: 'Core' },
+  // Core Property (keys must match workspace propertyData)
+  { key: 'parcelId', label: 'Parcel ID', section: 'Core' },
   { key: 'address', label: 'Address', section: 'Core' },
   { key: 'city', label: 'City', section: 'Core' },
   { key: 'zip', label: 'ZIP', section: 'Core' },
   { key: 'county', label: 'County', section: 'Core' },
-  { key: 'year_built', label: 'Year Built', section: 'Core' },
+  { key: 'yearBuilt', label: 'Year Built', section: 'Core' },
   { key: 'sqft', label: 'Living Sqft', section: 'Core' },
   { key: 'beds', label: 'Beds', section: 'Core' },
   { key: 'baths', label: 'Baths', section: 'Core' },
-  { key: 'property_type', label: 'Property Type', section: 'Core' },
+  { key: 'propertyType', label: 'Property Type', section: 'Core' },
   { key: 'zoning', label: 'Zoning', section: 'Core' },
-  
+
   // Tax & Assessment
-  { key: 'assessed_value', label: 'Assessed Value', section: 'Tax' },
-  { key: 'just_value', label: 'Just/Market Value', section: 'Tax' },
-  { key: 'land_value', label: 'Land Value', section: 'Tax' },
-  { key: 'building_value', label: 'Building Value', section: 'Tax' },
-  { key: 'taxable_value', label: 'Taxable Value', section: 'Tax' },
-  { key: 'annual_tax', label: 'Annual Tax', section: 'Tax' },
-  { key: 'tax_year', label: 'Tax Year', section: 'Tax' },
-  
+  { key: 'assessedValue', label: 'Assessed Value', section: 'Tax' },
+  { key: 'justValue', label: 'Just/Market Value', section: 'Tax' },
+  { key: 'landValue', label: 'Land Value', section: 'Tax' },
+  { key: 'buildingValue', label: 'Building Value', section: 'Tax' },
+  { key: 'taxableValue', label: 'Taxable Value', section: 'Tax' },
+  { key: 'annualTax', label: 'Annual Tax', section: 'Tax' },
+  { key: 'taxYear', label: 'Tax Year', section: 'Tax' },
+
   // Owner
   { key: 'ownerName', label: 'Owner Name', section: 'Owner' },
   { key: 'owner2Name', label: 'Owner 2', section: 'Owner' },
-  { key: 'owner_type', label: 'Owner Type', section: 'Owner' },
-  { key: 'absentee_owner', label: 'Occupancy Status', section: 'Owner' },
-  { key: 'mailing_address', label: 'Mailing Address', section: 'Owner' },
-  
+  { key: 'ownerType', label: 'Owner Type', section: 'Owner' },
+  { key: 'absenteeOwner', label: 'Occupancy Status', section: 'Owner' },
+  { key: 'mailingAddress', label: 'Mailing Address', section: 'Owner' },
+
   // Sale
-  { key: 'sale_price', label: 'Last Sale Price', section: 'Sale' },
-  { key: 'sale_date', label: 'Sale Date', section: 'Sale' },
-  { key: 'sale_trans_type', label: 'Sale Type', section: 'Sale' },
-  { key: 'seller_name', label: 'Seller Name', section: 'Sale' },
+  { key: 'lastSalePrice', label: 'Last Sale Price', section: 'Sale' },
+  { key: 'saleDate', label: 'Sale Date', section: 'Sale' },
+  { key: 'saleTransType', label: 'Sale Type', section: 'Sale' },
+  { key: 'sellerName', label: 'Seller Name', section: 'Sale' },
   { key: 'saleHistory', label: 'Sale History (Table)', section: 'Sale', isArray: true },
-  
+
   // AVM
   { key: 'avmValue', label: 'AVM Value', section: 'AVM' },
   { key: 'avmLow', label: 'AVM Low', section: 'AVM' },
   { key: 'avmHigh', label: 'AVM High', section: 'AVM' },
   { key: 'avmConfidence', label: 'AVM Confidence', section: 'AVM' },
   { key: 'avmDate', label: 'AVM Date', section: 'AVM' },
-  
+
   // Mortgage
   { key: 'mortgageLender', label: 'Mortgage Lender', section: 'Mortgage' },
   { key: 'mortgageAmount', label: 'Mortgage Amount', section: 'Mortgage' },
@@ -49,15 +49,18 @@ export const CHARGEABLE_FIELDS = [
   { key: 'mortgageType', label: 'Mortgage Type', section: 'Mortgage' },
   { key: 'mortgageTerm', label: 'Mortgage Term', section: 'Mortgage' },
   { key: 'mortgageDate', label: 'Mortgage Date', section: 'Mortgage' },
-  
+  { key: 'mortgageDueDate', label: 'Mortgage Due Date', section: 'Mortgage' },
+
   // Assessment History
   { key: 'assessmentHistory', label: 'Assessment History (Table)', section: 'History', isArray: true },
-  
+
   // Building Permits
   { key: 'buildingPermits', label: 'Building Permits (Table)', section: 'Permits', isArray: true },
-  
-  // Schools
-  { key: 'schools', label: 'Schools (Table)', section: 'Schools', isArray: true },
-];
 
-export const SECTIONS = ['Core', 'Tax', 'Owner', 'Sale', 'AVM', 'Mortgage', 'History', 'Permits', 'Schools'];
+  // Schools
+  { key: 'schoolDistrict', label: 'School District', section: 'Schools' },
+  { key: 'schoolDistrictType', label: 'School District Type', section: 'Schools' },
+  { key: 'schools', label: 'Schools (Table)', section: 'Schools', isArray: true },
+] as const;
+
+export const SECTIONS = ['Core', 'Tax', 'Owner', 'Sale', 'AVM', 'Mortgage', 'History', 'Permits', 'Schools'] as const;
