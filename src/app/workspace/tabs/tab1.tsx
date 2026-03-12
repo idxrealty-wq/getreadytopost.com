@@ -1,4 +1,5 @@
 ﻿"use client";
+import { CHARGEABLE_FIELDS, SECTIONS } from '@/lib/chargeableFields';
 import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 const SchoolMap = dynamic(() => import('@/components/SchoolMap'), { ssr: false });
@@ -16,7 +17,18 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
   };
 
   const canProceed = address && data.taxId && data.yearBuilt;
+    const isPresent = (val: any) => {
+    if (val === null || val === undefined) return false;
+    if (Array.isArray(val)) return val.length > 0;
+    if (typeof val === 'string') return val.trim().length > 0;
+    return true;
+  };
 
+  const getValueLabel = (key: string, val: any) => {
+    if (Array.isArray(val)) return String(val.length);
+    if (val === null || val === undefined) return '';
+    return String(val);
+  };
   const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none bg-white text-gray-900";
   const selectClass = "w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none bg-white text-gray-900";
   const labelClass = "block text-gray-300 text-sm font-bold mb-2";
@@ -33,6 +45,61 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
   return (
     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
       <h2 className="text-2xl font-bold text-white mb-6">Property Basics</h2>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <h3 className="text-lg font-bold text-[#c9a227]">ATTOM Data Coverage (Chargeable Fields)</h3>
+          <div className="text-xs text-gray-300">
+            Shows whether each field was returned for this parcel (not whether you typed it in).
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {SECTIONS.map((section) => {
+            const fields = CHARGEABLE_FIELDS.filter((f) => f.section === section);
+            if (!fields.length) return null;
+
+            const availableCount = fields.filter((f) => isPresent((data as any)[f.key])).length;
+
+            return (
+              <div key={section} className="bg-white/5 border border-white/10 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-white font-bold">{section}</div>
+                  <div className="text-xs text-gray-300">
+                    {availableCount}/{fields.length} available
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {fields.map((f) => {
+                    const val = (data as any)[f.key];
+                    const ok = isPresent(val);
+                    const valLabel = getValueLabel(f.key, val);
+
+                    return (
+                      <div key={f.key} className="flex items-start justify-between gap-3">
+                        <div className="text-xs text-gray-200">{f.label}</div>
+                        <div className="text-xs">
+                          {ok ? (
+                            <span className="text-green-300 font-bold">
+                              Available{Array.isArray(val) ? ` (${valLabel})` : ''}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 font-bold">Not available</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 text-xs text-gray-400">
+          If a field shows "Not available", it means ATTOM returned blank/empty for this parcel (not a mapping failure).
+        </div>
+      </div>
 
       <div className={sectionClass}>
         <h3 className={sectionTitle}>Core Property Info</h3>
