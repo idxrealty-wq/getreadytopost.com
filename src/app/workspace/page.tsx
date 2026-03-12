@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -165,12 +165,12 @@ function WorkspaceContent() {
   };
 
   const tabs = [
-    { num: 1, label: 'Property', icon: '≡ƒÅá', done: !!address && !!propertyData.taxId },
-    { num: 2, label: 'Neighborhood', icon: '≡ƒù║∩╕Å', done: !!nearby },
-    { num: 3, label: 'AI Listing', icon: 'Γ£¿', done: !!listing },
-    { num: 4, label: 'Documents', icon: '≡ƒôï', done: false },
-    { num: 5, label: 'Save', icon: '≡ƒÆ╛', done: saved },
-    { num: 6, label: 'Closing Costs', icon: '≡ƒº«', done: !!savedEstimate },
+    { num: 1, label: 'Property', icon: '🏠', done: !!address && !!propertyData.taxId },
+    { num: 2, label: 'Neighborhood', icon: '🗺️', done: !!nearby },
+    { num: 3, label: 'AI Listing', icon: '✨', done: !!listing },
+    { num: 4, label: 'Documents', icon: '📋', done: false },
+    { num: 5, label: 'Save', icon: '💾', done: saved },
+    { num: 6, label: 'Closing Costs', icon: '🧮', done: !!savedEstimate },
   ];
 
   if (loadingListing) {
@@ -196,7 +196,7 @@ function WorkspaceContent() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
-            {editId ? 'Γ£Å∩╕Å Edit Listing' : '≡ƒÅá Agent Workspace'}
+            {editId ? '✏️ Edit Listing' : '🏠 Agent Workspace'}
           </h1>
           <p className="text-gray-300 text-lg">
             {editId ? 'Update your listing details' : 'Your complete pre-listing command center'}
@@ -205,7 +205,7 @@ function WorkspaceContent() {
 
         {!authLoading && !user && (
           <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6 text-center">
-            <h2 className="text-2xl font-bold text-white mb-3">ΓÜá∩╕Å Sign In Required</h2>
+            <h2 className="text-2xl font-bold text-white mb-3">⚠️ Sign In Required</h2>
             <p className="text-gray-200 text-lg mb-4">
               You must be signed in to save your work. Without an account, all data will be lost when you leave this page.
             </p>
@@ -251,7 +251,7 @@ function WorkspaceContent() {
             onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/agent-vault", "_blank"), 600); }}
             className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition"
           >
-            ≡ƒÅª View in Vault
+            🏦 View in Vault
           </button>
         </div>
 
@@ -268,7 +268,7 @@ function WorkspaceContent() {
                   : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20'
               )}
             >
-              <span className="text-lg">{tab.done && activeTab !== tab.num ? 'Γ£à' : tab.icon}</span>
+              <span className="text-lg">{tab.done && activeTab !== tab.num ? '✅' : tab.icon}</span>
               <span>{tab.num}. {tab.label}</span>
             </button>
           ))}
