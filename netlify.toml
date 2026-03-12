@@ -1,4 +1,4 @@
-[build]
+﻿[build]
   base = "."
   command = "npm run build"
 
@@ -9,3 +9,4 @@
   from = "/vault"
   to = "/agent-vault"
   status = 301
+
