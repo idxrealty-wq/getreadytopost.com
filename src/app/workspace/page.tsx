@@ -313,26 +313,82 @@ function WorkspaceContent() {
          <AddressAutosuggest
   value={address}
   onChange={setAddress}
-  onSelect={(parcel) => {
-    setPropertyData((prev) => ({
+  onSelect={(parcel: any) => {
+  setPropertyData((prev: any) => {
+    const p = parcel || {};
+    const v = (val: any) => val || '';
+    return {
       ...prev,
-      taxId: prev.taxId || parcel.parcel_id || '',
-      yearBuilt: prev.yearBuilt || parcel.year_built || '',
-      sqft: prev.sqft || parcel.sqft || '',
-      beds: prev.beds || parcel.beds || '',
-      lotSize: prev.lotSize || parcel.land_sqft || '',
-      assessedValue: prev.assessedValue || parcel.just_value || '',
-      lastSalePrice: prev.lastSalePrice || parcel.sale_price || '',
-      lastSaleYear: prev.lastSaleYear || parcel.sale_year || '',
-      baths: prev.baths || parcel.baths || '',
-      propertyType: prev.propertyType || parcel.property_type || '',
-      zoning: prev.zoning || parcel.zoning || '',
-      homestead: prev.homestead || parcel.homestead || '',
-      propertyLink: (prev as any).propertyLink || parcel.property_link || '',
-      legalDescription: prev.legalDescription || parcel.legal_description || '',
-      ownerName: (prev as any).ownerName || parcel.owner_name || '',
-    }));
-  }}
+      taxId: prev.taxId || v(p.parcel_id),
+      yearBuilt: prev.yearBuilt || v(p.year_built),
+      sqft: prev.sqft || v(p.sqft),
+      beds: prev.beds || v(p.beds),
+      baths: prev.baths || v(p.baths),
+      lotSize: prev.lotSize || v(p.land_sqft),
+      propertyType: prev.propertyType || v(p.property_type),
+      zoning: prev.zoning || v(p.zoning),
+      homestead: prev.homestead || v(p.homestead),
+      legalDescription: prev.legalDescription || v(p.legal_description),
+      ownerName: prev.ownerName || v(p.owner_name),
+      owner2Name: prev.owner2Name || v(p.owner2_name),
+      ownerType: prev.ownerType || v(p.owner_type),
+      absenteeOwner: prev.absenteeOwner || v(p.absentee_owner),
+      mailingAddress: prev.mailingAddress || v(p.mailing_address),
+      assessedValue: prev.assessedValue || v(p.just_value),
+      justValue: prev.justValue || v(p.just_value),
+      landValue: prev.landValue || v(p.land_value),
+      buildingValue: prev.buildingValue || v(p.building_value),
+      taxableValue: prev.taxableValue || v(p.taxable_value),
+      annualTax: prev.annualTax || v(p.annual_tax),
+      taxYear: prev.taxYear || v(p.tax_year),
+      lastSalePrice: prev.lastSalePrice || v(p.sale_price),
+      saleDate: prev.saleDate || v(p.sale_date),
+      saleTransType: prev.saleTransType || v(p.sale_trans_type),
+      sellerName: prev.sellerName || v(p.seller_name),
+      pricePerSqft: prev.pricePerSqft || v(p.price_per_sqft),
+      deedType: prev.deedType || v(p.deed_type),
+      titleCompany: prev.titleCompany || v(p.title_company),
+      avmValue: prev.avmValue || v(p.avm_value),
+      avmLow: prev.avmLow || v(p.avm_low),
+      avmHigh: prev.avmHigh || v(p.avm_high),
+      avmConfidence: prev.avmConfidence || v(p.avm_confidence),
+      avmDate: prev.avmDate || v(p.avm_date),
+      mortgageLender: prev.mortgageLender || v(p.mortgage_lender),
+      mortgageAmount: prev.mortgageAmount || v(p.mortgage_amount),
+      mortgageRate: prev.mortgageRate || v(p.mortgage_rate),
+      mortgageType: prev.mortgageType || v(p.mortgage_type),
+      mortgageTerm: prev.mortgageTerm || v(p.mortgage_term),
+      mortgageDate: prev.mortgageDate || v(p.mortgage_date),
+      dorUc: prev.dorUc || v(p.dor_uc),
+      zoningCode: prev.zoningCode || v(p.zoning_code),
+      subdivision: prev.subdivision || v(p.subdivision),
+      lotNum: prev.lotNum || v(p.lot_num),
+      acres: prev.acres || v(p.acres),
+      garageSqft: prev.garageSqft || v(p.garage_sqft),
+      fireplace: prev.fireplace || v(p.fireplace),
+      wallType: prev.wallType || v(p.wall_type),
+      condition: prev.condition || v(p.condition),
+      roofCover: prev.roofCover || v(p.roof_cover),
+      roofShape: prev.roofShape || v(p.roof_shape),
+      improvementsYear: prev.improvementsYear || v(p.improvements_year),
+      heatingType: prev.heatingType || v(p.heating_type),
+      heatingFuel: prev.heatingFuel || v(p.heating_fuel),
+      floodZone: prev.floodZone || v(p.flood_zone),
+      floodSubtype: prev.floodSubtype || v(p.flood_subtype),
+      floodSFHA: prev.floodSFHA || v(p.flood_sfha),
+      schoolDistrict: prev.schoolDistrict || v(p.school_district),
+      schoolDistrictType: prev.schoolDistrictType || v(p.school_district_type),
+      schools: prev.schools || (p.schools ? p.schools : []),
+      saleHistory: prev.saleHistory || (p.sale_history ? p.sale_history : []),
+      assessmentHistory: prev.assessmentHistory || (p.assessment_history ? p.assessment_history : []),
+      buildingPermits: prev.buildingPermits || (p.building_permits ? p.building_permits : []),
+      propertyLink: prev.propertyLink || v(p.property_link),
+      latitude: prev.latitude || v(p.latitude),
+      longitude: prev.longitude || v(p.longitude),
+    };
+  });
+}}
+
   state={searchState}
   city={searchCity}
   zip={searchZip}
