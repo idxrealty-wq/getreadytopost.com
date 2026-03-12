@@ -316,6 +316,8 @@ function WorkspaceContent() {
   onSelect={(parcel: any) => {
   setPropertyData((prev: any) => {
     const p = parcel || {};
+	console.log("ATTOM parcel keys:", Object.keys(p));
+    console.log("ATTOM sample:", { parcel_id: p.parcel_id, address: p.address, city: p.city, zip: p.zip, county: p.county, year_built: p.year_built, sqft: p.sqft });
     const v = (val: any) => val || '';
     return {
       ...prev,
