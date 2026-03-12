@@ -195,10 +195,32 @@ export default function Tab4Checklist({
     setPhotos((prev: any) => ({ ...prev, [categoryId]: (prev[categoryId] || []).filter((_: any, i: number) => i !== index) }));
   };
 
-  const handlePhotoUpload = (categoryId: string, files: FileList | null) => {
+  const handlePhotoUpload = async (categoryId: string, files: FileList | null) => {
     if (!files) return;
     const newPhotos = Array.from(files).map((file) => ({ file, preview: URL.createObjectURL(file), date: new Date().toLocaleString() }));
     setPhotos((prev: any) => ({ ...prev, [categoryId]: [...(prev[categoryId] || []), ...newPhotos] }));
+    if (!listingId) return;
+    for (const file of Array.from(files)) {
+      try {
+        const storagePath = "photos/" + listingId + "/" + categoryId + "/" + Date.now() + "_" + file.name;
+        const storageRef = ref(storage, storagePath);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+        const photoMeta = {
+          categoryId,
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          downloadURL,
+          storagePath,
+          uploadedAt: new Date().toISOString(),
+        };
+        await updateDoc(doc(db, "listings", listingId), { photos: arrayUnion(photoMeta) });
+        setSavedPhotos((prev) => [...prev, photoMeta]);
+      } catch (e) {
+        console.error("[Tab4] photo upload failed", e);
+      }
+    }
   };
 
   const totalPhotos = savedPhotos.length + Object.values(photos).reduce((sum: number, arr: any) => sum + (arr?.length || 0), 0);
