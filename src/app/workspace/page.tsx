@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -25,6 +25,11 @@ function WorkspaceContent() {
   const [loadingListing, setLoadingListing] = useState(false);
   const [activeTab, setActiveTab] = useState(1);
   const [address, setAddress] = useState('');
+  const [searchState, setSearchState] = useState('Florida');
+  const [searchCityZip, setSearchCityZip] = useState('');
+  const [searchCity, setSearchCity] = useState('');
+  const [searchZip, setSearchZip] = useState('');
+
   const [propertyData, setPropertyData] = useState({
     taxId: '', yearBuilt: '', beds: '', baths: '', legalDescription: '', propertyType: '',
     zoning: '', stories: '', garage: '', pool: '', construction: '', schoolDistrict: '',
@@ -165,12 +170,12 @@ function WorkspaceContent() {
   };
 
   const tabs = [
-    { num: 1, label: 'Property', icon: '🏠', done: !!address && !!propertyData.taxId },
-    { num: 2, label: 'Neighborhood', icon: '🗺️', done: !!nearby },
-    { num: 3, label: 'AI Listing', icon: '✨', done: !!listing },
-    { num: 4, label: 'Documents', icon: '📋', done: false },
-    { num: 5, label: 'Save', icon: '💾', done: saved },
-    { num: 6, label: 'Closing Costs', icon: '🧮', done: !!savedEstimate },
+    { num: 1, label: 'Property', icon:'[1]', done: !!address && !!propertyData.taxId },
+    { num: 2, label: 'Neighborhood', icon:'[2]', done: !!nearby },
+    { num: 3, label: 'AI Listing', icon:'[3]', done: !!listing },
+    { num: 4, label: 'Documents', icon:'[4]', done: false },
+    { num: 5, label: 'Save', icon:'[5]', done: saved },
+    { num: 6, label: 'Closing Costs', icon:'[6]', done: !!savedEstimate },
   ];
 
   if (loadingListing) {
@@ -196,7 +201,7 @@ function WorkspaceContent() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
-            {editId ? '✏️ Edit Listing' : '🏠 Agent Workspace'}
+            {editId ? 'Edit Listing' : 'Agent Workspace'}
           </h1>
           <p className="text-gray-300 text-lg">
             {editId ? 'Update your listing details' : 'Your complete pre-listing command center'}
@@ -205,7 +210,7 @@ function WorkspaceContent() {
 
         {!authLoading && !user && (
           <div className="bg-gradient-to-r from-red-900/60 to-orange-900/60 border-2 border-red-500/60 rounded-2xl p-6 mb-6 text-center">
-            <h2 className="text-2xl font-bold text-white mb-3">⚠️ Sign In Required</h2>
+            <h2 className="text-2xl font-bold text-white mb-3">Sign In Required</h2>
             <p className="text-gray-200 text-lg mb-4">
               You must be signed in to save your work. Without an account, all data will be lost when you leave this page.
             </p>
@@ -217,32 +222,123 @@ function WorkspaceContent() {
             </button>
           </div>
         )}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+  <div>
+    <label className="block text-gray-300 text-sm font-bold mb-2">State</label>
+    <select
+      value={searchState}
+      onChange={(e) => setSearchState(e.target.value)}
+      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none bg-white text-gray-900"
+    >
+      <option value="Florida">Florida</option>
+      <option value="Alabama">Alabama</option>
+      <option value="Alaska">Alaska</option>
+      <option value="Arizona">Arizona</option>
+      <option value="Arkansas">Arkansas</option>
+      <option value="California">California</option>
+      <option value="Colorado">Colorado</option>
+      <option value="Connecticut">Connecticut</option>
+      <option value="Delaware">Delaware</option>
+      <option value="Georgia">Georgia</option>
+      <option value="Hawaii">Hawaii</option>
+      <option value="Idaho">Idaho</option>
+      <option value="Illinois">Illinois</option>
+      <option value="Indiana">Indiana</option>
+      <option value="Iowa">Iowa</option>
+      <option value="Kansas">Kansas</option>
+      <option value="Kentucky">Kentucky</option>
+      <option value="Louisiana">Louisiana</option>
+      <option value="Maine">Maine</option>
+      <option value="Maryland">Maryland</option>
+      <option value="Massachusetts">Massachusetts</option>
+      <option value="Michigan">Michigan</option>
+      <option value="Minnesota">Minnesota</option>
+      <option value="Mississippi">Mississippi</option>
+      <option value="Missouri">Missouri</option>
+      <option value="Montana">Montana</option>
+      <option value="Nebraska">Nebraska</option>
+      <option value="Nevada">Nevada</option>
+      <option value="New Hampshire">New Hampshire</option>
+      <option value="New Jersey">New Jersey</option>
+      <option value="New Mexico">New Mexico</option>
+      <option value="New York">New York</option>
+      <option value="North Carolina">North Carolina</option>
+      <option value="North Dakota">North Dakota</option>
+      <option value="Ohio">Ohio</option>
+      <option value="Oklahoma">Oklahoma</option>
+      <option value="Oregon">Oregon</option>
+      <option value="Pennsylvania">Pennsylvania</option>
+      <option value="Rhode Island">Rhode Island</option>
+      <option value="South Carolina">South Carolina</option>
+      <option value="South Dakota">South Dakota</option>
+      <option value="Tennessee">Tennessee</option>
+      <option value="Texas">Texas</option>
+      <option value="Utah">Utah</option>
+      <option value="Vermont">Vermont</option>
+      <option value="Virginia">Virginia</option>
+      <option value="Washington">Washington</option>
+      <option value="West Virginia">West Virginia</option>
+      <option value="Wisconsin">Wisconsin</option>
+      <option value="Wyoming">Wyoming</option>
+    </select>
+  </div>
+  <div>
+    <label className="block text-gray-300 text-sm font-bold mb-2">City or ZIP</label>
+    <input
+      type="text"
+      value={searchCityZip}
+      onChange={(e) => {
+        const v = e.target.value;
+        setSearchCityZip(v);
+
+        const trimmed = (v || "").trim();
+        const zipMatch = trimmed.match(/\b\d{5}\b/);
+        const looksLikeZip = /^\d{5}(-\d{4})?$/.test(trimmed) || !!zipMatch;
+
+        if (looksLikeZip) {
+          setSearchZip((zipMatch ? zipMatch[0] : trimmed).slice(0, 5));
+          setSearchCity("");
+        } else {
+          setSearchCity(trimmed);
+          setSearchZip("");
+        }
+      }}
+      placeholder="e.g., Tavares or 32778"
+      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none bg-white text-gray-900"
+    />
+  </div>
+</div>
 
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
-          <AddressAutosuggest
-            value={address}
-            onChange={setAddress}
-            onSelect={(parcel) => {
-              setPropertyData((prev) => ({
-                ...prev,
-                taxId: prev.taxId || parcel.parcel_id || '',
-                yearBuilt: prev.yearBuilt || parcel.year_built || '',
-                sqft: prev.sqft || parcel.sqft || '',
-                beds: prev.beds || parcel.beds || '',
-                lotSize: prev.lotSize || parcel.land_sqft || '',
-                assessedValue: prev.assessedValue || parcel.just_value || '',
-                lastSalePrice: prev.lastSalePrice || parcel.sale_price || '',
-                lastSaleYear: prev.lastSaleYear || parcel.sale_year || '',
-                baths: prev.baths || parcel.baths || '',
-                propertyType: prev.propertyType || parcel.property_type || '',
-                zoning: prev.zoning || parcel.zoning || '',
-                homestead: prev.homestead || parcel.homestead || '',
-                propertyLink: (prev as any).propertyLink || parcel.property_link || '',
-                legalDescription: prev.legalDescription || parcel.legal_description || '',
-                ownerName: (prev as any).ownerName || parcel.owner_name || '',
-              }));
-            }}
-          />
+         <AddressAutosuggest
+  value={address}
+  onChange={setAddress}
+  onSelect={(parcel) => {
+    setPropertyData((prev) => ({
+      ...prev,
+      taxId: prev.taxId || parcel.parcel_id || '',
+      yearBuilt: prev.yearBuilt || parcel.year_built || '',
+      sqft: prev.sqft || parcel.sqft || '',
+      beds: prev.beds || parcel.beds || '',
+      lotSize: prev.lotSize || parcel.land_sqft || '',
+      assessedValue: prev.assessedValue || parcel.just_value || '',
+      lastSalePrice: prev.lastSalePrice || parcel.sale_price || '',
+      lastSaleYear: prev.lastSaleYear || parcel.sale_year || '',
+      baths: prev.baths || parcel.baths || '',
+      propertyType: prev.propertyType || parcel.property_type || '',
+      zoning: prev.zoning || parcel.zoning || '',
+      homestead: prev.homestead || parcel.homestead || '',
+      propertyLink: (prev as any).propertyLink || parcel.property_link || '',
+      legalDescription: prev.legalDescription || parcel.legal_description || '',
+      ownerName: (prev as any).ownerName || parcel.owner_name || '',
+    }));
+  }}
+  state={searchState}
+  city={searchCity}
+  zip={searchZip}
+/>
+
+
         </div>
 
         <div className="flex justify-between items-center mb-4">
@@ -251,7 +347,7 @@ function WorkspaceContent() {
             onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/agent-vault", "_blank"), 600); }}
             className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition"
           >
-            🏦 View in Vault
+            View in Vault
           </button>
         </div>
 
@@ -268,7 +364,7 @@ function WorkspaceContent() {
                   : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20'
               )}
             >
-              <span className="text-lg">{tab.done && activeTab !== tab.num ? '✅' : tab.icon}</span>
+              <span className="text-lg">{tab.done && activeTab !== tab.num ? '[v]' : tab.icon}</span>
               <span>{tab.num}. {tab.label}</span>
             </button>
           ))}

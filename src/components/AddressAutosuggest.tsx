@@ -39,6 +39,7 @@ interface Props {
   onSelect: (parcel: ParcelResult) => void;
   state?: string;
   city?: string;
+  zip?: string;
 }
 
 export default function AddressAutosuggest({
@@ -47,6 +48,7 @@ export default function AddressAutosuggest({
   onSelect,
   state = "Florida",
   city = "",
+  zip = "",
 }: Props) {
   const [results, setResults] = useState<ParcelResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -83,7 +85,7 @@ export default function AddressAutosuggest({
         params.set("q", val);
         if (state && state.trim()) params.set("state", state.trim());
         if (city && city.trim()) params.set("city", city.trim());
-
+        if (zip && zip.trim()) params.set("zip", zip.trim());
         const res = await fetch("/api/parcel-search?" + params.toString());
         const data = await res.json();
 
