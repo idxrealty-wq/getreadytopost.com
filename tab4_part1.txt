@@ -1,0 +1,150 @@
+﻿"use client";
+import { useEffect, useState } from "react";
+import { storage, db } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
+
+const DOCUMENT_SLOTS = [
+  { id: "seller_disclosure", label: "Seller Disclosure", required: true },
+  { id: "listing_agreement", label: "Listing Agreement", required: true },
+  { id: "lead_paint", label: "Lead-Based Paint Disclosure (Pre-1978)", required: false },
+  { id: "hoa_docs", label: "HOA Documents", required: false },
+  { id: "survey", label: "Property Survey", required: false },
+  { id: "title_info", label: "Title Information", required: false },
+  { id: "appraisal", label: "Appraisal", required: false },
+  { id: "inspection", label: "Inspection Report", required: false },
+];
+
+const PHOTO_CATEGORIES = [
+  { id: "exterior", label: "Exterior Photos" },
+  { id: "interior", label: "Interior Photos" },
+  { id: "aerial", label: "Aerial/Drone Photos" },
+  { id: "kitchen", label: "Kitchen" },
+  { id: "bathrooms", label: "Bathrooms" },
+  { id: "bedrooms", label: "Bedrooms" },
+  { id: "outdoor", label: "Outdoor/Yard" },
+  { id: "other", label: "Other" },
+];
+
+const CHECKLIST_ITEMS = [
+  { id: "photos_exterior", label: "Exterior Photos Taken", category: "Photos & Media" },
+  { id: "photos_interior", label: "Interior Photos Taken", category: "Photos & Media" },
+  { id: "photos_aerial", label: "Aerial/Drone Photos", category: "Photos & Media" },
+  { id: "virtual_tour", label: "Virtual Tour / Video Walkthrough", category: "Photos & Media" },
+  { id: "floor_plan", label: "Floor Plan Created", category: "Photos & Media" },
+  { id: "lockbox", label: "Lockbox Placed", category: "Property Prep" },
+  { id: "sign_installed", label: "Yard Sign Installed", category: "Property Prep" },
+  { id: "staging", label: "Staging Complete", category: "Property Prep" },
+  { id: "cleaning", label: "Deep Cleaning Done", category: "Property Prep" },
+  { id: "repairs", label: "Pre-Listing Repairs Complete", category: "Property Prep" },
+  { id: "mls_entry", label: "MLS Entry Complete", category: "Marketing" },
+  { id: "description_written", label: "Listing Description Written", category: "Marketing" },
+  { id: "social_media", label: "Social Media Posts Scheduled", category: "Marketing" },
+  { id: "email_blast", label: "Email Blast Sent", category: "Marketing" },
+  { id: "open_house", label: "Open House Scheduled", category: "Marketing" },
+];
+
+export default function Tab4MediaTours({
+  checklistState,
+  setChecklistState,
+  notes,
+  setNotes,
+  photos,
+  setPhotos,
+  existingPhotos,
+  existingDocuments,
+  setExistingDocuments,
+  onNext,
+  listingId,
+  documentAccessCode,
+  setDocumentAccessCode,
+  virtualTourUrl,
+  setVirtualTourUrl,
+  droneUrl,
+  setDroneUrl,
+}: any) {
+  const [uploads, setUploads] = useState<Record<string, any>>({});
+  const [localAccessCode, setLocalAccessCode] = useState(documentAccessCode || "");
+  const [docMeta, setDocMeta] = useState<
+    Record<
+      string,
+      { price: string; party: string; accessCode: string; codeSaved?: boolean; sharedWithBuyer: boolean; showCode?: boolean }
+    >
+  >(() => {
+    const defaults: Record<string, any> = {};
+    DOCUMENT_SLOTS.forEach((d) => {
+      defaults[d.id] = { price: "", party: "Buyer", accessCode: "", codeSaved: false, sharedWithBuyer: false, showCode: false };
+    });
+    return defaults;
+  });
+
+  const [showGlobalCode, setShowGlobalCode] = useState(false);
+  const [savedPhotos, setSavedPhotos] = useState<any[]>([]);
+  const [deletingDoc, setDeletingDoc] = useState<string | null>(null);
+  const [viewingDoc, setViewingDoc] = useState<string | null>(null);
+  const [viewCodeInput, setViewCodeInput] = useState("");
+  const [viewCodeError, setViewCodeError] = useState(false);
+  const [viewCodePending, setViewCodePending] = useState<string | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
+  const [savingCode, setSavingCode] = useState(false);
+  const [codeSaved, setCodeSaved] = useState(false);
+  const [showShareConfirm, setShowShareConfirm] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
+
+  useEffect(() => {
+    if (listingId) setShareUrl("https://getreadytopost.com/documents/view?id=" + listingId);
+  }, [listingId]);
+
+  useEffect(() => {
+    if (existingDocuments && existingDocuments.length > 0) {
+      const loaded: Record<string, any> = {};
+      existingDocuments.forEach((d: any) => {
+        loaded[d.docId] = {
+          file: { name: d.fileName } as File,
+          date: d.uploadedAt ? new Date(d.uploadedAt).toLocaleString() : "",
+          url: d.downloadURL,
+          uploading: false,
+          storagePath: d.storagePath || null,
+        };
+      });
+      setUploads((prev) => ({ ...(prev || {}), ...loaded }));
+
+      const metaUpdate: Record<string, any> = {};
+      existingDocuments.forEach((d: any) => {
+        metaUpdate[d.docId] = {
+          price: d.price || "",
+          party: d.party || "Buyer",
+          accessCode: d.accessCode || "",
+          codeSaved: !!d.accessCode,
+          sharedWithBuyer: d.sharedWithBuyer === true,
+          showCode: false,
+        };
+      });
+      setDocMeta((prev) => ({ ...prev, ...metaUpdate }));
+    }
+  }, [existingDocuments]);
+
+  useEffect(() => {
+    if (existingPhotos && existingPhotos.length > 0) setSavedPhotos(existingPhotos);
+  }, [existingPhotos]);
+
+  const toggleChecklist = (id: string) => setChecklistState((prev: any) => ({ ...prev, [id]: !prev[id] }));
+
+  const handleViewClick = (docId: string) => {
+    const code = docMeta[docId]?.accessCode || "";
+    if (!code) {
+      setViewingDoc(docId);
+    } else {
+      setViewCodePending(docId);
+      setViewCodeInput("");
+      setViewCodeError(false);
+    }
+  };
+
+  const handleViewCodeSubmit = () => {
+    if (!viewCodePending) return;
+    const code = docMeta[viewCodePending]?.accessCode || "";
+    if (viewCodeInput.trim() === code.trim()) {
+      setViewingDoc(viewCodePending);
+      setViewCodePending(null);
+      setViewCodeInput("");

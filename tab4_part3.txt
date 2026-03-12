@@ -1,0 +1,200 @@
+﻿      if (listingId) {
+        const snap = await getDoc(doc(db, "listings", listingId));
+        if (snap.exists()) {
+          const updated = (snap.data().photos || []).filter((p: any) => p.downloadURL !== photo.downloadURL);
+          await updateDoc(doc(db, "listings", listingId), { photos: updated });
+        }
+      }
+      setSavedPhotos((prev) => prev.filter((p) => p.downloadURL !== photo.downloadURL));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteLocalPhoto = (categoryId: string, index: number) => {
+    setPhotos((prev: any) => ({
+      ...prev,
+      [categoryId]: (prev[categoryId] || []).filter((_: any, i: number) => i !== index),
+    }));
+  };
+
+  const handlePhotoUpload = (categoryId: string, files: FileList | null) => {
+    if (!files) return;
+    const newPhotos = Array.from(files).map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      date: new Date().toLocaleString(),
+    }));
+    setPhotos((prev: any) => ({
+      ...prev,
+      [categoryId]: [...(prev[categoryId] || []), ...newPhotos],
+    }));
+  };
+
+  const totalPhotos =
+    savedPhotos.length + Object.values(photos).reduce((sum: number, arr: any) => sum + (arr?.length || 0), 0);
+  const completedCount = Object.values(checklistState).filter(Boolean).length;
+  const totalCount = CHECKLIST_ITEMS.length;
+  const groupedChecklist = CHECKLIST_ITEMS.reduce((acc: any, item) => {
+    if (!acc[item.category]) acc[item.category] = [];
+    acc[item.category].push(item);
+    return acc;
+  }, {});
+  const sharedCount = DOCUMENT_SLOTS.filter((slot) => docMeta[slot.id]?.sharedWithBuyer).length;
+
+  return (
+    <div className="space-y-8">
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+        <h2 className="text-2xl font-bold text-white mb-2">Buyer Document Share Link</h2>
+        <p className="text-gray-300 mb-6 text-sm">
+          Set an access code and choose which documents to share. Only documents marked "Include in share link" will be visible to the buyer.{" "}
+          <span className="text-[#c9a227] font-semibold">
+            {sharedCount} document{sharedCount !== 1 ? "s" : ""} selected for sharing.
+          </span>
+        </p>
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="flex-1 flex gap-2">
+            <input
+              type={showGlobalCode ? "text" : "password"}
+              value={localAccessCode}
+   onChange={(e) => {
+   const v = e.target.value;
+   setLocalAccessCode(v);
+   setDocumentAccessCode(v);
+   setCodeSaved(false);
+   }}
+              placeholder="Set access code (e.g. SMITH2024)"
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black"
+            />
+            <button
+              type="button"
+              onClick={() => setShowGlobalCode((v) => !v)}
+              className="bg-white/20 hover:bg-white/30 text-white px-4 py-3 rounded-xl font-bold transition whitespace-nowrap"
+            >
+              {showGlobalCode ? "Hide" : "Show"}
+            </button>
+          </div>
+          <button
+            onClick={handleShareClick}
+            disabled={savingCode}
+            className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition disabled:opacity-50"
+          >
+            {savingCode ? "Saving..." : "Save & Generate Link"}
+          </button>
+        </div>
+        {codeSaved && shareUrl && (
+          <div className="bg-white/10 rounded-xl p-4 border border-white/20">
+            <p className="text-gray-300 text-sm mb-2">Share this link with your buyer:</p>
+            <div className="flex items-center gap-3">
+              <code className="text-[#c9a227] text-sm break-all flex-1">{shareUrl}</code>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(shareUrl);
+                  setCodeCopied(true);
+                }}
+                className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-semibold transition whitespace-nowrap"
+              >
+                {codeCopied ? "Copied!" : "Copy Link"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+        <h2 className="text-2xl font-bold text-white mb-6">Media & Tours</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-white font-bold mb-2">Virtual Tour URL</label>
+            <input
+              type="url"
+              value={virtualTourUrl}
+              onChange={(e) => setVirtualTourUrl(e.target.value)}
+              placeholder="e.g., https://matterport.com/show/..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black"
+            />
+            <p className="text-gray-400 text-xs mt-2">Paste Matterport, YouTube, or other virtual tour URL</p>
+          </div>
+          <div>
+            <label className="block text-white font-bold mb-2">Drone Footage URL</label>
+            <input
+              type="url"
+              value={droneUrl}
+              onChange={(e) => setDroneUrl(e.target.value)}
+              placeholder="e.g., https://youtube.com/watch?v=..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black"
+            />
+            <p className="text-gray-400 text-xs mt-2">Paste YouTube, Vimeo, or drone footage URL</p>
+          </div>
+        </div>
+        <button
+          onClick={handleSaveAccessCode}
+          disabled={savingCode}
+          className="mt-4 bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-2 rounded-xl font-bold transition disabled:opacity-50"
+        >
+          {savingCode ? "Saving..." : "Save Media URLs"}
+        </button>
+      </div>
+
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+        <h2 className="text-2xl font-bold text-white mb-2">Transaction Documents</h2>
+        <p className="text-gray-300 mb-6 text-sm">
+          Upload documents, set access codes, and check "Include in share link" to control what the buyer sees.
+        </p>
+        <div className="space-y-6">
+          {DOCUMENT_SLOTS.map((docSlot) => (
+            <div key={docSlot.id} className="bg-white/5 rounded-xl p-5 border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-white font-bold">
+                  {docSlot.label} {docSlot.required && <span className="text-red-400 text-xs ml-1">Required</span>}
+                </h3>
+                {uploads[docSlot.id]?.url && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleViewClick(docSlot.id)}
+                      className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg transition"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleDeleteDoc(docSlot.id)}
+                      disabled={deletingDoc === docSlot.id}
+                      className="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg transition disabled:opacity-50"
+                    >
+                      {deletingDoc === docSlot.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                )}
+              </div>
+              {uploads[docSlot.id] ? (
+                <div className="mb-3 text-sm text-gray-300">
+                  {uploads[docSlot.id].uploading ? (
+                    <span className="text-yellow-400">Uploading...</span>
+                  ) : (
+                    <span className="text-green-400">
+                      {uploads[docSlot.id].file?.name} - uploaded {uploads[docSlot.id].date}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={(e) => handleFileUpload(docSlot.id, e.target.files?.[0] || null)}
+                  className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer mb-3"
+                />
+              )}
+              {uploads[docSlot.id]?.url && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                  <div className="col-span-2">
+                    <label className="flex items-center gap-3 cursor-pointer bg-[#c9a227]/10 hover:bg-[#c9a227]/20 border border-[#c9a227]/40 p-3 rounded-xl transition">
+                      <input
+                        type="checkbox"
+                        checked={docMeta[docSlot.id]?.sharedWithBuyer || false}
+                        onChange={async (e) => {
+                          const checked = e.target.checked;
+                          setDocMeta((prev) => ({
+                            ...prev,
+                            [docSlot.id]: { ...prev[docSlot.id], sharedWithBuyer: checked, codeSaved: false },
+                          }));
+                          if (listingId) {

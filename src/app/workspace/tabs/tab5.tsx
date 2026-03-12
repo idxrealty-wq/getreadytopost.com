@@ -1,28 +1,10 @@
 ﻿import { useState, useEffect } from 'react';
+
 import { saveListing } from '@/lib/listings';
-import { doc, updateDoc, setDoc } from "firebase/firestore";
+import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-export default function Tab5Save({
-  address,
-  propertyData,
-  nearby,
-  listing,
-  checklistState,
-  notes,
-  saved,
-  setSaved,
-  user,
-  editId,
-  photos,
-  existingPhotos,
-  documents,
-  existingDocuments,
-  saveNowNonce,
-  documentAccessCode,
-  virtualTourUrl,
-  droneUrl,
-}: any) {
+export default function Tab5Save({ address, propertyData, nearby, listing, checklistState, notes, saved, setSaved, user, editId, photos, existingPhotos, documents, existingDocuments, saveNowNonce, documentAccessCode }: any) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -43,33 +25,23 @@ export default function Tab5Save({
 
     setSaving(true);
     setError('');
-
+    
     try {
       if (editId) {
+        // Update existing listing
         const listingRef = doc(db, 'listings', editId);
-        await setDoc(
-  listingRef,
-  {
-    userId: user.uid,
-    address,
-    propertyData,
-    nearby,
-    aiListing: listing,
-    checklistState,
-    notes,
-    documents: Array.isArray(existingDocuments) ? existingDocuments : [],
-    photos: Array.isArray(existingPhotos) ? existingPhotos : [],
-    documentAccessCode,
-    media: {
-      virtualTourUrl: virtualTourUrl || "",
-      droneUrl: droneUrl || "",
-    },
-    updatedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-  },
-  { merge: true }
-);
+        await updateDoc(listingRef, {
+          address,
+          propertyData,
+          nearby,
+          aiListing: listing,
+          checklistState,
+          notes,
+          documentAccessCode,
+          updatedAt: new Date().toISOString(),
+        });
       } else {
+        // Create new listing
         await saveListing(
           user.uid,
           address,
@@ -91,19 +63,13 @@ export default function Tab5Save({
   const completedChecklist = Object.entries(checklistState).filter(([, v]) => v).length;
   const totalChecklist = Object.keys(checklistState).length;
   const photoCount = Object.values(photos || {}).reduce((s: number, a: any) => s + a.length, 0) + (existingPhotos || []).length;
-  const docCount =
-    (existingDocuments || []).filter((d: any) => d && d.downloadURL).length +
-    Object.values(documents || {}).filter((d: any) => d && d.url).length;
-  const nearbyCount = nearby
-    ? Object.values(nearby).filter((arr: any) => arr && arr.length > 0).length
-    : 0;
+  const docCount = (existingDocuments || []).filter((d: any) => d && d.downloadURL).length + Object.values(documents || {}).filter((d: any) => d && d.url).length;
+  const nearbyCount = nearby ? Object.values(nearby).filter((arr: any) => arr && arr.length > 0).length : 0;
 
   return (
     <div className="space-y-6">
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-6">
-          💾 {editId ? 'Update Listing' : 'Save to Agent Vault'}
-        </h2>
+        <h2 className="text-2xl font-bold text-white mb-6">💾 {editId ? 'Update Listing' : 'Save to Agent Vault'}</h2>
         <p className="text-gray-300 mb-8">Review your listing package before saving:</p>
 
         <div className="space-y-4">
@@ -144,27 +110,11 @@ export default function Tab5Save({
           </div>
           <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
             <span className="text-white font-bold">📸 Photos</span>
-            <span className={photoCount > 0 ? 'text-green-400' : 'text-gray-400'}>
-              {photoCount > 0 ? `${photoCount} uploaded` : 'None uploaded'}
-            </span>
+            <span className={photoCount > 0 ? "text-green-400" : "text-gray-400"}>{photoCount > 0 ? photoCount + " uploaded" : "None uploaded"}</span>
           </div>
           <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
             <span className="text-white font-bold">📄 Documents</span>
-            <span className={docCount > 0 ? 'text-green-400' : 'text-gray-400'}>
-              {docCount > 0 ? `${docCount} uploaded` : 'None uploaded'}
-            </span>
-          </div>
-          <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
-            <span className="text-white font-bold">🎥 Virtual Tour</span>
-            <span className={virtualTourUrl ? 'text-green-400' : 'text-gray-400'}>
-              {virtualTourUrl ? '✅ Added' : 'Not added'}
-            </span>
-          </div>
-          <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
-            <span className="text-white font-bold">🚁 Drone Footage</span>
-            <span className={droneUrl ? 'text-green-400' : 'text-gray-400'}>
-              {droneUrl ? '✅ Added' : 'Not added'}
-            </span>
+            <span className={docCount > 0 ? "text-green-400" : "text-gray-400"}>{docCount > 0 ? docCount + " uploaded" : "None uploaded"}</span>
           </div>
           <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
             <span className="text-white font-bold">✅ Checklist</span>
@@ -198,16 +148,9 @@ export default function Tab5Save({
       ) : (
         <div className="bg-gradient-to-br from-emerald-900/60 to-green-900/40 backdrop-blur-md rounded-2xl p-8 border-2 border-emerald-500/40 text-center">
           <div className="text-6xl mb-4">🎉</div>
-          <h3 className="text-2xl font-bold text-white mb-2">
-            {editId ? 'Listing Updated!' : 'Saved to Agent Vault!'}
-          </h3>
-          <p className="text-gray-300 mb-4">
-            Your {editId ? 'updated' : 'complete'} listing package for{' '}
-            <strong className="text-white">{address}</strong> is now in your vault.
-          </p>
-          <p className="text-gray-400 text-sm mb-6">
-            Access it anytime from your Agent Vault dashboard.
-          </p>
+          <h3 className="text-2xl font-bold text-white mb-2">{editId ? 'Listing Updated!' : 'Saved to Agent Vault!'}</h3>
+          <p className="text-gray-300 mb-4">Your {editId ? 'updated' : 'complete'} listing package for <strong className="text-white">{address}</strong> is now in your vault.</p>
+          <p className="text-gray-400 text-sm mb-6">Access it anytime from your Agent Vault dashboard.</p>
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => window.location.href = '/agent-vault'}

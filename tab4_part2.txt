@@ -1,0 +1,150 @@
+﻿      setViewCodeError(false);
+    } else {
+      setViewCodeError(true);
+    }
+  };
+
+  const handleSaveAccessCode = async () => {
+    if (!listingId) return;
+    setSavingCode(true);
+    try {
+      await updateDoc(doc(db, "listings", listingId), {
+        documentAccessCode,
+        media: { virtualTourUrl: virtualTourUrl || "", droneUrl: droneUrl || "" },
+      });
+      setCodeSaved(true);
+    } catch (e) {
+      alert("Failed to save access code and media URLs");
+    } finally {
+      setSavingCode(false);
+    }
+  };
+
+  const handleShareClick = () => {
+    if (!listingId) {
+      alert("Save the listing first before sharing.");
+      return;
+    }
+    if (!documentAccessCode) {
+      setShowShareConfirm(true);
+    } else {
+      handleSaveAccessCode().then(() => setCodeCopied(false));
+    }
+  };
+
+  const handleSaveDocMeta = async (docId: string) => {
+    if (!listingId) {
+      alert("No listing ID found.");
+      return;
+    }
+    try {
+      const listingRef = doc(db, "listings", listingId);
+      const snap = await getDoc(listingRef);
+      if (!snap.exists()) {
+        alert("Listing not found in Firestore.");
+        return;
+      }
+      const allDocs = snap.data().documents || [];
+      const meta = docMeta[docId] || {};
+      let found = false;
+      const updated = allDocs.map((d: any) => {
+        if (d.docId !== docId) return d;
+        found = true;
+        return { ...d, accessCode: meta.accessCode || "", price: meta.price || "", party: meta.party || "Buyer", sharedWithBuyer: meta.sharedWithBuyer === true };
+      });
+      if (!found) {
+        alert("Doc not found in Firestore. Total docs: " + allDocs.length);
+        return;
+      }
+      await updateDoc(listingRef, { documents: updated });
+      setDocMeta((prev) => ({ ...prev, [docId]: { ...prev[docId], codeSaved: true } }));
+    } catch (e: any) {
+      alert("Error: " + (e?.message || "unknown"));
+    }
+  };
+  const handleFileUpload = async (docId: string, file: File | null) => {
+    if (!file) {
+      setUploads((prev) => ({ ...prev, [docId]: null }));
+      return;
+    }
+    setUploads((prev) => ({
+      ...prev,
+      [docId]: { file, date: new Date().toLocaleString(), uploading: true },
+    }));
+    try {
+      const storagePath = "documents/" + (listingId || "temp") + "/" + docId + "/" + file.name;
+      const storageRef = ref(storage, storagePath);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      setUploads((prev) => ({
+        ...prev,
+        [docId]: { file, date: new Date().toLocaleString(), url: downloadURL, uploading: false, storagePath },
+      }));
+
+      if (listingId) {
+        const docMetaItem = {
+          docId,
+          label: DOCUMENT_SLOTS.find((d) => d.id === docId)?.label || docId,
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          downloadURL,
+          storagePath,
+          uploadedAt: new Date().toISOString(),
+          required: DOCUMENT_SLOTS.find((d) => d.id === docId)?.required || false,
+          sharedWithBuyer: false,
+        };
+
+        await updateDoc(doc(db, "listings", listingId), { documents: arrayUnion(docMetaItem) });
+
+        if (setExistingDocuments) {
+          setExistingDocuments((prev: any[]) => {
+            const arr = Array.isArray(prev) ? prev : [];
+            if (arr.some((d: any) => d.docId === docId)) return arr;
+            return [...arr, docMetaItem];
+          });
+        }
+      }
+    } catch (e) {
+      console.error("[Tab4] upload failed", e);
+      setUploads((prev) => ({
+        ...prev,
+        [docId]: { file, date: new Date().toLocaleString(), uploading: false },
+      }));
+    }
+  };
+
+  const handleDeleteDoc = async (docId: string) => {
+    if (!window.confirm("Delete this document?")) return;
+    setDeletingDoc(docId);
+    try {
+      if (listingId) {
+        const snap = await getDoc(doc(db, "listings", listingId));
+        if (snap.exists()) {
+          const updated = (snap.data().documents || []).filter((d: any) => d.docId !== docId);
+          await updateDoc(doc(db, "listings", listingId), { documents: updated });
+        }
+      }
+
+      setUploads((prev) => ({ ...prev, [docId]: null }));
+
+      if (setExistingDocuments) {
+        setExistingDocuments((prev: any[]) =>
+          (Array.isArray(prev) ? prev : []).filter((d: any) => d.docId !== docId)
+        );
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDeletingDoc(null);
+    }
+  };
+
+  const handleDeleteSavedPhoto = async (photo: any) => {
+    if (!window.confirm("Delete this photo?")) return;
+    try {
+      if (photo.storagePath) {
+        const storageRef = ref(storage, photo.storagePath);
+        await deleteObject(storageRef);
+      }
