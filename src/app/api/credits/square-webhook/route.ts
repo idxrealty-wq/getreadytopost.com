@@ -58,7 +58,10 @@ export async function POST(req: NextRequest) {
     else if (lineName.includes('monthly')) creditsToAdd = 99;
     else if (lineName.includes('6month')) creditsToAdd = 495;
     else if (lineName.includes('annual')) creditsToAdd = 899;
-
+    else if (lineName.includes('credit')) {
+      const quantity = orderData.order?.line_items?.[0]?.quantity || '1';
+      creditsToAdd = parseInt(quantity, 10);
+    }
     if (!creditsToAdd) {
       console.error('[Webhook] Could not determine credits from order:', lineName);
       return NextResponse.json({ error: 'Could not determine credits' }, { status: 500 });
