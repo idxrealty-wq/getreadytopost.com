@@ -86,7 +86,16 @@ export default function AddressAutosuggest({
         if (state && state.trim()) params.set("state", state.trim());
         if (city && city.trim()) params.set("city", city.trim());
         if (zip && zip.trim()) params.set("zip", zip.trim());
-        const res = await fetch("/api/parcel-search?" + params.toString());
+        const { auth } = await import("@/lib/firebase");
+const idToken = await auth.currentUser?.getIdToken();
+if (!idToken) throw new Error("Not logged in");
+
+const res = await fetch("/api/parcel-search?" + params.toString(), {
+  headers: {
+    Authorization: `Bearer ${idToken}`,
+  },
+});
+
         const data = await res.json();
 
         setResults(data.results || []);
