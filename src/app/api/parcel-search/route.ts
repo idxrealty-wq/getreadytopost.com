@@ -28,9 +28,22 @@ const STATE_MAP: Record<string, string> = {
   WYOMING: 'WY', 'DISTRICT OF COLUMBIA': 'DC', 'WASHINGTON DC': 'DC', 'WASHINGTON D.C.': 'DC',
 };
 
-async function fetchATTOM(path: string) {
-  const res = await fetch(`${BASE}${path}`, {  // PROTECTION: require Firebase login + credits
-  const token = getBearerToken(req);
+async function fetchATTOM(path: string, token: string) {
+  const res = await fetch(`${BASE}${path}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`ATTOM request failed (${res.status}): ${text}`);
+  }
+
+  return res.json();
+}
+
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
