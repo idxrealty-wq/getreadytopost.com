@@ -101,7 +101,7 @@ export default function AgentBackofficePage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f] p-8 pt-24">
+    <div className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f] p-8 pt-12">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">{getFirstName()}'s Back Office</h1>
