@@ -166,7 +166,7 @@ export default function AdminPage() {
                   <thead>
                     <tr className="border-b border-gray-700">
                       <th className="px-3 py-2 text-gray-500 text-xs">ID</th>
-                      <th className="px-3 py-2 text-gray-500 text-xs">DATE</th>
+                      <th className="px-3 py-2 text-gray-500 text-xs">DATE & TIME</th>
                       <th className="px-3 py-2 text-gray-500 text-xs">PACKAGE</th>
                       <th className="px-3 py-2 text-gray-500 text-xs">CREDITS</th>
                       <th className="px-3 py-2 text-gray-500 text-xs">REVENUE</th>
@@ -177,7 +177,7 @@ export default function AdminPage() {
                     {selectedUser.transactions.map((tx: any) => (
                       <tr key={tx.id} className="border-b border-gray-800">
                         <td className="px-3 py-2"><CopyID id={tx.id} /></td>
-                        <td className="px-3 py-2 text-gray-400 text-xs">{tx.timestamp ? new Date(tx.timestamp).toLocaleDateString() : '—'}</td>
+                        <td className="px-3 py-2 text-gray-400 text-xs">{tx.timestamp ? new Date(tx.timestamp).toLocaleString() : "—"}</td>
                         <td className="px-3 py-2 text-yellow-400 text-sm capitalize">{tx.packageType || '—'}</td>
                         <td className="px-3 py-2 text-white text-sm">{tx.creditsAdded}</td>
                         <td className="px-3 py-2 text-green-400 text-sm">{fmt(tx.revenue)}</td>
@@ -214,7 +214,7 @@ export default function AdminPage() {
                       <td className="px-4 py-3 text-yellow-400 text-sm font-bold">{u.creditBalance}</td>
                       <td className="px-4 py-3 text-green-400 text-sm font-bold">{fmt(u.totalRevenue)}</td>
                       <td className="px-4 py-3 text-gray-300 text-sm">{u.transactions.length}</td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}</td>
+                      <td className="px-4 py-3 text-gray-400 text-xs">{u.createdAt ? new Date(u.createdAt).toLocaleString() : "—"}</td>
                       <td className="px-4 py-3">
                         <a href={`${FB}/users/${u.id}`} target="_blank" rel="noreferrer"
                           onClick={(e) => e.stopPropagation()}
@@ -255,7 +255,7 @@ export default function AdminPage() {
                         {s.status || '—'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">{s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—'}</td>
+                    <td className="px-4 py-3 text-gray-400 text-xs">{s.createdAt ? new Date(s.createdAt).toLocaleString() : "—"}</td>
                     <td className="px-4 py-3 flex gap-2">
                       <a href={`/results/original/${s.id}`} target="_blank" rel="noreferrer"
                         className="text-blue-400 text-xs hover:underline">📄 View</a>
@@ -307,7 +307,7 @@ export default function AdminPage() {
                     </td>
                     <td className="px-4 py-3 text-sm">{l.aiListing}</td>
                     <td className="px-4 py-3 text-blue-400 text-sm">{l.flood_zone || '—'}</td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">{l.createdAt ? new Date(l.createdAt).toLocaleDateString() : '—'}</td>
+                    <td className="px-4 py-3 text-gray-400 text-xs">{l.createdAt ? new Date(l.createdAt).toLocaleString() : "—"}</td>
                     <td className="px-4 py-3 flex gap-2">
                       <a href={`/listing/${l.id}`} target="_blank" rel="noreferrer"
                         className="text-blue-400 text-xs hover:underline">🏠 View</a>
@@ -353,7 +353,7 @@ export default function AdminPage() {
                           className="text-orange-400 text-xs hover:underline">🔥</a>
                       </div>
                     </div>
-                    <div className="text-gray-500 text-xs">{s.status} · {s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—'}</div>
+                    <div className="text-gray-500 text-xs">{s.status} · {s.createdAt ? new Date(s.createdAt).toLocaleString() : "—"}</div>
                     <CopyID id={s.id} />
                   </div>
                 ))}
@@ -371,7 +371,7 @@ export default function AdminPage() {
                           className="text-orange-400 text-xs hover:underline">🔥</a>
                       </div>
                     </div>
-                    <div className="text-gray-500 text-xs">{l.fieldCount} fields · {l.createdAt ? new Date(l.createdAt).toLocaleDateString() : '—'}</div>
+                    <div className="text-gray-500 text-xs">{l.fieldCount} fields · {l.createdAt ? new Date(l.createdAt).toLocaleString() : "—"}</div>
                     <CopyID id={l.id} />
                   </div>
                 ))}
@@ -403,7 +403,7 @@ export default function AdminPage() {
                     <td className="px-4 py-3 text-red-400 text-sm font-bold">{e.source || '—'}</td>
                     <td className="px-4 py-3"><CopyID id={e.submissionId || '—'} /></td>
                     <td className="px-4 py-3 text-yellow-300 text-xs max-w-xs truncate">{e.error || '—'}</td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">{e.createdAt ? new Date(e.createdAt).toLocaleDateString() : '—'}</td>
+                    <td className="px-4 py-3 text-gray-400 text-xs">{e.createdAt ? new Date(e.createdAt).toLocaleString() : "—"}</td>
                     <td className="px-4 py-3 flex gap-2">
                       <a href={`/results/original/${e.submissionId}`} target="_blank" rel="noreferrer"
                         className="text-blue-400 text-xs hover:underline">📄 View</a>

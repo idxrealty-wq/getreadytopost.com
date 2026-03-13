@@ -1,0 +1,441 @@
+﻿{
+    "results":  [
+                    {
+                        "parcel_id":  "01-20-25-0205-000-00003",
+                        "address":  "11912 LANE PARK RD",
+                        "city":  "TAVARES",
+                        "zip":  "32778",
+                        "county":  "Lake",
+                        "year_built":  "1975",
+                        "sqft":  "1068",
+                        "beds":  "3",
+                        "baths":  "2",
+                        "property_type":  "MOBILE HOME",
+                        "legal_description":  "TAVARES LANE PARK BEG AT A PT 202.7 FT N \u0026 345 FT W OF SE COR OF SEC 1-20-25 RUN S 43DEG 16MIN W TO LAKE BEG AS BEFORE RUN N",
+                        "stories":  "1",
+                        "story_desc":  "",
+                        "construction":  "STEEL",
+                        "condition":  "AVERAGE",
+                        "roof_cover":  "METAL",
+                        "roof_shape":  "",
+                        "garage":  "Carport (Unspecified)",
+                        "garage_sqft":  "",
+                        "pool":  "NO POOL",
+                        "subdivision":  "LANE PARK",
+                        "zoning":  "Residential",
+                        "zoning_code":  "",
+                        "lot_num":  "",
+                        "land_sqft":  "34412",
+                        "acres":  "0.7899908",
+                        "cooling":  "CENTRAL",
+                        "heating_type":  "FORCED AIR",
+                        "heating_fuel":  "ELECTRIC",
+                        "latitude":  "28.771902",
+                        "longitude":  "-81.758874",
+                        "fireplace":  "",
+                        "homestead":  "No",
+                        "exemptions":  "",
+                        "flood_zone":  "X",
+                        "flood_subtype":  "AREA OF MINIMAL FLOOD HAZARD",
+                        "flood_sfha":  "No",
+                        "wall_type":  "ASBESTOS",
+                        "improvements_year":  "2005",
+                        "assessed_value":  "568747",
+                        "just_value":  "568747",
+                        "land_value":  "226706",
+                        "building_value":  "342041",
+                        "taxable_value":  "568747",
+                        "annual_tax":  "10737.92",
+                        "tax_year":  "2024",
+                        "owner_name":  "HIDEAWAY VENTURES LLC",
+                        "owner2_name":  "",
+                        "owner_type":  "COMPANY",
+                        "absentee_owner":  "Owner Occupied",
+                        "mailing_address":  "11912 LANE PARK RD, TAVARES, FL 32778-9677",
+                        "title_company":  "ATTORNEY ONLY",
+                        "deed_type":  "WD",
+                        "sale_price":  "30100",
+                        "sale_trans_type":  "Resale",
+                        "sale_doc_type":  "DEED",
+                        "seller_name":  "HIDEAWAY VENTURES LLC",
+                        "sale_date":  "2014-09-24",
+                        "sale_year":  "2014",
+                        "price_per_sqft":  "28.18",
+                        "price_per_bed":  "10033.33",
+                        "last_modified":  "2025-12-16",
+                        "dor_uc":  "R5",
+                        "avm_value":  "",
+                        "avm_high":  "",
+                        "avm_low":  "",
+                        "avm_confidence":  "",
+                        "avm_date":  "",
+                        "mortgage_lender":  "",
+                        "mortgage_amount":  "",
+                        "mortgage_rate":  "",
+                        "mortgage_type":  "",
+                        "mortgage_term":  "",
+                        "mortgage_due_date":  "",
+                        "mortgage_date":  "",
+                        "sale_history":  [
+
+                                         ],
+                        "assessment_history":  [
+
+                                               ],
+                        "building_permits":  [
+                                                 {
+                                                     "date":  "2012-04-09",
+                                                     "type":  "Structures other bldgs",
+                                                     "description":  "Rebuild of walkway \u0026 dock",
+                                                     "status":  "complete",
+                                                     "cost":  "9500"
+                                                 },
+                                                 {
+                                                     "date":  "2012-09-26",
+                                                     "type":  "Structures other bldgs",
+                                                     "description":  "Reconstruct left hand walkway",
+                                                     "status":  "complete",
+                                                     "cost":  "17000"
+                                                 },
+                                                 {
+                                                     "date":  "2011-12-27",
+                                                     "type":  "Structures other bldgs",
+                                                     "description":  "1574 covered roof over ex deck to hideaway ventures (resturant \u0026 bar)",
+                                                     "status":  "complete",
+                                                     "cost":  "31750"
+                                                 },
+                                                 {
+                                                     "date":  "2006-08-28",
+                                                     "type":  "Electrical services",
+                                                     "description":  "El service upgrade to lake harris hideaway",
+                                                     "status":  "complete",
+                                                     "cost":  "2400"
+                                                 },
+                                                 {
+                                                     "date":  "2001-12-17",
+                                                     "type":  "Nonresd. And nonhousekeeping",
+                                                     "description":  "Interior renovations to ex restaurant",
+                                                     "status":  "final",
+                                                     "cost":  "26317"
+                                                 },
+                                                 {
+                                                     "date":  "2010-10-29",
+                                                     "type":  "Structures other bldgs",
+                                                     "description":  "A.t.f by others 989 sqft observation deck to lake harris hideaway resturant",
+                                                     "status":  "complete",
+                                                     "cost":  "1000"
+                                                 },
+                                                 {
+                                                     "date":  "2005-09-30",
+                                                     "type":  "Change of use - no alterations",
+                                                     "description":  "Life safety inspection for lake harris hideaway",
+                                                     "status":  "issued",
+                                                     "cost":  "150"
+                                                 },
+                                                 {
+                                                     "date":  "2004-06-08",
+                                                     "type":  "Residential additions",
+                                                     "description":  "Screen in existing 10 x 20 deck area",
+                                                     "status":  "complete",
+                                                     "cost":  "1000"
+                                                 },
+                                                 {
+                                                     "date":  "2019-11-06",
+                                                     "type":  "Building permit",
+                                                     "description":  "1982 sq ft restaurant",
+                                                     "status":  "issued",
+                                                     "cost":  "400000"
+                                                 },
+                                                 {
+                                                     "date":  "2020-05-11",
+                                                     "type":  "Building permit",
+                                                     "description":  "Site prep",
+                                                     "status":  "complete",
+                                                     "cost":  "70000"
+                                                 },
+                                                 {
+                                                     "date":  "2018-07-10",
+                                                     "type":  "Building permit",
+                                                     "description":  "Covered deck",
+                                                     "status":  "issued",
+                                                     "cost":  "52000"
+                                                 },
+                                                 {
+                                                     "date":  "2018-11-28",
+                                                     "type":  "Building permit",
+                                                     "description":  "Gas to wh/4 fryers/1 grill/1 g",
+                                                     "status":  "complete",
+                                                     "cost":  "1850"
+                                                 },
+                                                 {
+                                                     "date":  "2018-12-21",
+                                                     "type":  "Building permit",
+                                                     "description":  "Set 250gal LP tank to connect",
+                                                     "status":  "complete",
+                                                     "cost":  "213"
+                                                 },
+                                                 {
+                                                     "date":  "2018-12-11",
+                                                     "type":  "Building permit",
+                                                     "description":  "Install hood\u0026fan w duct conne",
+                                                     "status":  "complete",
+                                                     "cost":  "10000"
+                                                 },
+                                                 {
+                                                     "date":  "2019-04-03",
+                                                     "type":  "Utility connection application",
+                                                     "description":  "Connection to city water",
+                                                     "status":  "complete",
+                                                     "cost":  ""
+                                                 },
+                                                 {
+                                                     "date":  "2019-05-08",
+                                                     "type":  "Building permit",
+                                                     "description":  "Install 6gal ansul fire system",
+                                                     "status":  "complete",
+                                                     "cost":  "1193"
+                                                 },
+                                                 {
+                                                     "date":  "2019-05-23",
+                                                     "type":  "Building permit",
+                                                     "description":  "Installing 200amp",
+                                                     "status":  "complete",
+                                                     "cost":  "2400"
+                                                 },
+                                                 {
+                                                     "date":  "2019-07-31",
+                                                     "type":  "Building permit",
+                                                     "description":  "Install patio cover",
+                                                     "status":  "complete",
+                                                     "cost":  "11955"
+                                                 },
+                                                 {
+                                                     "date":  "2016-03-31",
+                                                     "type":  "No charge",
+                                                     "description":  "Tree removal - 7 trees",
+                                                     "status":  "issued",
+                                                     "cost":  ""
+                                                 },
+                                                 {
+                                                     "date":  "2015-11-13",
+                                                     "type":  "Building permit",
+                                                     "description":  "6 high chain link \u0026 wood",
+                                                     "status":  "complete",
+                                                     "cost":  "1800"
+                                                 },
+                                                 {
+                                                     "date":  "2015-10-15",
+                                                     "type":  "Building permit",
+                                                     "description":  "Install new 200 amp service",
+                                                     "status":  "complete",
+                                                     "cost":  "900"
+                                                 },
+                                                 {
+                                                     "date":  "2015-11-13",
+                                                     "type":  "Building permit",
+                                                     "description":  "1-16x36 slab \u0026 1-16x40 slab",
+                                                     "status":  "complete",
+                                                     "cost":  "2200"
+                                                 },
+                                                 {
+                                                     "date":  "2015-11-25",
+                                                     "type":  "Building permit",
+                                                     "description":  "24 x 36 shed w/slab",
+                                                     "status":  "complete",
+                                                     "cost":  "8000"
+                                                 },
+                                                 {
+                                                     "date":  "2019-05-08",
+                                                     "type":  "Fire alarm sprinkler suppression",
+                                                     "description":  "Install 6gal ansul fire system",
+                                                     "status":  "complete",
+                                                     "cost":  "1193"
+                                                 },
+                                                 {
+                                                     "date":  "2019-04-03",
+                                                     "type":  "Utility connection application",
+                                                     "description":  "Connection to city water",
+                                                     "status":  "complete",
+                                                     "cost":  ""
+                                                 },
+                                                 {
+                                                     "date":  "2019-05-23",
+                                                     "type":  "Electrical permit",
+                                                     "description":  "Installing 200amp",
+                                                     "status":  "complete",
+                                                     "cost":  "2400"
+                                                 },
+                                                 {
+                                                     "date":  "2019-07-31",
+                                                     "type":  "Commercial alteration",
+                                                     "description":  "Install patio cover",
+                                                     "status":  "complete",
+                                                     "cost":  "11955"
+                                                 },
+                                                 {
+                                                     "date":  "2018-12-21",
+                                                     "type":  "Gas residential commercial",
+                                                     "description":  "Set 250gal LP tank to connect",
+                                                     "status":  "complete",
+                                                     "cost":  "213"
+                                                 },
+                                                 {
+                                                     "date":  "2018-12-11",
+                                                     "type":  "Mechanical",
+                                                     "description":  "Install hood\u0026fan w duct conne",
+                                                     "status":  "complete",
+                                                     "cost":  "10000"
+                                                 },
+                                                 {
+                                                     "date":  "2018-11-28",
+                                                     "type":  "Gas residential commercial",
+                                                     "description":  "Gas to wh/4 fryers/1 grill/1 g",
+                                                     "status":  "complete",
+                                                     "cost":  "1850"
+                                                 },
+                                                 {
+                                                     "date":  "2020-05-11",
+                                                     "type":  "Site permit (no vertical construction)",
+                                                     "description":  "Site prep",
+                                                     "status":  "complete",
+                                                     "cost":  "70000"
+                                                 },
+                                                 {
+                                                     "date":  "2018-08-07",
+                                                     "type":  "Commercial new",
+                                                     "description":  "1982 sq ft restaurant",
+                                                     "status":  "final",
+                                                     "cost":  "400000"
+                                                 },
+                                                 {
+                                                     "date":  "2017-10-10",
+                                                     "type":  "Commercial alteration",
+                                                     "description":  "Covered deck",
+                                                     "status":  "final",
+                                                     "cost":  "52000"
+                                                 },
+                                                 {
+                                                     "date":  "2015-11-13",
+                                                     "type":  "Accessory structure (shed - detached garage)",
+                                                     "description":  "1-16x36 slab \u0026 1-16x40 slab",
+                                                     "status":  "complete",
+                                                     "cost":  "2200"
+                                                 },
+                                                 {
+                                                     "date":  "2016-03-31",
+                                                     "type":  "Tree permit",
+                                                     "description":  "Tree removal - 7 trees",
+                                                     "status":  "issued",
+                                                     "cost":  ""
+                                                 },
+                                                 {
+                                                     "date":  "2015-11-13",
+                                                     "type":  "Fence",
+                                                     "description":  "6 high chain link \u0026 wood",
+                                                     "status":  "complete",
+                                                     "cost":  "1800"
+                                                 },
+                                                 {
+                                                     "date":  "2015-10-15",
+                                                     "type":  "Electrical permit",
+                                                     "description":  "Install new 200 amp service",
+                                                     "status":  "complete",
+                                                     "cost":  "900"
+                                                 },
+                                                 {
+                                                     "date":  "2015-11-25",
+                                                     "type":  "Accessory structure (shed - detached garage)",
+                                                     "description":  "24 x 36 shed w/slab",
+                                                     "status":  "complete",
+                                                     "cost":  "8000"
+                                                 },
+                                                 {
+                                                     "date":  "2014-06-18",
+                                                     "type":  "Utility connection application",
+                                                     "description":  "",
+                                                     "status":  "complete",
+                                                     "cost":  ""
+                                                 }
+                                             ],
+                        "school_district":  "Lake County School District",
+                        "school_district_type":  "Regular",
+                        "school_district_lat":  "28.811483",
+                        "school_district_lng":  "-81.729254",
+                        "schools":  [
+                                        {
+                                            "name":  "Rimes Early Learning \u0026 Literacy Center",
+                                            "rating":  "",
+                                            "grades":  "PK-2",
+                                            "type":  "Public",
+                                            "distance":  10.39,
+                                            "lat":  "28.825976",
+                                            "lng":  "-81.918809"
+                                        },
+                                        {
+                                            "name":  "Lake Virtual Instruction Program (District Provided)",
+                                            "rating":  "",
+                                            "grades":  "KG-12",
+                                            "type":  "Public",
+                                            "distance":  6.14,
+                                            "lat":  "28.835929",
+                                            "lng":  "-81.688387"
+                                        },
+                                        {
+                                            "name":  "Tavares High School",
+                                            "rating":  "C-",
+                                            "grades":  "9-12",
+                                            "type":  "Public",
+                                            "distance":  3,
+                                            "lat":  "28.806648",
+                                            "lng":  "-81.728995"
+                                        },
+                                        {
+                                            "name":  "Tavares Elementary School",
+                                            "rating":  "C+",
+                                            "grades":  "PK-5",
+                                            "type":  "Public",
+                                            "distance":  3.53,
+                                            "lat":  "28.8103",
+                                            "lng":  "-81.7204"
+                                        },
+                                        {
+                                            "name":  "Lake Virtual Instruction Program",
+                                            "rating":  "",
+                                            "grades":  "KG-12",
+                                            "type":  "Public",
+                                            "distance":  6.14,
+                                            "lat":  "28.835929",
+                                            "lng":  "-81.688387"
+                                        },
+                                        {
+                                            "name":  "Tavares Middle School",
+                                            "rating":  "C+",
+                                            "grades":  "6-8",
+                                            "type":  "Public",
+                                            "distance":  1.08,
+                                            "lat":  "28.770738",
+                                            "lng":  "-81.741119"
+                                        },
+                                        {
+                                            "name":  "Lake Virtual Instruction Course Offerings",
+                                            "rating":  "",
+                                            "grades":  "KG-12",
+                                            "type":  "Public",
+                                            "distance":  6.14,
+                                            "lat":  "28.835929",
+                                            "lng":  "-81.688387"
+                                        },
+                                        {
+                                            "name":  "Lake Virtual Franchise",
+                                            "rating":  "B-",
+                                            "grades":  "KG-12",
+                                            "type":  "Public",
+                                            "distance":  6.14,
+                                            "lat":  "28.835929",
+                                            "lng":  "-81.688387"
+                                        }
+                                    ],
+                        "search_key":  "11912 lane park rd"
+                    }
+                ]
+}
