@@ -33,7 +33,7 @@ interface BackofficeData {
 }
 
 export default function AgentBackofficePage() {
-  const { user, loading } = useUser();
+  const { user, profile, loading } = useUser();
   const router = useRouter();
   const [data, setData] = useState<BackofficeData | null>(null);
   const [error, setError] = useState("");
@@ -57,14 +57,11 @@ export default function AgentBackofficePage() {
       setError("");
 
       if (!auth.currentUser) {
-  setError("Not authenticated");
-  return;
-}
-const token = await auth.currentUser.getIdToken();
-      if (!token) {
-        setError("Could not get auth token");
+        setError("Not authenticated");
         return;
       }
+
+      const token = await auth.currentUser.getIdToken();
 
       const res = await fetch("/api/agent/backoffice", {
         headers: { Authorization: `Bearer ${token}` },
@@ -84,6 +81,14 @@ const token = await auth.currentUser.getIdToken();
     }
   };
 
+  const fmtMoney = (n: number) => `$${Number(n || 0).toFixed(2)}`;
+
+  const getFirstName = () => {
+    const full = (profile?.fullName || "").trim();
+    const first = full.split(" ")[0];
+    return first || "Agent";
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f] flex items-center justify-center">
@@ -94,13 +99,11 @@ const token = await auth.currentUser.getIdToken();
 
   if (!user) return null;
 
-  const fmtMoney = (n: number) => `$${Number(n || 0).toFixed(2)}`;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a6f] p-8 pt-24">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Agent Back Office</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">{getFirstName()}'s Back Office</h1>
           <p className="text-gray-300">Your credits, transactions, and listings at a glance.</p>
         </div>
 
