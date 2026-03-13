@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     const processedRef = adminDb.collection('webhook_processed').doc(paymentId);
     const processedSnap = await processedRef.get();
 
-    if (processedSnap.exists()) {
+    if (processedSnap.exists) {
       console.log(`[Webhook] Payment ${paymentId} already processed, skipping`);
       return NextResponse.json({ success: true, idempotent: true });
     }
