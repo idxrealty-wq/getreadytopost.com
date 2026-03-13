@@ -14,9 +14,9 @@ const CREDIT_PACKAGES = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, packageType } = await req.json();
+    const { userId, packageType, quantity } = await req.json();
 
-    if (!userId || !packageType || !(packageType in CREDIT_PACKAGES)) {
+    if (!userId || !packageType) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 
@@ -24,19 +24,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Server config error' }, { status: 500 });
     }
 
-    const pkg = CREDIT_PACKAGES[packageType as keyof typeof CREDIT_PACKAGES];
+    let amount: number;
+    let credits: number;
+    let itemName: string;
+
+    if (packageType === 'credit') {
+      const qty = Math.min(Math.max(parseInt(String(quantity), 10) || 1, 1), 250);
+      amount = qty * 100;
+      credits = qty;
+      itemName = `GetReadyToPost Credits (${qty})`;
+    } else if (packageType in CREDIT_PACKAGES) {
+      const pkg = CREDIT_PACKAGES[packageType as keyof typeof CREDIT_PACKAGES];
+      amount = pkg.amount;
+      credits = pkg.credits;
+      itemName = `${packageType} Credits`;
+    } else {
+      return NextResponse.json({ error: 'Invalid package type' }, { status: 400 });
+    }
+
+    const idempotencyKey = `pl-${userId}-${packageType}-${quantity || 1}-${Date.now()}`;
 
     const payload = {
-      idempotency_key: `pl-${userId}-${packageType}-${Date.now()}`,
+      idempotency_key: idempotencyKey,
       order: {
         location_id: SQUARE_LOCATION_ID,
         reference_id: userId,
         line_items: [
           {
-            name: `${packageType} Credits`,
+            name: itemName,
             quantity: '1',
             base_price_money: {
-              amount: pkg.amount,
+              amount,
               currency: 'USD',
             },
           },
@@ -51,6 +69,7 @@ export async function POST(req: NextRequest) {
       process.env.SQUARE_ENV === 'sandbox'
         ? 'https://connect.squareupsandbox.com'
         : 'https://connect.squareup.com';
+
     const resp = await fetch(`${baseUrl}/v2/online-checkout/payment-links`, {
       method: 'POST',
       headers: {
@@ -66,22 +85,34 @@ export async function POST(req: NextRequest) {
     try {
       data = JSON.parse(text);
     } catch {
-      return NextResponse.json({ error: 'Invalid response from Square', details: text }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Invalid response from Square', details: text },
+        { status: 500 }
+      );
     }
 
     if (!resp.ok) {
       console.error('Square API error:', data);
-      return NextResponse.json({ error: 'Square API error', details: data }, { status: resp.status });
+      return NextResponse.json(
+        { error: 'Square API error', details: data },
+        { status: resp.status }
+      );
     }
 
     const checkoutUrl = data.payment_link?.url;
     if (!checkoutUrl) {
-      return NextResponse.json({ error: 'No checkout URL in response', details: data }, { status: 500 });
+      return NextResponse.json(
+        { error: 'No checkout URL in response', details: data },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ checkout_url: checkoutUrl });
   } catch (e) {
     console.error('Checkout error:', e);
-    return NextResponse.json({ error: 'Server error', details: String(e) }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Server error', details: String(e) },
+      { status: 500 }
+    );
   }
 }
