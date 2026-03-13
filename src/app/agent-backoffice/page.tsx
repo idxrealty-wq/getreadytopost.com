@@ -56,25 +56,26 @@ export default function AgentBackofficePage() {
       setFetching(true);
       setError("");
 
-      if (!auth.currentUser) {
-        setError("Not authenticated");
+      if (!user || !auth.currentUser) {
+        setError("Please sign in");
+        setFetching(false);
         return;
       }
 
       const token = await auth.currentUser.getIdToken();
-
       const res = await fetch("/api/agent/backoffice", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const json = await res.json();
       if (!res.ok) {
-        setError(json.error || "Failed to load backoffice data");
+        setError(json.error || "Failed to load data");
         return;
       }
 
       setData(json);
     } catch (e: any) {
+      console.error("Fetch error:", e);
       setError(e.message || "Error loading data");
     } finally {
       setFetching(false);
