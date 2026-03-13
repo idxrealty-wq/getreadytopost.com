@@ -56,7 +56,11 @@ export default function AgentBackofficePage() {
       setFetching(true);
       setError("");
 
-      const token = await auth.currentUser?.getIdToken();
+      if (!auth.currentUser) {
+  setError("Not authenticated");
+  return;
+}
+const token = await auth.currentUser.getIdToken();
       if (!token) {
         setError("Could not get auth token");
         return;
