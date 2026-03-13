@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
         ],
       },
       checkout_options: {
-        redirect_url: 'https://getreadytopost.com/our-deals?purchase=success',
+        redirect_url: `https://getreadytopost.com/purchase-success?tier=credits`,
       },
     };
 

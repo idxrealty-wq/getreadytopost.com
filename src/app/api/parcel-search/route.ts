@@ -1,6 +1,13 @@
+import { getAdminDb } from "@/lib/firebaseAdmin";
+import { FieldValue } from "firebase-admin/firestore";
 import { NextRequest, NextResponse } from 'next/server';
 const KEY = process.env.ATTOM_API_KEY || "";
 const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
+function getBearerToken(req: NextRequest): string {
+  const h = req.headers.get("authorization") || "";
+  if (!h.toLowerCase().startsWith("bearer ")) return "";
+  return h.slice(7);
+}
 
 type ParcelMatch = {
   address?: { countrySubd?: string | null; } | null;
@@ -22,7 +29,56 @@ const STATE_MAP: Record<string, string> = {
 };
 
 async function fetchATTOM(path: string) {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${BASE}${path}`, {  // PROTECTION: require Firebase login + credits
+  const token = getBearerToken(req);
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { getAuth } = await import("firebase-admin/auth");
+  let uid = "";
+  try {
+    const decoded = await getAuth().verifyIdToken(token);
+    uid = decoded.uid;
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const db = getAdminDb();
+  const balRef = db.collection("users").doc(uid).collection("credits").doc("balance");
+
+  // Check balance
+  const balSnap = await balRef.get();
+  const balance = balSnap.exists ? Number(balSnap.data()?.balance ?? 0) : 0;
+
+  const COST_PER_SEARCH = 1;
+  if (balance < COST_PER_SEARCH) {
+    return NextResponse.json(
+      { error: `Insufficient credits (${balance}). Please buy more credits.` },
+      { status: 402 }
+    );
+  }
+
+  // Deduct 1 credit + log transaction (atomic)
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(balRef);
+    const current = snap.exists ? Number(snap.data()?.balance ?? 0) : 0;
+    if (current < COST_PER_SEARCH) {
+      throw new Error("INSUFFICIENT_CREDITS");
+    }
+    tx.set(balRef, { balance: FieldValue.increment(-COST_PER_SEARCH) }, { merge: true });
+
+    const tRef = db.collection("users").doc(uid).collection("transactions").doc();
+    tx.set(tRef, {
+      type: "deduct",
+      packageType: "search",
+      creditsAdded: -COST_PER_SEARCH,
+      revenue: 0,
+      source: "parcel-search",
+      timestamp: FieldValue.serverTimestamp(),
+    });
+  });
+
     headers: { apikey: KEY, Accept: 'application/json' },
     cache: 'no-store',
   });
