@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebaseAdmin";
 import { FieldValue } from "firebase-admin/firestore";
 import crypto from "crypto";
@@ -123,9 +123,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not determine credits" }, { status: 500 });
     }
 
-    console.log(
-      `[Webhook] Crediting userId ${userId} with ${creditsToAdd} credits (${packageType}) for $${revenue}`
-    );
+    console.log(`[Webhook] Crediting userId ${userId} with ${creditsToAdd} credits (${packageType}) for $${revenue}`);
 
     const userCreditsRef = adminDb
       .collection("users")
