@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
     }
 
     const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
+
     const orderResp = await fetch(`https://connect.squareup.com/v2/orders/${orderId}`, {
       headers: {
         "Square-Version": "2024-01-18",
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
     });
 
     const orderText = await orderResp.text();
+
     if (!orderResp.ok) {
       console.error("[Webhook] Failed to fetch order:", orderText);
       return NextResponse.json({ error: "Failed to fetch order" }, { status: 500 });
@@ -90,7 +92,6 @@ export async function POST(req: NextRequest) {
     let packageType = "";
     let revenue = 0;
 
-    // Determine credits and package type from line item name
     if (lineName.includes("single")) {
       creditsToAdd = 1;
       packageType = "single";
@@ -112,7 +113,6 @@ export async function POST(req: NextRequest) {
       packageType = "annual";
       revenue = 899.0;
     } else if (lineName.includes("credit")) {
-      // For the "credits" SKU, credits = quantity, revenue = quantity * $1
       creditsToAdd = quantity;
       packageType = "credits";
       revenue = quantity * 1.0;
@@ -172,6 +172,7 @@ export async function POST(req: NextRequest) {
       packageType,
       revenue,
     });
+
   } catch (e: any) {
     console.error("[Webhook] Error:", e);
     await import("@/lib/logError").then(({ logError }) =>
