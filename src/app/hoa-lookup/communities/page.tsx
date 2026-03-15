@@ -60,8 +60,8 @@ export default function HOALookupPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <section className="relative w-full h-96 bg-cover bg-center flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-black/40"></div>
+      <section className="relative w-full h-96 bg-cover bg-center flex items-center justify-center overflow-hidden" style={{backgroundImage: "url('https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/87f4e757-133e-4bf8-85df-d911842f12d4/HOA_Lookup_Hero_Banner.png')"}}>
+  <div className="absolute inset-0 bg-black/30"></div>
         <div className="relative z-10 text-center text-white px-4">
           <h1 className="text-5xl font-bold mb-4">HOA Community Lookup</h1>
           <p className="text-xl max-w-2xl mx-auto">
