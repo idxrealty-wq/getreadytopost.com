@@ -4,6 +4,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import crypto from "crypto";
 
 const SQUARE_WEBHOOK_SIGNATURE_KEY = process.env.SQUARE_WEBHOOK_SIGNATURE_KEY;
+const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
 
 function verifySquareSignature(body: string, signature: string): boolean {
   if (!SQUARE_WEBHOOK_SIGNATURE_KEY) {
@@ -17,6 +18,138 @@ function verifySquareSignature(body: string, signature: string): boolean {
     .digest("base64");
 
   return hash === signature;
+}
+
+function getPackageDetails(lineName: string, quantity: number) {
+  const normalized = lineName.toLowerCase().replace(/\s+/g, "");
+
+  if (normalized.includes("single")) {
+    return {
+      packageType: "single",
+      creditsToAdd: 1,
+      revenue: 19.99,
+      subscription: null,
+    };
+  }
+
+  if (normalized.includes("5pack")) {
+    return {
+      packageType: "5pack",
+      creditsToAdd: 5,
+      revenue: 85.0,
+      subscription: null,
+    };
+  }
+
+  if (normalized.includes("monthly")) {
+    return {
+      packageType: "monthly",
+      creditsToAdd: 30,
+      revenue: 30.0,
+      subscription: {
+        planId: "monthly",
+        status: "active",
+        creditsPerCycle: 30,
+        propertyPullPrice: 3,
+        vaultAccess: true,
+        workspaceAccess: true,
+        billingCycle: "monthly",
+      },
+    };
+  }
+
+  if (normalized.includes("6month") || normalized.includes("semiannual")) {
+    return {
+      packageType: "6month",
+      creditsToAdd: 300,
+      revenue: 495.0,
+      subscription: {
+        planId: "semi-annual",
+        status: "active",
+        creditsPerCycle: 300,
+        propertyPullPrice: 2.5,
+        vaultAccess: true,
+        workspaceAccess: true,
+        billingCycle: "semi-annual",
+      },
+    };
+  }
+
+  if (normalized.includes("elite")) {
+    return {
+      packageType: "elite-annual",
+      creditsToAdd: 899,
+      revenue: 999.0,
+      subscription: {
+        planId: "elite-annual",
+        status: "active",
+        creditsPerCycle: 899,
+        propertyPullPrice: 1,
+        vaultAccess: true,
+        workspaceAccess: true,
+        billingCycle: "annual",
+      },
+    };
+  }
+
+  if (normalized.includes("annual")) {
+    return {
+      packageType: "annual",
+      creditsToAdd: 450,
+      revenue: 899.0,
+      subscription: {
+        planId: "annual",
+        status: "active",
+        creditsPerCycle: 450,
+        propertyPullPrice: 1.75,
+        vaultAccess: true,
+        workspaceAccess: true,
+        billingCycle: "annual",
+      },
+    };
+  }
+
+  if (normalized.includes("vault")) {
+    return {
+      packageType: "vault-only",
+      creditsToAdd: 0,
+      revenue: 49.95,
+      subscription: {
+        planId: "vault-only",
+        status: "active",
+        creditsPerCycle: 0,
+        propertyPullPrice: 0,
+        vaultAccess: true,
+        workspaceAccess: false,
+        billingCycle: "annual",
+      },
+    };
+  }
+
+  if (normalized.includes("credit")) {
+    return {
+      packageType: "credits",
+      creditsToAdd: quantity,
+      revenue: quantity * 1.0,
+      subscription: null,
+    };
+  }
+
+  return null;
+}
+
+function getRenewalDate(billingCycle: "monthly" | "semi-annual" | "annual") {
+  const renewalDate = new Date();
+
+  if (billingCycle === "monthly") {
+    renewalDate.setMonth(renewalDate.getMonth() + 1);
+  } else if (billingCycle === "semi-annual") {
+    renewalDate.setMonth(renewalDate.getMonth() + 6);
+  } else {
+    renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+  }
+
+  return renewalDate;
 }
 
 export async function POST(req: NextRequest) {
@@ -35,10 +168,11 @@ export async function POST(req: NextRequest) {
     console.log(`[Webhook] Received event: ${eventType}`);
 
     if (eventType !== "payment.created") {
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, ignored: eventType });
     }
 
     const payment = data.data?.object?.payment;
+
     if (!payment) {
       console.log("[Webhook] No payment object found");
       return NextResponse.json({ success: true });
@@ -70,7 +204,9 @@ export async function POST(req: NextRequest) {
       createdAt: FieldValue.serverTimestamp(),
     });
 
-    const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
+    if (!SQUARE_ACCESS_TOKEN) {
+      throw new Error("SQUARE_ACCESS_TOKEN is not set");
+    }
 
     const orderResp = await fetch(`https://connect.squareup.com/v2/orders/${orderId}`, {
       headers: {
@@ -89,7 +225,7 @@ export async function POST(req: NextRequest) {
     const orderData = JSON.parse(orderText);
     const userId = orderData.order?.reference_id;
     const lineItem = orderData.order?.line_items?.[0];
-    const lineName = (lineItem?.name || "").toLowerCase();
+    const lineName = lineItem?.name || "";
     const quantity = parseInt(lineItem?.quantity || "1", 10);
 
     if (!userId) {
@@ -97,60 +233,59 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No userId on order" }, { status: 500 });
     }
 
-    let creditsToAdd = 0;
-    let packageType = "";
-    let revenue = 0;
+    const packageDetails = getPackageDetails(lineName, quantity);
 
-    if (lineName.includes("single")) {
-      creditsToAdd = 1;
-      packageType = "single";
-      revenue = 19.99;
-    } else if (lineName.includes("5pack")) {
-      creditsToAdd = 5;
-      packageType = "5pack";
-      revenue = 85.0;
-    } else if (lineName.includes("monthly")) {
-      creditsToAdd = 99;
-      packageType = "monthly";
-      revenue = 99.0;
-    } else if (lineName.includes("6month")) {
-      creditsToAdd = 495;
-      packageType = "6month";
-      revenue = 495.0;
-    } else if (lineName.includes("annual")) {
-      creditsToAdd = 899;
-      packageType = "annual";
-      revenue = 899.0;
-    } else if (lineName.includes("credit")) {
-      creditsToAdd = quantity;
-      packageType = "credits";
-      revenue = quantity * 1.0;
+    if (!packageDetails) {
+      console.error("[Webhook] Could not determine package from order:", lineName);
+      return NextResponse.json({ error: "Could not determine package" }, { status: 500 });
     }
 
-    if (!creditsToAdd) {
-      console.error("[Webhook] Could not determine credits from order:", lineName);
-      return NextResponse.json({ error: "Could not determine credits" }, { status: 500 });
-    }
+    const { packageType, creditsToAdd, revenue, subscription } = packageDetails;
 
     console.log(
-      `[Webhook] Crediting userId ${userId} with ${creditsToAdd} credits (${packageType}) for $${revenue}`
+      `[Webhook] Processing package ${packageType} for user ${userId} with ${creditsToAdd} credits`
     );
 
-    const userCreditsRef = adminDb
-      .collection("users")
-      .doc(userId)
-      .collection("credits")
-      .doc("balance");
+    const userRef = adminDb.collection("users").doc(userId);
+    const userCreditsRef = userRef.collection("credits").doc("balance");
 
-    await userCreditsRef.set(
-      { balance: FieldValue.increment(creditsToAdd) },
-      { merge: true }
-    );
+    if (creditsToAdd > 0) {
+      await userCreditsRef.set(
+        {
+          balance: FieldValue.increment(creditsToAdd),
+        },
+        { merge: true }
+      );
+    }
 
-    const transactionsRef = adminDb
-      .collection("users")
-      .doc(userId)
-      .collection("transactions");
+        if (subscription) {
+      const billingCycleMap: Record<string, "monthly" | "semi-annual" | "annual"> = {
+        monthly: "monthly",
+        "semi-annual": "semi-annual",
+        annual: "annual",
+        "elite-annual": "annual",
+        "vault-only": "annual",
+      };
+      const billingCycle = billingCycleMap[subscription.billingCycle] || "annual";
+      const renewalDate = getRenewalDate(billingCycle);
+      await userRef.set(
+        {
+          subscription: {
+            planId: subscription.planId,
+            status: subscription.status,
+            creditsPerCycle: subscription.creditsPerCycle,
+            propertyPullPrice: subscription.propertyPullPrice,
+            vaultAccess: subscription.vaultAccess,
+            workspaceAccess: subscription.workspaceAccess,
+            renewalDate,
+            lastPaymentDate: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+        },
+        { merge: true }
+      );
+    }
+    const transactionsRef = userRef.collection("transactions");
 
     await transactionsRef.add({
       type: "purchase",
@@ -161,6 +296,7 @@ export async function POST(req: NextRequest) {
       paymentId,
       squarePaymentId: paymentId,
       squareOrderId: orderId,
+      subscriptionApplied: !!subscription,
       timestamp: FieldValue.serverTimestamp(),
       source: "square-webhook",
     });
@@ -170,11 +306,12 @@ export async function POST(req: NextRequest) {
       creditsAdded: creditsToAdd,
       packageType,
       revenue,
+      subscriptionApplied: !!subscription,
       status: "completed",
       processedAt: FieldValue.serverTimestamp(),
     });
 
-    console.log(`[Webhook] Successfully credited ${creditsToAdd} credits to ${userId}`);
+    console.log(`[Webhook] Successfully processed ${packageType} for ${userId}`);
 
     return NextResponse.json({
       success: true,
@@ -182,12 +319,18 @@ export async function POST(req: NextRequest) {
       creditsAdded: creditsToAdd,
       packageType,
       revenue,
+      subscriptionApplied: !!subscription,
     });
   } catch (e: any) {
     console.error("[Webhook] Error:", e);
+
     await import("@/lib/logError").then(({ logError }) =>
       logError({ source: "square-webhook", error: e, context: {} })
     );
-    return NextResponse.json({ error: "Failed", details: String(e) }, { status: 500 });
+
+    return NextResponse.json(
+      { error: "Failed", details: String(e) },
+      { status: 500 }
+    );
   }
 }
