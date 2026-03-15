@@ -1,13 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+
+interface TransactionData {
+  checkoutId: string;
+  amount: number;
+  credits?: number;
+  packageType: string;
+  planId?: string;
+  status: string;
+  vaultAccess?: boolean;
+  workspaceAccess?: boolean;
+  renewalDate?: string;
+  billingCycle?: string;
+}
 
 export default function SuccessContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [transactionData, setTransactionData] = useState<any>(null);
+  const [transactionData, setTransactionData] = useState<TransactionData | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -16,7 +30,6 @@ export default function SuccessContent() {
         searchParams.get('checkoutId') ||
         searchParams.get('transactionId') ||
         searchParams.get('orderId');
-
       const tier = searchParams.get('tier');
 
       if (!checkoutId) {
@@ -37,6 +50,12 @@ export default function SuccessContent() {
         if (response.ok && data.success) {
           setStatus('success');
           setTransactionData(data.transaction);
+
+          fetch('/api/emails/send-receipt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transaction: data.transaction }),
+          }).catch((err) => console.error('Failed to send receipt email:', err));
         } else {
           setStatus('error');
           setErrorMsg(data.message || 'Transaction not found or not yet processed.');
@@ -50,84 +69,165 @@ export default function SuccessContent() {
 
     validateTransaction();
   }, [searchParams]);
+  const getNextAction = () => {
+    if (!transactionData) return null;
 
+    const { packageType, vaultAccess, credits } = transactionData;
+
+    if (packageType === 'monthly' || packageType === 'annual' || packageType === 'semi-annual' || packageType === 'elite-annual') {
+      return {
+        title: 'Your Membership is Active',
+        description: 'You now have full access to Agent Vault and workspace tools.',
+        primaryAction: { label: 'Go to Agent Vault', href: '/agent-vault' },
+        secondaryAction: { label: 'Start Workspace', href: '/workspace' },
+      };
+    }
+
+    if (packageType === 'vault-only') {
+      return {
+        title: 'Vault Access Unlocked',
+        description: 'You can now save and organize all your listings and reports.',
+        primaryAction: { label: 'Open Agent Vault', href: '/agent-vault' },
+        secondaryAction: { label: 'Back to Home', href: '/' },
+      };
+    }
+
+    if (packageType === 'credits' || packageType === '5pack' || packageType === 'single') {
+      return {
+        title: `${credits} Credits Added!`,
+        description: 'Ready to analyze listings and pull property data.',
+        primaryAction: { label: 'Rate My Listing', href: '/' },
+        secondaryAction: { label: 'Agent Vault', href: '/agent-vault' },
+      };
+    }
+
+    return {
+      title: 'Purchase Complete',
+      description: 'Thank you for your purchase.',
+      primaryAction: { label: 'Go to Workspace', href: '/workspace' },
+      secondaryAction: { label: 'Home', href: '/' },
+    };
+  };
+
+  const nextAction = getNextAction();
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
         {status === 'loading' && (
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Validating your payment...</p>
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#c9a227]/30 border-t-[#c9a227]"></div>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Validating Payment</h2>
+            <p className="text-gray-300">Please wait while we confirm your transaction...</p>
           </div>
         )}
 
-        {status === 'success' && (
-          <div className="text-center">
-            <div className="text-5xl mb-4">✅</div>
-            <h1 className="text-2xl font-bold text-green-600 mb-2">Payment Successful!</h1>
-            <p className="text-gray-600 mb-4">Your credits have been added to your account.</p>
+        {status === 'success' && transactionData && nextAction && (
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+            <div className="text-center mb-8">
+              <div className="text-6xl mb-4 animate-bounce">✅</div>
+              <h1 className="text-4xl font-bold text-white mb-2">Payment Successful!</h1>
+              <p className="text-gray-300 text-lg">Your purchase has been processed.</p>
+            </div>
 
-            {transactionData && (
-              <div className="bg-gray-50 rounded p-4 mb-6 text-left text-sm">
-                <p className="mb-2">
-                  <strong>Checkout ID:</strong> {transactionData.checkoutId}
-                </p>
-                <p className="mb-2">
-                  <strong>Amount:</strong> ${(transactionData.amount / 100).toFixed(2)}
-                </p>
-                <p className="mb-2">
-                  <strong>Credits Added:</strong> {transactionData.credits}
-                </p>
-                {transactionData.packageType && (
-                  <p>
-                    <strong>Package:</strong> {transactionData.packageType}
-                  </p>
+            <div className="bg-white/5 rounded-xl p-6 mb-8 border border-white/10">
+              <h3 className="text-[#c9a227] font-bold text-sm uppercase tracking-wide mb-4">Order Details</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Transaction ID</span>
+                  <span className="text-white font-mono text-sm">{transactionData.checkoutId}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Amount Paid</span>
+                  <span className="text-white font-bold text-lg">${(transactionData.amount / 100).toFixed(2)}</span>
+                </div>
+                {transactionData.credits && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Credits Added</span>
+                    <span className="text-[#c9a227] font-bold">{transactionData.credits}</span>
+                  </div>
+                )}
+                {transactionData.renewalDate && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Renewal Date</span>
+                    <span className="text-white">{new Date(transactionData.renewalDate).toLocaleDateString()}</span>
+                  </div>
+                )}
+                {transactionData.vaultAccess && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Agent Vault</span>
+                    <span className="text-green-400 font-bold">✓ Unlocked</span>
+                  </div>
                 )}
               </div>
-            )}
+            </div>
 
-            <div className="flex gap-3">
+            <div className="bg-blue-900/30 border border-blue-500/30 rounded-xl p-4 mb-8">
+              <p className="text-blue-200 text-sm">
+                <strong>📧 Confirmation email sent</strong> to your registered email address. Check your inbox for receipt and next steps.
+              </p>
+            </div>
+
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-white mb-2">{nextAction.title}</h2>
+              <p className="text-gray-300">{nextAction.description}</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Link
-                href="/workspace"
-                className="flex-1 bg-indigo-600 text-white py-2 rounded font-semibold hover:bg-indigo-700"
+                href={nextAction.primaryAction.href}
+                className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-4 rounded-xl font-bold text-lg transition text-center block"
               >
-                Go to Workspace
+                {nextAction.primaryAction.label}
               </Link>
               <Link
-                href="/buy-credits"
-                className="flex-1 bg-gray-200 text-gray-800 py-2 rounded font-semibold hover:bg-gray-300"
+                href={nextAction.secondaryAction.href}
+                className="bg-white/10 hover:bg-white/20 text-white px-6 py-4 rounded-xl font-bold text-lg transition text-center block border border-white/20"
               >
-                Buy More
+                {nextAction.secondaryAction.label}
               </Link>
+            </div>
+
+            <div className="mt-8 pt-8 border-t border-white/10">
+              <p className="text-gray-400 text-sm text-center">
+                Questions? Contact us at <a href="mailto:idxrealty@gmail.com" className="text-[#c9a227] hover:text-[#e8c547]">idxrealty@gmail.com</a>
+              </p>
             </div>
           </div>
         )}
 
         {status === 'error' && (
-          <div className="text-center">
-            <div className="text-5xl mb-4">❌</div>
-            <h1 className="text-2xl font-bold text-red-600 mb-2">Payment Issue</h1>
-            <p className="text-gray-600 mb-4">{errorMsg}</p>
-            <p className="text-sm text-gray-500 mb-6">
-              If you were charged, contact support at <strong>idxrealty@gmail.com</strong>
-            </p>
-            <div className="flex gap-3">
-              <Link
-                href="/buy-credits"
-                className="flex-1 bg-indigo-600 text-white py-2 rounded font-semibold hover:bg-indigo-700"
-              >
-                Try Again
-              </Link>
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-red-500/30">
+            <div className="text-center mb-8">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h1 className="text-4xl font-bold text-red-400 mb-2">Payment Issue</h1>
+              <p className="text-gray-300 text-lg">{errorMsg}</p>
+            </div>
+
+            <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 mb-8">
+              <p className="text-red-200 text-sm">
+                <strong>If you were charged</strong>, your transaction will be processed shortly. If the issue persists, please contact support.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Link
                 href="/"
-                className="flex-1 bg-gray-200 text-gray-800 py-2 rounded font-semibold hover:bg-gray-300"
+                className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-4 rounded-xl font-bold text-lg transition text-center block"
               >
-                Home
+                Back to Home
               </Link>
+              <a
+                href="mailto:idxrealty@gmail.com"
+                className="bg-white/10 hover:bg-white/20 text-white px-6 py-4 rounded-xl font-bold text-lg transition text-center block border border-white/20"
+              >
+                Contact Support
+              </a>
             </div>
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }
