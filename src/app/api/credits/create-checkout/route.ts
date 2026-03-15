@@ -7,7 +7,7 @@ const CREDIT_PACKAGES = {
   test: { amount: 150, credits: 1 },
   single: { amount: 1999, credits: 1 },
   '5pack': { amount: 8500, credits: 5 },
-  monthly: { amount: 9900, credits: 99 },
+  monthly: { amount: 3000, credits: 30 },
   '6month': { amount: 49500, credits: 495 },
   annual: { amount: 89900, credits: 899 },
 } as const;
