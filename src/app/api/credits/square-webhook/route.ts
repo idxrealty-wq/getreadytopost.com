@@ -20,29 +20,48 @@ function verifySquareSignature(body: string, signature: string): boolean {
   return hash === signature;
 }
 
-function getPackageDetails(lineName: string, quantity: number) {
-  const normalized = lineName.toLowerCase().replace(/\s+/g, "");
+type PackageResult = {
+  packageType: string;
+  creditsToAdd: number;
+  revenue: number;
+  subscription: {
+    planId: string;
+    status: string;
+    creditsPerCycle: number;
+    propertyPullPrice: number;
+    vaultAccess: boolean;
+    workspaceAccess: boolean;
+    billingCycle: string;
+  } | null;
+};
 
-  if (normalized.includes("single")) {
-    return {
+function getPackageDetails(params: {
+  lineName?: string;
+  quantity?: number;
+  amountMoney?: number;
+  metadataPackageType?: string;
+}): PackageResult | null {
+  const lineName = params.lineName || "";
+  const quantity = params.quantity || 1;
+  const amountMoney = params.amountMoney || 0;
+  const metadataPackageType = (params.metadataPackageType || "").toLowerCase().trim();
+
+  const normalized = lineName.toLowerCase().replace(/[\s\-_]+/g, "");
+
+  const packageMap: Record<string, PackageResult> = {
+    single: {
       packageType: "single",
       creditsToAdd: 1,
       revenue: 19.99,
       subscription: null,
-    };
-  }
-
-  if (normalized.includes("5pack")) {
-    return {
+    },
+    "5pack": {
       packageType: "5pack",
       creditsToAdd: 5,
       revenue: 85.0,
       subscription: null,
-    };
-  }
-
-  if (normalized.includes("monthly")) {
-    return {
+    },
+    monthly: {
       packageType: "monthly",
       creditsToAdd: 30,
       revenue: 30.0,
@@ -55,12 +74,9 @@ function getPackageDetails(lineName: string, quantity: number) {
         workspaceAccess: true,
         billingCycle: "monthly",
       },
-    };
-  }
-
-  if (normalized.includes("6month") || normalized.includes("semiannual")) {
-    return {
-      packageType: "6month",
+    },
+    "semi-annual": {
+      packageType: "semi-annual",
       creditsToAdd: 300,
       revenue: 495.0,
       subscription: {
@@ -72,28 +88,22 @@ function getPackageDetails(lineName: string, quantity: number) {
         workspaceAccess: true,
         billingCycle: "semi-annual",
       },
-    };
-  }
-
-  if (normalized.includes("elite")) {
-    return {
-      packageType: "elite-annual",
-      creditsToAdd: 899,
-      revenue: 999.0,
+    },
+    "6month": {
+      packageType: "semi-annual",
+      creditsToAdd: 300,
+      revenue: 495.0,
       subscription: {
-        planId: "elite-annual",
+        planId: "semi-annual",
         status: "active",
-        creditsPerCycle: 899,
-        propertyPullPrice: 1,
+        creditsPerCycle: 300,
+        propertyPullPrice: 2.5,
         vaultAccess: true,
         workspaceAccess: true,
-        billingCycle: "annual",
+        billingCycle: "semi-annual",
       },
-    };
-  }
-
-  if (normalized.includes("annual")) {
-    return {
+    },
+    annual: {
       packageType: "annual",
       creditsToAdd: 450,
       revenue: 899.0,
@@ -106,11 +116,22 @@ function getPackageDetails(lineName: string, quantity: number) {
         workspaceAccess: true,
         billingCycle: "annual",
       },
-    };
-  }
-
-  if (normalized.includes("vault")) {
-    return {
+    },
+    "elite-annual": {
+      packageType: "elite-annual",
+      creditsToAdd: 899,
+      revenue: 999.0,
+      subscription: {
+        planId: "elite-annual",
+        status: "active",
+        creditsPerCycle: 899,
+        propertyPullPrice: 1.0,
+        vaultAccess: true,
+        workspaceAccess: true,
+        billingCycle: "annual",
+      },
+    },
+    "vault-only": {
       packageType: "vault-only",
       creditsToAdd: 0,
       revenue: 49.95,
@@ -123,7 +144,63 @@ function getPackageDetails(lineName: string, quantity: number) {
         workspaceAccess: false,
         billingCycle: "annual",
       },
-    };
+    },
+  };
+
+  if (metadataPackageType && packageMap[metadataPackageType]) {
+    return packageMap[metadataPackageType];
+  }
+
+  if (normalized.includes("eliteannual")) {
+    return packageMap["elite-annual"];
+  }
+
+  if (normalized.includes("semiannual") || normalized.includes("6month") || normalized.includes("6months")) {
+    return packageMap["semi-annual"];
+  }
+
+  if (normalized.includes("monthly")) {
+    return packageMap["monthly"];
+  }
+
+  if (normalized.includes("annual")) {
+    return packageMap["annual"];
+  }
+
+  if (normalized.includes("5pack")) {
+    return packageMap["5pack"];
+  }
+
+  if (normalized.includes("single")) {
+    return packageMap["single"];
+  }
+
+  if (normalized.includes("vault")) {
+    return packageMap["vault-only"];
+  }
+
+  if (amountMoney === 3000) {
+    return packageMap["monthly"];
+  }
+
+  if (amountMoney === 49500) {
+    return packageMap["semi-annual"];
+  }
+
+  if (amountMoney === 89900) {
+    return packageMap["annual"];
+  }
+
+  if (amountMoney === 99900) {
+    return packageMap["elite-annual"];
+  }
+
+  if (amountMoney === 8500) {
+    return packageMap["5pack"];
+  }
+
+  if (amountMoney === 1999) {
+    return packageMap["single"];
   }
 
   if (normalized.includes("credit")) {
@@ -219,6 +296,12 @@ export async function POST(req: NextRequest) {
 
     if (!orderResp.ok) {
       console.error("[Webhook] Failed to fetch order:", orderText);
+      await processedRef.update({
+        status: "failed",
+        error: "Failed to fetch order",
+        orderFetchResponse: orderText,
+        failedAt: FieldValue.serverTimestamp(),
+      });
       return NextResponse.json({ error: "Failed to fetch order" }, { status: 500 });
     }
 
@@ -227,16 +310,44 @@ export async function POST(req: NextRequest) {
     const lineItem = orderData.order?.line_items?.[0];
     const lineName = lineItem?.name || "";
     const quantity = parseInt(lineItem?.quantity || "1", 10);
+    const amountMoney = lineItem?.base_price_money?.amount || 0;
+    const metadataPackageType = orderData.order?.metadata?.packageType || "";
 
     if (!userId) {
       console.error("[Webhook] No userId (reference_id) on order");
+      await processedRef.update({
+        status: "failed",
+        error: "No userId on order",
+        failedAt: FieldValue.serverTimestamp(),
+      });
       return NextResponse.json({ error: "No userId on order" }, { status: 500 });
     }
 
-    const packageDetails = getPackageDetails(lineName, quantity);
+    const packageDetails = getPackageDetails({
+      lineName,
+      quantity,
+      amountMoney,
+      metadataPackageType,
+    });
 
     if (!packageDetails) {
-      console.error("[Webhook] Could not determine package from order:", lineName);
+      console.error("[Webhook] Could not determine package from order:", {
+        lineName,
+        quantity,
+        amountMoney,
+        metadataPackageType,
+      });
+
+      await processedRef.update({
+        status: "failed",
+        error: "Could not determine package",
+        lineName,
+        quantity,
+        amountMoney,
+        metadataPackageType,
+        failedAt: FieldValue.serverTimestamp(),
+      });
+
       return NextResponse.json({ error: "Could not determine package" }, { status: 500 });
     }
 
@@ -253,21 +364,24 @@ export async function POST(req: NextRequest) {
       await userCreditsRef.set(
         {
           balance: FieldValue.increment(creditsToAdd),
+          updatedAt: FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
     }
 
-        if (subscription) {
+    if (subscription) {
       const billingCycleMap: Record<string, "monthly" | "semi-annual" | "annual"> = {
         monthly: "monthly",
         "semi-annual": "semi-annual",
         annual: "annual",
-        "elite-annual": "annual",
-        "vault-only": "annual",
       };
-      const billingCycle = billingCycleMap[subscription.billingCycle] || "annual";
+
+      const billingCycle =
+        billingCycleMap[subscription.billingCycle] || "annual";
+
       const renewalDate = getRenewalDate(billingCycle);
+
       await userRef.set(
         {
           subscription: {
@@ -277,6 +391,7 @@ export async function POST(req: NextRequest) {
             propertyPullPrice: subscription.propertyPullPrice,
             vaultAccess: subscription.vaultAccess,
             workspaceAccess: subscription.workspaceAccess,
+            billingCycle: subscription.billingCycle,
             renewalDate,
             lastPaymentDate: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
@@ -285,6 +400,7 @@ export async function POST(req: NextRequest) {
         { merge: true }
       );
     }
+
     const transactionsRef = userRef.collection("transactions");
 
     await transactionsRef.add({
@@ -297,6 +413,9 @@ export async function POST(req: NextRequest) {
       squarePaymentId: paymentId,
       squareOrderId: orderId,
       subscriptionApplied: !!subscription,
+      lineName,
+      amountMoney,
+      metadataPackageType,
       timestamp: FieldValue.serverTimestamp(),
       source: "square-webhook",
     });
@@ -307,6 +426,9 @@ export async function POST(req: NextRequest) {
       packageType,
       revenue,
       subscriptionApplied: !!subscription,
+      lineName,
+      amountMoney,
+      metadataPackageType,
       status: "completed",
       processedAt: FieldValue.serverTimestamp(),
     });
@@ -323,6 +445,18 @@ export async function POST(req: NextRequest) {
     });
   } catch (e: any) {
     console.error("[Webhook] Error:", e);
+
+    try {
+      const adminDb = getAdminDb();
+      await adminDb.collection("errors").add({
+        source: "square-webhook",
+        message: String(e),
+        stack: e?.stack || null,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    } catch (logErr) {
+      console.error("[Webhook] Failed to write error log:", logErr);
+    }
 
     await import("@/lib/logError").then(({ logError }) =>
       logError({ source: "square-webhook", error: e, context: {} })
