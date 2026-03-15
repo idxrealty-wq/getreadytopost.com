@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
       const id = m?.identifier?.attomId || m?.identifier?.Id;
       if (!id) continue;
 
-      // Parallel fetch: expandedprofile, schools, AVM, sale history, assessment history, building permits, mortgage
+     // Parallel fetch: expandedprofile, schools, AVM, sale history, assessment history, building permits, mortgage
       const [d2, d3, avmData, saleHistData, assessHistData, permitData, mortgageData] = await Promise.all([
         fetchATTOM(`/property/expandedprofile?attomid=${id}`),
         fetchATTOM(`/property/detailwithschools?attomid=${id}`),
@@ -76,9 +76,9 @@ export async function GET(req: NextRequest) {
         fetchATTOM(`/property/detailmortgage?attomid=${id}`).catch(() => null),
       ]);
 
-      const p = d2?.property?.[0];
-      if (!p) continue;
-      const s = d3?.property?.[0];
+           console.log('ATTOM FULL RESPONSE:', JSON.stringify(d2, null, 2));
+const p = d2?.property?.[0];
+const s = d3?.property?.[0];
 
       // AVM
       const avmProp = avmData?.property?.[0];

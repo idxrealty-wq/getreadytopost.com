@@ -10,10 +10,12 @@ function verifySquareSignature(body: string, signature: string): boolean {
     console.warn("[Webhook] SQUARE_WEBHOOK_SIGNATURE_KEY not set, skipping verification");
     return true;
   }
+
   const hash = crypto
     .createHmac("sha256", SQUARE_WEBHOOK_SIGNATURE_KEY)
     .update(body)
     .digest("base64");
+
   return hash === signature;
 }
 
@@ -60,6 +62,13 @@ export async function POST(req: NextRequest) {
       console.log(`[Webhook] Payment ${paymentId} already processed, skipping`);
       return NextResponse.json({ success: true, idempotent: true });
     }
+
+    await processedRef.set({
+      paymentId,
+      orderId,
+      status: "processing",
+      createdAt: FieldValue.serverTimestamp(),
+    });
 
     const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
 
@@ -123,7 +132,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not determine credits" }, { status: 500 });
     }
 
-    console.log(`[Webhook] Crediting userId ${userId} with ${creditsToAdd} credits (${packageType}) for $${revenue}`);
+    console.log(
+      `[Webhook] Crediting userId ${userId} with ${creditsToAdd} credits (${packageType}) for $${revenue}`
+    );
 
     const userCreditsRef = adminDb
       .collection("users")
@@ -136,7 +147,10 @@ export async function POST(req: NextRequest) {
       { merge: true }
     );
 
-    const transactionsRef = adminDb.collection("users").doc(userId).collection("transactions");
+    const transactionsRef = adminDb
+      .collection("users")
+      .doc(userId)
+      .collection("transactions");
 
     await transactionsRef.add({
       type: "purchase",
@@ -151,13 +165,12 @@ export async function POST(req: NextRequest) {
       source: "square-webhook",
     });
 
-    await processedRef.set({
-      paymentId,
-      orderId,
+    await processedRef.update({
       userId,
       creditsAdded: creditsToAdd,
       packageType,
       revenue,
+      status: "completed",
       processedAt: FieldValue.serverTimestamp(),
     });
 
@@ -170,7 +183,6 @@ export async function POST(req: NextRequest) {
       packageType,
       revenue,
     });
-
   } catch (e: any) {
     console.error("[Webhook] Error:", e);
     await import("@/lib/logError").then(({ logError }) =>

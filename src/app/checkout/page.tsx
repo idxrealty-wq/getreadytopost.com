@@ -18,10 +18,10 @@ function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useUser();
-  
+
   const pkgParam = searchParams.get('pkg');
   const initialPkg = packages.find(p => p.id === pkgParam) || packages[0];
-  
+
   const [selectedPackage, setSelectedPackage] = useState(initialPkg);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,10 +37,8 @@ function CheckoutContent() {
       setError('Please enter your email');
       return;
     }
-
     setLoading(true);
     setError('');
-
     try {
       const res = await fetch('/api/credits/create-checkout', {
         method: 'POST',
@@ -51,14 +49,14 @@ function CheckoutContent() {
           userId: user?.uid,
         }),
       });
-
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'Failed to create checkout');
         return;
       }
-
-      window.location.href = data.checkout_url;
+      const checkoutUrl = new URL(data.checkout_url);
+      checkoutUrl.searchParams.set('checkoutId', data.checkoutId);
+      window.location.href = checkoutUrl.toString();
     } catch (err) {
       setError(String(err));
     } finally {
@@ -90,22 +88,18 @@ function CheckoutContent() {
         <img src={BG_URL} alt="Background" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-[#0b1220]/75" />
       </div>
-
       <div className="relative z-10 max-w-3xl mx-auto">
         <button onClick={() => router.back()} className="mb-8 text-gray-300 hover:text-white transition">
           ← Back
         </button>
-
         <div className="bg-slate-900/55 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-2xl">
           <h1 className="text-4xl font-bold text-white mb-2">Buy Credits</h1>
           <p className="text-gray-300 mb-10">Select a plan and complete your purchase</p>
-
           {error && (
             <div className="mb-8 bg-red-500/20 border border-red-500 text-red-200 p-4 rounded-lg">
               {error}
             </div>
           )}
-
           <form onSubmit={handlePayment} className="space-y-10">
             <div>
               <label className="block text-white font-bold text-lg mb-6">Select Your Plan</label>
@@ -131,7 +125,6 @@ function CheckoutContent() {
                 ))}
               </div>
             </div>
-
             <div>
               <label className="block text-white font-bold mb-3">Email Address</label>
               <input
@@ -143,7 +136,6 @@ function CheckoutContent() {
                 required
               />
             </div>
-
             <div className="bg-black/25 border border-white/10 rounded-xl p-6">
               <div className="flex justify-between text-gray-200 mb-4">
                 <span>{selectedPackage.name} Package</span>
@@ -154,7 +146,6 @@ function CheckoutContent() {
                 <span className="text-yellow-400 font-bold text-2xl">${selectedPackage.price.toFixed(2)}</span>
               </div>
             </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -162,7 +153,6 @@ function CheckoutContent() {
             >
               {loading ? 'Processing...' : 'Continue to Payment'}
             </button>
-
             <p className="text-center text-gray-300 text-sm">
               Secure payment powered by Square.
             </p>

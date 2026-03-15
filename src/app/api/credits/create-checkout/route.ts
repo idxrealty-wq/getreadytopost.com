@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
         ],
       },
       checkout_options: {
-        redirect_url: `https://getreadytopost.com/purchase-success?tier=credits`,
+        redirect_url: 'https://getreadytopost.com/success?tier=credits',
       },
     };
 
@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
 
     const text = await resp.text();
     let data;
+
     try {
       data = JSON.parse(text);
     } catch {
@@ -100,6 +101,8 @@ export async function POST(req: NextRequest) {
     }
 
     const checkoutUrl = data.payment_link?.url;
+    const checkoutId = data.payment_link?.id;
+
     if (!checkoutUrl) {
       return NextResponse.json(
         { error: 'No checkout URL in response', details: data },
@@ -107,7 +110,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ checkout_url: checkoutUrl });
+    return NextResponse.json({
+      checkout_url: checkoutUrl,
+      checkoutId,
+      credits,
+    });
   } catch (e) {
     console.error('Checkout error:', e);
     return NextResponse.json(
