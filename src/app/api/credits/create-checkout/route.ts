@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
       amount = pkg.amount;
       credits = pkg.credits;
       itemName = `${packageType} Plan - ${credits} credits`;
+
       if ('billingCycle' in pkg) {
         packageInfo = { type: pkg.type, billingCycle: pkg.billingCycle };
       } else {
@@ -61,6 +62,7 @@ export async function POST(req: NextRequest) {
     successUrl.searchParams.set('tier', packageType);
     successUrl.searchParams.set('credits', String(credits));
     successUrl.searchParams.set('type', packageInfo.type);
+    successUrl.searchParams.set('userId', userId);
 
     const payload = {
       idempotency_key: idempotencyKey,
@@ -144,6 +146,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (e) {
     console.error('Checkout error:', e);
+
     return NextResponse.json(
       { error: 'Server error', details: String(e) },
       { status: 500 }
