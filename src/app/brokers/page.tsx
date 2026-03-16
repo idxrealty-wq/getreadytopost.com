@@ -10,6 +10,7 @@ export default function BrokersPage() {
           <p className="text-lg text-[#c9a227] font-semibold">19.99 per listing - instant results for all agents</p>
         </div>
       </section>
+
       <section className="py-16 bg-white">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-[#1a2b4a] mb-8 text-center">Elevate Every Listing on Your Roster</h2>
@@ -30,6 +31,24 @@ export default function BrokersPage() {
           </div>
         </div>
       </section>
+
+      <section className="py-16 bg-[#faf8f5]">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold text-[#1a2b4a] mb-4">See It In Action</h2>
+          <p className="text-gray-600 mb-8 text-lg">Watch how GetReadyToPost helps brokers and teams raise the bar on every listing.</p>
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              className="absolute top-0 left-0 w-full h-full rounded-xl shadow-lg"
+              src="https://www.youtube.com/embed/UWlBHck5PiM?rel=0"
+              title="GetReadyToPost for Brokers and Teams"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </section>
+
       <section className="py-16 bg-[#1a2b4a] text-white text-center">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-4">Ready to Upgrade Your Team?</h2>
