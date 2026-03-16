@@ -46,7 +46,6 @@ export async function POST(req: NextRequest) {
       amount = pkg.amount;
       credits = pkg.credits;
       itemName = `${packageType} Plan - ${credits} credits`;
-
       if ('billingCycle' in pkg) {
         packageInfo = { type: pkg.type, billingCycle: pkg.billingCycle };
       } else {
