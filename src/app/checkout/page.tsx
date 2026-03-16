@@ -5,8 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import Link from 'next/link';
 
-const BG_URL =
-  'https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/e2af6091-9b63-4698-8f57-f02cfe21cfc7/image.png?w=1200&h=896';
+const BG_URL = 'https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/e2af6091-9b63-4698-8f57-f02cfe21cfc7/image.png?w=1200&h=896';
 
 const packages = [
   {
@@ -74,6 +73,7 @@ function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useUser();
+
   const pkgParam = searchParams.get('pkg');
   const initialPkg = packages.find((p) => p.id === pkgParam) || packages[0];
 
@@ -98,41 +98,43 @@ function CheckoutContent() {
     setError('');
 
     try {
-      try {
-  const res = await fetch('/api/credits/create-checkout', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      packageType: selectedPackage.id,
-      email,
-      userId: user?.uid,
-    }),
-  });
+      const res = await fetch('/api/credits/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          packageType: selectedPackage.id,
+          email,
+          userId: user?.uid,
+        }),
+      });
 
-  const data = await res.json();
+      const data = await res.json();
 
-  if (!res.ok) {
-    setError(data.error || 'Failed to create checkout');
-    return;
-  }
+      if (!res.ok) {
+        setError(data.error || 'Failed to create checkout');
+        return;
+      }
 
-  // Store checkout metadata in sessionStorage for success page retrieval
-  sessionStorage.setItem('checkoutMetadata', JSON.stringify({
-    checkoutId: data.checkoutId,
-    tier: selectedPackage.id,
-    userId: user?.uid || '',
-    credits: data.credits,
-    packageType: data.packageType,
-  }));
+      // Store checkout metadata in sessionStorage for success page retrieval
+      sessionStorage.setItem(
+        'checkoutMetadata',
+        JSON.stringify({
+          checkoutId: data.checkoutId,
+          tier: selectedPackage.id,
+          userId: user?.uid || '',
+          credits: data.credits,
+          packageType: data.packageType,
+        })
+      );
 
-  // Redirect directly to Square's hosted checkout URL (unmodified)
-  window.location.href = data.checkout_url;
-} catch (err) {
-  setError(String(err));
-} finally {
-  setLoading(false);
-}
-
+      // Redirect directly to Square's hosted checkout URL (unmodified)
+      window.location.href = data.checkout_url;
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (authLoading) {
     return (
@@ -215,10 +217,8 @@ function CheckoutContent() {
                         {pkg.badge}
                       </div>
                     )}
-
                     <h3 className="text-white font-bold text-lg mb-1">{pkg.name}</h3>
                     <p className="text-gray-400 text-sm mb-4">{pkg.description}</p>
-
                     {/* Features List */}
                     <ul className="mb-4 space-y-2 text-xs text-gray-300">
                       {pkg.features.slice(0, 2).map((feature, idx) => (
@@ -228,7 +228,6 @@ function CheckoutContent() {
                         </li>
                       ))}
                     </ul>
-
                     <div className="flex justify-between items-end pt-4 border-t border-white/10">
                       <span className="text-gray-300 text-xs">{pkg.credits} credits</span>
                       <span className="text-[#c9a227] font-bold text-xl">${pkg.price}</span>
