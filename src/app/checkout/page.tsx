@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import Link from 'next/link';
 
-const BG_URL = 'https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/e2af6091-9b63-4698-8f57-f02cfe21cfc7/image.png?w=1200&h=896';
+const BG_URL =
+  'https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/e2af6091-9b63-4698-8f57-f02cfe21cfc7/image.png?w=1200&h=896';
 
 const packages = [
   {
@@ -75,6 +76,7 @@ function CheckoutContent() {
   const { user, loading: authLoading } = useUser();
   const pkgParam = searchParams.get('pkg');
   const initialPkg = packages.find((p) => p.id === pkgParam) || packages[0];
+
   const [selectedPackage, setSelectedPackage] = useState(initialPkg);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -86,12 +88,15 @@ function CheckoutContent() {
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!email) {
       setError('Please enter your email');
       return;
     }
+
     setLoading(true);
     setError('');
+
     try {
       const res = await fetch('/api/credits/create-checkout', {
         method: 'POST',
@@ -102,13 +107,19 @@ function CheckoutContent() {
           userId: user?.uid,
         }),
       });
+
       const data = await res.json();
+
       if (!res.ok) {
         setError(data.error || 'Failed to create checkout');
         return;
       }
+
       const checkoutUrl = new URL(data.checkout_url);
       checkoutUrl.searchParams.set('checkoutId', data.checkoutId);
+      checkoutUrl.searchParams.set('tier', selectedPackage.id);
+      checkoutUrl.searchParams.set('userId', user?.uid || '');
+
       window.location.href = checkoutUrl.toString();
     } catch (err) {
       setError(String(err));
@@ -134,7 +145,10 @@ function CheckoutContent() {
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white mb-4">Sign In Required</h1>
           <p className="text-gray-300 mb-8">Please sign in to purchase a plan.</p>
-          <Link href="/" className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] font-bold py-3 px-8 rounded-xl transition">
+          <Link
+            href="/"
+            className="inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] font-bold py-3 px-8 rounded-xl transition"
+          >
             Back to Home
           </Link>
         </div>
@@ -247,7 +261,9 @@ function CheckoutContent() {
               </div>
               <div className="border-t border-white/10 pt-4 flex justify-between items-center">
                 <span className="text-white font-bold">Total Due Today</span>
-                <span className="text-[#c9a227] font-bold text-2xl">${selectedPackage.price.toFixed(2)}</span>
+                <span className="text-[#c9a227] font-bold text-2xl">
+                  ${selectedPackage.price.toFixed(2)}
+                </span>
               </div>
             </div>
 
