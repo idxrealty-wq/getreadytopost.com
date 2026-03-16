@@ -337,7 +337,6 @@ export async function POST(req: NextRequest) {
         amountMoney,
         metadataPackageType,
       });
-
       await processedRef.update({
         status: "failed",
         error: "Could not determine package",
@@ -347,7 +346,6 @@ export async function POST(req: NextRequest) {
         metadataPackageType,
         failedAt: FieldValue.serverTimestamp(),
       });
-
       return NextResponse.json({ error: "Could not determine package" }, { status: 500 });
     }
 
@@ -379,7 +377,6 @@ export async function POST(req: NextRequest) {
 
       const billingCycle =
         billingCycleMap[subscription.billingCycle] || "annual";
-
       const renewalDate = getRenewalDate(billingCycle);
 
       await userRef.set(
@@ -402,7 +399,6 @@ export async function POST(req: NextRequest) {
     }
 
     const transactionsRef = userRef.collection("transactions");
-
     await transactionsRef.add({
       type: "purchase",
       packageType,
