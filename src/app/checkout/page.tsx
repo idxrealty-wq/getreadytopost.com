@@ -98,35 +98,41 @@ function CheckoutContent() {
     setError('');
 
     try {
-      const res = await fetch('/api/credits/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          packageType: selectedPackage.id,
-          email,
-          userId: user?.uid,
-        }),
-      });
+      try {
+  const res = await fetch('/api/credits/create-checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      packageType: selectedPackage.id,
+      email,
+      userId: user?.uid,
+    }),
+  });
 
-      const data = await res.json();
+  const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.error || 'Failed to create checkout');
-        return;
-      }
+  if (!res.ok) {
+    setError(data.error || 'Failed to create checkout');
+    return;
+  }
 
-      const checkoutUrl = new URL(data.checkout_url);
-      checkoutUrl.searchParams.set('checkoutId', data.checkoutId);
-      checkoutUrl.searchParams.set('tier', selectedPackage.id);
-      checkoutUrl.searchParams.set('userId', user?.uid || '');
+  // Store checkout metadata in sessionStorage for success page retrieval
+  sessionStorage.setItem('checkoutMetadata', JSON.stringify({
+    checkoutId: data.checkoutId,
+    tier: selectedPackage.id,
+    userId: user?.uid || '',
+    credits: data.credits,
+    packageType: data.packageType,
+  }));
 
-      window.location.href = checkoutUrl.toString();
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Redirect directly to Square's hosted checkout URL (unmodified)
+  window.location.href = data.checkout_url;
+} catch (err) {
+  setError(String(err));
+} finally {
+  setLoading(false);
+}
+
 
   if (authLoading) {
     return (
