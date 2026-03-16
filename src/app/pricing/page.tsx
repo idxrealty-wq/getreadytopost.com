@@ -3,10 +3,12 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'Pricing - GetReadyToPost',
-  description: 'Flexible pricing for real estate agents. Monthly memberships, annual plans, and one-time credits. Start free or upgrade anytime.',
+  description:
+    'Flexible pricing for real estate agents. Monthly memberships, annual plans, and one-time credits. Start free or upgrade anytime.',
   openGraph: {
     title: 'Pricing - GetReadyToPost',
-    description: 'Flexible pricing for real estate agents. Monthly memberships, annual plans, and one-time credits.',
+    description:
+      'Flexible pricing for real estate agents. Monthly memberships, annual plans, and one-time credits.',
     url: 'https://getreadytopost.com/pricing',
     type: 'website',
     image: '/og-pricing.png',
@@ -17,18 +19,21 @@ export default function PricingPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] pt-32 pb-16">
       <ShareButtons url="https://getreadytopost.com/pricing" title="Pricing - GetReadyToPost" />
+
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">Flexible Pricing for Every Agent</h1>
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+            Flexible Pricing for Every Agent
+          </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Start with one-time credits, upgrade to monthly, or commit to annual for the best value. All plans include Agent Vault and full workspace access.
+            Start with one-time credits, upgrade to monthly, or commit to annual for the best value.
+            All plans include Agent Vault and full workspace access where applicable.
           </p>
         </div>
 
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-white mb-8 text-center">Membership Plans</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Monthly */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
               <h3 className="text-2xl font-bold text-white mb-2">Monthly</h3>
               <p className="text-gray-400 text-sm mb-6">Cancel anytime</p>
@@ -43,12 +48,14 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Workspace access</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Cancel anytime</li>
               </ul>
-              <a href="https://square.link/u/8XSx13eJ" className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
+              <Link
+                href="/checkout?pkg=monthly"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
+              >
                 Get Started
-              </a>
+              </Link>
             </div>
 
-            {/* Semi-Annual */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
               <h3 className="text-2xl font-bold text-white mb-2">Semi-Annual</h3>
               <p className="text-gray-400 text-sm mb-6">Save 17%</p>
@@ -63,12 +70,14 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Workspace access</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> 6-month term</li>
               </ul>
-              <a href="https://square.link/u/z7zZwqR3" className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
+              <Link
+                href="/checkout?pkg=semi-annual"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
+              >
                 Get Started
-              </a>
+              </Link>
             </div>
 
-            {/* Annual */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-[#c9a227] p-8 relative flex flex-col transform md:scale-105 shadow-2xl">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-[#c9a227] text-[#1a2b4a] px-4 py-1 rounded-full font-bold text-sm">
                 BEST VALUE
@@ -86,12 +95,14 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Workspace access</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Full year access</li>
               </ul>
-              <a href="https://square.link/u/z7zZwqR3" className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
+              <Link
+                href="/checkout?pkg=annual"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
+              >
                 Get Started
-              </a>
+              </Link>
             </div>
 
-            {/* Elite Annual */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
               <h3 className="text-2xl font-bold text-white mb-2">Elite Annual</h3>
               <p className="text-gray-400 text-sm mb-6">Premium tier</p>
@@ -106,16 +117,18 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Workspace access</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Priority support</li>
               </ul>
-              <a href="https://square.link/u/z7zZwqR3" className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
+              <Link
+                href="/checkout?pkg=elite-annual"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
+              >
                 Get Started
-              </a>
+              </Link>
             </div>
           </div>
         </div>
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-white mb-8 text-center">One-Time Purchases</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Single Credit */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
               <h3 className="text-2xl font-bold text-white mb-2">Single Credit</h3>
               <p className="text-gray-400 text-sm mb-6">Try it out</p>
@@ -129,12 +142,14 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Never expires</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> No commitment</li>
               </ul>
-              <a href="https://square.link/u/8XSx13eJ" className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
+              <Link
+                href="/checkout?pkg=single"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
+              >
                 Buy Now
-              </a>
+              </Link>
             </div>
 
-            {/* 5-Pack */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
               <h3 className="text-2xl font-bold text-white mb-2">5-Pack</h3>
               <p className="text-gray-400 text-sm mb-6">Save 15%</p>
@@ -148,12 +163,14 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Never expires</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Most popular</li>
               </ul>
-              <a href="https://square.link/u/8XSx13eJ" className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
+              <Link
+                href="/checkout?pkg=5pack"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
+              >
                 Buy Now
-              </a>
+              </Link>
             </div>
 
-            {/* Vault Only */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
               <h3 className="text-2xl font-bold text-white mb-2">Vault Only</h3>
               <p className="text-gray-400 text-sm mb-6">Organization tool</p>
@@ -167,9 +184,12 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> No credits</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Annual renewal</li>
               </ul>
-              <a href="https://square.link/u/8XSx13eJ" className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
+              <Link
+                href="/checkout?pkg=vault-only"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
+              >
                 Buy Now
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -229,6 +249,7 @@ export default function PricingPage() {
           </p>
         </div>
       </div>
+
       <ShareButtons url="https://getreadytopost.com/pricing" title="Pricing - GetReadyToPost" />
     </main>
   );
