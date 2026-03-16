@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 
-// Package details mapping (same as in webhook)
 const CREDIT_PACKAGES: Record<string, any> = {
-  test: { creditsToAdd: 1, revenue: 1.50, type: 'one-time' },
+  test: { creditsToAdd: 1, revenue: 1.5, type: 'one-time' },
   single: { creditsToAdd: 1, revenue: 19.99, type: 'one-time' },
   '5pack': { creditsToAdd: 5, revenue: 85.0, type: 'one-time' },
   monthly: { creditsToAdd: 30, revenue: 30.0, type: 'subscription', billingCycle: 'monthly' },
@@ -15,6 +14,7 @@ const CREDIT_PACKAGES: Record<string, any> = {
 
 function getRenewalDate(billingCycle: 'monthly' | 'semi-annual' | 'annual') {
   const renewalDate = new Date();
+
   if (billingCycle === 'monthly') {
     renewalDate.setMonth(renewalDate.getMonth() + 1);
   } else if (billingCycle === 'semi-annual') {
@@ -22,6 +22,7 @@ function getRenewalDate(billingCycle: 'monthly' | 'semi-annual' | 'annual') {
   } else {
     renewalDate.setFullYear(renewalDate.getFullYear() + 1);
   }
+
   return renewalDate;
 }
 
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
       const transactionsRef = userDoc.ref.collection('transactions');
       const q = transactionsRef.where('orderId', '==', checkoutId);
       const snapshot = await q.get();
+
       if (!snapshot.empty) {
         foundTransaction = snapshot.docs[0].data();
         userId = userDoc.id;
@@ -71,86 +73,87 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // If not found and we have userId from request, create it now (fallback fulfillment)
-    if (userIdFromRequest && tier && tier in CREDIT_PACKAGES) {
-      const pkg = CREDIT_PACKAGES[tier];
-      userId = userIdFromRequest;
-
-      const userRef = adminDb.collection('users').doc(userId);
-      const userCreditsRef = userRef.collection('credits').doc('balance');
-
-      // Add credits
-      if (pkg.creditsToAdd > 0) {
-        await userCreditsRef.set(
-          {
-            balance: FieldValue.increment(pkg.creditsToAdd),
-            updatedAt: FieldValue.serverTimestamp(),
-          },
-          { merge: true }
-        );
-      }
-
-      // Add subscription if applicable
-      if (pkg.type === 'subscription') {
-        const billingCycle = pkg.billingCycle || 'annual';
-        const renewalDate = getRenewalDate(billingCycle);
-
-        await userRef.set(
-          {
-            subscription: {
-              planId: tier,
-              status: 'active',
-              creditsPerCycle: pkg.creditsToAdd,
-              propertyPullPrice: tier === 'monthly' ? 3 : tier === 'semi-annual' ? 2.5 : 1.75,
-              vaultAccess: true,
-              workspaceAccess: true,
-              billingCycle,
-              renewalDate,
-              lastPaymentDate: FieldValue.serverTimestamp(),
-              updatedAt: FieldValue.serverTimestamp(),
-            },
-          },
-          { merge: true }
-        );
-      }
-
-      // Create transaction record
-      const transactionsRef = userRef.collection('transactions');
-      await transactionsRef.add({
-        type: 'purchase',
-        packageType: tier,
-        creditsAdded: pkg.creditsToAdd,
-        revenue: pkg.revenue,
-        orderId: checkoutId,
-        paymentId: checkoutId,
-        subscriptionApplied: pkg.type === 'subscription',
-        timestamp: FieldValue.serverTimestamp(),
-        source: 'success-page-validation',
-      });
-
-      console.log(`[Validate] Fulfilled ${tier} for user ${userId} via success page`);
-
-      return NextResponse.json({
-        success: true,
-        transaction: {
-          checkoutId,
-          amount: Math.round(pkg.revenue * 100),
-          credits: pkg.creditsToAdd,
-          packageType: tier,
-          status: 'completed',
-          userId,
-          createdAt: new Date().toISOString(),
-        },
-      });
+    // Fallback fulfillment if webhook did not create the transaction yet
+    if (!userIdFromRequest || !tier || !(tier in CREDIT_PACKAGES)) {
+      return NextResponse.json(
+        { success: false, message: 'Transaction not found. Payment may still be processing.' },
+        { status: 404 }
+      );
     }
 
-    // Not found and can't fulfill
-    return NextResponse.json(
-      { success: false, message: 'Transaction not found. Payment may still be processing.' },
-      { status: 404 }
-    );
+    const userIdSafe = userIdFromRequest;
+    const pkg = CREDIT_PACKAGES[tier];
+
+    const userRef = adminDb.collection('users').doc(userIdSafe);
+    const userCreditsRef = userRef.collection('credits').doc('balance');
+
+    // Add credits
+    if (pkg.creditsToAdd > 0) {
+      await userCreditsRef.set(
+        {
+          balance: FieldValue.increment(pkg.creditsToAdd),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+    }
+
+    // Add subscription if applicable
+    if (pkg.type === 'subscription') {
+      const billingCycle = pkg.billingCycle || 'annual';
+      const renewalDate = getRenewalDate(billingCycle);
+
+      await userRef.set(
+        {
+          subscription: {
+            planId: tier,
+            status: 'active',
+            creditsPerCycle: pkg.creditsToAdd,
+            propertyPullPrice:
+              tier === 'monthly' ? 3 : tier === 'semi-annual' ? 2.5 : 1.75,
+            vaultAccess: true,
+            workspaceAccess: true,
+            billingCycle,
+            renewalDate,
+            lastPaymentDate: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+        },
+        { merge: true }
+      );
+    }
+
+    // Create transaction record
+    const transactionsRef = userRef.collection('transactions');
+    await transactionsRef.add({
+      type: 'purchase',
+      packageType: tier,
+      creditsAdded: pkg.creditsToAdd,
+      revenue: pkg.revenue,
+      orderId: checkoutId,
+      paymentId: checkoutId,
+      subscriptionApplied: pkg.type === 'subscription',
+      timestamp: FieldValue.serverTimestamp(),
+      source: 'success-page-validation',
+    });
+
+    console.log(`[Validate] Fulfilled ${tier} for user ${userIdSafe} via success page`);
+
+    return NextResponse.json({
+      success: true,
+      transaction: {
+        checkoutId,
+        amount: Math.round(pkg.revenue * 100),
+        credits: pkg.creditsToAdd,
+        packageType: tier,
+        status: 'completed',
+        userId: userIdSafe,
+        createdAt: new Date().toISOString(),
+      },
+    });
   } catch (error) {
     console.error('Validation error:', error);
+
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
       { status: 500 }
