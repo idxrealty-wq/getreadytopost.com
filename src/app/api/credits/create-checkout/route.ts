@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
     });
 
     const text = await resp.text();
-    let data;
+    let data: any;
 
     try {
       data = JSON.parse(text);
@@ -130,9 +130,9 @@ export async function POST(req: NextRequest) {
     const checkoutUrl = data.payment_link?.url;
     const checkoutId = data.payment_link?.id;
 
-    if (!checkoutUrl) {
+    if (!checkoutUrl || !checkoutId) {
       return NextResponse.json(
-        { error: 'No checkout URL in response', details: data },
+        { error: 'No checkout URL or checkout ID in response', details: data },
         { status: 500 }
       );
     }
