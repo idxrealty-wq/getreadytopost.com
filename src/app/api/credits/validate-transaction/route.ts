@@ -3,6 +3,7 @@ import { getAdminDb } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 const CREDIT_PACKAGES: Record<string, any> = {
+  credit: { creditsToAdd: 1, revenue: 1.5, type: 'one-time' },
   test: { creditsToAdd: 1, revenue: 1.5, type: 'one-time' },
   single: { creditsToAdd: 1, revenue: 19.99, type: 'one-time' },
   '5pack': { creditsToAdd: 5, revenue: 85.0, type: 'one-time' },
