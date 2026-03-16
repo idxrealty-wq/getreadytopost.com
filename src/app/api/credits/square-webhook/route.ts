@@ -306,10 +306,9 @@ export async function POST(req: NextRequest) {
     }
 
     const orderData = JSON.parse(orderText);
-    
-    // DETAILED LOGGING - Log the entire order object to see what Square returns
+
     console.log("[Webhook] Full order data from Square:", JSON.stringify(orderData, null, 2));
-    
+
     const userId = orderData.order?.reference_id;
     const lineItem = orderData.order?.line_items?.[0];
     const lineName = lineItem?.name || "";
@@ -317,7 +316,6 @@ export async function POST(req: NextRequest) {
     const amountMoney = lineItem?.base_price_money?.amount || 0;
     const metadataPackageType = orderData.order?.metadata?.packageType || "";
 
-    // DETAILED LOGGING - Log extracted fields
     console.log("[Webhook] Extracted fields:", {
       userId,
       lineName,
@@ -367,10 +365,7 @@ export async function POST(req: NextRequest) {
 
     const { packageType, creditsToAdd, revenue, subscription } = packageDetails;
 
-    console.log(
-      `[Webhook] Processing package ${packageType} for user ${userId} with ${creditsToAdd} credits`
-    );
-
+    console.log(`[Webhook] Processing package ${packageType} for user ${userId} with ${creditsToAdd} credits`);
     const userRef = adminDb.collection("users").doc(userId);
     const userCreditsRef = userRef.collection("credits").doc("balance");
 
@@ -415,6 +410,7 @@ export async function POST(req: NextRequest) {
     }
 
     const transactionsRef = userRef.collection("transactions");
+
     await transactionsRef.add({
       type: "purchase",
       packageType,
