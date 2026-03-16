@@ -31,6 +31,7 @@ export default function SuccessContent() {
         searchParams.get('transactionId') ||
         searchParams.get('orderId');
       const tier = searchParams.get('tier');
+      const userId = searchParams.get('userId');
 
       if (!checkoutId) {
         setStatus('error');
@@ -42,7 +43,7 @@ export default function SuccessContent() {
         const response = await fetch('/api/credits/validate-transaction', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ checkoutId, tier }),
+          body: JSON.stringify({ checkoutId, tier, userId }),
         });
 
         const data = await response.json();
@@ -69,12 +70,18 @@ export default function SuccessContent() {
 
     validateTransaction();
   }, [searchParams]);
+
   const getNextAction = () => {
     if (!transactionData) return null;
 
     const { packageType, vaultAccess, credits } = transactionData;
 
-    if (packageType === 'monthly' || packageType === 'annual' || packageType === 'semi-annual' || packageType === 'elite-annual') {
+    if (
+      packageType === 'monthly' ||
+      packageType === 'annual' ||
+      packageType === 'semi-annual' ||
+      packageType === 'elite-annual'
+    ) {
       return {
         title: 'Your Membership is Active',
         description: 'You now have full access to Agent Vault and workspace tools.',
@@ -110,6 +117,7 @@ export default function SuccessContent() {
   };
 
   const nextAction = getNextAction();
+
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
@@ -132,7 +140,9 @@ export default function SuccessContent() {
             </div>
 
             <div className="bg-white/5 rounded-xl p-6 mb-8 border border-white/10">
-              <h3 className="text-[#c9a227] font-bold text-sm uppercase tracking-wide mb-4">Order Details</h3>
+              <h3 className="text-[#c9a227] font-bold text-sm uppercase tracking-wide mb-4">
+                Order Details
+              </h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Transaction ID</span>
@@ -140,7 +150,9 @@ export default function SuccessContent() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Amount Paid</span>
-                  <span className="text-white font-bold text-lg">${(transactionData.amount / 100).toFixed(2)}</span>
+                  <span className="text-white font-bold text-lg">
+                    ${(transactionData.amount / 100).toFixed(2)}
+                  </span>
                 </div>
                 {transactionData.credits && (
                   <div className="flex justify-between items-center">
@@ -151,7 +163,9 @@ export default function SuccessContent() {
                 {transactionData.renewalDate && (
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400">Renewal Date</span>
-                    <span className="text-white">{new Date(transactionData.renewalDate).toLocaleDateString()}</span>
+                    <span className="text-white">
+                      {new Date(transactionData.renewalDate).toLocaleDateString()}
+                    </span>
                   </div>
                 )}
                 {transactionData.vaultAccess && (
@@ -165,7 +179,8 @@ export default function SuccessContent() {
 
             <div className="bg-blue-900/30 border border-blue-500/30 rounded-xl p-4 mb-8">
               <p className="text-blue-200 text-sm">
-                <strong>📧 Confirmation email sent</strong> to your registered email address. Check your inbox for receipt and next steps.
+                <strong>📧 Confirmation email sent</strong> to your registered email address.
+                Check your inbox for receipt and next steps.
               </p>
             </div>
 
@@ -191,7 +206,13 @@ export default function SuccessContent() {
 
             <div className="mt-8 pt-8 border-t border-white/10">
               <p className="text-gray-400 text-sm text-center">
-                Questions? Contact us at <a href="mailto:idxrealty@gmail.com" className="text-[#c9a227] hover:text-[#e8c547]">idxrealty@gmail.com</a>
+                Questions? Contact us at{' '}
+                <a
+                  href="mailto:idxrealty@gmail.com"
+                  className="text-[#c9a227] hover:text-[#e8c547]"
+                >
+                  idxrealty@gmail.com
+                </a>
               </p>
             </div>
           </div>
@@ -207,7 +228,8 @@ export default function SuccessContent() {
 
             <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 mb-8">
               <p className="text-red-200 text-sm">
-                <strong>If you were charged</strong>, your transaction will be processed shortly. If the issue persists, please contact support.
+                <strong>If you were charged</strong>, your transaction will be processed shortly.
+                If the issue persists, please contact support.
               </p>
             </div>
 
