@@ -46,7 +46,6 @@ export async function POST(req: NextRequest) {
       amount = pkg.amount;
       credits = pkg.credits;
       itemName = `${packageType} Plan - ${credits} credits`;
-
       if ('billingCycle' in pkg) {
         packageInfo = { type: pkg.type, billingCycle: pkg.billingCycle };
       } else {
@@ -57,12 +56,6 @@ export async function POST(req: NextRequest) {
     }
 
     const idempotencyKey = `pl-${userId}-${packageType}-${Date.now()}`;
-
-    const successUrl = new URL('https://getreadytopost.com/success');
-    successUrl.searchParams.set('tier', packageType);
-    successUrl.searchParams.set('credits', String(credits));
-    successUrl.searchParams.set('type', packageInfo.type);
-    successUrl.searchParams.set('userId', userId);
 
     const payload = {
       idempotency_key: idempotencyKey,
@@ -88,7 +81,7 @@ export async function POST(req: NextRequest) {
         },
       },
       checkout_options: {
-        redirect_url: successUrl.toString(),
+        redirect_url: 'https://getreadytopost.com/success',
       },
     };
 
@@ -109,7 +102,6 @@ export async function POST(req: NextRequest) {
 
     const text = await resp.text();
     let data: any;
-
     try {
       data = JSON.parse(text);
     } catch {
@@ -137,16 +129,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // BUILD SUCCESS URL AFTER WE HAVE checkoutId
+    const successUrl = new URL('https://getreadytopost.com/success');
+    successUrl.searchParams.set('checkoutId', checkoutId);
+    successUrl.searchParams.set('tier', packageType);
+    successUrl.searchParams.set('credits', String(credits));
+    successUrl.searchParams.set('type', packageInfo.type);
+    successUrl.searchParams.set('userId', userId);
+
     return NextResponse.json({
       checkout_url: checkoutUrl,
       checkoutId,
       credits,
       packageType,
       subscriptionType: packageInfo.type,
+      successUrl: successUrl.toString(),
     });
   } catch (e) {
     console.error('Checkout error:', e);
-
     return NextResponse.json(
       { error: 'Server error', details: String(e) },
       { status: 500 }
