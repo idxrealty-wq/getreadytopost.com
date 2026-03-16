@@ -15,7 +15,6 @@ const CREDIT_PACKAGES: Record<string, any> = {
 
 function getRenewalDate(billingCycle: 'monthly' | 'semi-annual' | 'annual') {
   const renewalDate = new Date();
-
   if (billingCycle === 'monthly') {
     renewalDate.setMonth(renewalDate.getMonth() + 1);
   } else if (billingCycle === 'semi-annual') {
@@ -23,7 +22,6 @@ function getRenewalDate(billingCycle: 'monthly' | 'semi-annual' | 'annual') {
   } else {
     renewalDate.setFullYear(renewalDate.getFullYear() + 1);
   }
-
   return renewalDate;
 }
 
@@ -50,7 +48,6 @@ export async function POST(req: NextRequest) {
       const transactionsRef = userDoc.ref.collection('transactions');
       const q = transactionsRef.where('orderId', '==', checkoutId);
       const snapshot = await q.get();
-
       if (!snapshot.empty) {
         foundTransaction = snapshot.docs[0].data();
         userId = userDoc.id;
@@ -84,7 +81,6 @@ export async function POST(req: NextRequest) {
 
     const userIdSafe = userIdFromRequest;
     const pkg = CREDIT_PACKAGES[tier];
-
     const userRef = adminDb.collection('users').doc(userIdSafe);
     const userCreditsRef = userRef.collection('credits').doc('balance');
 
@@ -154,7 +150,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Validation error:', error);
-
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
       { status: 500 }
