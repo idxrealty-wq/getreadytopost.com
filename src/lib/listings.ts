@@ -51,8 +51,30 @@ export interface Listing {
   aiListing: string;
   checklistState: Record<string, boolean>;
   notes: string;
-  photos?: Array<{ url?: string; downloadURL?: string; categoryId?: string; category?: string; uploadedAt: string }>;
-  documents?: Array<{ docId: string; label: string; fileName: string; fileSize: number; fileType: string; downloadURL: string; uploadedAt: string; required: boolean }>;
+  photos?: Array<{
+    url?: string;
+    downloadURL?: string;
+    categoryId?: string;
+    category?: string;
+    uploadedAt: string;
+  }>;
+  documents?: Array<{
+    docId: string;
+    label: string;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+    downloadURL: string;
+    uploadedAt: string;
+    required: boolean;
+  }>;
+  googlePhoto?: {
+    downloadURL: string;
+    source: 'streetview' | 'aerial';
+    unlockedAt: string;
+    unlockedBy: 'credit' | 'payment';
+    paymentMethod?: 'square' | 'manual';
+  };
   documentAccessCode?: string;
   createdAt: string;
   updatedAt: string;
@@ -67,8 +89,24 @@ export const saveListing = async (
   checklistState: Record<string, boolean>,
   notes: string,
   photos?: Array<{ url: string; category: string; uploadedAt: string }>,
-  documents?: Array<{ docId: string; label: string; fileName: string; fileSize: number; fileType: string; downloadURL: string; uploadedAt: string; required: boolean }>,
-  documentAccessCode?: string
+  documents?: Array<{
+    docId: string;
+    label: string;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+    downloadURL: string;
+    uploadedAt: string;
+    required: boolean;
+  }>,
+  documentAccessCode?: string,
+  googlePhoto?: {
+    downloadURL: string;
+    source: 'streetview' | 'aerial';
+    unlockedAt: string;
+    unlockedBy: 'credit' | 'payment';
+    paymentMethod?: 'square' | 'manual';
+  }
 ): Promise<string> => {
   const listingId = `listing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const listingRef = doc(db, 'listings', listingId);
@@ -85,6 +123,7 @@ export const saveListing = async (
     notes,
     photos: photos || [],
     documents: documents || [],
+    googlePhoto,
     documentAccessCode: documentAccessCode || '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
