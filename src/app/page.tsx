@@ -215,7 +215,7 @@ export default function Home() {
               </a>
 
               <a
-                href="https://square.link/u/8XSx13eJ"
+                href="https://square.link/u/M26Auzjb"
                 className="group block rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition"
               >
                 <div className="text-sm font-semibold text-gray-500 mb-2">Monthly</div>
