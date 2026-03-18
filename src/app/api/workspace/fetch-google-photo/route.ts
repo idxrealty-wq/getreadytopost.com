@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       });
 
       const encodedAddress = encodeURIComponent(address);
-      const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=800x600&location=${encodedAddress}&key=${GOOGLE_STREET_VIEW_API_KEY}`;
+      const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=640x480&location=${encodedAddress}&fov=65&pitch=10&key=${GOOGLE_STREET_VIEW_API_KEY}`;
 
       const googlePhoto = {
         downloadURL: streetViewUrl,
