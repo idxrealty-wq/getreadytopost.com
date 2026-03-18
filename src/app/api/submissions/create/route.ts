@@ -22,23 +22,38 @@ export async function POST(req: NextRequest) {
     initAdmin();
     const db = getFirestore();
     const body = await req.json();
+
     const listingText = String(body?.listingText || body?.listingDescription || "").trim();
     const email = String(body?.email || "").trim();
+    const uid = body?.uid ?? null;
+
     if (!email) {
       return NextResponse.json({ error: "email is required" }, { status: 400 });
     }
-    const submission = {
+
+    const listing = {
       listingText,
       email,
-      uid: body?.uid ?? null,
+      uid,
       address: String(body?.address || "").trim(),
       propertyDetails: body?.propertyDetails || {},
       nearby: body?.nearby ?? null,
       status: "created",
       createdAt: new Date().toISOString(),
     };
-    const docRef = await db.collection("submissions").add(submission);
-    return NextResponse.json({ submissionId: docRef.id, ok: true });
+
+    // Write to both collections for compatibility
+    const listingRef = await db.collection("listings").add(listing);
+    await db.collection("submissions").doc(listingRef.id).set({
+      ...listing,
+      listingId: listingRef.id,
+    });
+
+    return NextResponse.json({
+      submissionId: listingRef.id,
+      listingId: listingRef.id,
+      ok: true,
+    });
   } catch (e: any) {
     console.error("[submissions/create] Error:", e?.message);
     await logError({ source: "submissions-create", error: e, context: {} });
