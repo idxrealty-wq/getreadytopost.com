@@ -48,9 +48,16 @@ function WorkspaceContent() {
   const [existingDocuments, setExistingDocuments] = useState<Array<any>>([]);
   const [listingId, setListingId] = useState<string | null>(null);
   const [savedEstimate, setSavedEstimate] = useState<any>(null);
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    setUser(firebaseUser);
+    setAuthLoading(false);
+  });
+  return () => unsubscribe();
+}, []);
 
   useEffect(() => {
-    if (user && !editId && !listingId) {
+    if (!authLoading && user && !editId && !listingId) {
       (async () => {
         try {
           const draftId = 'listing_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
