@@ -6,19 +6,11 @@ export const dynamic = "force-dynamic";
 
 function initAdmin() {
   if (getApps().length > 0) return;
-  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
-  if (!projectId || !clientEmail || !privateKey) {
-    throw new Error("Firebase Admin env vars missing (PROJECT_ID, CLIENT_EMAIL, or PRIVATE_KEY)");
-  }
-  initializeApp({
-    credential: cert({
-      projectId,
-      clientEmail,
-      privateKey: privateKey.replace(/\\n/g, "\n"),
-    }),
-  });
+  const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (!json) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON missing');
+  const sa: any = JSON.parse(json);
+  sa.private_key = sa.private_key.replace(/\\n/g, '\n');
+  initializeApp({ credential: cert(sa) });
 }
 export async function GET(req: NextRequest) {
   try {
