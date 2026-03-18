@@ -57,9 +57,11 @@ export default function Tab4Checklist({
   setExistingDocuments,
   onNext,
   listingId,
+  userId,
   documentAccessCode,
   setDocumentAccessCode,
 }: any) {
+
   const [uploads, setUploads] = useState<Record<string, any>>({});
   const [docMeta, setDocMeta] = useState<Record<string, any>>(() => {
     const defaults: Record<string, any> = {};
