@@ -6,27 +6,20 @@ export const dynamic = "force-dynamic";
 
 function initAdmin() {
   if (getApps().length > 0) return;
-
-  const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-  if (!json) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON missing");
-
-  let sa: any;
-  try {
-    sa = JSON.parse(json);
-  } catch (e: any) {
-    throw new Error(`Invalid JSON in FIREBASE_SERVICE_ACCOUNT_JSON: ${e?.message || String(e)}`);
+  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
+  if (!projectId || !clientEmail || !privateKey) {
+    throw new Error("Firebase Admin env vars missing (PROJECT_ID, CLIENT_EMAIL, or PRIVATE_KEY)");
   }
-
-  if (!sa.private_key) {
-    throw new Error("Service account missing private_key");
-  }
-
-  // Keep this EXACT behavior (no regex changes requested by you)
-  sa.private_key = sa.private_key.replace(/\\n/g, "\n");
-
-  initializeApp({ credential: cert(sa) });
+  initializeApp({
+    credential: cert({
+      projectId,
+      clientEmail,
+      privateKey: privateKey.replace(/\\n/g, "\n"),
+    }),
+  });
 }
-
 export async function GET(req: NextRequest) {
   try {
     initAdmin();
