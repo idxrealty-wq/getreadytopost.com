@@ -38,33 +38,28 @@ export async function POST(req: NextRequest) {
   try {
     initAdmin();
     const db = getFirestore();
-
     const { listingId, userId } = await req.json();
 
     if (!listingId) {
       return NextResponse.json({ error: 'Missing listingId' }, { status: 400 });
     }
-
     if (!userId) {
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
     }
 
-    // Resolve user ID (handle email or doc ID)
     const resolvedUserDocId = await resolveUserDocId(db, String(userId));
     if (!resolvedUserDocId) {
       return NextResponse.json({ error: 'User not found' }, { status: 400 });
     }
 
-    // Check listing exists
     const listingRef = db.collection('listings').doc(listingId);
     const listingSnap = await listingRef.get();
-    if (!listingSnap.exists()) {
+    if (!listingSnap.exists) {
       return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
     }
 
     const listingData = listingSnap.data() as any;
 
-    // If photo already unlocked, return it
     if (listingData.googlePhoto?.downloadURL) {
       return NextResponse.json({ googlePhoto: listingData.googlePhoto }, { status: 200 });
     }
@@ -78,7 +73,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing Google Street View API key' }, { status: 500 });
     }
 
-    // Check user has credits
     const userRef = db.collection('users').doc(resolvedUserDocId);
     const balanceRef = userRef.collection('credits').doc('balance');
     const balSnap = await balanceRef.get();
@@ -88,14 +82,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Insufficient credits' }, { status: 400 });
     }
 
-    // Deduct 1 credit and unlock photo in transaction
     const result = await db.runTransaction(async (tx: any) => {
       const newBalance = currentBalance - 1;
-
-      // Update user balance
       tx.set(balanceRef, { balance: newBalance }, { merge: true });
 
-      // Create transaction record
       const txnRef = userRef.collection('transactions').doc();
       tx.set(txnRef, {
         type: 'deduct',
@@ -106,7 +96,6 @@ export async function POST(req: NextRequest) {
         timestamp: new Date().toISOString(),
       });
 
-      // Build and save photo data
       const encodedAddress = encodeURIComponent(address);
       const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=800x600&location=${encodedAddress}&key=${GOOGLE_STREET_VIEW_API_KEY}`;
 
@@ -118,7 +107,6 @@ export async function POST(req: NextRequest) {
       };
 
       tx.set(listingRef, { googlePhoto }, { merge: true });
-
       return { googlePhoto, newBalance };
     });
 

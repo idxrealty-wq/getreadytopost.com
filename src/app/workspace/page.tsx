@@ -40,23 +40,14 @@ function WorkspaceContent() {
   const [listing, setListing] = useState('');
   const [checklistState, setChecklistState] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState('');
- export default function Tab4Checklist({
-  address,
-  checklistState, setChecklistState, notes, setNotes, photos, setPhotos,
-  existingPhotos, existingDocuments, setExistingDocuments, onNext,
-  listingId, userId, documentAccessCode, setDocumentAccessCode,
-}: any) {
+  const [documentAccessCode, setDocumentAccessCode] = useState('');
+  const [saved, setSaved] = useState(false);
+  const [saveNowNonce, setSaveNowNonce] = useState(0);
+  const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
+  const [existingPhotos, setExistingPhotos] = useState<Array<any>>([]);
   const [existingDocuments, setExistingDocuments] = useState<Array<any>>([]);
   const [listingId, setListingId] = useState<string | null>(null);
   const [savedEstimate, setSavedEstimate] = useState<any>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setAuthLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (user && !editId && !listingId) {
