@@ -633,6 +633,23 @@ export default function Tab4Checklist({
                   >
                     Save to Exterior Photos
                   </button>
+				                    <button
+                    onClick={async () => {
+                      if (!listingId) return;
+                      if (!window.confirm("Delete this photo and try a new fetch? This will use 1 credit.")) return;
+                      try {
+                        await updateDoc(doc(db, "listings", listingId), {
+                          googlePhoto: null,
+                        });
+                        setGooglePhoto(null);
+                      } catch (e: any) {
+                        alert("Failed to delete: " + (e?.message || "unknown error"));
+                      }
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition"
+                  >
+                    Re-fetch Photo
+                  </button>
                 </div>
               </div>
             </div>
