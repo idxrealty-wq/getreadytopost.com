@@ -597,6 +597,42 @@ export default function Tab4Checklist({
                   >
                     Download
                   </button>
+                  <button
+                    onClick={async () => {
+                      if (!listingId) {
+                        alert("Save the listing first.");
+                        return;
+                      }
+                      const alreadySaved = savedPhotos.some(
+                        (p) => p.downloadURL === googlePhoto.downloadURL && p.categoryId === "exterior"
+                      );
+                      if (alreadySaved) {
+                        alert("This photo is already saved to Exterior Photos.");
+                        return;
+                      }
+                      try {
+                        const photoEntry = {
+                          categoryId: "exterior",
+                          fileName: "front-property-photo.jpg",
+                          downloadURL: googlePhoto.downloadURL,
+                          storagePath: googlePhoto.storagePath || "",
+                          uploadedAt: new Date().toISOString(),
+                          source: "google-streetview",
+                          isPrimary: true,
+                        };
+                        await updateDoc(doc(db, "listings", listingId), {
+                          photos: arrayUnion(photoEntry),
+                        });
+                        setSavedPhotos((prev) => [...prev, photoEntry]);
+                        alert("Saved as primary Exterior Photo!");
+                      } catch (e: any) {
+                        alert("Failed to save: " + (e?.message || "unknown error"));
+                      }
+                    }}
+                    className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-2 rounded-lg text-xs font-bold transition"
+                  >
+                    Save to Exterior Photos
+                  </button>
                 </div>
               </div>
             </div>
