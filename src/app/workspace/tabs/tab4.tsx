@@ -569,11 +569,35 @@ export default function Tab4Checklist({
               <img
                 src={googlePhoto.downloadURL}
                 alt="Property front photo"
-                className="w-full h-48 object-cover rounded-lg border border-blue-500/40"
+                className="w-full h-auto max-h-[400px] object-contain rounded-lg border border-blue-500/40 bg-black/20"
               />
-              <div className="text-xs text-gray-400 space-y-1">
-                <p>Source: {googlePhoto.source === "streetview" ? "Google Street View" : "Aerial"}</p>
-                <p>Unlocked: {new Date(googlePhoto.unlockedAt).toLocaleString()}</p>
+              <div className="flex items-center justify-between mt-2">
+                <div className="text-xs text-gray-400 space-y-1">
+                  <p>Source: {googlePhoto.source === "streetview" ? "Google Street View" : "Aerial"}</p>
+                  <p>Unlocked: {new Date(googlePhoto.unlockedAt).toLocaleString()}</p>
+                </div>
+                <div className="flex gap-2">
+                  <a
+                    href={googlePhoto.downloadURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition"
+                  >
+                    View Full Size
+                  </a>
+                  <button
+                    onClick={() => {
+                      const link = document.createElement("a");
+                      link.href = googlePhoto.downloadURL;
+                      link.download = "property-front-photo.jpg";
+                      link.target = "_blank";
+                      link.click();
+                    }}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition"
+                  >
+                    Download
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
