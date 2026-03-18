@@ -4,6 +4,9 @@ import { checkCompliance } from "@/lib/grading/complianceDb";
 import { scoreLength } from "@/lib/grading/lengthScoring";
 import { scoreKeywords } from "@/lib/grading/keywordScoring";
 import { scoreStructure } from "@/lib/grading/structureScoring";
+import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+
 
 export const dynamic = "force-dynamic";
 
