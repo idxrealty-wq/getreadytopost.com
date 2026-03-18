@@ -319,7 +319,7 @@ export default function Tab4Checklist({
       const res = await fetch("/api/workspace/fetch-google-photo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ listingId }),
+        body: JSON.stringify({ listingId, userId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to fetch Google photo.");
