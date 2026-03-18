@@ -71,7 +71,18 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-6">💾 {editId ? 'Update Listing' : 'Save to Agent Vault'}</h2>
         <p className="text-gray-300 mb-8">Review your listing package before saving:</p>
-
+{editId && (
+  <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
+    <span className="text-white font-bold">🆔 Property ID</span>
+    <span
+      className="text-yellow-400 font-mono text-sm cursor-pointer hover:text-yellow-300 transition"
+      title="Click to copy"
+      onClick={() => navigator.clipboard.writeText(editId)}
+    >
+      {editId} 📋
+    </span>
+  </div>
+)}
         <div className="space-y-4">
           <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
             <span className="text-white font-bold">🏠 Property Address</span>
