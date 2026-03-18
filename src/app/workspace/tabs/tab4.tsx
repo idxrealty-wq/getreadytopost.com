@@ -41,6 +41,7 @@ const CHECKLIST_ITEMS = [
   { id: "open_house", label: "Open House Scheduled", category: "Marketing" },
 ];
 export default function Tab4Checklist({
+  address,
   checklistState, setChecklistState, notes, setNotes, photos, setPhotos,
   existingPhotos, existingDocuments, setExistingDocuments, onNext,
   listingId, documentAccessCode, setDocumentAccessCode,
@@ -217,32 +218,49 @@ export default function Tab4Checklist({
   const handleDeleteLocalPhoto = (categoryId: string, index: number) => {
     setPhotos((prev: any) => ({ ...prev, [categoryId]: (prev[categoryId] || []).filter((_: any, i: number) => i !== index) }));
   };
-  const handleUnlockGooglePhoto = async () => {
-    if (!listingId) {
-      alert("No listing found yet.");
-      return;
+ const handleUnlockGooglePhoto = async () => {
+  if (!listingId) {
+    alert("No listing found yet.");
+    return;
+  }
+
+  if (!userId) {
+    alert("User not authenticated.");
+    return;
+  }
+
+  setGooglePhotoLoading(true);
+  setGooglePhotoError("");
+
+  try {
+    const res = await fetch("/api/workspace/fetch-google-photo", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        listingId,
+        userId,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to fetch Google photo.");
     }
 
-    setGooglePhotoLoading(true);
-    setGooglePhotoError("");
+    if (data.googlePhoto) {
+      setGooglePhoto(data.googlePhoto);
+    }
+  } catch (e: any) {
+    console.error("[Tab4] google photo unlock failed", e);
+    setGooglePhotoError(e?.message || "Failed to unlock Google photo.");
+  } finally {
+    setGooglePhotoLoading(false);
+  }
+};
 
-    try {
-      const res = await fetch("/api/workspace/fetch-google-photo", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          listingId,
-          unlockMethod: "credit",
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || "Failed to fetch Google photo.");
-      }
 
       if (data.googlePhoto) {
         setGooglePhoto(data.googlePhoto);
