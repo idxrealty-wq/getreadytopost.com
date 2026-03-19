@@ -5,7 +5,7 @@ export default function VerificationRecordPage() {
     status: 'approved',
     verificationId: 'GRTP-AGENT-DEMO-001',
     verifiedEntityName: 'Christopher Sampson',
-    entityType: 'Agent',
+    entityType: 'Broker',
     lastVerifiedAt: new Date().toISOString(),
     expirationDate: new Date(
       new Date().setFullYear(new Date().getFullYear() + 1)
