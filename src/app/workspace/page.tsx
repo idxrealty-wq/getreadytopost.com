@@ -29,13 +29,14 @@ function WorkspaceContent() {
   const [searchCityZip, setSearchCityZip] = useState('');
   const [searchCity, setSearchCity] = useState('');
   const [searchZip, setSearchZip] = useState('');
-  const [propertyData, setPropertyData] = useState({
-    taxId: '', yearBuilt: '', beds: '', baths: '', legalDescription: '', propertyType: '',
-    zoning: '', stories: '', garage: '', pool: '', construction: '', schoolDistrict: '',
-    hoa: '', hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '',
-    roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '',
-    lastSaleYear: '', homestead: '', sqft: '', lotSize: '', price: '', features: '', dateAdded: '',
-  });
+ const [propertyData, setPropertyData] = useState({
+  taxId: '', yearBuilt: '', beds: '', baths: '', legalDescription: '', propertyType: '',
+  zoning: '', stories: '', garage: '', pool: '', construction: '', schoolDistrict: '',
+  hoa: '', hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '',
+  roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '',
+  lastSaleYear: '', homestead: '', sqft: '', lotSize: '', price: '', features: '', dateAdded: '',
+  county: '',
+});
   const [nearby, setNearby] = useState<any>(null);
   const [listing, setListing] = useState('');
   const [checklistState, setChecklistState] = useState<Record<string, boolean>>({});
@@ -67,13 +68,13 @@ function WorkspaceContent() {
             status: 'draft',
             address: '',
             propertyData: {
-              taxId: '', yearBuilt: '', beds: '', baths: '', sqft: '', lotSize: '', price: '',
-              features: '', dateAdded: '', legalDescription: '', propertyType: '', zoning: '',
-              stories: '', garage: '', pool: '', construction: '', schoolDistrict: '', hoa: '',
-              hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '',
-              roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '',
-              lastSaleYear: '', homestead: ''
-            },
+  taxId: '', yearBuilt: '', beds: '', baths: '', sqft: '', lotSize: '', price: '',
+  features: '', dateAdded: '', legalDescription: '', propertyType: '', zoning: '',
+  stories: '', garage: '', pool: '', construction: '', schoolDistrict: '', hoa: '',
+  hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '',
+  roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '',
+  lastSaleYear: '', homestead: '', county: ''
+},
             nearby: null,
             aiListing: '',
             checklistState: {},
@@ -132,6 +133,7 @@ function WorkspaceContent() {
             lastSalePrice: (data.propertyData as any).lastSalePrice || '',
             lastSaleYear: (data.propertyData as any).lastSaleYear || '',
             homestead: (data.propertyData as any).homestead || '',
+			county: (data.propertyData as any).county || '',
           });
           setNearby(data.nearby);
           setListing(data.aiListing);
@@ -317,6 +319,7 @@ function WorkspaceContent() {
                   address: prev.address || v(p.address),
                   city: prev.city || v(p.city),
                   zip: prev.zip || v(p.zip),
+				  county: prev.county || v(p.county),
                   parcelId: prev.parcelId || v(p.parcel_id),
                   taxId: prev.taxId || v(p.parcel_id),
                   yearBuilt: prev.yearBuilt || v(p.year_built),
