@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import VerificationIntro from '@/components/verification/VerificationIntro';
+import VerificationExplainer from '@/components/verification/VerificationExplainer';
 import ProfileCompletionChecklist from '@/components/verification/ProfileCompletionChecklist';
 import BadgePurchasePanel from '@/components/verification/BadgePurchasePanel';
 import CompanyVerificationPanel from '@/components/verification/CompanyVerificationPanel';
@@ -43,11 +44,19 @@ export default function VerificationPage() {
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 pt-28 pb-10 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl space-y-8">
+      <div className="mx-auto max-w-6xl space-y-12">
+
+        {/* Hero Intro */}
         <section>
           <VerificationIntro />
         </section>
 
+        {/* Full Explainer Section */}
+        <section>
+          <VerificationExplainer />
+        </section>
+
+        {/* Approved Badge Display */}
         {personalVerificationStatus === 'approved' && (
           <section className="rounded-3xl border border-emerald-500/30 bg-emerald-500/5 p-8">
             <h2 className="mb-6 text-2xl font-bold text-white">Your Verification Status</h2>
@@ -61,6 +70,7 @@ export default function VerificationPage() {
           </section>
         )}
 
+        {/* Checklist + Badge Purchase */}
         <section className="grid gap-8 lg:grid-cols-2">
           <div>
             <ProfileCompletionChecklist items={checklistItems} />
@@ -73,6 +83,7 @@ export default function VerificationPage() {
           </div>
         </section>
 
+        {/* Pending Card */}
         {personalVerificationStatus === 'pending' && (
           <section>
             <PendingVerificationCard
@@ -83,6 +94,7 @@ export default function VerificationPage() {
           </section>
         )}
 
+        {/* Company Verification */}
         <section>
           <CompanyVerificationPanel
             personalVerificationApproved={personalVerificationStatus === 'approved'}
@@ -90,6 +102,7 @@ export default function VerificationPage() {
             companyVerificationStatus="locked"
           />
         </section>
+
       </div>
     </main>
   );
