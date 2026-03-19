@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const metadata = {
   title: 'Pricing - GetReadyToPost',
   description:
-    'Flexible pricing for real estate agents. Monthly memberships, annual plans, and one-time credits. Start free or upgrade anytime.',
+    'Flexible pricing for real estate agents. Monthly memberships, annual plans, verification badges, and one-time credits. Start free or upgrade anytime.',
   openGraph: {
     title: 'Pricing - GetReadyToPost',
     description:
@@ -19,8 +19,8 @@ export default function PricingPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] pt-32 pb-16">
       <ShareButtons url="https://getreadytopost.com/pricing" title="Pricing - GetReadyToPost" />
-
       <div className="max-w-7xl mx-auto px-6">
+
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
             Flexible Pricing for Every Agent
@@ -34,6 +34,7 @@ export default function PricingPage() {
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-white mb-8 text-center">Membership Plans</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
               <h3 className="text-2xl font-bold text-white mb-2">Monthly</h3>
               <p className="text-gray-400 text-sm mb-6">Cancel anytime</p>
@@ -48,12 +49,10 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Workspace access</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Cancel anytime</li>
               </ul>
-              <Link
-                href="/checkout?pkg=monthly"
-                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
+              <a href="https://square.link/u/8XSx13eJ" target="_blank" rel="noopener noreferrer"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
                 Get Started
-              </Link>
+              </a>
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
@@ -70,12 +69,10 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Workspace access</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> 6-month term</li>
               </ul>
-              <Link
-                href="/checkout?pkg=semi-annual"
-                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
+              <a href="https://square.link/u/uGBrXdPr" target="_blank" rel="noopener noreferrer"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
                 Get Started
-              </Link>
+              </a>
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-[#c9a227] p-8 relative flex flex-col transform md:scale-105 shadow-2xl">
@@ -95,12 +92,10 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Workspace access</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Full year access</li>
               </ul>
-              <Link
-                href="/checkout?pkg=annual"
-                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
+              <a href="https://square.link/u/z7zZwqR3" target="_blank" rel="noopener noreferrer"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
                 Get Started
-              </Link>
+              </a>
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
@@ -117,18 +112,19 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Workspace access</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Priority support</li>
               </ul>
-              <Link
-                href="/checkout?pkg=elite-annual"
-                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
+              <a href="https://square.link/u/FkNI9CP8" target="_blank" rel="noopener noreferrer"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
                 Get Started
-              </Link>
+              </a>
             </div>
+
           </div>
         </div>
+
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-white mb-8 text-center">One-Time Purchases</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
               <h3 className="text-2xl font-bold text-white mb-2">Single Credit</h3>
               <p className="text-gray-400 text-sm mb-6">Try it out</p>
@@ -142,10 +138,8 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Never expires</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> No commitment</li>
               </ul>
-              <Link
-                href="/checkout?pkg=single"
-                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
+              <Link href="/checkout?pkg=single"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
                 Buy Now
               </Link>
             </div>
@@ -163,10 +157,8 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Never expires</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Most popular</li>
               </ul>
-              <Link
-                href="/checkout?pkg=5pack"
-                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
+              <Link href="/checkout?pkg=5pack"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
                 Buy Now
               </Link>
             </div>
@@ -184,16 +176,120 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> No credits</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Annual renewal</li>
               </ul>
-              <Link
-                href="/checkout?pkg=vault-only"
-                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
+              <Link href="/checkout?pkg=vault-only"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
                 Buy Now
               </Link>
             </div>
           </div>
         </div>
 
+        {/* Verification Badges */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-white mb-3 text-center">Verification Badges</h2>
+          <p className="text-center text-gray-300 mb-8 max-w-2xl mx-auto">
+            Build trust with buyers, sellers, and fellow agents. Each badge is reviewed and issued by the GRTP team.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
+              <h3 className="text-xl font-bold text-white mb-2">GRTP Agent Verified</h3>
+              <p className="text-gray-400 text-sm mb-4">Annual badge — reviewed within 48 hrs</p>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-[#c9a227]">$19.99</span>
+                <p className="text-gray-300 text-sm mt-1">/year</p>
+              </div>
+              <ul className="space-y-2 mb-8 text-gray-200 text-sm flex-grow">
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Badge on all reports</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Public verification record</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Phone verification required</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Annual renewal</li>
+              </ul>
+              <a href="https://square.link/u/o0gy2tby" target="_blank" rel="noopener noreferrer"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
+                Get Verified
+              </a>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
+              <h3 className="text-xl font-bold text-white mb-2">Company Verified</h3>
+              <p className="text-gray-400 text-sm mb-4">Requires Agent Verified first</p>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-[#c9a227]">$10</span>
+                <p className="text-gray-300 text-sm mt-1">/year</p>
+              </div>
+              <ul className="space-y-2 mb-8 text-gray-200 text-sm flex-grow">
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Brokerage badge</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Co-branded reports</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Team credibility signal</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Annual renewal</li>
+              </ul>
+              <a href="https://square.link/u/Z8le2Ijg" target="_blank" rel="noopener noreferrer"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
+                Get Company Badge
+              </a>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
+              <h3 className="text-xl font-bold text-white mb-2">Verify My Agent</h3>
+              <p className="text-gray-400 text-sm mb-4">For buyers &amp; sellers</p>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-[#c9a227]">$10</span>
+                <p className="text-gray-300 text-sm mt-1">one-time</p>
+              </div>
+              <ul className="space-y-2 mb-8 text-gray-200 text-sm flex-grow">
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Confirm agent credentials</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Peace of mind</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Before signing agreements</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> One-time payment</li>
+              </ul>
+              <a href="https://square.link/u/X74D5bgW" target="_blank" rel="noopener noreferrer"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
+                Verify My Agent
+              </a>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
+              <h3 className="text-xl font-bold text-white mb-2">Verified Buyer / Seller</h3>
+              <p className="text-gray-400 text-sm mb-4">Show you are serious</p>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-[#c9a227]">$10</span>
+                <p className="text-gray-300 text-sm mt-1">one-time</p>
+              </div>
+              <ul className="space-y-2 mb-8 text-gray-200 text-sm flex-grow">
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Vetted participant status</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Signal to agents</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Transaction credibility</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> One-time payment</li>
+              </ul>
+              <a href="https://square.link/u/xe0oMnV6" target="_blank" rel="noopener noreferrer"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
+                Get Verified
+              </a>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
+              <h3 className="text-xl font-bold text-white mb-2">Reverification</h3>
+              <p className="text-gray-400 text-sm mb-4">Keep your badge active</p>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-[#c9a227]">$10</span>
+                <p className="text-gray-300 text-sm mt-1">/year</p>
+              </div>
+              <ul className="space-y-2 mb-8 text-gray-200 text-sm flex-grow">
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Annual renewal</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Maintain badge status</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Uninterrupted trust signal</li>
+                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Required every 12 months</li>
+              </ul>
+              <a href="https://square.link/u/XjhkSbC3" target="_blank" rel="noopener noreferrer"
+                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
+                Renew Badge
+              </a>
+            </div>
+
+          </div>
+        </div>
+        {/* What's Included */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-12 mb-16">
           <h2 className="text-3xl font-bold text-white mb-8 text-center">What's Included in Every Plan</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -242,14 +338,15 @@ export default function PricingPage() {
           </div>
         </div>
 
+        {/* Questions */}
         <div className="text-center">
           <h2 className="text-3xl font-bold text-white mb-6">Questions?</h2>
           <p className="text-xl text-gray-300 mb-8">
             Check out our <Link href="/faq" className="text-[#c9a227] hover:text-[#e8c547] underline">FAQ</Link> or <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] underline">contact us</Link>.
           </p>
         </div>
-      </div>
 
+      </div>
       <ShareButtons url="https://getreadytopost.com/pricing" title="Pricing - GetReadyToPost" />
     </main>
   );
