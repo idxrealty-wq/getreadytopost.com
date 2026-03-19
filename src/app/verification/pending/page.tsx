@@ -48,8 +48,14 @@ export default function PendingVerificationPage() {
           </div>
         ) : (
           <div className="grid gap-6">
-            {verifications.map((verification) => (
-              <PendingVerificationCard key={verification.id} verification={verification} />
+            {verifications.map((verification, index) => (
+              <PendingVerificationCard
+                key={index}
+                submittedDate={verification.submittedDate ? new Date(verification.submittedDate) : undefined}
+                verificationDeadline={verification.verificationDeadline ? new Date(verification.verificationDeadline) : undefined}
+                status={verification.status}
+                denialReason={verification.denialReason}
+              />
             ))}
           </div>
         )}
