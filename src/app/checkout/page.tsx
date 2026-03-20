@@ -165,7 +165,7 @@ function CheckoutContent() {
   }
 
   return (
-    <div className="min-h-screen relative p-4 md:p-8">
+    <div className="min-h-screen relative pt-28 px-4 pb-8 md:px-8">
       <div className="fixed inset-0 z-0">
         <img src={BG_URL} alt="Background" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-[#1a2b4a]/90 via-[#2d4a7c]/85 to-[#1a2b4a]/90" />
