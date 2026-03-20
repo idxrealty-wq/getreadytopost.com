@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import { updateUserProfile } from "@/lib/profile";
 import { auth } from "@/lib/firebase";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "@/lib/firebase";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -105,7 +106,6 @@ export default function AgentBackofficePage() {
     if (!user) return;
     setUploading(true);
     try {
-      const storage = getStorage();
       const storageRef = ref(storage, `users/${user.uid}/${field}-${Date.now()}`);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
