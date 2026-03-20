@@ -125,25 +125,33 @@ export default function PricingPage() {
           <h2 className="text-3xl font-bold text-white mb-8 text-center">One-Time Purchases</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
-              <h3 className="text-2xl font-bold text-white mb-2">Single Credit</h3>
-              <p className="text-gray-400 text-sm mb-6">Try it out</p>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-[#c9a227]">$19.99</span>
-                <p className="text-gray-300 text-sm mt-2">1 credit</p>
-              </div>
-              <ul className="space-y-3 mb-8 text-gray-200 text-sm flex-grow">
-                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> 1 property pull</li>
-                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Rate My Listing</li>
-                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Never expires</li>
-                <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> No commitment</li>
-              </ul>
-              <Link href="/checkout?pkg=single"
-                className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition">
-                Buy Now
-              </Link>
-            </div>
-
+           <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
+  <img
+    src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/e534edfe-c16a-4fa3-b549-0f3bdec9bcee/image.png?w=1024&h=1024"
+    alt="Rate My Listing - Professional MLS Description Rewrite"
+    className="w-full rounded-xl mb-4"
+  />
+  <h3 className="text-2xl font-bold text-white mb-2">Rate My Listing</h3>
+  <p className="text-gray-400 text-sm mb-6">Professional MLS Rewrite</p>
+  <div className="mb-6">
+    <span className="text-4xl font-bold text-[#c9a227]">$19.99</span>
+    <p className="text-gray-300 text-sm mt-2">One-time</p>
+  </div>
+  <ul className="space-y-3 mb-8 text-gray-200 text-sm flex-grow">
+    <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> AI-powered listing grade</li>
+    <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Professional description rewrite</li>
+    <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Actionable recommendations</li>
+    <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> No subscription required</li>
+  </ul>
+  <a
+    className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
+    href="https://square.link/u/22tY4Rla"
+    rel="noopener noreferrer"
+    target="_blank"
+  >
+    Buy Now
+  </a>
+</div>
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
               <h3 className="text-2xl font-bold text-white mb-2">5-Pack</h3>
               <p className="text-gray-400 text-sm mb-6">Save 15%</p>
