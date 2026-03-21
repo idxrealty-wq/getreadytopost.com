@@ -61,7 +61,7 @@ export default function PricingPage() {
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
-              <img src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/f196430b-6967-4791-af20-018fcf3f85c5/6-Month_membership_tier.png" alt="Semi-Annual Membership" className="w-full rounded-xl mb-4" />
+              <img src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/c0a3ab94-9392-4636-b162-49c20d62ba6d/image.png" alt="Semi-Annual Membership" className="w-full rounded-xl mb-4" />
               <h3 className="text-2xl font-bold text-white mb-2">Semi-Annual</h3>
               <p className="text-gray-400 text-sm mb-6">Save 17%</p>
               <div className="mb-6">
