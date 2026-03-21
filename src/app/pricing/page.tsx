@@ -175,7 +175,7 @@ export default function PricingPage() {
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
               <img
-                src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/95486068-8406-408e-9863-808573af3d11/image.png"
+                src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/b65fa186-00db-43cf-ad8a-b8f19f91a41c/image.png"
                 alt="Single Credit"
                 className="w-full rounded-xl mb-4"
               />
@@ -226,8 +226,13 @@ export default function PricingPage() {
               </Link>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
-              <h3 className="text-2xl font-bold text-white mb-2">Vault Only</h3>
+           <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
+  <img
+    src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/36b3584a-cf2a-40d9-9caf-1338472e8fa4/image.png"
+    alt="Vault Only"
+    className="w-full rounded-xl mb-4"
+  />
+  <h3 className="text-2xl font-bold text-white mb-2">Vault Only</h3>
               <p className="text-gray-400 text-sm mb-6">Organization tool</p>
               <div className="mb-6">
                 <span className="text-4xl font-bold text-[#c9a227]">$49.95</span>
