@@ -218,12 +218,14 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Never expires</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Good for add-on usage</li>
               </ul>
-              <Link
-                href="/checkout?pkg=5pack"
+              <a
+                href="https://square.link/u/15NaVu0p"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
               >
                 Buy Now
-              </Link>
+              </a>
             </div>
 
            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
