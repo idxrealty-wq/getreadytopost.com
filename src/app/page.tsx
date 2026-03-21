@@ -89,8 +89,17 @@ const pricingCards = [
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <section className="border-b border-white/10 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
+      <section 
+        className="relative bg-cover bg-center bg-no-repeat border-b border-white/10"
+        style={{
+          backgroundImage: "url('https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/2877900c-e6c5-4ba7-9574-26e0d591ae7b/image.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/75 to-slate-950/85"></div>
+        
+        <div className="relative z-10 mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-32">
           <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div>
               <div className="inline-flex items-center rounded-full border border-amber-400/30 bg-amber-400/10 px-4 py-1 text-sm font-medium text-amber-200">
@@ -124,19 +133,19 @@ export default function HomePage() {
               </div>
 
               <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
                   <p className="text-sm font-semibold text-white">Grade the remarks</p>
                   <p className="mt-2 text-sm leading-6 text-slate-300">
                     Identify what is weak, vague, repetitive, or missing before the listing goes live.
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
                   <p className="text-sm font-semibold text-white">Rewrite with purpose</p>
                   <p className="mt-2 text-sm leading-6 text-slate-300">
                     Turn flat MLS copy into a tighter, clearer description that supports buyer response.
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
                   <p className="text-sm font-semibold text-white">Package it professionally</p>
                   <p className="mt-2 text-sm leading-6 text-slate-300">
                     Combine copy, visuals, reports, and notes into a more complete listing workflow.
@@ -145,7 +154,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/30">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/30 backdrop-blur-sm">
               <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-5">
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-200">
                   Start here
@@ -163,7 +172,7 @@ export default function HomePage() {
                 {steps.map((step, index) => (
                   <div
                     key={step.title}
-                    className="rounded-2xl border border-white/10 bg-slate-900/80 p-5"
+                    className="rounded-2xl border border-white/10 bg-slate-900/80 p-5 backdrop-blur-sm"
                   >
                     <div className="flex items-start gap-4">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-400 text-sm font-bold text-slate-950">
@@ -214,6 +223,128 @@ export default function HomePage() {
                 <p className="mt-3 leading-7 text-slate-300">{feature.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-white/10 bg-slate-950">
+        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
+          <div className="mb-16">
+            <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              Listing View Page
+            </h2>
+            <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
+              Share a polished, public-facing property presentation with photos, details, supporting materials, and verification badges.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-8">
+            <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+              <div>
+                <h3 className="text-2xl font-semibold text-white mb-4">
+                  A cleaner way to present properties
+                </h3>
+                <p className="text-slate-300 mb-6">
+                  The Listing View Page is your public-facing property presentation. It combines your improved listing copy, 
+                  exterior photos, area information, supporting documents, and verification status all in one clean, 
+                  professional layout that you can share with buyers, agents, and stakeholders.
+                </p>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-3">
+                    <span className="text-amber-400 font-bold">✓</span>
+                    <span className="text-slate-300">Improved listing copy front and center</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-amber-400 font-bold">✓</span>
+                    <span className="text-slate-300">Google exterior photos and property visuals</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-amber-400 font-bold">✓</span>
+                    <span className="text-slate-300">Area details and neighborhood context</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-amber-400 font-bold">✓</span>
+                    <span className="text-slate-300">Password-protected supporting documents</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-amber-400 font-bold">✓</span>
+                    <span className="text-slate-300">Verification badge showing listing review status</span>
+                  </li>
+                </ul>
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center justify-center rounded-xl bg-amber-400 px-6 py-3 text-base font-semibold text-slate-950 transition hover:bg-amber-300"
+                >
+                  Learn More
+                </Link>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-6">
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-white/5">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
+                    Listing View Example
+                  </p>
+                  <div className="space-y-4">
+                    <div className="h-32 bg-gradient-to-br from-amber-400/20 to-slate-700/20 rounded-lg border border-white/10 flex items-center justify-center">
+                      <span className="text-slate-400 text-sm">Property Photo Preview</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-white/10 rounded w-3/4"></div>
+                      <div className="h-3 bg-white/10 rounded w-full"></div>
+                      <div className="h-3 bg-white/10 rounded w-5/6"></div>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <div className="h-6 bg-emerald-400/30 rounded-full px-3 text-xs flex items-center text-emerald-200 border border-emerald-400/50">
+                        ✓ Verified
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-white/10 bg-slate-950">
+        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
+          <div className="mb-16">
+            <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              Verification & Trust
+            </h2>
+            <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
+              Every listing can be verified through our API-assisted review process, giving buyers and agents confidence 
+              that the property has been professionally reviewed and presented.
+            </p>
+          </div>
+
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8">
+              <div className="text-4xl mb-4">🔍</div>
+              <h3 className="text-lg font-semibold text-white mb-3">API-Assisted Review</h3>
+              <p className="text-slate-300">
+                Our system uses text analysis and verification APIs to review listing copy, flag issues, and confirm 
+                that materials meet professional standards.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8">
+              <div className="text-4xl mb-4">✓</div>
+              <h3 className="text-lg font-semibold text-white mb-3">Verification Badge</h3>
+              <p className="text-slate-300">
+                Verified listings display a badge on the Listing View Page, showing that the property has been reviewed 
+                and meets our quality standards.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8">
+              <div className="text-4xl mb-4">🛡️</div>
+              <h3 className="text-lg font-semibold text-white mb-3">Buyer Confidence</h3>
+              <p className="text-slate-300">
+                Verification builds trust with buyers and agents by confirming that listings have been professionally 
+                prepared and reviewed before presentation.
+              </p>
+            </div>
           </div>
         </div>
       </section>
