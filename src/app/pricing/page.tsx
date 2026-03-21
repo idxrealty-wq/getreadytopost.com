@@ -202,7 +202,7 @@ export default function PricingPage() {
             </div>
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
   <img
-    src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/726fb45e-4163-4db5-a1c0-21cb7b0bb52f/image.png"
+    src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/e882dfc4-ae35-4d83-9018-05cd63c389d8/image.png"
     alt="5-Pack"
     className="w-full rounded-xl mb-4"
   />
