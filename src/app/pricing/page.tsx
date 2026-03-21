@@ -33,7 +33,7 @@ export default function PricingPage() {
 
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-white mb-8 text-center">Membership Plans</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
   <img src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/4efc6b79-44b1-482f-b9b1-4c1c07aac7bd/Monthly_membership_tier.png" alt="Monthly Membership" className="w-full rounded-xl mb-4" />
@@ -121,7 +121,7 @@ export default function PricingPage() {
   </a>
 </div>
 
-       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
   <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
     <img
