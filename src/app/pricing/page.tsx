@@ -200,9 +200,13 @@ export default function PricingPage() {
                 Buy Now
               </a>
             </div>
-
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
-              <h3 className="text-2xl font-bold text-white mb-2">5-Pack</h3>
+  <img
+    src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/726fb45e-4163-4db5-a1c0-21cb7b0bb52f/image.png"
+    alt="5-Pack"
+    className="w-full rounded-xl mb-4"
+  />
+  <h3 className="text-2xl font-bold text-white mb-2">5-Pack</h3>
               <p className="text-gray-400 text-sm mb-6">Bulk credit option</p>
               <div className="mb-6">
                 <span className="text-4xl font-bold text-[#c9a227]">$85</span>
