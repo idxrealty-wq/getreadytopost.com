@@ -46,7 +46,7 @@ const addr2 = addr2Parts.join(', ') || '';
 
   try {
     const r1 = await fetch(
-      `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}&city=${encodeURIComponent(cityParam)}&state=${encodeURIComponent(stateNormalized)}`,
+      `${BASE}/property/address?address1=${encodeURIComponent(q)}&address2=${encodeURIComponent(addr2)}`,
       { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
     );
     const d1 = await r1.json();
