@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 const KEY = process.env.ATTOM_API_KEY || "";
-const BASE = 'https://api.developer.attomdata.com/propertyapi/v1.0.0';
+const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
 
 type ParcelMatch = {
   address?: { countrySubd?: string | null; } | null;
@@ -44,11 +44,12 @@ export async function GET(req: NextRequest) {
   const addr2 = addr2Parts.join(', ') || '';
   const stateUpperRaw = stateParam.toUpperCase();
   const stateNormalized = stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw.substring(0, 2));
+
   try {
     const r1 = await fetch(
-  `${BASE}/property/address?address=${encodeURIComponent(addr1)}&city=${encodeURIComponent(cityParam)}&state=${encodeURIComponent(stateNormalized)}&zip=${encodeURIComponent(searchParams.get('zip') || '')}`,
-  { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
-);
+      `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
+      { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
+    );
     const d1 = await r1.json();
     let matches: ParcelMatch[] = Array.isArray(d1?.property) ? (d1.property as ParcelMatch[]) : [];
     if (stateParam) {
@@ -65,7 +66,6 @@ export async function GET(req: NextRequest) {
       const id = m?.identifier?.attomId || m?.identifier?.Id;
       if (!id) continue;
 
-     // Parallel fetch: expandedprofile, schools, AVM, sale history, assessment history, building permits, mortgage
       const [d2, d3, avmData, saleHistData, assessHistData, permitData, mortgageData] = await Promise.all([
         fetchATTOM(`/property/expandedprofile?attomid=${id}`),
         fetchATTOM(`/property/detailwithschools?attomid=${id}`),
@@ -76,11 +76,9 @@ export async function GET(req: NextRequest) {
         fetchATTOM(`/property/detailmortgage?attomid=${id}`).catch(() => null),
       ]);
 
-           console.log('ATTOM FULL RESPONSE:', JSON.stringify(d2, null, 2));
-const p = d2?.property?.[0];
-const s = d3?.property?.[0];
+      const p = d2?.property?.[0];
+      const s = d3?.property?.[0];
 
-      // AVM
       const avmProp = avmData?.property?.[0];
       const avm = {
         value: String(avmProp?.avm?.amount?.value || ''),
@@ -90,7 +88,6 @@ const s = d3?.property?.[0];
         date: avmProp?.avm?.eventDate || '',
       };
 
-      // Sale History
       const saleHistory = (saleHistData?.property?.[0]?.saleHistory || saleHistData?.property || []).map((sh: any) => ({
         date: sh?.sale?.saleTransDate || sh?.saleTransDate || '',
         price: String(sh?.sale?.amount?.saleAmt || sh?.amount?.saleAmt || ''),
@@ -100,7 +97,6 @@ const s = d3?.property?.[0];
         docType: sh?.sale?.amount?.saleDocType || sh?.amount?.saleDocType || '',
       })).filter((sh: any) => sh.date || sh.price);
 
-      // Assessment History
       const assessHistory = (assessHistData?.property?.[0]?.assessmentHistory || assessHistData?.property || []).map((ah: any) => ({
         year: String(ah?.assessment?.tax?.taxYear || ah?.tax?.taxYear || ''),
         assessed: String(ah?.assessment?.assessed?.assdTtlValue || ah?.assessed?.assdTtlValue || ''),
@@ -110,7 +106,6 @@ const s = d3?.property?.[0];
         tax: String(ah?.assessment?.tax?.taxAmt || ah?.tax?.taxAmt || ''),
       })).filter((ah: any) => ah.year);
 
-      // Building Permits
       const permits = (permitData?.property?.[0]?.buildingPermits || permitData?.property || []).map((bp: any) => ({
         date: bp?.effectiveDate || bp?.issuedDate || '',
         type: bp?.type || bp?.permitType || '',
@@ -119,7 +114,6 @@ const s = d3?.property?.[0];
         cost: String(bp?.jobValue || bp?.totalProjectValue || ''),
       })).filter((bp: any) => bp.date || bp.type);
 
-      // Mortgage
       const mtg = mortgageData?.property?.[0];
       const mortgage = {
         lender: mtg?.mortgage?.FirstConcurrent?.lenderName || '',
@@ -131,7 +125,6 @@ const s = d3?.property?.[0];
         date: mtg?.mortgage?.FirstConcurrent?.date || '',
       };
 
-      // FEMA Flood
       let floodZone = '';
       let floodSubtype = '';
       let floodSFHA = '';
@@ -218,13 +211,11 @@ const s = d3?.property?.[0];
         price_per_bed: String(p?.sale?.calculation?.pricePerBed || ''),
         last_modified: p?.vintage?.lastModified || '',
         dor_uc: p?.area?.countyuse1?.trim() || p?.area?.countyUse1?.trim() || '',
-        // NEW: AVM
         avm_value: avm.value,
         avm_high: avm.high,
         avm_low: avm.low,
         avm_confidence: avm.confidence,
         avm_date: avm.date,
-        // NEW: Mortgage
         mortgage_lender: mortgage.lender,
         mortgage_amount: mortgage.amount,
         mortgage_rate: mortgage.rate,
@@ -232,13 +223,9 @@ const s = d3?.property?.[0];
         mortgage_term: mortgage.term,
         mortgage_due_date: mortgage.dueDate,
         mortgage_date: mortgage.date,
-        // NEW: Sale History array
         sale_history: saleHistory,
-        // NEW: Assessment History array
         assessment_history: assessHistory,
-        // NEW: Building Permits array
         building_permits: permits,
-        // Schools
         school_district: s?.schoolDistrict?.districtname || '',
         school_district_type: s?.schoolDistrict?.districttype || '',
         school_district_lat: s?.schoolDistrict?.districtlatitude || '',
