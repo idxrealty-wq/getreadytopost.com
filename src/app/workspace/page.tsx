@@ -435,7 +435,7 @@ function WorkspaceContent() {
           </>
         )}
         {activeTab === 2 && (
-          <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} />
+          <Tab2Neighborhood address={address} nearby={nearby} setNearby={setNearby} onNext={() => setActiveTab(3)} listingId={listingId} />
         )}
         {activeTab === 3 && (
           <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />

@@ -257,6 +257,49 @@ export default function ListingViewPage() {
             <div className="aspect-video rounded-xl overflow-hidden">
               <iframe src={mapEmbedUrl} width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
             </div>
+			          {listing?.nearby && Object.keys(listing.nearby).length > 0 && (
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+              <h2 className="text-2xl font-bold text-white mb-6">🏘️ Neighborhood Data</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {Object.entries(listing.nearby).map(([category, places]: [string, any]) => {
+                  if (!Array.isArray(places) || places.length === 0) return null;
+                  const topPlaces = places.slice(0, 4);
+                  const copyText = `${category}:\n` + topPlaces.map((p: any) => {
+                    const parts = [p.name];
+                    if (p.distance) parts.push(p.distance);
+                    if (p.rating)   parts.push(`⭐ ${p.rating}`);
+                    return parts.join(' · ');
+                  }).join('\n');
+                  return (
+                    <div key={category} className="bg-white/5 rounded-2xl p-5 border border-white/15">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-white font-bold text-lg">{category}</h3>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(copyText)}
+                          className="text-xs bg-[#c9a227]/20 hover:bg-[#c9a227]/40 text-[#c9a227] border border-[#c9a227]/40 px-3 py-1 rounded-full font-bold transition"
+                        >
+                          📋 Copy
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {topPlaces.map((place: any, i: number) => (
+                          <div
+                            key={i}
+                            className="bg-white/10 border border-white/20 rounded-full px-4 py-2 text-sm text-white flex items-center gap-2"
+                          >
+                            <span className="font-semibold">{place.name}</span>
+                            {place.distance && <span className="text-gray-300 text-xs">{place.distance}</span>}
+                            {place.rating && <span className="text-[#c9a227] text-xs">⭐ {place.rating}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           </div>
           {/* Core Property Details */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
