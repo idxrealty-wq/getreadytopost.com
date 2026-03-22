@@ -1,6 +1,6 @@
 ﻿"use client";
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -18,7 +18,6 @@ import Tab6ClosingCosts from './tabs/tab6';
 function WorkspaceContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
-  const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -29,14 +28,14 @@ function WorkspaceContent() {
   const [searchCityZip, setSearchCityZip] = useState('');
   const [searchCity, setSearchCity] = useState('');
   const [searchZip, setSearchZip] = useState('');
- const [propertyData, setPropertyData] = useState({
-  taxId: '', yearBuilt: '', beds: '', baths: '', legalDescription: '', propertyType: '',
-  zoning: '', stories: '', garage: '', pool: '', construction: '', schoolDistrict: '',
-  hoa: '', hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '',
-  roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '',
-  lastSaleYear: '', homestead: '', sqft: '', lotSize: '', price: '', features: '', dateAdded: '',
-  county: '',
-});
+  const [propertyData, setPropertyData] = useState({
+    taxId: '', yearBuilt: '', beds: '', baths: '', legalDescription: '', propertyType: '',
+    zoning: '', stories: '', garage: '', pool: '', construction: '', schoolDistrict: '',
+    hoa: '', hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '',
+    roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '',
+    lastSaleYear: '', homestead: '', sqft: '', lotSize: '', price: '', features: '', dateAdded: '',
+    county: '',
+  });
   const [nearby, setNearby] = useState<any>(null);
   const [listing, setListing] = useState('');
   const [checklistState, setChecklistState] = useState<Record<string, boolean>>({});
@@ -49,32 +48,35 @@ function WorkspaceContent() {
   const [existingDocuments, setExistingDocuments] = useState<Array<any>>([]);
   const [listingId, setListingId] = useState<string | null>(null);
   const [savedEstimate, setSavedEstimate] = useState<any>(null);
-  useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-    setUser(firebaseUser);
-    setAuthLoading(false);
-  });
-  return () => unsubscribe();
-}, []);
 
+  // Auth listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Auto-create draft for new listings
   useEffect(() => {
     if (!authLoading && user && !editId && !listingId) {
       (async () => {
         try {
-          const draftId = 'listing_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-          await setDoc(doc(db, 'listings', draftId), {
+          const draftId = 'listing_' + Date.now() + '_' + Math.random().toString(36).slice(2, 11);
+          const draftData = {
             id: draftId,
             userId: user.uid,
             status: 'draft',
             address: '',
             propertyData: {
-  taxId: '', yearBuilt: '', beds: '', baths: '', sqft: '', lotSize: '', price: '',
-  features: '', dateAdded: '', legalDescription: '', propertyType: '', zoning: '',
-  stories: '', garage: '', pool: '', construction: '', schoolDistrict: '', hoa: '',
-  hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '',
-  roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '',
-  lastSaleYear: '', homestead: '', county: ''
-},
+              taxId: '', yearBuilt: '', beds: '', baths: '', sqft: '', lotSize: '', price: '',
+              features: '', dateAdded: '', legalDescription: '', propertyType: '', zoning: '',
+              stories: '', garage: '', pool: '', construction: '', schoolDistrict: '', hoa: '',
+              hoaAmount: '', hoaName: '', amenities: '', floodZone: '', water: '', sewer: '',
+              roofYear: '', acYear: '', waterHeaterYear: '', assessedValue: '', lastSalePrice: '',
+              lastSaleYear: '', homestead: '', county: '',
+            },
             nearby: null,
             aiListing: '',
             checklistState: {},
@@ -83,78 +85,77 @@ function WorkspaceContent() {
             documents: [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-          });
+          };
+          await setDoc(doc(db, 'listings', draftId), JSON.parse(JSON.stringify(draftData)));
           setListingId(draftId);
-          router.replace('/workspace?edit=' + draftId);
-        } catch (err) {
-          console.error('Failed to create draft listing:', err);
+        } catch (err: any) {
+          console.error('Failed to create draft listing:', err.message);
         }
       })();
     }
-  }, [user, editId, listingId]);
+  }, [authLoading, user, editId, listingId]);
 
+  // Load listing for edit mode
   useEffect(() => {
-    if (editId && user && !loadingListing) {
-      loadListingForEdit(editId);
-    }
-  }, [editId, user]);
-
-  const loadListingForEdit = async (listingId: string) => {
-    setListingId(listingId);
-    setLoadingListing(true);
-    try {
-      const listingRef = doc(db, 'listings', listingId);
-      const listingSnap = await getDoc(listingRef);
-      if (listingSnap.exists()) {
-        const data = listingSnap.data() as Listing;
-        if (data.userId === user?.uid) {
-          setAddress(data.address);
-          setPropertyData({
-            ...data.propertyData,
-            legalDescription: (data.propertyData as any).legalDescription || '',
-            propertyType: (data.propertyData as any).propertyType || '',
-            zoning: (data.propertyData as any).zoning || '',
-            stories: (data.propertyData as any).stories || '',
-            garage: (data.propertyData as any).garage || '',
-            pool: (data.propertyData as any).pool || '',
-            construction: (data.propertyData as any).construction || '',
-            schoolDistrict: (data.propertyData as any).schoolDistrict || '',
-            hoa: (data.propertyData as any).hoa || '',
-            hoaAmount: (data.propertyData as any).hoaAmount || '',
-            hoaName: (data.propertyData as any).hoaName || '',
-            amenities: (data.propertyData as any).amenities || '',
-            floodZone: (data.propertyData as any).floodZone || '',
-            water: (data.propertyData as any).water || '',
-            sewer: (data.propertyData as any).sewer || '',
-            roofYear: (data.propertyData as any).roofYear || '',
-            acYear: (data.propertyData as any).acYear || '',
-            waterHeaterYear: (data.propertyData as any).waterHeaterYear || '',
-            assessedValue: (data.propertyData as any).assessedValue || '',
-            lastSalePrice: (data.propertyData as any).lastSalePrice || '',
-            lastSaleYear: (data.propertyData as any).lastSaleYear || '',
-            homestead: (data.propertyData as any).homestead || '',
-			county: (data.propertyData as any).county || '',
-          });
-          setNearby(data.nearby);
-          setListing(data.aiListing);
-          setChecklistState(data.checklistState);
-          setNotes(data.notes);
-          setExistingPhotos(data.photos || []);
-          setExistingDocuments(data.documents || []);
-          setSavedEstimate((data as any).closingCostEstimate || null);
-          setSaved(false);
-        } else {
-          alert('You do not have permission to edit this listing.');
+    if (!authLoading && user && editId) {
+      (async () => {
+        setListingId(editId);
+        setLoadingListing(true);
+        try {
+          const listingRef = doc(db, 'listings', editId);
+          const listingSnap = await getDoc(listingRef);
+          if (listingSnap.exists()) {
+            const data = listingSnap.data() as Listing;
+            if (data.userId === user?.uid) {
+              setAddress(data.address);
+              setPropertyData({
+                ...data.propertyData,
+                legalDescription: (data.propertyData as any).legalDescription || '',
+                propertyType: (data.propertyData as any).propertyType || '',
+                zoning: (data.propertyData as any).zoning || '',
+                stories: (data.propertyData as any).stories || '',
+                garage: (data.propertyData as any).garage || '',
+                pool: (data.propertyData as any).pool || '',
+                construction: (data.propertyData as any).construction || '',
+                schoolDistrict: (data.propertyData as any).schoolDistrict || '',
+                hoa: (data.propertyData as any).hoa || '',
+                hoaAmount: (data.propertyData as any).hoaAmount || '',
+                hoaName: (data.propertyData as any).hoaName || '',
+                amenities: (data.propertyData as any).amenities || '',
+                floodZone: (data.propertyData as any).floodZone || '',
+                water: (data.propertyData as any).water || '',
+                sewer: (data.propertyData as any).sewer || '',
+                roofYear: (data.propertyData as any).roofYear || '',
+                acYear: (data.propertyData as any).acYear || '',
+                waterHeaterYear: (data.propertyData as any).waterHeaterYear || '',
+                assessedValue: (data.propertyData as any).assessedValue || '',
+                lastSalePrice: (data.propertyData as any).lastSalePrice || '',
+                lastSaleYear: (data.propertyData as any).lastSaleYear || '',
+                homestead: (data.propertyData as any).homestead || '',
+                county: (data.propertyData as any).county || '',
+              });
+              setNearby(data.nearby ? JSON.parse(JSON.stringify(data.nearby)) : null);
+              setListing(data.aiListing);
+              setChecklistState(data.checklistState);
+              setNotes(data.notes);
+              setExistingPhotos(data.photos || []);
+              setExistingDocuments(data.documents || []);
+              setSavedEstimate((data as any).closingCostEstimate || null);
+              setSaved(false);
+            } else {
+              alert('You do not have permission to edit this listing.');
+            }
+          } else {
+            alert('Listing not found.');
+          }
+        } catch (err: any) {
+          alert('Failed to load listing: ' + err.message);
+        } finally {
+          setLoadingListing(false);
         }
-      } else {
-        alert('Listing not found.');
-      }
-    } catch (err: any) {
-      alert('Failed to load listing: ' + err.message);
-    } finally {
-      setLoadingListing(false);
+      })();
     }
-  };
+  }, [authLoading, user, editId]);
 
   const handleCSVImport = (imported: any) => {
     if (!address) setAddress(imported.address);
@@ -171,12 +172,12 @@ function WorkspaceContent() {
   };
 
   const tabs = [
-    { num: 1, label: 'Property', icon:'[1]', done: !!address && !!propertyData.taxId },
-    { num: 2, label: 'Neighborhood', icon:'[2]', done: !!nearby },
-    { num: 3, label: 'AI Listing', icon:'[3]', done: !!listing },
-    { num: 4, label: 'Documents', icon:'[4]', done: false },
-    { num: 5, label: 'Save', icon:'[5]', done: saved },
-    { num: 6, label: 'Closing Costs', icon:'[6]', done: !!savedEstimate },
+    { num: 1, label: 'Property',      icon: '[1]', done: !!address && !!propertyData.taxId },
+    { num: 2, label: 'Neighborhood',  icon: '[2]', done: !!nearby },
+    { num: 3, label: 'AI Listing',    icon: '[3]', done: !!listing },
+    { num: 4, label: 'Documents',     icon: '[4]', done: false },
+    { num: 5, label: 'Save',          icon: '[5]', done: saved },
+    { num: 6, label: 'Closing Costs', icon: '[6]', done: !!savedEstimate },
   ];
 
   if (loadingListing) {
@@ -319,7 +320,7 @@ function WorkspaceContent() {
                   address: prev.address || v(p.address),
                   city: prev.city || v(p.city),
                   zip: prev.zip || v(p.zip),
-				  county: prev.county || v(p.county),
+                  county: prev.county || v(p.county),
                   parcelId: prev.parcelId || v(p.parcel_id),
                   taxId: prev.taxId || v(p.parcel_id),
                   yearBuilt: prev.yearBuilt || v(p.year_built),
@@ -373,7 +374,7 @@ function WorkspaceContent() {
                   roofShape: prev.roofShape || v(p.roof_shape),
                   improvementsYear: prev.improvementsYear || v(p.improvements_year),
                   heatingFuel: prev.heatingFuel || v(p.heating_fuel),
-				  water: prev.water || v(p.water),
+                  water: prev.water || v(p.water),
                   sewer: prev.sewer || v(p.sewer),
                   pool: prev.pool || v(p.pool),
                   garage: prev.garage || v(p.garage),
@@ -441,24 +442,24 @@ function WorkspaceContent() {
           <Tab3Listing address={address} propertyData={propertyData} nearby={nearby} listing={listing} setListing={setListing} onNext={() => setActiveTab(4)} />
         )}
         {activeTab === 4 && (
-  <Tab4Checklist
-    address={address}
-    listingId={listingId}
-    userId={user?.uid}
-    checklistState={checklistState}
-    setChecklistState={setChecklistState}
-    notes={notes}
-    setNotes={setNotes}
-    photos={photos}
-    setPhotos={setPhotos}
-    existingPhotos={existingPhotos}
-    existingDocuments={existingDocuments}
-    setExistingDocuments={setExistingDocuments}
-    onNext={() => setActiveTab(5)}
-    documentAccessCode={documentAccessCode}
-    setDocumentAccessCode={setDocumentAccessCode}
-  />
-)}
+          <Tab4Checklist
+            address={address}
+            listingId={listingId}
+            userId={user?.uid}
+            checklistState={checklistState}
+            setChecklistState={setChecklistState}
+            notes={notes}
+            setNotes={setNotes}
+            photos={photos}
+            setPhotos={setPhotos}
+            existingPhotos={existingPhotos}
+            existingDocuments={existingDocuments}
+            setExistingDocuments={setExistingDocuments}
+            onNext={() => setActiveTab(5)}
+            documentAccessCode={documentAccessCode}
+            setDocumentAccessCode={setDocumentAccessCode}
+          />
+        )}
         {activeTab === 5 && (
           <Tab5Save
             address={address}
@@ -501,4 +502,4 @@ export default function WorkspacePage() {
     </Suspense>
   );
 }
-
+        
