@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 const KEY = process.env.ATTOM_API_KEY || "";
-const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
+const BASE = 'https://api.developer.attomdata.com/propertyapi/v1.0.0';
 
 type ParcelMatch = {
   address?: { countrySubd?: string | null; } | null;

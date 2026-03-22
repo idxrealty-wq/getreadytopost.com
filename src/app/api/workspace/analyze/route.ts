@@ -158,7 +158,8 @@ export async function POST(request) {
       Shopping: distResults[9]
     };
     var listing = await generateListing(address, propertyDetails, nearbyData);
-    return NextResponse.json({ address, lat, lng, nearby: nearbyData, listing });
+    var sanitizedNearby = JSON.parse(JSON.stringify(nearbyData));
+    return NextResponse.json({ address, lat, lng, nearby: sanitizedNearby, listing });
   } catch (error: any) {
     console.error('Workspace error:', error);
     await logError({ source: "workspace-analyze", error, context: {} });
