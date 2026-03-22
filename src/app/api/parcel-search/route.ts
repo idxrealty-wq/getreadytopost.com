@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 const KEY = process.env.ATTOM_API_KEY || "";
-const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
+const BASE = 'https://api.developer.attomdata.com/propertyapi/v1.0.0';
 
 type ParcelMatch = {
   address?: { countrySubd?: string | null; } | null;
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const r1 = await fetch(
-      `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
+      `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}&city=${encodeURIComponent(cityParam)}&state=${encodeURIComponent(stateNormalized)}`,
       { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
     );
     const d1 = await r1.json();
