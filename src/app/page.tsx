@@ -280,44 +280,49 @@ export default function HomePage() {
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-6">
-  <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-white/5">
-    <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
-      Listing View Example
-    </p>
-    <div className="space-y-4">
-      <div className="h-32 bg-gradient-to-br from-amber-400/20 to-slate-700/20 rounded-lg border border-white/10 flex items-center justify-center">
-        <span className="text-slate-400 text-sm">Property Photo Preview</span>
-      </div>
-      <div className="space-y-2">
-        <div className="h-3 bg-white/10 rounded w-3/4"></div>
-        <div className="h-3 bg-white/10 rounded w-full"></div>
-        <div className="h-3 bg-white/10 rounded w-5/6"></div>
-      </div>
-      <div className="flex gap-2 pt-2">
-        <div className="h-6 bg-emerald-400/30 rounded-full px-3 text-xs flex items-center text-emerald-200 border border-emerald-400/50">
-          ✓ Verified
-        </div>
-      </div>
-    </div>
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-white/5">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">
+                    Listing View Example
+                  </p>
 
-    <div className="mt-5 pt-5 border-t border-white/10">
-      <a
-        href="https://getreadytopost.com/listing/listing_1771692871525_iffpctrb3"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center text-sm font-semibold text-amber-300 hover:text-amber-200 transition"
-      >
-        View live example →
-      </a>
-    </div>
-  </div>
-</div>
+                  <div className="space-y-4">
+                    <div className="rounded-lg overflow-hidden border border-white/10 bg-slate-700 h-32 flex items-center justify-center">
+                      <span className="text-slate-400 text-sm">Property Photo Preview</span>
+                    </div>
 
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold text-white">
+                        Clean public-facing property presentation
+                      </h4>
+                      <p className="text-xs leading-5 text-slate-300">
+                        A polished way to share listing copy, visuals, supporting documents, and verification in one place.
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <div className="inline-flex items-center gap-1 h-6 bg-emerald-400/30 rounded-full px-3 text-xs text-emerald-200 border border-emerald-400/50">
+                        <span>✓</span>
+                        <span>Verified</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 pt-5 border-t border-white/10">
+                    <a
+                      href="https://getreadytopost.com/listing/listing_1771692871525_iffpctrb3"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-sm font-semibold text-amber-300 hover:text-amber-200 transition"
+                    >
+                      View live example →
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
-
       <section className="border-b border-white/10 bg-slate-950">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
           <div className="mb-16">
