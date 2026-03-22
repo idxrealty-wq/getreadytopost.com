@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
   if (stateParam) addr2Parts.push(stateParam);
   const addr2 = addr2Parts.join(', ') || '';
   const stateUpperRaw = stateParam.toUpperCase();
-  const stateNormalized = stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw.substring(0, 2));
+  const stateNormalized = stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw);
   try {
     const r1 = await fetch(
       `${BASE}/property/address?address=${encodeURIComponent(addr1)}&city=${encodeURIComponent(cityParam)}&state=${encodeURIComponent(stateNormalized)}&zip=${encodeURIComponent(zipParam)}`,,
