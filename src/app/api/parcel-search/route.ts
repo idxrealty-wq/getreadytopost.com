@@ -35,6 +35,8 @@ export async function GET(req: NextRequest) {
   const q = (searchParams.get('q') || '').trim();
   const stateParam = (searchParams.get('state') || '').trim();
   const cityParam = (searchParams.get('city') || '').trim();
+  const debug = searchParams.get('debug') === 'true';
+
   if (!q || q.length < 5) return NextResponse.json({ results: [] });
 
   const stateUpperRaw = stateParam ? stateParam.toUpperCase() : '';
@@ -44,12 +46,29 @@ export async function GET(req: NextRequest) {
   if (stateNormalized) addr2Parts.push(stateNormalized);
   const addr2 = addr2Parts.join(', ') || '';
 
+  const attomUrl = `${BASE}/property/address?address1=${encodeURIComponent(q)}&address2=${encodeURIComponent(addr2)}`;
+
   try {
-    const r1 = await fetch(
-      `${BASE}/property/address?address1=${encodeURIComponent(q)}&address2=${encodeURIComponent(addr2)}`,
-      { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
-    );
+    const r1 = await fetch(attomUrl, {
+      headers: { apikey: KEY, Accept: 'application/json' },
+      cache: 'no-store',
+    });
     const d1 = await r1.json();
+
+    if (debug) {
+      return NextResponse.json({
+        debug: {
+          attomUrl,
+          address1: q,
+          address2: addr2,
+          stateNormalized,
+          keyPresent: KEY.length > 0,
+          httpStatus: r1.status,
+          attomRawResponse: d1,
+        }
+      });
+    }
+
     let matches: ParcelMatch[] = Array.isArray(d1?.property) ? (d1.property as ParcelMatch[]) : [];
     if (stateParam) {
       matches = matches.filter((m: ParcelMatch) => {
@@ -59,156 +78,6 @@ export async function GET(req: NextRequest) {
     }
     matches = matches.slice(0, 3);
     if (!matches.length) return NextResponse.json({ results: [] });
-
-    const results = [];
-    for (const m of matches) {
-      const id = m?.identifier?.attomId || m?.identifier?.Id;
-      if (!id) continue;
-
-      const [d2, d3, avmData, saleHistData, assessHistData, permitData, mortgageData] = await Promise.all([
-        fetchATTOM(`/property/expandedprofile?attomid=${id}`),
-        fetchATTOM(`/property/detailwithschools?attomid=${id}`),
-        fetchATTOM(`/attomavm/detail?attomid=${id}`).catch(() => null),
-        fetchATTOM(`/property/salehistory?attomid=${id}`).catch(() => null),
-        fetchATTOM(`/property/assessmenthistory?attomid=${id}`).catch(() => null),
-        fetchATTOM(`/property/buildingpermits?attomid=${id}`).catch(() => null),
-        fetchATTOM(`/property/detailmortgage?attomid=${id}`).catch(() => null),
-      ]);
-
-      const p = d2?.property?.[0];
-      const s = d3?.property?.[0];
-
-      const avmProp = avmData?.property?.[0];
-      const avm = {
-        value: String(avmProp?.avm?.amount?.value || ''),
-        high: String(avmProp?.avm?.amount?.high || ''),
-        low: String(avmProp?.avm?.amount?.low || ''),
-        confidence: String(avmProp?.avm?.amount?.valueRange || avmProp?.avm?.confidence?.score || ''),
-        date: avmProp?.avm?.eventDate || '',
-      };
-
-      const saleHistory = (saleHistData?.property?.[0]?.saleHistory || saleHistData?.property || []).map((sh: any) => ({
-        date: sh?.sale?.saleTransDate || sh?.saleTransDate || '',
-        price: String(sh?.sale?.amount?.saleAmt || sh?.amount?.saleAmt || ''),
-        seller: sh?.sale?.sellerName || sh?.sellerName || '',
-        buyer: sh?.sale?.buyerName || sh?.buyerName || '',
-        type: sh?.sale?.amount?.saleTransType || sh?.amount?.saleTransType || '',
-        docType: sh?.sale?.amount?.saleDocType || sh?.amount?.saleDocType || '',
-      })).filter((sh: any) => sh.date || sh.price);
-
-      const assessHistory = (assessHistData?.property?.[0]?.assessmentHistory || assessHistData?.property || []).map((ah: any) => ({
-        year: String(ah?.assessment?.tax?.taxYear || ah?.tax?.taxYear || ''),
-        assessed: String(ah?.assessment?.assessed?.assdTtlValue || ah?.assessed?.assdTtlValue || ''),
-        market: String(ah?.assessment?.market?.mktTtlValue || ah?.market?.mktTtlValue || ''),
-        land: String(ah?.assessment?.assessed?.assdLandValue || ah?.assessed?.assdLandValue || ''),
-        building: String(ah?.assessment?.assessed?.assdImprValue || ah?.assessed?.assdImprValue || ''),
-        tax: String(ah?.assessment?.tax?.taxAmt || ah?.tax?.taxAmt || ''),
-      })).filter((ah: any) => ah.year);
-
-      const permits = (permitData?.property?.[0]?.buildingPermits || permitData?.property || []).map((bp: any) => ({
-        date: bp?.effectiveDate || bp?.issuedDate || '',
-        type: bp?.type || bp?.permitType || '',
-        description: bp?.description || bp?.workDescription || '',
-        status: bp?.status || '',
-        cost: String(bp?.jobValue || bp?.totalProjectValue || ''),
-      })).filter((bp: any) => bp.date || bp.type);
-
-      const mtg = mortgageData?.property?.[0];
-      const mortgage = {
-        lender: mtg?.mortgage?.FirstConcurrent?.lenderName || '',
-        amount: String(mtg?.mortgage?.FirstConcurrent?.amount || ''),
-        rate: String(mtg?.mortgage?.FirstConcurrent?.interestRate || ''),
-        type: mtg?.mortgage?.FirstConcurrent?.loanType || '',
-        term: String(mtg?.mortgage?.FirstConcurrent?.term || ''),
-        dueDate: mtg?.mortgage?.FirstConcurrent?.dueDate || '',
-        date: mtg?.mortgage?.FirstConcurrent?.date || '',
-      };
-
-      let floodZone = '';
-      let floodSubtype = '';
-      let floodSFHA = '';
-      try {
-        const lat = p?.location?.latitude;
-        const lng = p?.location?.longitude;
-        if (lat && lng) {
-          const femaRes = await fetch(
-            `https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query?geometry=${lng},${lat}&geometryType=esriGeometryPoint&spatialRel=esriSpatialRelIntersects&outFields=FLD_ZONE,ZONE_SUBTY,SFHA_TF&f=json&inSR=4326`
-          );
-          const femaData = await femaRes.json();
-          const attrs = femaData?.features?.[0]?.attributes;
-          if (attrs) {
-            floodZone = attrs.FLD_ZONE || '';
-            floodSubtype = attrs.ZONE_SUBTY || '';
-            floodSFHA = attrs.SFHA_TF === 'T' ? 'Yes' : 'No';
-          }
-        }
-      } catch { /* silent fail */ }
-      results.push({
-        parcel_id: p?.identifier?.apn || '',
-        address: p?.address?.line1 || '',
-        city: p?.address?.locality || '',
-        zip: p?.address?.postal1 || '',
-        county: p?.area?.countrySecSubd || '',
-        year_built: String(p?.summary?.yearBuilt || ''),
-        sqft: String(p?.building?.size?.livingSize || ''),
-        beds: String(p?.building?.rooms?.beds || ''),
-        baths: String(p?.building?.rooms?.bathsTotal || ''),
-        property_type: p?.summary?.propType || p?.summary?.propLandUse || '',
-        legal_description: p?.summary?.legal1 || '',
-        stories: String(p?.building?.summary?.levels || ''),
-        story_desc: p?.building?.summary?.storyDesc || '',
-        construction: p?.building?.construction?.constructionType || '',
-        condition: p?.building?.construction?.condition || '',
-        roof_cover: p?.building?.construction?.roofCover || '',
-        roof_shape: p?.building?.construction?.roofShape || '',
-        garage: p?.building?.parking?.garageType || '',
-        garage_sqft: String(p?.building?.parking?.prkgSize || ''),
-        pool: p?.lot?.poolType || (p?.lot?.poolInd === 'YES' ? 'Yes' : ''),
-        subdivision: p?.area?.subdName || '',
-        zoning: p?.lot?.zoningType || '',
-        zoning_code: p?.lot?.siteZoningIdent || '',
-        lot_num: p?.lot?.lotNum || '',
-        land_sqft: String(p?.lot?.lotSize2 || ''),
-        acres: String(p?.lot?.lotSize1 || ''),
-        cooling: p?.utilities?.coolingType || '',
-        heating_type: p?.utilities?.heatingType || '',
-        heating_fuel: p?.utilities?.heatingFuel || '',
-        latitude: p?.location?.latitude || '',
-        longitude: p?.location?.longitude || '',
-        fireplace: p?.building?.interior?.fplcInd === 'Y' ? `Yes (${p?.building?.interior?.fplcCount || 1})` : '',
-        homestead: p?.assessment?.tax?.exemptiontype?.Homeowner === 'Y' ? 'Yes' : 'No',
-        exemptions: Object.entries(p?.assessment?.tax?.exemptiontype || {})
-          .filter(([_, v]) => v === 'Y')
-          .map(([k]) => k)
-          .join(', '),
-        flood_zone: floodZone,
-        flood_subtype: floodSubtype,
-        flood_sfha: floodSFHA,
-        wall_type: p?.building?.construction?.wallType || '',
-        improvements_year: p?.building?.construction?.propertyStructureMajorImprovementsYear || '',
-        assessed_value: String(p?.assessment?.assessed?.assdTtlValue || ''),
-        just_value: String(p?.assessment?.market?.mktTtlValue || ''),
-        land_value: String(p?.assessment?.assessed?.assdLandValue || ''),
-        building_value: String(p?.assessment?.assessed?.assdImprValue || ''),
-        taxable_value: String(p?.assessment?.assessed?.assdTtlValue || ''),
-        annual_tax: String(p?.assessment?.tax?.taxAmt || ''),
-        tax_year: String(p?.assessment?.tax?.taxYear || ''),
-        owner_name: p?.assessment?.owner?.owner1?.fullName || '',
-        owner2_name: p?.assessment?.owner?.owner2?.fullName || '',
-        owner_type: p?.assessment?.owner?.description || '',
-        absentee_owner: p?.assessment?.owner?.absenteeOwnerStatus === 'O' ? 'Owner Occupied' : 'Absentee',
-        mailing_address: p?.assessment?.owner?.mailingAddressOneLine || '',
-        title_company: p?.assessment?.mortgage?.title?.companyName || '',
-        deed_type: p?.assessment?.mortgage?.FirstConcurrent?.deedType || '',
-        sale_price: String(p?.sale?.amount?.saleAmt || ''),
-        sale_trans_type: p?.sale?.amount?.saleTransType || '',
-        sale_doc_type: p?.sale?.amount?.saleDocType || '',
-        seller_name: p?.sale?.sellerName || '',
-        sale_date: p?.sale?.saleTransDate || '',
-        sale_year: String(p?.sale?.saleSearchDate ? new Date(p.sale.saleSearchDate).getFullYear() : ''),
-        price_per_sqft: String(p?.sale?.calculation?.pricePerSizeUnit || ''),
-        price_per_bed: String(p?.sale?.calculation?.pricePerBed || ''),
-        last_modified: p?.vintage?.lastModified || '',
         dor_uc: p?.area?.countyuse1?.trim() || p?.area?.countyUse1?.trim() || '',
         avm_value: avm.value,
         avm_high: avm.high,
@@ -249,4 +118,3 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ results: [] });
   }
 }
-
