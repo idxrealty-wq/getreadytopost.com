@@ -288,7 +288,7 @@ export default function HomePage() {
                   <div className="space-y-4">
                     <div className="rounded-lg overflow-hidden border border-white/10">
                       <img
-                        src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/bc2110b3-6406-4e9b-ad41-b3d6127e686e/image.png"
+                        src="https://firebasestorage.googleapis.com/v0/b/getreadtopost.firebasestorage.app/o/photos%2Flisting_1771692871525_iffpctrb3%2Fexterior%2Fphoto_1771706020755_bsvmz41_Screenshot%202026-02-21%20115747.png?alt=media&token=7afa21ee-b64c-4cfb-9806-acac1d137f39"
                         alt="Listing View Page example"
                         className="h-32 w-full object-cover"
                       />
