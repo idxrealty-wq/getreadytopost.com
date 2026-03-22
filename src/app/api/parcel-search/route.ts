@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
   const addr1 = q;
   const addr2Parts = [];
   if (cityParam) addr2Parts.push(cityParam);
-  if (stateParam) addr2Parts.push(stateParam);
+  if (stateParam) addr2Parts.push(stateNormalized);
   const addr2 = addr2Parts.join(', ') || '';
   const stateUpperRaw = stateParam.toUpperCase();
   const stateNormalized = stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw.substring(0, 2));
