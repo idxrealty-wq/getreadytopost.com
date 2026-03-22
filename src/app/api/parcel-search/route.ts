@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
   try {
     const r1 = await fetch(
       `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
-      { headers: { APIKey: KEY, Accept: 'application/json' },
+      { headers: { APIKey: KEY, Accept: 'application/json' } },
     );
     const d1 = await r1.json();
     let matches: ParcelMatch[] = Array.isArray(d1?.property) ? (d1.property as ParcelMatch[]) : [];
