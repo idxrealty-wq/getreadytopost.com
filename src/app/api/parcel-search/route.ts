@@ -37,13 +37,12 @@ export async function GET(req: NextRequest) {
   const cityParam = (searchParams.get('city') || '').trim();
   if (!q || q.length < 5) return NextResponse.json({ results: [] });
 
-  const addr1 = q;
-  const addr2Parts = [];
-  if (cityParam) addr2Parts.push(cityParam);
-  if (stateParam) addr2Parts.push(stateNormalized);
-  const addr2 = addr2Parts.join(', ') || '';
-  const stateUpperRaw = stateParam.toUpperCase();
-  const stateNormalized = stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw.substring(0, 2));
+  const stateUpperRaw = stateParam ? stateParam.toUpperCase() : '';
+const stateNormalized = stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw.substring(0, 2));
+const addr2Parts = [];
+if (cityParam) addr2Parts.push(cityParam);
+if (stateNormalized) addr2Parts.push(stateNormalized);
+const addr2 = addr2Parts.join(', ') || '';
 
   try {
     const r1 = await fetch(
