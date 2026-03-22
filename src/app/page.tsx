@@ -286,8 +286,12 @@ export default function HomePage() {
                   </p>
 
                   <div className="space-y-4">
-                    <div className="rounded-lg overflow-hidden border border-white/10 bg-slate-700 h-32 flex items-center justify-center">
-                      <span className="text-slate-400 text-sm">Property Photo Preview</span>
+                    <div className="rounded-lg overflow-hidden border border-white/10">
+                      <img
+                        src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/bc2110b3-6406-4e9b-ad41-b3d6127e686e/image.png"
+                        alt="Listing View Page example"
+                        className="h-32 w-full object-cover"
+                      />
                     </div>
 
                     <div className="space-y-2">
