@@ -46,9 +46,9 @@ export async function GET(req: NextRequest) {
   const stateNormalized = stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw.substring(0, 2));
   try {
     const r1 = await fetch(
-      `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
-      { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
-    );
+  `${BASE}/property/address?address=${encodeURIComponent(addr1)}&city=${encodeURIComponent(cityParam)}&state=${encodeURIComponent(stateNormalized)}&zip=${encodeURIComponent(searchParams.get('zip') || '')}`,
+  { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
+);
     const d1 = await r1.json();
     let matches: ParcelMatch[] = Array.isArray(d1?.property) ? (d1.property as ParcelMatch[]) : [];
     if (stateParam) {
