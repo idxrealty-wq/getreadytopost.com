@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 const KEY = process.env.ATTOM_API_KEY || "";
-const BASE = 'https://api.gateway.attomdata.com/propertyapi/v1.0.0';
+const BASE = 'https://api.developer.attomdata.com/propertyapi/v1.0.0';
 
 type ParcelMatch = {
   address?: { countrySubd?: string | null; } | null;
@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
   const q = (searchParams.get('q') || '').trim();
   const stateParam = (searchParams.get('state') || '').trim();
   const cityParam = (searchParams.get('city') || '').trim();
+  const zipParam = (searchParams.get('zip') || '').trim();
   if (!q || q.length < 5) return NextResponse.json({ results: [] });
 
   const addr1 = q;
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest) {
   const stateNormalized = stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw.substring(0, 2));
   try {
     const r1 = await fetch(
-      `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
+      `${BASE}/property/address?address=${encodeURIComponent(addr1)}&city=${encodeURIComponent(cityParam)}&state=${encodeURIComponent(stateNormalized)}&zip=${encodeURIComponent(zipParam)}`,,
       { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
     );
     const d1 = await r1.json();
