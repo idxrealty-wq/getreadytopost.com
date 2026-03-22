@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
   const attomUrl = `${BASE}/property/address?address1=${encodeURIComponent(q)}&address2=${encodeURIComponent(addr2)}`;
   try {
     const r1 = await fetch(
-      `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
+      `${BASE}/property/address?address1=${encodeURIComponent(q)}&address2=${encodeURIComponent(addr2)}`,
       { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
     );
     const d1 = await r1.json();
