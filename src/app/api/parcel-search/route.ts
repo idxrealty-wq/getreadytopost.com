@@ -46,8 +46,9 @@ export async function GET(req: NextRequest) {
   const stateUpperRaw = stateParam.toUpperCase();
   const stateNormalized = stateUpperRaw.length === 2 ? stateUpperRaw : (STATE_MAP[stateUpperRaw] || stateUpperRaw);
   try {
+     const attomUrl = `${BASE}/property/address?address=${encodeURIComponent(addr1)}&city=${encodeURIComponent(cityParam)}&state=${encodeURIComponent(stateNormalized)}&zip=${encodeURIComponent(zipParam)}`;
     const r1 = await fetch(
-      `${BASE}/property/address?address=${encodeURIComponent(addr1)}&city=${encodeURIComponent(cityParam)}&state=${encodeURIComponent(stateNormalized)}&zip=${encodeURIComponent(zipParam)}`,,
+      attomUrl,
       { headers: { apikey: KEY, Accept: 'application/json' }, cache: 'no-store' }
     );
     const d1 = await r1.json();
