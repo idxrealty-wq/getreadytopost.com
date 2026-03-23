@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { seedVendorData } from "@/lib/vendor-init";
 
-const TABS = ["Dashboard", "Users", "Submissions", "Listings", "Errors"];
+const TABS = ["Dashboard", "Users", "Submissions", "Listings", "Errors", "Seed"];
 const FB = "https://console.firebase.google.com/project/grtp2-5ba00/firestore/data";
 
 function CopyID({ id }: { id: string }) {
@@ -122,15 +122,16 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* TABS */}
+                {/* TABS */}
         <div className="flex gap-2 mb-4">
           {TABS.map((t) => (
             <button key={t} onClick={() => { setTab(t); setSelectedUser(null); }}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition ${tab === t ? "bg-yellow-500 text-black" : "bg-gray-800 text-gray-400 hover:text-white"}`}>
-              {t}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition ${tab === t ? (t === "Seed" ? "bg-purple-500 text-white" : "bg-yellow-500 text-black") : "bg-gray-800 text-gray-400 hover:text-white"}`}>
+              {t === "Seed" ? "🌱 Seed" : t}
             </button>
           ))}
         </div>
+
         {/* USERS TAB */}
         {tab === "Users" && (
           <div className="bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden">
@@ -376,6 +377,17 @@ export default function AdminPage() {
                 ))}
               </div>
             </div>
+          </div>
+        )}
+        {/* SEED TAB */}
+        {tab === "Seed" && (
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
+            <h2 className="text-white font-bold text-lg mb-4">🌱 Seed Vendor Data</h2>
+            <p className="text-gray-400 mb-6">Initialize categories and markets for the ad system.</p>
+            <button onClick={async () => { try { await seedVendorData(); alert('✓ Vendor data seeded successfully'); } catch (e) { alert('✗ Seed failed: ' + (e as Error).message); } }}
+              className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-xl transition">
+              Run Seed
+            </button>
           </div>
         )}
 
