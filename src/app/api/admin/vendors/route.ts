@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, QueryDocumentSnapshot, DocumentData } from "firebase-admin/firestore";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     const snap = await ref.get();
 
     const vendors: any[] = [];
-    snap.forEach((doc) => {
+    snap.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
       const d = doc.data();
       vendors.push({
         id: doc.id,
