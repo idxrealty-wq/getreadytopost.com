@@ -74,4 +74,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ vendor });
   } catch (err: any) {
     console.error("Public vendor GET error:", err);
-    return NextResponse.json({ error: err.message || "Server
+    return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
+  }
+}
