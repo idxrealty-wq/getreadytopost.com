@@ -2,21 +2,21 @@
 
 import { useEffect, useState, useRef } from "react";
 
-const BEFORE_TEXT = `3 bedroom 2 bath home in a great neighborhood. Updated kitchen and bathrooms. Large backyard. Close to schools and shopping. Won't last long!`;
+const BEFORE_TEXT = `Nice 4 bedroom 3 bath home in a desirable neighborhood. Updated kitchen with granite counters and stainless appliances. Master suite with walk-in closet. Large fenced backyard, great for entertaining. Two car garage. Close to shopping, dining and top rated schools. Home has been well maintained and is move in ready. Won't last at this price. Schedule your showing today!`;
 
-const AFTER_TEXT = `Discover this beautifully updated 3-bed, 2-bath retreat in one of the area's most sought-after neighborhoods. The renovated kitchen features modern finishes, while the spacious backyard offers endless possibilities for entertaining. Walking distance to top-rated schools and premier shopping — this move-in-ready gem won't stay on the market long.`;
+const AFTER_TEXT = `Welcome to this stunning 4-bedroom, 3-bath residence nestled in one of the area's most sought-after communities — where top-rated schools, premier dining, and everyday conveniences are minutes away. The heart of the home is a fully renovated chef's kitchen featuring gleaming granite countertops, stainless steel appliances, and an open layout designed for both cooking and conversation. Retreat to the spacious primary suite complete with a generous walk-in closet and spa-inspired bath. Outside, a fully fenced backyard oasis awaits — perfect for weekend gatherings or quiet evenings under the stars. A two-car garage, meticulous maintenance history, and move-in-ready condition make this an effortless choice for discerning buyers. Opportunities like this don't stay on the market — schedule your private tour today.`;
 
 const CATEGORIES = [
-  { label: "Clarity", score: 91, color: "#22c55e" },
-  { label: "Buyer Focus", score: 88, color: "#22c55e" },
-  { label: "Keyword Optimization", score: 85, color: "#22c55e" },
-  { label: "Length", score: 92, color: "#22c55e" },
-  { label: "Emotional Appeal", score: 87, color: "#22c55e" },
-  { label: "MLS Compliance", score: 96, color: "#22c55e" },
+  { label: "Clarity", score: 65, color: "#f59e0b" },
+  { label: "Buyer Focus", score: 48, color: "#ef4444" },
+  { label: "Keyword Optimization", score: 58, color: "#f59e0b" },
+  { label: "Length", score: 72, color: "#22c55e" },
+  { label: "Emotional Appeal", score: 42, color: "#ef4444" },
+  { label: "MLS Compliance", score: 76, color: "#22c55e" },
 ];
 
-const GRADE_SLOTS = ["D", "C", "C+", "B-", "B", "B+", "A-", "B+", "A-", "A"];
-const FINAL_GRADE = "A";
+const GRADE_SLOTS = ["F", "D", "D+", "C", "C+", "B-", "C+", "B", "C", "B-"];
+const FINAL_GRADE = "B-";
 
 type Stage = "typing" | "grading" | "slot" | "rewrite" | "done";
 
