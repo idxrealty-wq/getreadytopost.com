@@ -46,6 +46,19 @@ export async function createVendor(input: VendorCreateInput): Promise<Vendor> {
     shortDescription: input.shortDescription.trim(),
     status: 'pending' as VendorStatus,
     notes: input.notes?.trim() ?? '',
+    address: input.address?.trim() ?? '',
+    city: input.city?.trim() ?? '',
+    state: input.state?.trim() ?? '',
+    zip: input.zip?.trim() ?? '',
+    areasServed: input.areasServed ?? [],
+    tags: input.tags ?? [],
+    nowServing: input.nowServing ?? [],
+    videoUrl: input.videoUrl?.trim() ?? '',
+    videoTier: input.videoTier ?? 'none',
+    videoLanguages: input.videoLanguages ?? [],
+    locations: input.locations ?? [],
+    isParent: input.isParent ?? false,
+    vaultUrl: input.vaultUrl?.trim() ?? '',
     createdAt: now,
     updatedAt: now,
   };
@@ -97,6 +110,19 @@ export async function updateVendor(
   if (updates.shortDescription !== undefined) payload.shortDescription = updates.shortDescription.trim();
   if (updates.status !== undefined) payload.status = updates.status;
   if (updates.notes !== undefined) payload.notes = updates.notes.trim();
+  if (updates.address !== undefined) payload.address = updates.address.trim();
+  if (updates.city !== undefined) payload.city = updates.city.trim();
+  if (updates.state !== undefined) payload.state = updates.state.trim();
+  if (updates.zip !== undefined) payload.zip = updates.zip.trim();
+  if (updates.areasServed !== undefined) payload.areasServed = updates.areasServed;
+  if (updates.tags !== undefined) payload.tags = updates.tags;
+  if (updates.nowServing !== undefined) payload.nowServing = updates.nowServing;
+  if (updates.videoUrl !== undefined) payload.videoUrl = updates.videoUrl.trim();
+  if (updates.videoTier !== undefined) payload.videoTier = updates.videoTier;
+  if (updates.videoLanguages !== undefined) payload.videoLanguages = updates.videoLanguages;
+  if (updates.locations !== undefined) payload.locations = updates.locations;
+  if (updates.isParent !== undefined) payload.isParent = updates.isParent;
+  if (updates.vaultUrl !== undefined) payload.vaultUrl = updates.vaultUrl.trim();
 
   await updateDoc(docRef, payload);
 }
