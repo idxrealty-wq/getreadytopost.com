@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 import LiveListingDemo from "@/components/LiveListingDemo";
+import LiveListingPreviewDemo from "@/components/LiveListingPreviewDemo";
 
 const steps = [
   {
@@ -371,6 +372,7 @@ export default function HomePage() {
         </div>
       </section>
       <LiveListingDemo />
+      <LiveListingPreviewDemo />
       <section className="border-b border-white/10 bg-slate-950">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
           <div className="mb-16">

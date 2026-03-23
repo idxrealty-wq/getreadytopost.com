@@ -1,0 +1,272 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+type BuildStage =
+  | "idle"
+  | "header"
+  | "photo"
+  | "copy"
+  | "area"
+  | "verification"
+  | "documents"
+  | "cta"
+  | "done";
+
+const REWRITTEN_COPY = `Welcome to this stunning 4-bedroom, 3-bath residence nestled in one of the area's most sought-after communities — where top-rated schools, premier dining, and everyday conveniences are minutes away. The heart of the home is a fully renovated chef's kitchen featuring gleaming granite countertops, stainless steel appliances, and an open layout designed for both cooking and conversation. Retreat to the spacious primary suite complete with a generous walk-in closet and spa-inspired bath. Outside, a fully fenced backyard oasis awaits — perfect for weekend gatherings or quiet evenings under the stars.`;
+
+export default function LiveListingPreviewDemo() {
+  const [stage, setStage] = useState<BuildStage>("idle");
+  const [photoLoaded, setPhotoLoaded] = useState(false);
+  const [copyVisible, setCopyVisible] = useState(false);
+  const [areaVisible, setAreaVisible] = useState(false);
+  const [verificationVisible, setVerificationVisible] = useState(false);
+  const [documentsVisible, setDocumentsVisible] = useState(false);
+  const [ctaVisible, setCtaVisible] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(false);
+
+  const resetAll = () => {
+    setStage("idle");
+    setPhotoLoaded(false);
+    setCopyVisible(false);
+    setAreaVisible(false);
+    setVerificationVisible(false);
+    setDocumentsVisible(false);
+    setCtaVisible(false);
+    setHeaderVisible(false);
+  };
+
+  useEffect(() => {
+    // Start after a short delay so it feels intentional
+    const start = setTimeout(() => setStage("header"), 800);
+    return () => clearTimeout(start);
+  }, []);
+
+  useEffect(() => {
+    if (stage === "header") {
+      setHeaderVisible(true);
+      setTimeout(() => setStage("photo"), 1200);
+    }
+    if (stage === "photo") {
+      setTimeout(() => {
+        setPhotoLoaded(true);
+        setTimeout(() => setStage("copy"), 1000);
+      }, 600);
+    }
+    if (stage === "copy") {
+      setCopyVisible(true);
+      setTimeout(() => setStage("area"), 1400);
+    }
+    if (stage === "area") {
+      setAreaVisible(true);
+      setTimeout(() => setStage("verification"), 1000);
+    }
+    if (stage === "verification") {
+      setVerificationVisible(true);
+      setTimeout(() => setStage("documents"), 1000);
+    }
+    if (stage === "documents") {
+      setDocumentsVisible(true);
+      setTimeout(() => setStage("cta"), 1000);
+    }
+    if (stage === "cta") {
+      setCtaVisible(true);
+      setStage("done");
+    }
+    if (stage === "done") {
+      const loop = setTimeout(() => resetAll(), 6000);
+      return () => clearTimeout(loop);
+    }
+  }, [stage]);
+
+  return (
+    <section className="bg-slate-900 py-20 px-4 border-t border-white/10">
+      <div className="max-w-4xl mx-auto">
+
+        {/* Section Header */}
+        <div className="text-center mb-12">
+          <span className="text-emerald-400 text-sm font-semibold uppercase tracking-widest">
+            Full Listing Package
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mt-2">
+            From Rewrite to a Complete Listing Presentation
+          </h2>
+          <p className="text-gray-400 mt-3 text-lg">
+            Better copy is just the start. Watch how GetReadyToPost builds your full listing package — automatically.
+          </p>
+        </div>
+
+        {/* Animated Listing Card */}
+        <div className="bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden shadow-2xl">
+
+          {/* Card Header */}
+          <div
+            className="px-6 py-4 border-b border-gray-700 flex items-center justify-between transition-all duration-700"
+            style={{ opacity: headerVisible ? 1 : 0, transform: headerVisible ? "translateY(0)" : "translateY(-10px)" }}
+          >
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">Listing Package</p>
+              <h3 className="text-white font-bold text-lg mt-0.5">124 Maple Grove Lane — Orlando, FL</h3>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-500">MLS# 2026-04471</p>
+              <p className="text-amber-400 font-bold text-lg">$489,000</p>
+            </div>
+          </div>
+          {/* Exterior Photo */}
+          <div className="px-6 pt-6">
+            <div
+              className="rounded-xl overflow-hidden border border-gray-700 bg-gray-800 transition-all duration-700"
+              style={{
+                opacity: photoLoaded ? 1 : 0,
+                transform: photoLoaded ? "scale(1)" : "scale(0.95)",
+                height: photoLoaded ? "220px" : "0px",
+              }}
+            >
+              <div className="w-full h-full bg-gradient-to-br from-slate-700 via-slate-600 to-slate-800 flex items-center justify-center relative">
+                <div className="text-center">
+                  <div className="text-5xl mb-2">🏠</div>
+                  <p className="text-gray-300 text-sm font-medium">Google Street View — Exterior Photo</p>
+                  <p className="text-gray-500 text-xs mt-1">124 Maple Grove Lane, Orlando, FL 32801</p>
+                </div>
+                <div className="absolute top-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                  📷 3 photos
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Rewritten Copy */}
+          <div className="px-6 pt-5">
+            <div
+              className="transition-all duration-700"
+              style={{ opacity: copyVisible ? 1 : 0, transform: copyVisible ? "translateY(0)" : "translateY(15px)" }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="bg-green-900 text-green-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                  ✦ AI-Enhanced Copy
+                </span>
+                <span className="bg-amber-900/50 text-amber-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                  Grade: A
+                </span>
+              </div>
+              <p className="text-gray-200 text-sm leading-relaxed">
+                {REWRITTEN_COPY}
+              </p>
+            </div>
+          </div>
+
+          {/* Area Info */}
+          <div className="px-6 pt-5">
+            <div
+              className="transition-all duration-500"
+              style={{ opacity: areaVisible ? 1 : 0, transform: areaVisible ? "translateX(0)" : "translateX(-20px)" }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="bg-blue-900 text-blue-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                  📍 Area Information
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                  <p className="text-gray-400 text-xs">Schools</p>
+                  <p className="text-white text-sm font-semibold">A Rated</p>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                  <p className="text-gray-400 text-xs">Walk Score</p>
+                  <p className="text-white text-sm font-semibold">72 / 100</p>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                  <p className="text-gray-400 text-xs">Dining</p>
+                  <p className="text-white text-sm font-semibold">24 nearby</p>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                  <p className="text-gray-400 text-xs">Commute</p>
+                  <p className="text-white text-sm font-semibold">18 min avg</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Verification Badge */}
+          <div className="px-6 pt-5">
+            <div
+              className="transition-all duration-500"
+              style={{ opacity: verificationVisible ? 1 : 0, transform: verificationVisible ? "scale(1)" : "scale(0.9)" }}
+            >
+              <div className="flex items-center gap-3 bg-emerald-950/50 border border-emerald-700/50 rounded-xl p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-400 text-xl">
+                  ✓
+                </div>
+                <div>
+                  <p className="text-emerald-300 text-sm font-semibold">Verified Listing</p>
+                  <p className="text-gray-400 text-xs">Copy reviewed • Photos confirmed • Agent verified</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Supporting Documents */}
+          <div className="px-6 pt-5">
+            <div
+              className="transition-all duration-500"
+              style={{ opacity: documentsVisible ? 1 : 0, transform: documentsVisible ? "translateY(0)" : "translateY(10px)" }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="bg-purple-900 text-purple-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                  📄 Supporting Documents
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-gray-800 rounded-lg p-3 border border-gray-700 flex items-center gap-3">
+                  <span className="text-2xl">📋</span>
+                  <div>
+                    <p className="text-white text-xs font-semibold">Property Disclosure</p>
+                    <p className="text-gray-500 text-xs">PDF • Protected</p>
+                  </div>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-3 border border-gray-700 flex items-center gap-3">
+                  <span className="text-2xl">📊</span>
+                  <div>
+                    <p className="text-white text-xs font-semibold">Inspection Report</p>
+                    <p className="text-gray-500 text-xs">PDF • Protected</p>
+                  </div>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-3 border border-gray-700 flex items-center gap-3">
+                  <span className="text-2xl">🏡</span>
+                  <div>
+                    <p className="text-white text-xs font-semibold">HOA Summary</p>
+                    <p className="text-gray-500 text-xs">PDF • Protected</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="px-6 py-6">
+            <div
+              className="transition-all duration-700"
+              style={{ opacity: ctaVisible ? 1 : 0, transform: ctaVisible ? "translateY(0)" : "translateY(10px)" }}
+            >
+              <div className="text-center pt-4 border-t border-gray-700">
+                <p className="text-gray-400 text-sm mb-4">
+                  This is what your listing could look like — polished, verified, and ready to share.
+                </p>
+                <a
+                  href="https://getreadytopost.com/listing/listing_1771692871525_iffpctrb3"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-amber-400 hover:bg-amber-300 text-gray-900 font-bold px-8 py-3 rounded-xl text-sm transition-colors"
+                >
+                  See a Live Listing Example →
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  );
+}
