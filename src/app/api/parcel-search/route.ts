@@ -23,7 +23,7 @@ const STATE_MAP: Record<string, string> = {
 
 async function fetchATTOM(path: string) {
   const res = await fetch(`${BASE}${path}`, {
-    headers: { APIkey: KEY, Accept: 'application/json' },
+    headers: { apikey: KEY, Accept: 'application/json' },
     cache: 'no-store',
   });
   if (!res.ok) return null;
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
   try {
     const r1 = await fetch(
       `${BASE}/property/address?address1=${encodeURIComponent(addr1)}&address2=${encodeURIComponent(addr2)}`,
-      { headers: { APIKey: KEY, Accept: 'application/json' } },
+      { headers: { apiKey: KEY, Accept: 'application/json' } },
     );
     const d1 = await r1.json();
     let matches: ParcelMatch[] = Array.isArray(d1?.property) ? (d1.property as ParcelMatch[]) : [];
