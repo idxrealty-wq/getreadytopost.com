@@ -370,7 +370,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
+      <LiveListingDemo />
       <section className="border-b border-white/10 bg-slate-950">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
           <div className="mb-16">
@@ -418,8 +418,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <section className="border-b border-white/10 bg-slate-950">
+       <section className="border-b border-white/10 bg-slate-950">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
           <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-12">
             <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
