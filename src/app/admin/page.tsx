@@ -73,11 +73,7 @@ export default function AdminPage() {
 
         {/* HEADER */}
        <div className="flex items-center gap-3">
-            <button onClick={async () => { try { await seedVendorData(); alert('✓ Vendor data seeded'); } catch (e) { alert('✗ Seed failed: ' + (e as Error).message); } }}
-              className="text-xs bg-purple-500/20 border border-purple-500/40 text-purple-400 px-3 py-2 rounded-lg hover:bg-purple-500/30 transition">
-              🌱 Seed Ad Data
-            </button>
-            <a href={FB} target="_blank" rel="noreferrer"
+              <a href={FB} target="_blank" rel="noreferrer"
               className="text-xs bg-orange-500/20 border border-orange-500/40 text-orange-400 px-3 py-2 rounded-lg hover:bg-orange-500/30 transition">
               🔥 Firebase Console
             </a>
