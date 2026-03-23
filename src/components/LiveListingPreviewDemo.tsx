@@ -121,7 +121,7 @@ export default function LiveListingPreviewDemo() {
             From Rewrite to a Complete Listing Presentation
           </h2>
           <p className="text-gray-400 mt-3 text-lg">
-            Better copy is just the start. Watch how GetReadyToPost builds your full listing package — automatically.
+            Better copy is just the start. See how GetReadyToPost builds your full listing package — automatically.
           </p>
         </div>
 
