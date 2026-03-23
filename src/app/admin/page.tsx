@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { seedVendorData } from "@/lib/vendor-init";
 
 const TABS = ["Dashboard", "Users", "Submissions", "Listings", "Errors", "Seed"];
 const FB = "https://console.firebase.google.com/project/grtp2-5ba00/firestore/data";
@@ -384,8 +383,19 @@ export default function AdminPage() {
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className="text-white font-bold text-lg mb-4">🌱 Seed Vendor Data</h2>
             <p className="text-gray-400 mb-6">Initialize categories and markets for the ad system.</p>
-            <button onClick={async () => { try { await seedVendorData(); alert('✓ Vendor data seeded successfully'); } catch (e) { alert('✗ Seed failed: ' + (e as Error).message); } }}
-              className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-xl transition">
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch("/api/admin/seed-vendors", { method: "POST" });
+                  const json = await res.json();
+                  if (!res.ok) throw new Error(json.error || "Seed failed");
+                  alert("✓ " + json.message);
+                } catch (e) {
+                  alert("✗ Seed failed: " + (e as Error).message);
+                }
+              }}
+              className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-xl transition"
+            >
               Run Seed
             </button>
           </div>
