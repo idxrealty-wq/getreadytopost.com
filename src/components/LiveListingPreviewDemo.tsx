@@ -74,8 +74,7 @@ export default function LiveListingPreviewDemo() {
       setStage("done");
     }
     if (stage === "done") {
-      const loop = setTimeout(() => resetAll(), 6000);
-      return () => clearTimeout(loop);
+      // Hold — no auto reset
     }
   }, [stage]);
 
@@ -123,12 +122,12 @@ export default function LiveListingPreviewDemo() {
                 height: photoLoaded ? "220px" : "0px",
               }}
             >
-              <div className="w-full h-full bg-gradient-to-br from-slate-700 via-slate-600 to-slate-800 flex items-center justify-center relative">
-                <div className="text-center">
-                  <div className="text-5xl mb-2">🏠</div>
-                  <p className="text-gray-300 text-sm font-medium">Google Street View — Exterior Photo</p>
-                  <p className="text-gray-500 text-xs mt-1">124 Maple Grove Lane, Orlando, FL 32801</p>
-                </div>
+              <div className="w-full h-full relative">
+                <img
+                  src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/487d9896-37ba-4fe2-a8f8-38af6211eda5/image.png?w=1184&h=864"
+                  alt="124 Maple Grove Lane — Exterior"
+                  className="w-full h-full object-cover"
+                />
                 <div className="absolute top-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
                   📷 3 photos
                 </div>
@@ -249,18 +248,24 @@ export default function LiveListingPreviewDemo() {
               className="transition-all duration-700"
               style={{ opacity: ctaVisible ? 1 : 0, transform: ctaVisible ? "translateY(0)" : "translateY(10px)" }}
             >
-              <div className="text-center pt-4 border-t border-gray-700">
-                <p className="text-gray-400 text-sm mb-4">
+              <div className="pt-4 border-t border-gray-700">
+                <p className="text-gray-400 text-sm mb-4 text-center">
                   This is what your listing could look like — polished, verified, and ready to share.
                 </p>
-                <a
-                  href="https://getreadytopost.com/listing/listing_1771692871525_iffpctrb3"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block bg-amber-400 hover:bg-amber-300 text-gray-900 font-bold px-8 py-3 rounded-xl text-sm transition-colors"
-                >
-                  See a Live Listing Example →
-                </a>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <a
+                    href="/rate-my-listing"
+                    className="inline-block bg-amber-400 hover:bg-amber-300 text-gray-900 font-bold px-8 py-3 rounded-xl text-sm transition-colors"
+                  >
+                    Grade My Listing Now →
+                  </a>
+                  <button
+                    onClick={() => resetAll()}
+                    className="inline-flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold px-6 py-3 rounded-xl text-sm transition-colors border border-gray-600"
+                  >
+                    ↻ Replay Demo
+                  </button>
+                </div>
               </div>
             </div>
           </div>
