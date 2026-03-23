@@ -41,9 +41,18 @@ export default function VendorsPage() {
     <div className="min-h-screen bg-gray-950 p-6">
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-white">🏢 Vendors</h1>
-          <p className="text-gray-400 text-sm mt-1">Manage ad system vendors</p>
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white">🏢 Vendors</h1>
+            <p className="text-gray-400 text-sm mt-1">Manage ad system vendors</p>
+          </div>
+
+          <a
+            href="/admin/vendors/new"
+            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-2 rounded-lg transition"
+          >
+            + New Vendor
+          </a>
         </div>
 
         {/* FILTERS */}
