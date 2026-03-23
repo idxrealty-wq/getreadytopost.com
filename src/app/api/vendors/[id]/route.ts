@@ -37,7 +37,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     const d = doc.data();
 
-    // Only return approved vendors to the public
     if (d?.status !== "approved") {
       return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
     }
@@ -57,11 +56,22 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       ctaText: d?.ctaText || "",
       destinationUrl: d?.destinationUrl || "",
       shortDescription: d?.shortDescription || "",
+      address: d?.address || "",
+      city: d?.city || "",
+      state: d?.state || "",
+      zip: d?.zip || "",
+      areasServed: d?.areasServed || [],
+      tags: d?.tags || [],
+      nowServing: d?.nowServing || [],
+      videoUrl: d?.videoUrl || "",
+      videoTier: d?.videoTier || "none",
+      videoLanguages: d?.videoLanguages || [],
+      locations: d?.locations || [],
+      isParent: d?.isParent || false,
+      vaultUrl: d?.vaultUrl || "",
     };
 
     return NextResponse.json({ vendor });
   } catch (err: any) {
     console.error("Public vendor GET error:", err);
-    return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
-  }
-}
+    return NextResponse.json({ error: err.message || "Server
