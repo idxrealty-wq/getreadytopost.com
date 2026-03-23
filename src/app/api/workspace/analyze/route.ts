@@ -12,11 +12,29 @@ async function geocodeAddress(address) {
   return null;
 }
 
+const ADULT_BLOCKLIST = [
+  'strip club', 'stripclub', 'gentlemen\'s club', 'gentlemens club',
+  'adult entertainment', 'adult store', 'adult video', 'adult novelty',
+  'exotic dance', 'exotic dancer', 'nude', 'nudist', 'erotic',
+  'cabaret', 'topless', 'lingerie modeling', 'massage parlor',
+  'escort', 'fantasy', 'xxx', 'playboy', 'hustler', 'penthouse',
+  'night club', 'nightclub', 'go-go', 'gogo bar', 'peep show',
+  'sex shop', 'fetish', 'bdsm', 'swingers'
+];
+
+function isAdultVenue(name: string): boolean {
+  const lower = name.toLowerCase();
+  return ADULT_BLOCKLIST.some((term) => lower.includes(term));
+}
+
 async function nearbySearch(lat, lng, keyword) {
   var url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=' + lat + ',' + lng + '&radius=5000&keyword=' + encodeURIComponent(keyword) + '&key=' + GOOGLE_MAPS_KEY;
   var res = await fetch(url);
   var data = await res.json();
-  return (data.results || []).slice(0, 5).map(function(p) { return { name: p.name, vicinity: p.vicinity, rating: p.rating || null }; });
+  return (data.results || [])
+    .filter(function(p) { return !isAdultVenue(p.name); })
+    .slice(0, 5)
+    .map(function(p) { return { name: p.name, vicinity: p.vicinity, rating: p.rating || null }; });
 }
 
 async function getDistances(originLat, originLng, places) {
