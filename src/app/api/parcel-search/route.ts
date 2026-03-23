@@ -50,6 +50,7 @@ export async function GET(req: NextRequest) {
       { headers: { apiKey: KEY, Accept: 'application/json' } },
     );
     const d1 = await r1.json();
+	console.log('ATTOM ADDRESS RESPONSE:', JSON.stringify(d1, null, 2));
     let matches: ParcelMatch[] = Array.isArray(d1?.property) ? (d1.property as ParcelMatch[]) : [];
     if (stateParam) {
       matches = matches.filter((m: ParcelMatch) => {
