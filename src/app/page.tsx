@@ -328,6 +328,8 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+	<LiveListingPreviewDemo />
+      <LiveListingDemo />
       </section>
       <section className="border-b border-white/10 bg-slate-950">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
@@ -371,8 +373,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      <LiveListingDemo />
-      <LiveListingPreviewDemo />
       <section className="border-b border-white/10 bg-slate-950">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-24">
           <div className="mb-16">

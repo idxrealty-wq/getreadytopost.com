@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
 const BEFORE_TEXT = `Nice 4 bedroom 3 bath home in a desirable neighborhood. Updated kitchen with granite counters and stainless appliances. Master suite with walk-in closet. Large fenced backyard, great for entertaining. Two car garage. Close to shopping, dining and top rated schools. Home has been well maintained and is move in ready. Won't last at this price. Schedule your showing today!`;
 
@@ -28,18 +28,7 @@ export default function LiveListingDemo() {
   const [slotGrade, setSlotGrade] = useState("A+");
   const [showRewrite, setShowRewrite] = useState(false);
   const [rewriteOpacity, setRewriteOpacity] = useState(0);
-  const loopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const resetAll = () => {
-    setStage("typing");
-    setTypedText("");
-    setVisibleBars([]);
-    setBarWidths([0, 0, 0, 0, 0, 0]);
-    setSlotGrade("A+");
-    setShowRewrite(false);
-    setRewriteOpacity(0);
-  };
-
+  
   // STAGE 1: Typewriter
   useEffect(() => {
     if (stage !== "typing") return;
@@ -107,19 +96,12 @@ export default function LiveListingDemo() {
       if (opacity >= 1) {
         clearInterval(interval);
         setStage("done");
-        loopRef.current = setTimeout(() => resetAll(), 4000);
       }
     }, 40);
     return () => clearInterval(interval);
   }, [stage]);
 
-  useEffect(() => {
-    return () => {
-      if (loopRef.current) clearTimeout(loopRef.current);
-    };
-  }, []);
-
-  return (
+    return (
     <section className="bg-gray-950 py-20 px-4">
       <div className="max-w-4xl mx-auto">
 
