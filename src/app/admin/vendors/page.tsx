@@ -38,32 +38,30 @@ export default function VendorsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* HEADER */}
-        <div className="mb-6 flex items-center justify-between gap-4">
+    <main className="min-h-screen bg-gray-950 pt-24 pb-10 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white">🏢 Vendors</h1>
-            <p className="text-gray-400 text-sm mt-1">Manage ad system vendors</p>
+            <h1 className="text-3xl font-bold text-white">Vendors</h1>
+            <p className="mt-1 text-sm text-gray-400">Manage ad system vendors</p>
           </div>
 
           <a
             href="/admin/vendors/new"
-            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-2 rounded-lg transition"
+            className="inline-flex items-center justify-center rounded-lg bg-yellow-500 px-4 py-2 font-bold text-black transition hover:bg-yellow-600"
           >
             + New Vendor
           </a>
         </div>
 
-        {/* FILTERS */}
-        <div className="bg-gray-900 border border-gray-700 rounded-2xl p-4 mb-6">
-          <div className="flex gap-4 flex-wrap">
+        <div className="mb-6 rounded-2xl border border-gray-700 bg-gray-900 p-4">
+          <div className="flex flex-wrap gap-4">
             <div>
-              <label className="text-gray-400 text-xs block mb-2">Status</label>
+              <label className="mb-2 block text-xs text-gray-400">Status</label>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value as VendorStatus | "all")}
-                className="bg-gray-800 border border-gray-600 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-yellow-500"
+                className="rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-white focus:border-yellow-500 focus:outline-none"
               >
                 <option value="all">All</option>
                 <option value="pending">Pending</option>
@@ -74,11 +72,11 @@ export default function VendorsPage() {
             </div>
 
             <div>
-              <label className="text-gray-400 text-xs block mb-2">Tier</label>
+              <label className="mb-2 block text-xs text-gray-400">Tier</label>
               <select
                 value={filterTier}
                 onChange={(e) => setFilterTier(e.target.value as VendorTier | "all")}
-                className="bg-gray-800 border border-gray-600 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-yellow-500"
+                className="rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-white focus:border-yellow-500 focus:outline-none"
               >
                 <option value="all">All</option>
                 <option value="local">Local</option>
@@ -90,7 +88,7 @@ export default function VendorsPage() {
             <div className="flex items-end">
               <button
                 onClick={fetchVendors}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-2 rounded-lg transition"
+                className="rounded-lg bg-yellow-500 px-4 py-2 font-bold text-black transition hover:bg-yellow-600"
               >
                 Refresh
               </button>
@@ -98,45 +96,46 @@ export default function VendorsPage() {
           </div>
         </div>
 
-        {/* VENDOR LIST */}
         {loading && <p className="text-gray-400">Loading vendors...</p>}
 
-        {error && <p className="text-red-400 mb-4">{error}</p>}
+        {error && <p className="mb-4 text-red-400">{error}</p>}
 
         {!loading && vendors.length === 0 && (
-          <p className="text-gray-400">No vendors found.</p>
+          <div className="rounded-2xl border border-gray-800 bg-gray-900 p-6">
+            <p className="text-gray-400">No vendors found.</p>
+          </div>
         )}
 
         {!loading && vendors.length > 0 && (
-          <div className="bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden">
+          <div className="overflow-hidden rounded-2xl border border-gray-700 bg-gray-900">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-gray-700 bg-gray-800/50">
-                  <th className="px-4 py-3 text-gray-400 text-xs">#</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs">Business Name</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs">Contact</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs">Email</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs">Tier</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs">Status</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs">Created</th>
-                  <th className="px-4 py-3 text-gray-400 text-xs">Actions</th>
+                  <th className="px-4 py-3 text-xs text-gray-400">#</th>
+                  <th className="px-4 py-3 text-xs text-gray-400">Business Name</th>
+                  <th className="px-4 py-3 text-xs text-gray-400">Contact</th>
+                  <th className="px-4 py-3 text-xs text-gray-400">Email</th>
+                  <th className="px-4 py-3 text-xs text-gray-400">Tier</th>
+                  <th className="px-4 py-3 text-xs text-gray-400">Status</th>
+                  <th className="px-4 py-3 text-xs text-gray-400">Created</th>
+                  <th className="px-4 py-3 text-xs text-gray-400">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {vendors.map((vendor, i) => (
                   <tr key={vendor.id} className="border-b border-gray-800 hover:bg-gray-800/50">
-                    <td className="px-4 py-3 text-gray-500 text-sm">{i + 1}</td>
-                    <td className="px-4 py-3 text-white text-sm font-medium">{vendor.businessName}</td>
-                    <td className="px-4 py-3 text-gray-300 text-sm">{vendor.contactName}</td>
-                    <td className="px-4 py-3 text-gray-400 text-sm">{vendor.email}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{i + 1}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-white">{vendor.businessName}</td>
+                    <td className="px-4 py-3 text-sm text-gray-300">{vendor.contactName}</td>
+                    <td className="px-4 py-3 text-sm text-gray-400">{vendor.email}</td>
                     <td className="px-4 py-3">
-                      <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 capitalize">
+                      <span className="rounded-full bg-blue-500/20 px-2 py-1 text-xs capitalize text-blue-400">
                         {vendor.tier}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`text-xs px-2 py-1 rounded-full font-bold capitalize ${
+                        className={`rounded-full px-2 py-1 text-xs font-bold capitalize ${
                           vendor.status === "approved"
                             ? "bg-green-500/20 text-green-400"
                             : vendor.status === "pending"
@@ -149,15 +148,13 @@ export default function VendorsPage() {
                         {vendor.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">
-                      {vendor.createdAt instanceof Date
-                        ? vendor.createdAt.toLocaleDateString()
-                        : new Date(vendor.createdAt).toLocaleDateString()}
+                    <td className="px-4 py-3 text-xs text-gray-400">
+                      {vendor.createdAt ? new Date(vendor.createdAt).toLocaleDateString() : ""}
                     </td>
                     <td className="px-4 py-3">
                       <a
                         href={`/admin/vendors/${vendor.id}`}
-                        className="text-blue-400 text-xs hover:underline"
+                        className="text-xs text-blue-400 hover:underline"
                       >
                         Edit
                       </a>
@@ -169,6 +166,6 @@ export default function VendorsPage() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }
