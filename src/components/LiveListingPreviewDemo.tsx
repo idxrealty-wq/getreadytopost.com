@@ -252,20 +252,31 @@ export default function LiveListingPreviewDemo() {
                 <p className="text-gray-400 text-sm mb-4 text-center">
                   This is what your listing could look like — polished, verified, and ready to share.
                 </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <a
-                    href="/rate-my-listing"
-                    className="inline-block bg-amber-400 hover:bg-amber-300 text-gray-900 font-bold px-8 py-3 rounded-xl text-sm transition-colors"
-                  >
-                    Grade My Listing Now →
-                  </a>
+                                <div className="flex flex-col items-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a
+                      href="/rate-my-listing"
+                      className="inline-block bg-amber-400 hover:bg-amber-300 text-gray-900 font-bold px-8 py-3 rounded-xl text-sm transition-colors"
+                    >
+                      Grade My Listing Now →
+                    </a>
+                    <a
+                      href="https://getreadytopost.com/listing/listing_1771692871525_iffpctrb3"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-8 py-3 rounded-xl text-sm transition-colors"
+                    >
+                      See a Live Listing Preview →
+                    </a>
+                  </div>
                   <button
                     onClick={() => resetAll()}
-                    className="inline-flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold px-6 py-3 rounded-xl text-sm transition-colors border border-gray-600"
+                    className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-300 font-medium text-sm transition-colors"
                   >
                     ↻ Replay Demo
                   </button>
                 </div>
+
               </div>
             </div>
           </div>
