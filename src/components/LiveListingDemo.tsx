@@ -7,16 +7,16 @@ const BEFORE_TEXT = `3 bedroom 2 bath home in a great neighborhood. Updated kitc
 const AFTER_TEXT = `Discover this beautifully updated 3-bed, 2-bath retreat in one of the area's most sought-after neighborhoods. The renovated kitchen features modern finishes, while the spacious backyard offers endless possibilities for entertaining. Walking distance to top-rated schools and premier shopping — this move-in-ready gem won't stay on the market long.`;
 
 const CATEGORIES = [
-  { label: "Clarity", score: 62, color: "#f59e0b" },
-  { label: "Buyer Focus", score: 48, color: "#ef4444" },
-  { label: "Keyword Optimization", score: 55, color: "#f59e0b" },
-  { label: "Length", score: 70, color: "#22c55e" },
-  { label: "Emotional Appeal", score: 40, color: "#ef4444" },
-  { label: "MLS Compliance", score: 78, color: "#22c55e" },
+  { label: "Clarity", score: 91, color: "#22c55e" },
+  { label: "Buyer Focus", score: 88, color: "#22c55e" },
+  { label: "Keyword Optimization", score: 85, color: "#22c55e" },
+  { label: "Length", score: 92, color: "#22c55e" },
+  { label: "Emotional Appeal", score: 87, color: "#22c55e" },
+  { label: "MLS Compliance", score: 96, color: "#22c55e" },
 ];
 
-const GRADE_SLOTS = ["A+", "A", "A-", "B+", "B", "C+", "C", "B-", "D", "B-"];
-const FINAL_GRADE = "B-";
+const GRADE_SLOTS = ["D", "C", "C+", "B-", "B", "B+", "A-", "B+", "A-", "A"];
+const FINAL_GRADE = "A";
 
 type Stage = "typing" | "grading" | "slot" | "rewrite" | "done";
 
