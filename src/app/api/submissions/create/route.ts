@@ -31,11 +31,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "email is required" }, { status: 400 });
     }
 
+    const address = String(body?.address || "").trim();
+    if (!address) {
+      return NextResponse.json({ error: "address is required" }, { status: 400 });
+    }
+
     const listing = {
       listingText,
       email,
       uid,
-      address: String(body?.address || "").trim(),
+      address,
       propertyDetails: body?.propertyDetails || {},
       nearby: body?.nearby ?? null,
       status: "created",
