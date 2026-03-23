@@ -58,7 +58,7 @@ export default function NewVendorPage() {
         return;
       }
 
-      router.push(`/admin/vendors/${json.vendor.id}`);
+    router.push("/admin/vendors");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {

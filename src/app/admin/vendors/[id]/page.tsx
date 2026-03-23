@@ -82,9 +82,10 @@ export default function VendorDetailPage() {
         return;
       }
 
-      setVendor(json.vendor);
-      setSuccessMsg("Vendor saved successfully!");
-      setTimeout(() => setSuccessMsg(""), 3000);
+      setSuccessMsg("Vendor saved! Redirecting...");
+      setTimeout(() => {
+        router.push("/admin/vendors");
+      }, 1000);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
@@ -118,15 +119,15 @@ export default function VendorDetailPage() {
     }
   };
 
-  if (loading) return <p className="text-gray-400 p-6">Loading vendor...</p>;
+  if (loading) return <p className="text-gray-400 pt-24 p-6">Loading vendor...</p>;
 
   return (
-    <div className="min-h-screen bg-gray-950 p-6">
+    <main className="min-h-screen bg-gray-950 pt-24 pb-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* HEADER */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white">🏢 {formData.businessName || "New Vendor"}</h1>
+            <h1 className="text-3xl font-bold text-white">🏢 {formData.businessName || "Vendor"}</h1>
             <p className="text-gray-400 text-sm mt-1">ID: {vendorId}</p>
           </div>
           <button
@@ -353,6 +354,6 @@ export default function VendorDetailPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
