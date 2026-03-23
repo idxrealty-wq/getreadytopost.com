@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { seedVendorData } from "@/lib/vendor-init";
 
 const TABS = ["Dashboard", "Users", "Submissions", "Listings", "Errors"];
 const FB = "https://console.firebase.google.com/project/grtp2-5ba00/firestore/data";
@@ -72,12 +73,11 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto">
 
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-white">🏢 Back Office</h1>
-            <p className="text-gray-400 text-sm mt-1">GetReadyToPost Admin Dashboard</p>
-          </div>
-          <div className="flex items-center gap-3">
+       <div className="flex items-center gap-3">
+            <button onClick={async () => { try { await seedVendorData(); alert('✓ Vendor data seeded'); } catch (e) { alert('✗ Seed failed: ' + (e as Error).message); } }}
+              className="text-xs bg-purple-500/20 border border-purple-500/40 text-purple-400 px-3 py-2 rounded-lg hover:bg-purple-500/30 transition">
+              🌱 Seed Ad Data
+            </button>
             <a href={FB} target="_blank" rel="noreferrer"
               className="text-xs bg-orange-500/20 border border-orange-500/40 text-orange-400 px-3 py-2 rounded-lg hover:bg-orange-500/30 transition">
               🔥 Firebase Console
@@ -85,7 +85,6 @@ export default function AdminPage() {
             <button onClick={() => { setAuthed(false); setPassword(""); setData(null); }}
               className="text-gray-500 hover:text-red-400 text-sm">Logout</button>
           </div>
-        </div>
 
         {/* STAT CARDS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
