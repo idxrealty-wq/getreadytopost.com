@@ -1,12 +1,12 @@
 // src/types/vendor.ts
-// Phase 2: Updated TypeScript types for GetReadyToPost ad system
+// Phase 3: Added VerificationStatus type + verification fields to all interfaces
 
 export type VendorStatus = 'pending' | 'approved' | 'inactive' | 'rejected';
 export type VendorTier = 'local' | 'state' | 'national';
 export type MarketType = 'county' | 'metro' | 'state' | 'national';
 export type VideoTier = 'none' | 'free' | 'premium';
+export type VerificationStatus = 'not_verified' | 'pending_verification' | 'verified';
 
-// --- NEW: Location interface for franchise multi-location ---
 export interface VendorLocation {
   id: string;
   name: string;
@@ -40,21 +40,24 @@ export interface Vendor {
   notes: string;
   createdAt: Date;
   updatedAt: Date;
-
-  // --- NEW FIELDS ---
-  address: string;                // street address for Google Map embed
+  address: string;
   city: string;
   state: string;
   zip: string;
-  areasServed: string[];          // ["Orlando", "Mt. Dora", "Tavares"]
-  tags: string[];                 // ["#title", "#closing", "#escrow"]
-  nowServing: string[];           // active market badges
-  videoUrl: string;               // YouTube or Vimeo embed URL
-  videoTier: VideoTier;           // none | free | premium
-  videoLanguages: string[];       // ["English", "Spanish", "Portuguese"]
-  locations: VendorLocation[];    // franchise multi-location array
-  isParent: boolean;              // true if franchise parent
-  vaultUrl: string;               // link to their Vault documents
+  areasServed: string[];
+  tags: string[];
+  nowServing: string[];
+  videoUrl: string;
+  videoTier: VideoTier;
+  videoLanguages: string[];
+  locations: VendorLocation[];
+  isParent: boolean;
+  vaultUrl: string;
+  // --- VERIFICATION ---
+  isVerified: boolean;
+  verificationStatus: VerificationStatus;
+  verifiedDate?: string;
+  verificationNotes?: string;
 }
 
 export interface Category {
@@ -104,6 +107,10 @@ export interface VendorCreateInput {
   locations?: VendorLocation[];
   isParent?: boolean;
   vaultUrl?: string;
+  isVerified?: boolean;
+  verificationStatus?: VerificationStatus;
+  verifiedDate?: string;
+  verificationNotes?: string;
 }
 
 export interface VendorUpdateInput {
@@ -135,12 +142,17 @@ export interface VendorUpdateInput {
   locations?: VendorLocation[];
   isParent?: boolean;
   vaultUrl?: string;
+  isVerified?: boolean;
+  verificationStatus?: VerificationStatus;
+  verifiedDate?: string;
+  verificationNotes?: string;
 }
 
 export const VENDOR_TIERS: VendorTier[] = ['local', 'state', 'national'];
 export const VENDOR_STATUSES: VendorStatus[] = ['pending', 'approved', 'inactive', 'rejected'];
 export const MARKET_TYPES: MarketType[] = ['county', 'metro', 'state', 'national'];
 export const VIDEO_TIERS: VideoTier[] = ['none', 'free', 'premium'];
+export const VERIFICATION_STATUSES: VerificationStatus[] = ['not_verified', 'pending_verification', 'verified'];
 
 export const DEFAULT_CATEGORIES = [
   { name: 'Mortgage / Lending', group: 'real-estate-core' },

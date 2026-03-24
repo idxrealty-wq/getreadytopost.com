@@ -1,34 +1,31 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Vendor, VendorStatus, VendorTier } from "@/types/vendor";
 
-export default function VendorsPage() {
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Vendor, VendorStatus } from "@/types/vendor";
+
+export default function VendorListPage() {
+  const router = useRouter();
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filterStatus, setFilterStatus] = useState<VendorStatus | "all">("all");
-  const [filterTier, setFilterTier] = useState<VendorTier | "all">("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<VendorStatus | "all">("all");
 
   useEffect(() => {
     fetchVendors();
-  }, [filterStatus, filterTier]);
+  }, []);
 
   const fetchVendors = async () => {
     setLoading(true);
     setError("");
     try {
-      const params = new URLSearchParams();
-      if (filterStatus !== "all") params.append("status", filterStatus);
-      if (filterTier !== "all") params.append("tier", filterTier);
-
-      const res = await fetch(`/api/admin/vendors?${params.toString()}`);
+      const res = await fetch("/api/admin/vendors/list");
       const json = await res.json();
-
       if (!res.ok) {
         setError(json.error || "Failed to fetch vendors");
         return;
       }
-
       setVendors(json.vendors || []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
@@ -37,105 +34,115 @@ export default function VendorsPage() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this vendor?")) return;
+    try {
+      const res = await fetch(`/api/admin/vendors/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        setError("Failed to delete vendor");
+        return;
+      }
+      setVendors(vendors.filter((v) => v.id !== id));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error");
+    }
+  };
+
+  const filteredVendors = vendors.filter((v) => {
+    const matchesSearch =
+      v.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.categoryId.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = statusFilter === "all" || v.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
   return (
-    <main className="min-h-screen bg-gray-950 pt-24 pb-10 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="min-h-screen bg-gray-950 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white">Vendors</h1>
-            <p className="mt-1 text-sm text-gray-400">Manage ad system vendors</p>
+            <p className="text-gray-400 text-sm mt-1">Manage all vendor records</p>
           </div>
-
-          <a
-            href="/admin/vendors/new"
-            className="inline-flex items-center justify-center rounded-lg bg-yellow-500 px-4 py-2 font-bold text-black transition hover:bg-yellow-600"
+          <button
+            onClick={() => router.push("/admin/vendors/new")}
+            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-2 rounded-lg transition"
           >
-            + New Vendor
-          </a>
+            New Vendor
+          </button>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-gray-700 bg-gray-900 p-4">
-          <div className="flex flex-wrap gap-4">
+        {error && (
+          <div className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
+
+        <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 mb-6">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-2 block text-xs text-gray-400">Status</label>
+              <label className="block text-gray-400 text-sm mb-2">Search</label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Business name, email, or category..."
+                className="w-full bg-gray-800 border border-gray-600 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-yellow-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-gray-400 text-sm mb-2">Status Filter</label>
               <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as VendorStatus | "all")}
-                className="rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-white focus:border-yellow-500 focus:outline-none"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as VendorStatus | "all")}
+                className="w-full bg-gray-800 border border-gray-600 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-yellow-500"
               >
-                <option value="all">All</option>
+                <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
                 <option value="inactive">Inactive</option>
                 <option value="rejected">Rejected</option>
               </select>
             </div>
-
-            <div>
-              <label className="mb-2 block text-xs text-gray-400">Tier</label>
-              <select
-                value={filterTier}
-                onChange={(e) => setFilterTier(e.target.value as VendorTier | "all")}
-                className="rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-white focus:border-yellow-500 focus:outline-none"
-              >
-                <option value="all">All</option>
-                <option value="local">Local</option>
-                <option value="state">State</option>
-                <option value="national">National</option>
-              </select>
-            </div>
-
-            <div className="flex items-end">
-              <button
-                onClick={fetchVendors}
-                className="rounded-lg bg-yellow-500 px-4 py-2 font-bold text-black transition hover:bg-yellow-600"
-              >
-                Refresh
-              </button>
-            </div>
           </div>
         </div>
 
-        {loading && <p className="text-gray-400">Loading vendors...</p>}
-
-        {error && <p className="mb-4 text-red-400">{error}</p>}
-
-        {!loading && vendors.length === 0 && (
-          <div className="rounded-2xl border border-gray-800 bg-gray-900 p-6">
-            <p className="text-gray-400">No vendors found.</p>
-          </div>
-        )}
-
-        {!loading && vendors.length > 0 && (
-          <div className="overflow-hidden rounded-2xl border border-gray-700 bg-gray-900">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-gray-700 bg-gray-800/50">
-                  <th className="px-4 py-3 text-xs text-gray-400">#</th>
-                  <th className="px-4 py-3 text-xs text-gray-400">Business Name</th>
-                  <th className="px-4 py-3 text-xs text-gray-400">Contact</th>
-                  <th className="px-4 py-3 text-xs text-gray-400">Email</th>
-                  <th className="px-4 py-3 text-xs text-gray-400">Tier</th>
-                  <th className="px-4 py-3 text-xs text-gray-400">Status</th>
-                  <th className="px-4 py-3 text-xs text-gray-400">Created</th>
-                  <th className="px-4 py-3 text-xs text-gray-400">Actions</th>
+        {loading ? (
+          <div className="text-center text-gray-400">Loading vendors...</div>
+        ) : filteredVendors.length === 0 ? (
+          <div className="text-center text-gray-400">No vendors found.</div>
+        ) : (
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-800 border-b border-gray-700">
+                <tr>
+                  <th className="text-left text-white font-bold px-6 py-3">Business Name</th>
+                  <th className="text-left text-white font-bold px-6 py-3">Contact</th>
+                  <th className="text-left text-white font-bold px-6 py-3">Category</th>
+                  <th className="text-left text-white font-bold px-6 py-3">Tier</th>
+                  <th className="text-left text-white font-bold px-6 py-3">Status</th>
+                  <th className="text-left text-white font-bold px-6 py-3">Verified</th>
+                  <th className="text-center text-white font-bold px-6 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {vendors.map((vendor, i) => (
-                  <tr key={vendor.id} className="border-b border-gray-800 hover:bg-gray-800/50">
-                    <td className="px-4 py-3 text-sm text-gray-500">{i + 1}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-white">{vendor.businessName}</td>
-                    <td className="px-4 py-3 text-sm text-gray-300">{vendor.contactName}</td>
-                    <td className="px-4 py-3 text-sm text-gray-400">{vendor.email}</td>
-                    <td className="px-4 py-3">
-                      <span className="rounded-full bg-blue-500/20 px-2 py-1 text-xs capitalize text-blue-400">
-                        {vendor.tier}
-                      </span>
+                {filteredVendors.map((vendor) => (
+                  <tr key={vendor.id} className="border-b border-gray-700 hover:bg-gray-800/50">
+                    <td className="text-white px-6 py-3">{vendor.businessName}</td>
+                    <td className="text-gray-400 px-6 py-3">
+                      {vendor.contactName}
+                      <br />
+                      <span className="text-sm">{vendor.email}</span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="text-gray-400 px-6 py-3">{vendor.categoryId}</td>
+                    <td className="text-gray-400 px-6 py-3 capitalize">{vendor.tier}</td>
+                    <td className="px-6 py-3">
                       <span
-                        className={`rounded-full px-2 py-1 text-xs font-bold capitalize ${
+                        className={`px-2 py-1 rounded text-xs font-bold ${
                           vendor.status === "approved"
                             ? "bg-green-500/20 text-green-400"
                             : vendor.status === "pending"
@@ -148,16 +155,30 @@ export default function VendorsPage() {
                         {vendor.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-400">
-                      {vendor.createdAt ? new Date(vendor.createdAt).toLocaleDateString() : ""}
+                    <td className="px-6 py-3">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-bold ${
+                          vendor.isVerified
+                            ? "bg-green-500/20 text-green-400"
+                            : "bg-gray-500/20 text-gray-400"
+                        }`}
+                      >
+                        {vendor.isVerified ? "Yes" : "No"}
+                      </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <a
-                        href={`/admin/vendors/${vendor.id}`}
-                        className="text-xs text-blue-400 hover:underline"
+                    <td className="text-center px-6 py-3 space-x-2">
+                      <button
+                        onClick={() => router.push(`/admin/vendors/${vendor.id}`)}
+                        className="text-yellow-500 hover:text-yellow-400 text-sm font-bold"
                       >
                         Edit
-                      </a>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(vendor.id)}
+                        className="text-red-500 hover:text-red-400 text-sm font-bold"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -166,6 +187,6 @@ export default function VendorsPage() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

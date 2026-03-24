@@ -7,9 +7,10 @@ interface Vendor {
   adGraphicUrl:string;ctaText:string;destinationUrl:string;shortDescription:string;
   status:string;notes:string;address:string;city:string;state:string;zip:string;
   areasServed:string[];tags:string[];nowServing:string[];videoUrl:string;
-  videoTier:string;videoLanguages:string[];vaultUrl:string;isParent:boolean;locations:string[];
+  videoTier:string;videoLanguages:string[];  vaultUrl:string;isParent:boolean;locations:string[];
+  isVerified:boolean;verificationStatus:string;verifiedDate:string;verificationNotes:string;
 }
-const ev:Vendor={id:"",businessName:"",contactName:"",email:"",phone:"",websiteUrl:"",categoryId:"",tier:"local",marketId:"",logoUrl:"",adGraphicUrl:"",ctaText:"",destinationUrl:"",shortDescription:"",status:"pending",notes:"",address:"",city:"",state:"",zip:"",areasServed:[],tags:[],nowServing:[],videoUrl:"",videoTier:"",videoLanguages:[],vaultUrl:"",isParent:false,locations:[]};
+const ev:Vendor={id:"",businessName:"",contactName:"",email:"",phone:"",websiteUrl:"",categoryId:"",tier:"local",marketId:"",logoUrl:"",adGraphicUrl:"",ctaText:"",destinationUrl:"",shortDescription:"",status:"pending",notes:"",address:"",city:"",state:"",zip:"",areasServed:[],tags:[],nowServing:[],videoUrl:"",videoTier:"",videoLanguages:[],vaultUrl:"",isParent:false,locations:[],isVerified:false,verificationStatus:"not_verified",verifiedDate:"",verificationNotes:""};
 function sp(t:string){return t.split(",").map(s=>s.trim()).filter(Boolean);}
 export default function VendorEditPage(){
   const params=useParams();const router=useRouter();const vid=params?.id as string;
@@ -25,9 +26,10 @@ export default function VendorEditPage(){
   const[vt,setVt]=useState("");
   useEffect(()=>{
     if(!vid)return;
-    fetch(`/api/admin/vendors/${vid}`).then(r=>r.json()).then(d=>{
+    fetch(`/api/admin/vsetForm({...ev,...d.vendor,verifiedDate:d.vendor.verifiedDate?String(d.vendor.verifiedDate).slice(0,10):""});
+endors/${vid}`).then(r=>r.json()).then(d=>{
       if(d.vendor){
-        setForm(d.vendor);
+        setForm({...ev,...d.vendor,verifiedDate:d.vendor.verifiedDate?String(d.vendor.verifiedDate).slice(0,10):""});
         setAt((d.vendor.areasServed||[]).join(", "));
         setTt((d.vendor.tags||[]).join(", "));
         setNt((d.vendor.nowServing||[]).join(", "));
@@ -42,7 +44,7 @@ export default function VendorEditPage(){
   }
   async function hs(e:React.FormEvent){
     e.preventDefault();setSaving(true);setError("");setSuccess("");
-    const p={...form,areasServed:sp(at),tags:sp(tt),nowServing:sp(nt),videoLanguages:sp(vt)};
+const p={...form,areasServed:sp(at),tags:sp(tt),nowServing:sp(nt),videoLanguages:sp(vt),verifiedDate:form.verifiedDate?.trim()||undefined,verificationNotes:form.verificationNotes?.trim()||""};
     try{
       const r=await fetch(`/api/admin/vendors/${vid}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});
       const d=await r.json();
@@ -112,6 +114,31 @@ export default function VendorEditPage(){
             <div><label className="block text-sm font-medium mb-1">Video Tier</label><input name="videoTier" value={form.videoTier} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
             <div><label className="block text-sm font-medium mb-1">Video Languages (comma separated)</label><input value={vt} onChange={e=>setVt(e.target.value)} className="w-full border rounded px-3 py-2 text-sm"/></div>
             <div><label className="block text-sm font-medium mb-1">Vault URL</label><input name="vaultUrl" value={form.vaultUrl} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
+          </div>
+        </section>
+		        <section>
+          <h2 className="text-lg font-semibold mb-2 border-b pb-1">Verification</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2 flex items-center gap-2 mt-2">
+              <input type="checkbox" name="isVerified" id="isVerified" checked={form.isVerified} onChange={hc}/>
+              <label htmlFor="isVerified" className="text-sm font-medium">Vendor is verified</label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Verification Status</label>
+              <select name="verificationStatus" value={form.verificationStatus} onChange={hc} className="w-full border rounded px-3 py-2 text-sm">
+                <option value="not_verified">Not Verified</option>
+                <option value="pending_verification">Pending Verification</option>
+                <option value="verified">Verified</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Verified Date</label>
+              <input type="date" name="verifiedDate" value={form.verifiedDate} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Verification Notes</label>
+              <textarea name="verificationNotes" value={form.verificationNotes} onChange={hc} rows={3} className="w-full border rounded px-3 py-2 text-sm"/>
+            </div>
           </div>
         </section>
         <section>

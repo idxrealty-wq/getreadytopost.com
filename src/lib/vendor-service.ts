@@ -21,6 +21,7 @@ import {
   VendorUpdateInput,
   VendorStatus,
   VendorTier,
+  VerificationStatus,
 } from '@/types/vendor';
 
 export const VENDORS_COLLECTION = 'vendors';
@@ -59,6 +60,8 @@ export async function createVendor(input: VendorCreateInput): Promise<Vendor> {
     locations: input.locations ?? [],
     isParent: input.isParent ?? false,
     vaultUrl: input.vaultUrl?.trim() ?? '',
+	isVerified: input.isVerified ?? false,
+    verificationStatus: input.verificationStatus ?? 'not_verified',
     createdAt: now,
     updatedAt: now,
   };
