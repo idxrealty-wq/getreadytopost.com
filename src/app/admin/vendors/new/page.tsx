@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { VendorTier, VendorStatus } from "@/types/vendor";
@@ -75,7 +75,7 @@ export default function NewVendorPage() {
       });
       const json = await res.json();
       if (!res.ok) { setError(json.error || "Failed to create vendor"); return; }
-      router.push("/admin/vendors");
+      router.push("/admin/vendors/" + json.vendor.id + "?created=1");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
@@ -91,10 +91,10 @@ export default function NewVendorPage() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white">🏢 New Vendor</h1>
+            <h1 className="text-3xl font-bold text-white">ðŸ¢ New Vendor</h1>
             <p className="text-gray-400 text-sm mt-1">Create a new vendor record</p>
           </div>
-          <button onClick={() => router.push("/admin/vendors")} className="text-gray-400 hover:text-white text-sm">← Back</button>
+          <button onClick={() => router.push("/admin/vendors")} className="text-gray-400 hover:text-white text-sm">â† Back</button>
         </div>
         {error && <div className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-6">{error}</div>}
         <form onSubmit={handleSubmit} className="bg-gray-900 border border-gray-700 rounded-2xl p-6 space-y-6">
@@ -124,7 +124,7 @@ export default function NewVendorPage() {
             </div>
           </fieldset>
           <fieldset>
-            <legend className="text-lg font-bold text-white mb-4">📍 Address</legend>
+            <legend className="text-lg font-bold text-white mb-4">ðŸ“ Address</legend>
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                 <label className={labelClass}>Street Address</label>
@@ -170,7 +170,7 @@ export default function NewVendorPage() {
                 <input type="text" name="areasServed" value={formData.areasServed} onChange={handleChange} placeholder="Orlando, Tampa, Lake County" className={inputClass} />
               </div>
               <div>
-                <label className={labelClass}>Now Serving <span className="text-gray-500">(comma separated — live indicator)</span></label>
+                <label className={labelClass}>Now Serving <span className="text-gray-500">(comma separated â€” live indicator)</span></label>
                 <input type="text" name="nowServing" value={formData.nowServing} onChange={handleChange} placeholder="Orlando, Kissimmee" className={inputClass} />
               </div>
               <div>
@@ -213,7 +213,7 @@ export default function NewVendorPage() {
             </div>
           </fieldset>
           <fieldset>
-            <legend className="text-lg font-bold text-white mb-4">🎬 Video Ad</legend>
+            <legend className="text-lg font-bold text-white mb-4">ðŸŽ¬ Video Ad</legend>
             <div className="space-y-4">
               <div>
                 <label className={labelClass}>Video URL <span className="text-gray-500">(YouTube or Vimeo)</span></label>
@@ -222,11 +222,11 @@ export default function NewVendorPage() {
               <div>
                 <label className={labelClass}>Video Tier</label>
                 <select name="videoTier" value={formData.videoTier} onChange={handleChange} className={inputClass}>
-                  <option value="">— None —</option>
-                  <option value="bronze">Bronze — 1 Language</option>
-                  <option value="silver">Silver — 3 Languages</option>
-                  <option value="gold">Gold — 5 Languages</option>
-                  <option value="platinum">Platinum — Unlimited Languages</option>
+                  <option value="">â€” None â€”</option>
+                  <option value="bronze">Bronze â€” 1 Language</option>
+                  <option value="silver">Silver â€” 3 Languages</option>
+                  <option value="gold">Gold â€” 5 Languages</option>
+                  <option value="platinum">Platinum â€” Unlimited Languages</option>
                 </select>
               </div>
               <div>
@@ -274,3 +274,4 @@ export default function NewVendorPage() {
     </div>
   );
 }
+

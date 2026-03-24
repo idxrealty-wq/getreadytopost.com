@@ -15,9 +15,10 @@ export default function VendorEditPage(){
   const params=useParams();const router=useRouter();const vid=params?.id as string;
   const[form,setForm]=useState<Vendor>(ev);
   const[loading,setLoading]=useState(true);
+  const searchParams=typeof window!=="undefined"?new URLSearchParams(window.location.search):null;
   const[saving,setSaving]=useState(false);
   const[error,setError]=useState("");
-  const[success,setSuccess]=useState("");
+  const[success,setSuccess]=useState(typeof window!=="undefined"&&new URLSearchParams(window.location.search).get("created")==="1"?"✅ Vendor created successfully!":"");
   const[at,setAt]=useState("");
   const[tt,setTt]=useState("");
   const[nt,setNt]=useState("");
@@ -133,3 +134,5 @@ export default function VendorEditPage(){
     </div>
   );
 }
+
+
