@@ -54,6 +54,10 @@ function mapVendor(id: string, d: any) {
     vaultUrl: d?.vaultUrl || "",
     isParent: d?.isParent || false,
     locations: d?.locations || [],
+    isVerified: d?.isVerified || false,
+    verificationStatus: d?.verificationStatus || "not_verified",
+    verifiedDate: d?.verifiedDate || "",
+    verificationNotes: d?.verificationNotes || "",
     createdAt: d?.createdAt?.toDate?.()?.toISOString?.() || d?.createdAt || "",
     updatedAt: d?.updatedAt?.toDate?.()?.toISOString?.() || d?.updatedAt || "",
   };
@@ -107,6 +111,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       vaultUrl: body.vaultUrl || "",
       isParent: body.isParent || false,
       locations: Array.isArray(body.locations) ? body.locations : [],
+      isVerified: body.isVerified || false,
+      verificationStatus: body.verificationStatus || "not_verified",
+      verifiedDate: body.verifiedDate || "",
+      verificationNotes: body.verificationNotes || "",
       updatedAt: new Date(),
     };
 
