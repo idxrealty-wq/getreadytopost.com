@@ -32,12 +32,12 @@ interface Vendor {
   vaultUrl: string;
   isParent: boolean;
   locations: string[];
-  isVerified: boolean;
+    isVerified: boolean;
   verificationStatus: string;
   verifiedDate: string;
   verificationNotes: string;
+  notVerifiedDate: string;
 }
-
 const ev: Vendor = {
   id: "",
   businessName: "",
@@ -72,6 +72,7 @@ const ev: Vendor = {
   verificationStatus: "not_verified",
   verifiedDate: "",
   verificationNotes: "",
+  notVerifiedDate: "",
 };
 
 function sp(t: string) {
@@ -111,6 +112,9 @@ export default function VendorEditPage() {
             ...d.vendor,
             verifiedDate: d.vendor.verifiedDate
               ? String(d.vendor.verifiedDate).slice(0, 10)
+              : "",
+            notVerifiedDate: d.vendor.notVerifiedDate
+              ? String(d.vendor.notVerifiedDate).slice(0, 10)
               : "",
           });
           setAt((d.vendor.areasServed || []).join(", "));
@@ -155,6 +159,7 @@ export default function VendorEditPage() {
       videoLanguages: sp(vt),
       verifiedDate: form.verifiedDate?.trim() || undefined,
       verificationNotes: form.verificationNotes?.trim() || "",
+      notVerifiedDate: form.notVerifiedDate?.trim() || undefined,
     };
 
     try {
