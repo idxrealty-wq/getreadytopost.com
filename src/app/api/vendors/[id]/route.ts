@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
@@ -27,9 +27,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   try {
     initAdmin();
     const db = getFirestore();
-    const vendorId = params.id;
-
-    const doc = await db.collection("vendors").doc(vendorId).get();
+    const doc = await db.collection("vendors").doc(params.id).get();
 
     if (!doc.exists) {
       return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
@@ -37,7 +35,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     const d = doc.data();
 
-    if (d?.status !== "approved") {
+    if (d?.status !== "active" && d?.status !== "approved") {
       return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
     }
 
