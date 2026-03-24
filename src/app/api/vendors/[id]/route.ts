@@ -23,7 +23,10 @@ function initAdmin() {
   }
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     initAdmin();
     const db = getFirestore();
@@ -67,11 +70,19 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       locations: d?.locations || [],
       isParent: d?.isParent || false,
       vaultUrl: d?.vaultUrl || "",
+      isVerified: d?.isVerified || false,
+      verificationStatus: d?.verificationStatus || "not_verified",
+      verifiedDate: d?.verifiedDate || "",
+      verificationNotes: d?.verificationNotes || "",
+      notVerifiedDate: d?.notVerifiedDate || "",
     };
 
     return NextResponse.json({ vendor });
   } catch (err: any) {
     console.error("Public vendor GET error:", err);
-    return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message || "Server error" },
+      { status: 500 }
+    );
   }
 }
