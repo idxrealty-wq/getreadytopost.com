@@ -51,7 +51,7 @@ export default function VendorEditPage(){
       setTt((d.vendor.tags||[]).join(", "));
       setNt((d.vendor.nowServing||[]).join(", "));
       setVt((d.vendor.videoLanguages||[]).join(", "));
-      setSuccess("Saved!");
+      setSuccess("Saved!");setTimeout(()=>setSuccess(""),3000);
     }catch(err:any){setError(err.message||"Failed.");}
     finally{setSaving(false);}
   }
@@ -68,7 +68,7 @@ export default function VendorEditPage(){
         <button onClick={()=>router.push("/admin/vendors")} className="text-sm text-blue-600 hover:underline">Back</button>
       </div>
       {error&&<div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
-      {success&&<div className="mb-4 p-3 bg-green-100 text-green-700 rounded">{success}</div>}
+      {success&&<div className="fixed top-4 right-4 z-50 px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg font-semibold animate-pulse">{success}</div>}
       <form onSubmit={hs} className="space-y-4">
         <section>
           <h2 className="text-lg font-semibold mb-2 border-b pb-1">Business Info</h2>
