@@ -1,135 +1,313 @@
-﻿"use client";
+﻿$batch1 = @'
+"use client";
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-interface Vendor {
-  id:string;businessName:string;contactName:string;email:string;phone:string;
-  websiteUrl:string;categoryId:string;tier:string;marketId:string;logoUrl:string;
-  adGraphicUrl:string;ctaText:string;destinationUrl:string;shortDescription:string;
-  status:string;notes:string;address:string;city:string;state:string;zip:string;
-  areasServed:string[];tags:string[];nowServing:string[];videoUrl:string;
-  videoTier:string;videoLanguages:string[];vaultUrl:string;isParent:boolean;locations:string[];
+import { useParams } from "next/navigation";
+
+interface VendorLocation {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  phone: string;
+  contactName: string;
+  areasServed: string[];
+  hours: string;
+  isPrimary: boolean;
 }
-const ev:Vendor={id:"",businessName:"",contactName:"",email:"",phone:"",websiteUrl:"",categoryId:"",tier:"local",marketId:"",logoUrl:"",adGraphicUrl:"",ctaText:"",destinationUrl:"",shortDescription:"",status:"pending",notes:"",address:"",city:"",state:"",zip:"",areasServed:[],tags:[],nowServing:[],videoUrl:"",videoTier:"",videoLanguages:[],vaultUrl:"",isParent:false,locations:[]};
-function sp(t:string){return t.split(",").map(s=>s.trim()).filter(Boolean);}
-export default function VendorEditPage(){
-  const params=useParams();const router=useRouter();const vid=params?.id as string;
-  const[form,setForm]=useState<Vendor>(ev);
-  const[loading,setLoading]=useState(true);
-  const[saving,setSaving]=useState(false);
-  const[error,setError]=useState("");
-  const[success,setSuccess]=useState("");
-  const[at,setAt]=useState("");
-  const[tt,setTt]=useState("");
-  const[nt,setNt]=useState("");
-  const[vt,setVt]=useState("");
-  useEffect(()=>{
-    if(!vid)return;
-    fetch(`/api/admin/vendors/${vid}`).then(r=>r.json()).then(d=>{
-      if(d.vendor){
-        setForm(d.vendor);
-        setAt((d.vendor.areasServed||[]).join(", "));
-        setTt((d.vendor.tags||[]).join(", "));
-        setNt((d.vendor.nowServing||[]).join(", "));
-        setVt((d.vendor.videoLanguages||[]).join(", "));
-      }else setError("Not found.");
-    }).catch(()=>setError("Load failed.")).finally(()=>setLoading(false));
-  },[vid]);
-  function hc(e:React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>){
-    const{name,value,type}=e.target;
-    if(type==="checkbox")setForm(f=>({...f,[name]:(e.target as HTMLInputElement).checked}));
-    else setForm(f=>({...f,[name]:value}));
-  }
-  async function hs(e:React.FormEvent){
-    e.preventDefault();setSaving(true);setError("");setSuccess("");
-    const p={...form,areasServed:sp(at),tags:sp(tt),nowServing:sp(nt),videoLanguages:sp(vt)};
-    try{
-      const r=await fetch(`/api/admin/vendors/${vid}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});
-      const d=await r.json();
-      if(!r.ok)throw new Error(d.error||"Failed");
-      setForm(d.vendor);
-      setAt((d.vendor.areasServed||[]).join(", "));
-      setTt((d.vendor.tags||[]).join(", "));
-      setNt((d.vendor.nowServing||[]).join(", "));
-      setVt((d.vendor.videoLanguages||[]).join(", "));
-      setSuccess("Saved!");
-    }catch(err:any){setError(err.message||"Failed.");}
-    finally{setSaving(false);}
-  }
-  async function hd(){
-    if(!confirm("Delete vendor?"))return;
-    await fetch(`/api/admin/vendors/${vid}`,{method:"DELETE"});
-    router.push("/admin/vendors");
-  }
-  if(loading)return<div className="p-8">Loading...</div>;
-  return(
-    <div className="max-w-3xl mx-auto p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Edit Vendor</h1>
-        <button onClick={()=>router.push("/admin/vendors")} className="text-sm text-blue-600 hover:underline">Back</button>
+
+interface Vendor {
+  id: string;
+  businessName: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  websiteUrl: string;
+  categoryId: string;
+  tier: string;
+  marketId: string;
+  logoUrl: string;
+  adGraphicUrl: string;
+  ctaText: string;
+  destinationUrl: string;
+  shortDescription: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  areasServed: string[];
+  tags: string[];
+  nowServing: string[];
+  videoUrl: string;
+  videoTier: string;
+  videoLanguages: string[];
+  locations: VendorLocation[];
+  isParent: boolean;
+  vaultUrl: string;
+}
+
+function getYouTubeEmbedUrl(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (match) return "https://www.youtube.com/embed/" + match[1] + "?rel=0&modestbranding=1";
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return "https://player.vimeo.com/video/" + vimeoMatch[1];
+  return null;
+}
+
+export default function VendorProfilePage() {
+  const params = useParams();
+  const vendorId = params.id as string;
+  const [vendor, setVendor] = useState<Vendor | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [activeTab, setActiveTab] = useState<"about" | "locations">("about");
+
+  useEffect(() => { fetchVendor(); }, [vendorId]);
+
+  const fetchVendor = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/vendors/" + vendorId);
+      const json = await res.json();
+      if (!res.ok) { setNotFound(true); return; }
+      setVendor(json.vendor);
+    } catch { setNotFound(true); }
+    finally { setLoading(false); }
+  };
+
+  if (loading) return (
+    <main className="min-h-screen bg-gray-950 pt-24 flex items-center justify-center">
+      <p className="text-gray-400">Loading...</p>
+    </main>
+  );
+
+  if (notFound || !vendor) return (
+    <main className="min-h-screen bg-gray-950 pt-24 flex items-center justify-center">
+      <div className="text-center">
+        <p className="text-4xl mb-4">🔍</p>
+        <h1 className="text-2xl font-bold text-white mb-2">Vendor Not Found</h1>
+        <p className="text-gray-400 mb-6">This vendor profile does not exist or is not active.</p>
+        <a href="/" className="text-yellow-500 hover:underline">Back to Home</a>
       </div>
-      {error&&<div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
-      {success&&<div className="mb-4 p-3 bg-green-100 text-green-700 rounded">{success}</div>}
-      <form onSubmit={hs} className="space-y-4">
-        <section>
-          <h2 className="text-lg font-semibold mb-2 border-b pb-1">Business Info</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium mb-1">Business Name</label><input name="businessName" value={form.businessName} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Contact Name</label><input name="contactName" value={form.contactName} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Email</label><input name="email" value={form.email} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Phone</label><input name="phone" value={form.phone} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Website URL</label><input name="websiteUrl" value={form.websiteUrl} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Short Description</label><input name="shortDescription" value={form.shortDescription} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
+    </main>
+  );
+
+  const embedUrl = getYouTubeEmbedUrl(vendor.videoUrl || "");
+  const hasLocations = vendor.locations && vendor.locations.length > 0;
+  const primaryAddress = vendor.address
+    ? vendor.address + ", " + vendor.city + ", " + vendor.state + " " + vendor.zip
+    : "";
+  const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const mapEmbedUrl = primaryAddress && mapsKey
+    ? "https://www.google.com/maps/embed/v1/place?key=" + mapsKey + "&q=" + encodeURIComponent(primaryAddress)
+    : null;
+
+  return (
+    <main className="min-h-screen bg-gray-950 pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden">
+
+          {vendor.adGraphicUrl && (
+            <div className="w-full h-56 overflow-hidden bg-gray-800">
+              <img src={vendor.adGraphicUrl} alt={vendor.businessName + " banner"} className="w-full h-full object-cover" />
+            </div>
+          )}
+
+          <div className="p-8">
+            <div className="flex items-start gap-6 mb-4">
+              {vendor.logoUrl && (
+                <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-white flex items-center justify-center">
+                  <img src={vendor.logoUrl} alt={vendor.businessName + " logo"} className="w-full h-full object-contain" />
+                </div>
+              )}
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold text-white">{vendor.businessName}</h1>
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {vendor.tier && <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 capitalize">{vendor.tier}</span>}
+                  {vendor.categoryId && <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400">{vendor.categoryId}</span>}
+                  {vendor.marketId && <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">{vendor.marketId}</span>}
+                </div>
+                {vendor.nowServing && vendor.nowServing.length > 0 && (
+                  <div className="flex items-center gap-2 mt-3 flex-wrap">
+                    <span className="flex items-center gap-1 text-xs text-green-400 font-semibold">
+                      <span className="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse"></span>
+                      Now Serving:
+                    </span>
+                    {vendor.nowServing.map((area, i) => (
+                      <span key={i} className="text-xs px-2 py-1 rounded-full bg-green-500/10 text-green-300 border border-green-500/20">{area}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {hasLocations && (
+              <div className="flex gap-1 mb-6 border-b border-gray-700">
+                <button onClick={() => setActiveTab("about")} className={"px-4 py-2 text-sm font-medium transition border-b-2 -mb-px " + (activeTab === "about" ? "border-yellow-500 text-yellow-400" : "border-transparent text-gray-400 hover:text-white")}>About</button>
+                <button onClick={() => setActiveTab("locations")} className={"px-4 py-2 text-sm font-medium transition border-b-2 -mb-px " + (activeTab === "locations" ? "border-yellow-500 text-yellow-400" : "border-transparent text-gray-400 hover:text-white")}>{"Locations (" + vendor.locations.length + ")"}</button>
+              </div>
+            )}
+
+            {activeTab === "about" && (
+              <>
+                {vendor.shortDescription && (
+                  <p className="text-gray-300 text-base leading-relaxed mb-6">{vendor.shortDescription}</p>
+                )}
+                {vendor.tags && vendor.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {vendor.tags.map((tag, i) => (
+                      <span key={i} className="text-xs px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">{tag.startsWith("#") ? tag : "#" + tag}</span>
+                    ))}
+                  </div>
+                )}
+                {vendor.areasServed && vendor.areasServed.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Areas Served</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {vendor.areasServed.map((area, i) => (
+                        <span key={i} className="text-xs px-3 py-1 rounded-full bg-gray-800 text-gray-300 border border-gray-600">{area}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+'@
+Set-Content -LiteralPath "C:\Users\Christopher\getreadytopost.com\src\app\vendors\[id]\page.tsx" -Value $batch1 -Encoding UTF8
+$batch2 = @'
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  {vendor.phone && (
+                    <div className="bg-gray-800 rounded-xl p-4">
+                      <p className="text-gray-400 text-xs mb-1">Phone</p>
+                      <a href={"tel:" + vendor.phone} className="text-white font-medium hover:text-yellow-400 transition">{vendor.phone}</a>
+                    </div>
+                  )}
+                  {vendor.email && (
+                    <div className="bg-gray-800 rounded-xl p-4">
+                      <p className="text-gray-400 text-xs mb-1">Email</p>
+                      <a href={"mailto:" + vendor.email} className="text-white font-medium hover:text-yellow-400 transition">{vendor.email}</a>
+                    </div>
+                  )}
+                  {vendor.websiteUrl && (
+                    <div className="bg-gray-800 rounded-xl p-4">
+                      <p className="text-gray-400 text-xs mb-1">Website</p>
+                      <a href={vendor.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-yellow-400 font-medium hover:underline">{vendor.websiteUrl}</a>
+                    </div>
+                  )}
+                  {vendor.contactName && (
+                    <div className="bg-gray-800 rounded-xl p-4">
+                      <p className="text-gray-400 text-xs mb-1">Contact</p>
+                      <p className="text-white font-medium">{vendor.contactName}</p>
+                    </div>
+                  )}
+                </div>
+                {mapEmbedUrl && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Location</h3>
+                    <div className="rounded-xl overflow-hidden border border-gray-700 h-64">
+                      <iframe src={mapEmbedUrl} width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                    </div>
+                    {primaryAddress && <p className="text-gray-400 text-xs mt-2">{primaryAddress}</p>}
+                  </div>
+                )}
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Video</h3>
+                  {embedUrl ? (
+                    <div className="rounded-xl overflow-hidden border border-gray-700 aspect-video">
+                      <iframe src={embedUrl} width="100%" height="100%" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ border: 0 }} />
+                    </div>
+                  ) : (
+                    <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 text-center">
+                      <p className="text-3xl mb-3">🎬</p>
+                      <p className="text-white font-semibold mb-1">Want a professional video ad on your profile?</p>
+                      <p className="text-gray-400 text-sm mb-4">Custom scripted video ads starting at <span className="text-yellow-400 font-bold">$100</span> — available in 120 languages. Additional languages just <span className="text-yellow-400 font-bold">$50</span> each.</p>
+                      <a href="mailto:idxrealty@gmail.com?subject=Video Ad Production Request" className="inline-flex items-center justify-center bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-6 py-2 rounded-lg transition text-sm">Get My Video Ad →</a>
+                    </div>
+                  )}
+                </div>
+                {vendor.vaultUrl && (
+                  <div className="mb-6">
+                    <a href={vendor.vaultUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-gray-800 border border-gray-600 hover:border-yellow-500 rounded-xl p-4 transition group">
+                      <span className="text-2xl">🔐</span>
+                      <div>
+                        <p className="text-white font-semibold group-hover:text-yellow-400 transition">Access Documents</p>
+                        <p className="text-gray-400 text-xs">{"Forms, checklists, and resources from " + vendor.businessName}</p>
+                      </div>
+                      <span className="ml-auto text-gray-500 group-hover:text-yellow-400">→</span>
+                    </a>
+                  </div>
+                )}
+                {vendor.destinationUrl && (
+                  <a href={vendor.destinationUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-full sm:w-auto bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-8 py-3 rounded-xl transition text-lg">
+                    {(vendor.ctaText || "Learn More") + " →"}
+                  </a>
+                )}
+              </>
+            )}
+            {activeTab === "locations" && hasLocations && (
+              <div className="space-y-4">
+                {vendor.locations.map((loc, i) => {
+                  const locAddress = loc.address
+                    ? loc.address + ", " + loc.city + ", " + loc.state + " " + loc.zip
+                    : "";
+                  const locMapUrl = locAddress && mapsKey
+                    ? "https://www.google.com/maps/embed/v1/place?key=" + mapsKey + "&q=" + encodeURIComponent(locAddress)
+                    : null;
+
+                  return (
+                    <div key={loc.id || i} className="bg-gray-800 border border-gray-700 rounded-xl p-5">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="text-white font-semibold text-base">{loc.name || "Location " + (i + 1)}</h3>
+                          {loc.isPrimary && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 mt-1 inline-block">Primary</span>
+                          )}
+                        </div>
+                      </div>
+                      {locAddress && (
+                        <p className="text-gray-400 text-sm mb-3">{locAddress}</p>
+                      )}
+                      {loc.phone && (
+                        <p className="text-sm mb-2">
+                          <span className="text-gray-500">Phone: </span>
+                          <a href={"tel:" + loc.phone} className="text-white hover:text-yellow-400 transition">{loc.phone}</a>
+                        </p>
+                      )}
+                      {loc.contactName && (
+                        <p className="text-sm mb-2">
+                          <span className="text-gray-500">Contact: </span>
+                          <span className="text-white">{loc.contactName}</span>
+                        </p>
+                      )}
+                      {loc.hours && (
+                        <p className="text-sm mb-3">
+                          <span className="text-gray-500">Hours: </span>
+                          <span className="text-white">{loc.hours}</span>
+                        </p>
+                      )}
+                      {loc.areasServed && loc.areasServed.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {loc.areasServed.map((area, j) => (
+                            <span key={j} className="text-xs px-2 py-1 rounded-full bg-gray-700 text-gray-300 border border-gray-600">{area}</span>
+                          ))}
+                        </div>
+                      )}
+                      {locMapUrl && (
+                        <div className="rounded-xl overflow-hidden border border-gray-700 h-48 mt-3">
+                          <iframe src={locMapUrl} width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
           </div>
-        </section>
-        <section>
-          <h2 className="text-lg font-semibold mb-2 border-b pb-1">Address</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2"><label className="block text-sm font-medium mb-1">Street Address</label><input name="address" value={form.address} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">City</label><input name="city" value={form.city} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">State</label><input name="state" value={form.state} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">ZIP</label><input name="zip" value={form.zip} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Areas Served (comma separated)</label><input value={at} onChange={e=>setAt(e.target.value)} className="w-full border rounded px-3 py-2 text-sm"/></div>
-          </div>
-        </section>
-        <section>
-          <h2 className="text-lg font-semibold mb-2 border-b pb-1">Ad Settings</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium mb-1">Category ID</label><input name="categoryId" value={form.categoryId} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Tier</label><select name="tier" value={form.tier} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"><option value="local">Local</option><option value="regional">Regional</option><option value="national">National</option></select></div>
-            <div><label className="block text-sm font-medium mb-1">Market ID</label><input name="marketId" value={form.marketId} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Status</label><select name="status" value={form.status} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"><option value="pending">Pending</option><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
-            <div><label className="block text-sm font-medium mb-1">Logo URL</label><input name="logoUrl" value={form.logoUrl} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Ad Graphic URL</label><input name="adGraphicUrl" value={form.adGraphicUrl} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">CTA Text</label><input name="ctaText" value={form.ctaText} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Destination URL</label><input name="destinationUrl" value={form.destinationUrl} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-          </div>
-        </section>
-        <section>
-          <h2 className="text-lg font-semibold mb-2 border-b pb-1">Video</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium mb-1">Video URL</label><input name="videoUrl" value={form.videoUrl} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Video Tier</label><input name="videoTier" value={form.videoTier} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Video Languages (comma separated)</label><input value={vt} onChange={e=>setVt(e.target.value)} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Vault URL</label><input name="vaultUrl" value={form.vaultUrl} onChange={hc} className="w-full border rounded px-3 py-2 text-sm"/></div>
-          </div>
-        </section>
-        <section>
-          <h2 className="text-lg font-semibold mb-2 border-b pb-1">Tags and Services</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium mb-1">Tags (comma separated)</label><input value={tt} onChange={e=>setTt(e.target.value)} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div><label className="block text-sm font-medium mb-1">Now Serving (comma separated)</label><input value={nt} onChange={e=>setNt(e.target.value)} className="w-full border rounded px-3 py-2 text-sm"/></div>
-            <div className="flex items-center gap-2 mt-2"><input type="checkbox" name="isParent" id="isParent" checked={form.isParent} onChange={hc}/><label htmlFor="isParent" className="text-sm font-medium">Is Parent Vendor</label></div>
-          </div>
-        </section>
-        <section>
-          <h2 className="text-lg font-semibold mb-2 border-b pb-1">Notes</h2>
-          <textarea name="notes" value={form.notes} onChange={hc} rows={4} className="w-full border rounded px-3 py-2 text-sm"/>
-        </section>
-        <div className="flex items-center justify-between pt-4">
-          <button type="button" onClick={hd} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm">Delete</button>
-          <button type="submit" disabled={saving} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm disabled:opacity-50">{saving?"Saving...":"Save Vendor"}</button>
         </div>
-      </form>
-    </div>
+      </div>
+    </main>
   );
 }
+'@
+Add-Content -LiteralPath "C:\Users\Christopher\getreadytopost.com\src\app\vendors\[id]\page.tsx" -Value $batch2 -Encoding UTF8
