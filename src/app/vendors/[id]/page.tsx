@@ -44,6 +44,10 @@ interface Vendor {
   locations: VendorLocation[];
   isParent: boolean;
   vaultUrl: string;
+  isVerified?: boolean;
+  verificationStatus?: string;
+  verifiedDate?: string;
+  notVerifiedDate?: string;
 }
 
 function getYouTubeEmbedUrl(url: string): string | null {
@@ -125,6 +129,19 @@ export default function VendorProfilePage() {
                   {vendor.tier && <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 capitalize">{vendor.tier}</span>}
                   {vendor.categoryId && <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400">{vendor.categoryId}</span>}
                   {vendor.marketId && <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">{vendor.marketId}</span>}
+                  {vendor.verificationStatus === "verified" || vendor.isVerified ? (
+                    <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400 font-semibold">
+                      ✓ Verified {vendor.verifiedDate ? `• ${String(vendor.verifiedDate).slice(0, 10)}` : ""}
+                    </span>
+                  ) : vendor.verificationStatus === "not_verified" ? (
+                    <span className="text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-400 font-semibold">
+                      ✗ Not Verified {vendor.notVerifiedDate ? `• ${String(vendor.notVerifiedDate).slice(0, 10)}` : ""}
+                    </span>
+                  ) : vendor.verificationStatus === "pending_verification" ? (
+                    <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400 font-semibold">
+                      ⏳ Pending Verification
+                    </span>
+                  ) : null}
                 </div>
                 {vendor.nowServing && vendor.nowServing.length > 0 && (
                   <div className="flex items-center gap-2 mt-3 flex-wrap">
