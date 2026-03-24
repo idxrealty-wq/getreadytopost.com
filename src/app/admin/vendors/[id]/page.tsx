@@ -178,6 +178,9 @@ export default function VendorEditPage() {
         verifiedDate: d.vendor.verifiedDate
           ? String(d.vendor.verifiedDate).slice(0, 10)
           : "",
+        notVerifiedDate: d.vendor.notVerifiedDate
+          ? String(d.vendor.notVerifiedDate).slice(0, 10)
+          : "",
       });
       setAt((d.vendor.areasServed || []).join(", "));
       setTt((d.vendor.tags || []).join(", "));
@@ -540,6 +543,18 @@ export default function VendorEditPage() {
                 type="date"
                 name="verifiedDate"
                 value={form.verifiedDate}
+                onChange={hc}
+                className="w-full border rounded px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Not Verified Date
+              </label>
+              <input
+                type="date"
+                name="notVerifiedDate"
+                value={form.notVerifiedDate}
                 onChange={hc}
                 className="w-full border rounded px-3 py-2 text-sm"
               />
