@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
-import { getFirestore, QueryDocumentSnapshot, DocumentData } from "firebase-admin/firestore";
+import { getFirestore } from "firebase-admin/firestore";
 
 export const dynamic = "force-dynamic";
 
@@ -23,41 +23,49 @@ function initAdmin() {
   }
 }
 
+function mapVendor(id: string, d: any) {
+  return {
+    id,
+    businessName: d?.businessName || "",
+    contactName: d?.contactName || "",
+    email: d?.email || "",
+    phone: d?.phone || "",
+    websiteUrl: d?.websiteUrl || "",
+    categoryId: d?.categoryId || "",
+    tier: d?.tier || "local",
+    marketId: d?.marketId || "",
+    logoUrl: d?.logoUrl || "",
+    adGraphicUrl: d?.adGraphicUrl || "",
+    ctaText: d?.ctaText || "",
+    destinationUrl: d?.destinationUrl || "",
+    shortDescription: d?.shortDescription || "",
+    status: d?.status || "pending",
+    notes: d?.notes || "",
+    address: d?.address || "",
+    city: d?.city || "",
+    state: d?.state || "",
+    zip: d?.zip || "",
+    areasServed: d?.areasServed || [],
+    tags: d?.tags || [],
+    nowServing: d?.nowServing || [],
+    videoUrl: d?.videoUrl || "",
+    videoTier: d?.videoTier || "",
+    videoLanguages: d?.videoLanguages || [],
+    vaultUrl: d?.vaultUrl || "",
+    isParent: d?.isParent || false,
+    locations: d?.locations || [],
+    createdAt: d?.createdAt?.toDate?.()?.toISOString?.() || d?.createdAt || "",
+    updatedAt: d?.updatedAt?.toDate?.()?.toISOString?.() || d?.updatedAt || "",
+  };
+}
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     initAdmin();
     const db = getFirestore();
-    const vendorId = params.id;
-
-    const doc = await db.collection("vendors").doc(vendorId).get();
-
-    if (!doc.exists) {
-      return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
-    }
-
-    const d = doc.data();
-    const vendor = {
-      id: doc.id,
-      businessName: d?.businessName || "",
-      contactName: d?.contactName || "",
-      email: d?.email || "",
-      phone: d?.phone || "",
-      websiteUrl: d?.websiteUrl || "",
-      categoryId: d?.categoryId || "",
-      tier: d?.tier || "local",
-      marketId: d?.marketId || "",
-      logoUrl: d?.logoUrl || "",
-      adGraphicUrl: d?.adGraphicUrl || "",
-      ctaText: d?.ctaText || "",
-      destinationUrl: d?.destinationUrl || "",
-      shortDescription: d?.shortDescription || "",
-      status: d?.status || "pending",
-      notes: d?.notes || "",
-      createdAt: d?.createdAt?.toDate?.()?.toISOString?.() || d?.createdAt || "",
-      updatedAt: d?.updatedAt?.toDate?.()?.toISOString?.() || d?.updatedAt || "",
-    };
-
-    return NextResponse.json({ vendor });
+    const doc = await db.collection("vendors").doc(params.id).get();
+    if (!doc.exists) return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
+    return NextResponse.json({ vendor: mapVendor(doc.id, doc.data()) });
   } catch (err: any) {
     console.error("Vendor GET error:", err);
     return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
@@ -68,7 +76,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   try {
     initAdmin();
     const db = getFirestore();
-    const vendorId = params.id;
     const body = await req.json();
 
     const updateData = {
@@ -87,35 +94,25 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       shortDescription: body.shortDescription || "",
       status: body.status || "pending",
       notes: body.notes || "",
+      address: body.address || "",
+      city: body.city || "",
+      state: body.state || "",
+      zip: body.zip || "",
+      areasServed: Array.isArray(body.areasServed) ? body.areasServed : [],
+      tags: Array.isArray(body.tags) ? body.tags : [],
+      nowServing: Array.isArray(body.nowServing) ? body.nowServing : [],
+      videoUrl: body.videoUrl || "",
+      videoTier: body.videoTier || "",
+      videoLanguages: Array.isArray(body.videoLanguages) ? body.videoLanguages : [],
+      vaultUrl: body.vaultUrl || "",
+      isParent: body.isParent || false,
+      locations: Array.isArray(body.locations) ? body.locations : [],
       updatedAt: new Date(),
     };
 
-    await db.collection("vendors").doc(vendorId).update(updateData);
-
-    const doc = await db.collection("vendors").doc(vendorId).get();
-    const d = doc.data();
-    const vendor = {
-      id: doc.id,
-      businessName: d?.businessName || "",
-      contactName: d?.contactName || "",
-      email: d?.email || "",
-      phone: d?.phone || "",
-      websiteUrl: d?.websiteUrl || "",
-      categoryId: d?.categoryId || "",
-      tier: d?.tier || "local",
-      marketId: d?.marketId || "",
-      logoUrl: d?.logoUrl || "",
-      adGraphicUrl: d?.adGraphicUrl || "",
-      ctaText: d?.ctaText || "",
-      destinationUrl: d?.destinationUrl || "",
-      shortDescription: d?.shortDescription || "",
-      status: d?.status || "pending",
-      notes: d?.notes || "",
-      createdAt: d?.createdAt?.toDate?.()?.toISOString?.() || d?.createdAt || "",
-      updatedAt: d?.updatedAt?.toDate?.()?.toISOString?.() || d?.updatedAt || "",
-    };
-
-    return NextResponse.json({ vendor });
+    await db.collection("vendors").doc(params.id).update(updateData);
+    const doc = await db.collection("vendors").doc(params.id).get();
+    return NextResponse.json({ vendor: mapVendor(doc.id, doc.data()) });
   } catch (err: any) {
     console.error("Vendor PUT error:", err);
     return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
@@ -126,10 +123,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   try {
     initAdmin();
     const db = getFirestore();
-    const vendorId = params.id;
-
-    await db.collection("vendors").doc(vendorId).delete();
-
+    await db.collection("vendors").doc(params.id).delete();
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("Vendor DELETE error:", err);
