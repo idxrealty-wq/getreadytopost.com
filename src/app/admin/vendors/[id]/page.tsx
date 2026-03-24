@@ -24,10 +24,30 @@ export default function VendorEditPage(){
   const[tt,setTt]=useState("");
   const[nt,setNt]=useState("");
   const[vt,setVt]=useState("");
-  useEffect(()=>{
-    if(!vid)return;
-    fetch(`/api/admin/vsetForm({...ev,...d.vendor,verifiedDate:d.vendor.verifiedDate?String(d.vendor.verifiedDate).slice(0,10):""});
-endors/${vid}`).then(r=>r.json()).then(d=>{
+    useEffect(() => {
+    if (!vid) return;
+    fetch(`/api/admin/vendors/${vid}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.vendor) {
+          setForm({
+            ...ev,
+            ...d.vendor,
+            verifiedDate: d.vendor.verifiedDate
+              ? String(d.vendor.verifiedDate).slice(0, 10)
+              : "",
+          });
+          setAt((d.vendor.areasServed || []).join(", "));
+          setTt((d.vendor.tags || []).join(", "));
+          setNt((d.vendor.nowServing || []).join(", "));
+          setVt((d.vendor.videoLanguages || []).join(", "));
+        } else {
+          setError("Not found.");
+        }
+      })
+      .catch(() => setError("Load failed."))
+      .finally(() => setLoading(false));
+  }, [vid]);
       if(d.vendor){
         setForm({...ev,...d.vendor,verifiedDate:d.vendor.verifiedDate?String(d.vendor.verifiedDate).slice(0,10):""});
         setAt((d.vendor.areasServed||[]).join(", "));
