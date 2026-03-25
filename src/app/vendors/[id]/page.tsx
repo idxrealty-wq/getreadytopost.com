@@ -130,7 +130,7 @@ export default function VendorProfilePage() {
   const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const mapEmbedUrl = primaryAddress && mapsKey
     ? "https://www.google.com/maps/embed/v1/place?key=" + mapsKey + "&q=" + encodeURIComponent(primaryAddress)
-    : null;
+    : 
 
   return (
     <main className="min-h-screen bg-gray-950 pt-24 pb-16 px-4 sm:px-6 lg:px-8">
