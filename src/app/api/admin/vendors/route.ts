@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
         status: d.status || "pending",
         notes: d.notes || "",
         isVerified: d.isVerified || false,
-        verifiedAt: d.verifiedAt?.toDate?.()?.toISOString?.() || d.verifiedAt || "",
+        verifiedDate: d.verifiedDate?.toDate?.()?.toISOString?.() || d.verifiedDate || "",
         createdAt: d.createdAt?.toDate?.()?.toISOString?.() || d.createdAt || "",
         updatedAt: d.updatedAt?.toDate?.()?.toISOString?.() || d.updatedAt || "",
       });
