@@ -169,7 +169,9 @@ export default function VendorListPage() {
                         ? new Date(vendor.verifiedDate).toLocaleDateString()
                         : "—"}
                     </td>
-                    <td className="text-center px-6 py-3 space-x-2">
+                    <td className="text-center px-6 py-3">
+  <div className="flex items-center justify-center gap-3 flex-wrap">
+
                       <button
   onClick={() => router.push(`/admin/vendors/${vendor.id}`)}
   className="text-yellow-500 hover:text-yellow-400 text-sm font-bold"
@@ -189,6 +191,7 @@ export default function VendorListPage() {
                       >
                         Delete
                       </button>
+					  </div>
                     </td>
                   </tr>
                 ))}
