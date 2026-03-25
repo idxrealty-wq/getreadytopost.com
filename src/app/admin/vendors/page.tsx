@@ -165,8 +165,8 @@ export default function VendorListPage() {
                       </span>
                     </td>
                     <td className="text-gray-400 px-6 py-3 text-sm">
-                      {vendor.verifiedAt
-                        ? new Date(vendor.verifiedAt).toLocaleDateString()
+                      {vendor.verifiedDate
+                        ? new Date(vendor.verifiedDate).toLocaleDateString()
                         : "—"}
                     </td>
                     <td className="text-center px-6 py-3 space-x-2">
