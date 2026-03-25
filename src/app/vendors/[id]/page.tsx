@@ -66,6 +66,8 @@ export default function VendorProfilePage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [activeTab, setActiveTab] = useState<"about" | "locations">("about");
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => { fetchVendor(); }, [vendorId]);
 
@@ -78,6 +80,29 @@ export default function VendorProfilePage() {
       setVendor(json.vendor);
     } catch { setNotFound(true); }
     finally { setLoading(false); }
+  };
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error("Copy failed", err);
+    }
+  };
+
+  const handleNativeShare = async () => {
+    if (!vendor || !navigator.share) return;
+
+    try {
+      await navigator.share({
+        title: vendor.businessName,
+        text: vendor.shortDescription || `Check out ${vendor.businessName} on GetReadyToPost`,
+        url: window.location.href,
+      });
+    } catch (err) {
+      console.log("Share cancelled or failed");
+    }
   };
 
   if (loading) return (
@@ -119,7 +144,7 @@ export default function VendorProfilePage() {
           )}
 
           <div className="p-8">
-            <div className="flex items-start gap-6 mb-4">
+            <<div className="flex items-start justify-between gap-6 mb-6">
               {vendor.logoUrl && (
                 <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-white flex items-center justify-center"><img src={vendor.logoUrl} alt={vendor.businessName + " logo"} className="w-full h-full object-contain" /></div>
               )}
@@ -155,6 +180,93 @@ export default function VendorProfilePage() {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowShareMenu((v) => !v)}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 hover:border-white/20"
+                title="Share this vendor page"
+              >
+                <span className="text-lg">📤</span>
+              </button>
+
+              {showShareMenu && (
+                <div className="absolute right-0 top-14 z-50 w-64 rounded-2xl border border-white/10 bg-slate-900/95 p-3 shadow-2xl shadow-black/30 backdrop-blur-sm">
+                  <div className="mb-2 px-2">
+                    <p className="text-sm font-semibold text-white">Share this vendor</p>
+                    <p className="text-xs text-slate-400">Share the public profile page</p>
+                  </div>
+
+                  {typeof navigator !== "undefined" && "share" in navigator && (
+                    <button
+                      type="button"
+                      onClick={handleNativeShare}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-white/5"
+                    >
+                      <span className="text-base">🔗</span>
+                      <div>
+                        <p className="text-sm font-medium text-white">Share</p>
+                        <p className="text-xs text-slate-400">Use your device share options</p>
+                      </div>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-white/5"
+                  >
+                    <span className="text-base">📋</span>
+                    <div>
+                      <p className="text-sm font-medium text-white">
+                        {copySuccess ? "Copied!" : "Copy Link"}
+                      </p>
+                      <p className="text-xs text-slate-400">Copy this page URL</p>
+                    </div>
+                  </button>
+
+                  <a
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-white/5"
+                  >
+                    <span className="text-base font-semibold text-white">f</span>
+                    <div>
+                      <p className="text-sm font-medium text-white">Facebook</p>
+                      <p className="text-xs text-slate-400">Share on Facebook</p>
+                    </div>
+                  </a>
+
+                  <a
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-white/5"
+                  >
+                    <span className="text-sm font-semibold text-white">in</span>
+                    <div>
+                      <p className="text-sm font-medium text-white">LinkedIn</p>
+                      <p className="text-xs text-slate-400">Share on LinkedIn</p>
+                    </div>
+                  </a>
+
+                  <a
+                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}&text=${encodeURIComponent(vendor?.businessName ? `Check out ${vendor.businessName} on GetReadyToPost` : "Check out this vendor on GetReadyToPost")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-white/5"
+                  >
+                    <span className="text-sm font-semibold text-white">𝕏</span>
+                    <div>
+                      <p className="text-sm font-medium text-white">X</p>
+                      <p className="text-xs text-slate-400">Share on X</p>
+                    </div>
+                  </a>
+                </div>
+              )}
             </div>
 
             {hasLocations && (
