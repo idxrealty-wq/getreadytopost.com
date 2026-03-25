@@ -1,69 +1,122 @@
-// src/types/vendor.ts
-// Phase 3: Added VerificationStatus type + verification fields to all interfaces
+export type VendorStatus =
+  | 'PENDING'
+  | 'APPROVED'
+  | 'ACTIVE'
+  | 'INACTIVE'
+  | 'REJECTED'
+  | 'SUSPENDED'
+  | 'pending'
+  | 'approved'
+  | 'inactive'
+  | 'rejected';
 
-export type VendorStatus = 'pending' | 'approved' | 'inactive' | 'rejected';
-export type VendorTier = 'local' | 'state' | 'national';
-export type MarketType = 'county' | 'metro' | 'state' | 'national';
-export type VideoTier = 'none' | 'free' | 'premium';
-export type VerificationStatus = 'not_verified' | 'pending_verification' | 'verified';
+export type VendorTier =
+  | 'BASIC'
+  | 'AI_ASSISTED'
+  | 'GROWTH'
+  | 'PREMIUM'
+  | 'local';
 
-export interface VendorLocation {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  phone: string;
-  contactName: string;
-  areasServed: string[];
-  hours: string;
-  isPrimary: boolean;
-}
+export type VerificationStatus =
+  | 'UNVERIFIED'
+  | 'PENDING'
+  | 'VERIFIED'
+  | 'REJECTED'
+  | 'not_verified';
+
+export type VideoTier =
+  | 'NONE'
+  | 'BASIC'
+  | 'PREMIUM'
+  | 'none';
+
+export const DEFAULT_CATEGORIES = [
+  'Home Services',
+  'Real Estate',
+  'Mortgage',
+  'Insurance',
+  'Title',
+  'Inspection',
+  'Photography',
+  'Staging',
+  'Legal',
+  'Moving',
+  'Cleaning',
+  'Landscaping',
+];
 
 export interface Vendor {
   id: string;
   businessName: string;
-  contactName: string;
+  description?: string;
   email: string;
   phone: string;
-  websiteUrl: string;
+  tollFreePhone?: string;
+  contactName: string;
+  websiteUrl?: string;
+  logoUrl?: string;
+  bannerUrl?: string;
+  videoUrl?: string;
   categoryId: string;
+  marketId?: string;
+  adGraphicUrl?: string;
+  destinationUrl?: string;
+  shortDescription?: string;
+  notes?: string;
+  address?: string;
+  zip?: string;
+  areasServed?: string[];
+  tags?: string[];
+  nowServing?: string[];
+  locations?: any[];
+  vaultUrl?: string;
   tier: VendorTier;
-  marketId: string;
-  logoUrl: string;
-  adGraphicUrl: string;
-  ctaText: string;
-  destinationUrl: string;
-  shortDescription: string;
   status: VendorStatus;
-  notes: string;
+  isVerified: boolean;
+  verificationStatus?: VerificationStatus;
+  verifiedDate?: Date | string | null;
+  unverifiedDate?: Date;
+  verificationNotes?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+  isParent?: boolean;
+  primaryLanguage?: string;
+  secondaryLanguages?: string[];
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  latitude?: number;
+  longitude?: number;
+  facebookUrl?: string;
+  instagramUrl?: string;
+  linkedinUrl?: string;
+  twitterUrl?: string;
+  tiktokUrl?: string;
+  youtubeUrl?: string;
+  videoTier?: VideoTier;
+  videoLanguages?: string[];
   createdAt: Date;
   updatedAt: Date;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  areasServed: string[];
-  tags: string[];
-  nowServing: string[];
-  videoUrl: string;
-  videoTier: VideoTier;
-  videoLanguages: string[];
-  locations: VendorLocation[];
-  isParent: boolean;
-  vaultUrl: string;
-  // --- VERIFICATION ---
-  isVerified: boolean;
-  verificationStatus: VerificationStatus;
-  verifiedDate?: string;
-  verificationNotes?: string;
+  createdBy?: string;
 }
+
+export type VendorCreateInput = Omit<
+  Vendor,
+  'id' | 'createdAt' | 'updatedAt'
+>;
+
+export type VendorUpdateInput = Partial<
+  Omit<Vendor, 'id' | 'createdAt' | 'createdBy'>
+>;
 
 export interface Category {
   id: string;
   name: string;
-  group: 'real-estate-core' | 'home-services' | 'home-improvement' | 'appliances-equipment' | 'insurance' | 'lifestyle-recreation';
+  slug?: string;
+  displayOrder?: number;
+  group?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -72,116 +125,11 @@ export interface Category {
 export interface Market {
   id: string;
   name: string;
-  type: MarketType;
+  type: 'national' | 'state' | 'region' | 'city' | 'county' | 'metro';
   state?: string;
+  region?: string;
+  city?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
-
-export interface VendorCreateInput {
-  businessName: string;
-  contactName: string;
-  email: string;
-  phone: string;
-  websiteUrl: string;
-  categoryId: string;
-  tier: VendorTier;
-  marketId: string;
-  logoUrl: string;
-  adGraphicUrl: string;
-  ctaText: string;
-  destinationUrl: string;
-  shortDescription: string;
-  notes?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-  areasServed?: string[];
-  tags?: string[];
-  nowServing?: string[];
-  videoUrl?: string;
-  videoTier?: VideoTier;
-  videoLanguages?: string[];
-  locations?: VendorLocation[];
-  isParent?: boolean;
-  vaultUrl?: string;
-  isVerified?: boolean;
-  verificationStatus?: VerificationStatus;
-  verifiedDate?: string;
-  verificationNotes?: string;
-}
-
-export interface VendorUpdateInput {
-  businessName?: string;
-  contactName?: string;
-  email?: string;
-  phone?: string;
-  websiteUrl?: string;
-  categoryId?: string;
-  tier?: VendorTier;
-  marketId?: string;
-  logoUrl?: string;
-  adGraphicUrl?: string;
-  ctaText?: string;
-  destinationUrl?: string;
-  shortDescription?: string;
-  status?: VendorStatus;
-  notes?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-  areasServed?: string[];
-  tags?: string[];
-  nowServing?: string[];
-  videoUrl?: string;
-  videoTier?: VideoTier;
-  videoLanguages?: string[];
-  locations?: VendorLocation[];
-  isParent?: boolean;
-  vaultUrl?: string;
-  isVerified?: boolean;
-  verificationStatus?: VerificationStatus;
-  verifiedDate?: string;
-  verificationNotes?: string;
-}
-
-export const VENDOR_TIERS: VendorTier[] = ['local', 'state', 'national'];
-export const VENDOR_STATUSES: VendorStatus[] = ['pending', 'approved', 'inactive', 'rejected'];
-export const MARKET_TYPES: MarketType[] = ['county', 'metro', 'state', 'national'];
-export const VIDEO_TIERS: VideoTier[] = ['none', 'free', 'premium'];
-export const VERIFICATION_STATUSES: VerificationStatus[] = ['not_verified', 'pending_verification', 'verified'];
-
-export const DEFAULT_CATEGORIES = [
-  { name: 'Mortgage / Lending', group: 'real-estate-core' },
-  { name: 'Title & Closing', group: 'real-estate-core' },
-  { name: 'Home Inspection', group: 'real-estate-core' },
-  { name: 'Appraisal', group: 'real-estate-core' },
-  { name: 'Real Estate Attorney', group: 'real-estate-core' },
-  { name: 'Roofing', group: 'home-services' },
-  { name: 'AC / HVAC', group: 'home-services' },
-  { name: 'Plumbing', group: 'home-services' },
-  { name: 'Electrical', group: 'home-services' },
-  { name: 'Handyman', group: 'home-services' },
-  { name: 'Painters', group: 'home-services' },
-  { name: 'Windows & Doors', group: 'home-services' },
-  { name: 'Alarm / Security Systems', group: 'home-services' },
-  { name: 'Cleaning Services', group: 'home-services' },
-  { name: 'Kitchens & Baths', group: 'home-improvement' },
-  { name: 'Deck Builders', group: 'home-improvement' },
-  { name: 'Dock Builders', group: 'home-improvement' },
-  { name: 'Remodeling', group: 'home-improvement' },
-  { name: 'Landscaping', group: 'home-improvement' },
-  { name: 'Lawn Care', group: 'home-improvement' },
-  { name: 'Pool Care / Pool Service', group: 'home-improvement' },
-  { name: 'Appliances', group: 'appliances-equipment' },
-  { name: 'Tools & Equipment', group: 'appliances-equipment' },
-  { name: 'Home Insurance', group: 'insurance' },
-  { name: 'Auto Insurance', group: 'insurance' },
-  { name: 'Cars / Auto Dealers', group: 'lifestyle-recreation' },
-  { name: 'Golf Carts', group: 'lifestyle-recreation' },
-  { name: 'Boats', group: 'lifestyle-recreation' },
-  { name: 'Jet Skis', group: 'lifestyle-recreation' },
-];

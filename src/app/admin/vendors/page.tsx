@@ -187,19 +187,19 @@ export default function VendorListPage() {
                       {vendor.tier}
                     </td>
                     <td className="px-6 py-3">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-bold ${
-                          vendor.status === "approved"
-                            ? "bg-green-500/20 text-green-400"
-                            : vendor.status === "pending"
-                            ? "bg-yellow-500/20 text-yellow-400"
-                            : vendor.status === "rejected"
-                            ? "bg-red-500/20 text-red-400"
-                            : "bg-gray-500/20 text-gray-400"
-                        }`}
-                      >
-                        {vendor.status}
-                      </span>
+                      <select
+                value={statusFilter}
+                onChange={(e) =>
+                  setStatusFilter(e.target.value as VendorStatus | "all")
+                }
+                className="w-full bg-gray-800 border border-gray-600 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-yellow-500"
+              >
+                <option value="all">All Statuses</option>
+                <option value="PENDING">Pending</option>
+                <option value="APPROVED">Approved</option>
+                <option value="INACTIVE">Inactive</option>
+                <option value="REJECTED">Rejected</option>
+              </select>
                     </td>
 
                     <td className="px-6 py-3">

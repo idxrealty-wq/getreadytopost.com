@@ -36,15 +36,15 @@ export async function createVendor(input: VendorCreateInput): Promise<Vendor> {
     contactName: input.contactName.trim(),
     email: input.email.trim().toLowerCase(),
     phone: input.phone.trim(),
-    websiteUrl: input.websiteUrl.trim(),
+    websiteUrl: input.websiteUrl?.trim() ?? '',
     categoryId: input.categoryId,
     tier: input.tier,
-    marketId: input.marketId,
-    logoUrl: input.logoUrl.trim(),
-    adGraphicUrl: input.adGraphicUrl.trim(),
-    ctaText: input.ctaText.trim(),
-    destinationUrl: input.destinationUrl.trim(),
-    shortDescription: input.shortDescription.trim(),
+    marketId: input.marketId ?? '',
+    logoUrl: input.logoUrl?.trim() ?? '',
+    adGraphicUrl: input.adGraphicUrl?.trim() ?? '',
+    ctaText: input.ctaText?.trim() ?? '',
+    destinationUrl: input.destinationUrl?.trim() ?? '',
+    shortDescription: input.shortDescription?.trim() ?? '',
     status: 'pending' as VendorStatus,
     notes: input.notes?.trim() ?? '',
     address: input.address?.trim() ?? '',
@@ -60,7 +60,7 @@ export async function createVendor(input: VendorCreateInput): Promise<Vendor> {
     locations: input.locations ?? [],
     isParent: input.isParent ?? false,
     vaultUrl: input.vaultUrl?.trim() ?? '',
-	isVerified: input.isVerified ?? false,
+    isVerified: input.isVerified ?? false,
     verificationStatus: input.verificationStatus ?? 'not_verified',
     createdAt: now,
     updatedAt: now,
@@ -102,30 +102,30 @@ export async function updateVendor(
   if (updates.contactName !== undefined) payload.contactName = updates.contactName.trim();
   if (updates.email !== undefined) payload.email = updates.email.trim().toLowerCase();
   if (updates.phone !== undefined) payload.phone = updates.phone.trim();
-  if (updates.websiteUrl !== undefined) payload.websiteUrl = updates.websiteUrl.trim();
+  if (updates.websiteUrl !== undefined) payload.websiteUrl = updates.websiteUrl?.trim() ?? '';
   if (updates.categoryId !== undefined) payload.categoryId = updates.categoryId;
   if (updates.tier !== undefined) payload.tier = updates.tier;
   if (updates.marketId !== undefined) payload.marketId = updates.marketId;
-  if (updates.logoUrl !== undefined) payload.logoUrl = updates.logoUrl.trim();
-  if (updates.adGraphicUrl !== undefined) payload.adGraphicUrl = updates.adGraphicUrl.trim();
-  if (updates.ctaText !== undefined) payload.ctaText = updates.ctaText.trim();
-  if (updates.destinationUrl !== undefined) payload.destinationUrl = updates.destinationUrl.trim();
-  if (updates.shortDescription !== undefined) payload.shortDescription = updates.shortDescription.trim();
+  if (updates.logoUrl !== undefined) payload.logoUrl = updates.logoUrl?.trim() ?? '';
+  if (updates.adGraphicUrl !== undefined) payload.adGraphicUrl = updates.adGraphicUrl?.trim() ?? '';
+  if (updates.ctaText !== undefined) payload.ctaText = updates.ctaText?.trim() ?? '';
+  if (updates.destinationUrl !== undefined) payload.destinationUrl = updates.destinationUrl?.trim() ?? '';
+  if (updates.shortDescription !== undefined) payload.shortDescription = updates.shortDescription?.trim() ?? '';
   if (updates.status !== undefined) payload.status = updates.status;
-  if (updates.notes !== undefined) payload.notes = updates.notes.trim();
-  if (updates.address !== undefined) payload.address = updates.address.trim();
-  if (updates.city !== undefined) payload.city = updates.city.trim();
-  if (updates.state !== undefined) payload.state = updates.state.trim();
-  if (updates.zip !== undefined) payload.zip = updates.zip.trim();
+  if (updates.notes !== undefined) payload.notes = updates.notes?.trim() ?? '';
+  if (updates.address !== undefined) payload.address = updates.address?.trim() ?? '';
+  if (updates.city !== undefined) payload.city = updates.city?.trim() ?? '';
+  if (updates.state !== undefined) payload.state = updates.state?.trim() ?? '';
+  if (updates.zip !== undefined) payload.zip = updates.zip?.trim() ?? '';
   if (updates.areasServed !== undefined) payload.areasServed = updates.areasServed;
   if (updates.tags !== undefined) payload.tags = updates.tags;
   if (updates.nowServing !== undefined) payload.nowServing = updates.nowServing;
-  if (updates.videoUrl !== undefined) payload.videoUrl = updates.videoUrl.trim();
+  if (updates.videoUrl !== undefined) payload.videoUrl = updates.videoUrl?.trim() ?? '';
   if (updates.videoTier !== undefined) payload.videoTier = updates.videoTier;
   if (updates.videoLanguages !== undefined) payload.videoLanguages = updates.videoLanguages;
   if (updates.locations !== undefined) payload.locations = updates.locations;
   if (updates.isParent !== undefined) payload.isParent = updates.isParent;
-  if (updates.vaultUrl !== undefined) payload.vaultUrl = updates.vaultUrl.trim();
+  if (updates.vaultUrl !== undefined) payload.vaultUrl = updates.vaultUrl?.trim() ?? '';
 
   await updateDoc(docRef, payload);
 }
@@ -137,7 +137,7 @@ export async function listVendors(params?: {
   marketId?: string;
   pageSize?: number;
 }): Promise<Vendor[]> {
-  const constraints = [];
+  const constraints: any[] = [];
 
   if (params?.status) constraints.push(where('status', '==', params.status));
   if (params?.categoryId) constraints.push(where('categoryId', '==', params.categoryId));
@@ -202,7 +202,8 @@ export async function initializeDefaultCategories(): Promise<void> {
   DEFAULT_CATEGORIES.forEach((category) => {
     const ref = doc(collection(db, CATEGORIES_COLLECTION));
     batch.set(ref, {
-      ...category,
+      name: category,
+      slug: category.toLowerCase().replace(/\s+/g, '-'),
       isActive: true,
       createdAt: now,
       updatedAt: now,
