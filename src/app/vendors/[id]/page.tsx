@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
@@ -44,12 +44,16 @@ interface Vendor {
   locations: VendorLocation[];
   isParent: boolean;
   vaultUrl: string;
+  isVerified?: boolean;
+  verificationStatus?: string;
+  verifiedDate?: string;
+  notVerifiedDate?: string;
 }
 
 function getYouTubeEmbedUrl(url: string): string | null {
   if (!url) return null;
   const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  if (match) return "https://www.youtube.com/embed/" + match[1];
+  if (match) return "https://www.youtube.com/embed/" + match[1] + "?rel=0&modestbranding=1";
   const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
   if (vimeoMatch) return "https://player.vimeo.com/video/" + vimeoMatch[1];
   return null;
@@ -85,7 +89,7 @@ export default function VendorProfilePage() {
   if (notFound || !vendor) return (
     <main className="min-h-screen bg-gray-950 pt-24 flex items-center justify-center">
       <div className="text-center">
-        <p className="text-4xl mb-4">🔍</p>
+        <p className="text-4xl mb-4">ðŸ”</p>
         <h1 className="text-2xl font-bold text-white mb-2">Vendor Not Found</h1>
         <p className="text-gray-400 mb-6">This vendor profile does not exist or is not active.</p>
         <a href="/" className="text-yellow-500 hover:underline">Back to Home</a>
@@ -117,7 +121,7 @@ export default function VendorProfilePage() {
           <div className="p-8">
             <div className="flex items-start gap-6 mb-4">
               {vendor.logoUrl && (
-                <img src={vendor.logoUrl} alt={vendor.businessName + " logo"} className="w-20 h-20 rounded-xl object-contain bg-white p-2 flex-shrink-0" />
+                <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-white flex items-center justify-center"><img src={vendor.logoUrl} alt={vendor.businessName + " logo"} className="w-full h-full object-contain" /></div>
               )}
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-white">{vendor.businessName}</h1>
@@ -125,6 +129,19 @@ export default function VendorProfilePage() {
                   {vendor.tier && <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 capitalize">{vendor.tier}</span>}
                   {vendor.categoryId && <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400">{vendor.categoryId}</span>}
                   {vendor.marketId && <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">{vendor.marketId}</span>}
+                  {vendor.verificationStatus === "verified" || vendor.isVerified ? (
+                    <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400 font-semibold">
+                      ✓ Verified {vendor.verifiedDate ? `• ${String(vendor.verifiedDate).slice(0, 10)}` : ""}
+                    </span>
+                  ) : vendor.verificationStatus === "not_verified" ? (
+                    <span className="text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-400 font-semibold">
+                      ✗ Not Verified {vendor.notVerifiedDate ? `• ${String(vendor.notVerifiedDate).slice(0, 10)}` : ""}
+                    </span>
+                  ) : vendor.verificationStatus === "pending_verification" ? (
+                    <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400 font-semibold">
+                      ⏳ Pending Verification
+                    </span>
+                  ) : null}
                 </div>
                 {vendor.nowServing && vendor.nowServing.length > 0 && (
                   <div className="flex items-center gap-2 mt-3 flex-wrap">
@@ -212,28 +229,28 @@ export default function VendorProfilePage() {
                     </div>
                   ) : (
                     <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 text-center">
-                      <p className="text-3xl mb-3">🎬</p>
+                      <p className="text-3xl mb-3">ðŸŽ¬</p>
                       <p className="text-white font-semibold mb-1">Want a professional video ad on your profile?</p>
-                      <p className="text-gray-400 text-sm mb-4">Custom scripted video ads starting at <span className="text-yellow-400 font-bold">$100</span> — available in 120 languages. Additional languages just <span className="text-yellow-400 font-bold">$50</span> each.</p>
-                      <a href="mailto:idxrealty@gmail.com?subject=Video Ad Production Request" className="inline-flex items-center justify-center bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-6 py-2 rounded-lg transition text-sm">Get My Video Ad →</a>
+                      <p className="text-gray-400 text-sm mb-4">Custom scripted video ads starting at <span className="text-yellow-400 font-bold">$100</span> â€” available in 120 languages. Additional languages just <span className="text-yellow-400 font-bold">$50</span> each.</p>
+                      <a href="mailto:idxrealty@gmail.com?subject=Video Ad Production Request" className="inline-flex items-center justify-center bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-6 py-2 rounded-lg transition text-sm">Get My Video Ad â†’</a>
                     </div>
                   )}
                 </div>
                 {vendor.vaultUrl && (
                   <div className="mb-6">
                     <a href={vendor.vaultUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-gray-800 border border-gray-600 hover:border-yellow-500 rounded-xl p-4 transition group">
-                      <span className="text-2xl">📁</span>
+                      <span className="text-2xl">ðŸ“</span>
                       <div>
                         <p className="text-white font-semibold group-hover:text-yellow-400 transition">Access Documents</p>
                         <p className="text-gray-400 text-xs">{"Forms, checklists, and resources from " + vendor.businessName}</p>
                       </div>
-                      <span className="ml-auto text-gray-500 group-hover:text-yellow-400">→</span>
+                      <span className="ml-auto text-gray-500 group-hover:text-yellow-400">â†’</span>
                     </a>
                   </div>
                 )}
                 {vendor.destinationUrl && (
                   <a href={vendor.destinationUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-full sm:w-auto bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-8 py-3 rounded-xl transition text-lg">
-                    {(vendor.ctaText || "Learn More") + " →"}
+                    {(vendor.ctaText || "Learn More") + " â†’"}
                   </a>
                 )}
               </>
@@ -317,3 +334,5 @@ export default function VendorProfilePage() {
     </main>
   );
 }
+
+
