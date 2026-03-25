@@ -199,7 +199,7 @@ export default function VendorProfilePage() {
                     <p className="text-xs text-slate-400">Share the public profile page</p>
                   </div>
 
-                  {typeof navigator !== "undefined" ? "share" in navigator ? (
+                  {typeof navigator !== "undefined" && "share" in navigator ? (
                     <button
                       type="button"
                       onClick={handleNativeShare}
@@ -211,7 +211,7 @@ export default function VendorProfilePage() {
                         <p className="text-xs text-slate-400">Use your device share options</p>
                       </div>
                     </button>
-                  )}
+                  ) : null}
 
                   <button
                     type="button"
