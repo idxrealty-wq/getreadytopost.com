@@ -126,6 +126,7 @@ export default function VendorListPage() {
                   <th className="text-left text-white font-bold px-6 py-3">Tier</th>
                   <th className="text-left text-white font-bold px-6 py-3">Status</th>
                   <th className="text-left text-white font-bold px-6 py-3">Verified</th>
+                  <th className="text-left text-white font-bold px-6 py-3">Verified Date</th>
                   <th className="text-center text-white font-bold px-6 py-3">Actions</th>
                 </tr>
               </thead>
@@ -143,7 +144,22 @@ export default function VendorListPage() {
                     <td className="px-6 py-3">
                       <span
                         className={`px-2 py-1 rounded text-xs font-bold ${
-                          vendor.status === "approved"
+                          vendor.stat<td className="px-6 py-3">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-bold ${
+                          vendor.isVerified
+                            ? "bg-green-500/20 text-green-400"
+                            : "bg-gray-500/20 text-gray-400"
+                        }`}
+                      >
+                        {vendor.isVerified ? "Yes" : "No"}
+                      </span>
+                    </td>
+                    <td className="text-gray-400 px-6 py-3 text-sm">
+                      {vendor.verifiedAt
+                        ? new Date(vendor.verifiedAt).toLocaleDateString()
+                        : "—"}
+                    </td>us === "approved"
                             ? "bg-green-500/20 text-green-400"
                             : vendor.status === "pending"
                             ? "bg-yellow-500/20 text-yellow-400"
