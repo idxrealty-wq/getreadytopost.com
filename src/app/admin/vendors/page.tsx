@@ -20,7 +20,7 @@ export default function VendorListPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/admin/vendors/list");
+      const res = await fetch("/api/admin/vendors");
       const json = await res.json();
       if (!res.ok) {
         setError(json.error || "Failed to fetch vendors");
