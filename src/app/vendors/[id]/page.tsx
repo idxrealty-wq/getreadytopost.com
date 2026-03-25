@@ -44,6 +44,10 @@ interface Vendor {
   locations: VendorLocation[];
   isParent: boolean;
   vaultUrl: string;
+  isVerified: boolean;
+  verificationStatus: string;
+  verifiedDate?: string;
+  verificationNotes?: string;
 }
 
 function getYouTubeEmbedUrl(url: string): string | null {
@@ -53,6 +57,22 @@ function getYouTubeEmbedUrl(url: string): string | null {
   const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
   if (vimeoMatch) return "https://player.vimeo.com/video/" + vimeoMatch[1];
   return null;
+}
+
+function shareVendor(vendor: Vendor) {
+  const url = window.location.href;
+  const text = vendor.businessName + " - " + vendor.shortDescription;
+  
+  if (navigator.share) {
+    navigator.share({
+      title: vendor.businessName,
+      text: text,
+      url: url,
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url);
+    alert("Link copied to clipboard!");
+  }
 }
 
 export default function VendorProfilePage() {
@@ -120,11 +140,23 @@ export default function VendorProfilePage() {
                 <img src={vendor.logoUrl} alt={vendor.businessName + " logo"} className="w-20 h-20 rounded-xl object-contain bg-white p-2 flex-shrink-0" />
               )}
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-white">{vendor.businessName}</h1>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-3xl font-bold text-white">{vendor.businessName}</h1>
+                  <button
+                    onClick={() => shareVendor(vendor)}
+                    className="text-gray-400 hover:text-yellow-400 transition p-2"
+                    title="Share this vendor"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C9.589 12.938 10 12.052 10 11c0-1.657-1.343-3-3-3s-3 1.343-3 3 1.343 3 3 3c.981 0 1.816-.402 2.684-.842m0 0a3 3 0 002.632 1.632c3.036 0 5.684-2.317 5.684-5.344M9.684 13.342A3.072 3.072 0 0112 15c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6c0 1.657.342 3.229.684 4.342m0 0h.028v.028" />
+                    </svg>
+                  </button>
+                </div>
                 <div className="flex gap-2 mt-2 flex-wrap">
                   {vendor.tier && <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 capitalize">{vendor.tier}</span>}
                   {vendor.categoryId && <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400">{vendor.categoryId}</span>}
                   {vendor.marketId && <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">{vendor.marketId}</span>}
+                  {vendor.isVerified && <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400 font-semibold">✓ Verified</span>}
                 </div>
                 {vendor.nowServing && vendor.nowServing.length > 0 && (
                   <div className="flex items-center gap-2 mt-3 flex-wrap">
