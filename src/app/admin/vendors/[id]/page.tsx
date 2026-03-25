@@ -214,13 +214,6 @@ export default function VendorEditPage() {
 >
   Edit
 </button>
-<button
-  onClick={() => window.open(`/vendor/${vendor.id}`, '_blank')}
-  className="text-blue-500 hover:text-blue-400 text-sm font-bold"
->
-  View
-</button>
-
       </div>
 
       {error && (

@@ -171,11 +171,18 @@ export default function VendorListPage() {
                     </td>
                     <td className="text-center px-6 py-3 space-x-2">
                       <button
-                        onClick={() => router.push(`/admin/vendors/${vendor.id}`)}
-                        className="text-yellow-500 hover:text-yellow-400 text-sm font-bold"
-                      >
-                        Edit
-                      </button>
+  onClick={() => router.push(`/admin/vendors/${vendor.id}`)}
+  className="text-yellow-500 hover:text-yellow-400 text-sm font-bold"
+>
+  Edit
+</button>
+<button
+  onClick={() => window.open(`/vendor/${vendor.id}`, "_blank")}
+  className="text-blue-500 hover:text-blue-400 text-sm font-bold"
+>
+  View
+</button>
+
                       <button
                         onClick={() => handleDelete(vendor.id)}
                         className="text-red-500 hover:text-red-400 text-sm font-bold"
