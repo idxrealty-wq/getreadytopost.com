@@ -209,11 +209,18 @@ export default function VendorEditPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Edit Vendor</h1>
         <button
-          onClick={() => router.push("/admin/vendors")}
-          className="text-sm text-blue-600 hover:underline"
-        >
-          Back
-        </button>
+  onClick={() => router.push(`/admin/vendors/${vendor.id}`)}
+  className="text-yellow-500 hover:text-yellow-400 text-sm font-bold"
+>
+  Edit
+</button>
+<button
+  onClick={() => window.open(`/vendor/${vendor.id}`, '_blank')}
+  className="text-blue-500 hover:text-blue-400 text-sm font-bold"
+>
+  View
+</button>
+
       </div>
 
       {error && (
