@@ -32,12 +32,13 @@ interface Vendor {
   vaultUrl: string;
   isParent: boolean;
   locations: string[];
-    isVerified: boolean;
+  isVerified: boolean;
   verificationStatus: string;
   verifiedDate: string;
+  unverifiedDate: string;
   verificationNotes: string;
-  notVerifiedDate: string;
 }
+
 const ev: Vendor = {
   id: "",
   businessName: "",
@@ -71,8 +72,8 @@ const ev: Vendor = {
   isVerified: false,
   verificationStatus: "not_verified",
   verifiedDate: "",
+  unverifiedDate: "",
   verificationNotes: "",
-  notVerifiedDate: "",
 };
 
 function sp(t: string) {
@@ -90,7 +91,7 @@ export default function VendorEditPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(
     typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("created") === "1"
+      new URLSearchParams(window.location.search).get("created") === "1"
       ? "✅ Vendor created successfully!"
       : ""
   );
@@ -113,8 +114,8 @@ export default function VendorEditPage() {
             verifiedDate: d.vendor.verifiedDate
               ? String(d.vendor.verifiedDate).slice(0, 10)
               : "",
-            notVerifiedDate: d.vendor.notVerifiedDate
-              ? String(d.vendor.notVerifiedDate).slice(0, 10)
+            unverifiedDate: d.vendor.unverifiedDate
+              ? String(d.vendor.unverifiedDate).slice(0, 10)
               : "",
           });
           setAt((d.vendor.areasServed || []).join(", "));
@@ -158,8 +159,8 @@ export default function VendorEditPage() {
       nowServing: sp(nt),
       videoLanguages: sp(vt),
       verifiedDate: form.verifiedDate?.trim() || undefined,
+      unverifiedDate: form.unverifiedDate?.trim() || undefined,
       verificationNotes: form.verificationNotes?.trim() || "",
-      notVerifiedDate: form.notVerifiedDate?.trim() || undefined,
     };
 
     try {
@@ -177,6 +178,9 @@ export default function VendorEditPage() {
         ...d.vendor,
         verifiedDate: d.vendor.verifiedDate
           ? String(d.vendor.verifiedDate).slice(0, 10)
+          : "",
+        unverifiedDate: d.vendor.unverifiedDate
+          ? String(d.vendor.unverifiedDate).slice(0, 10)
           : "",
       });
       setAt((d.vendor.areasServed || []).join(", "));
@@ -348,7 +352,6 @@ export default function VendorEditPage() {
             </div>
           </div>
         </section>
-
         <section>
           <h2 className="text-lg font-semibold mb-2 border-b pb-1">
             Ad Settings
@@ -497,7 +500,6 @@ export default function VendorEditPage() {
             </div>
           </div>
         </section>
-
         <section>
           <h2 className="text-lg font-semibold mb-2 border-b pb-1">
             Verification
@@ -540,6 +542,18 @@ export default function VendorEditPage() {
                 type="date"
                 name="verifiedDate"
                 value={form.verifiedDate}
+                onChange={hc}
+                className="w-full border rounded px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Unverified Date
+              </label>
+              <input
+                type="date"
+                name="unverifiedDate"
+                value={form.unverifiedDate}
                 onChange={hc}
                 className="w-full border rounded px-3 py-2 text-sm"
               />
