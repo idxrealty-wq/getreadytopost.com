@@ -1,17 +1,15 @@
-export type AreaType = 
-  | 'city'
-  | 'county'
-  | 'region'
-  | 'zip'
-  | 'undefined';
+export type AreaType = 'city' | 'county' | 'region' | 'zip';
 
 export interface ServiceArea {
   id: string;
   vendorId: string;
-  areaName: string;
   areaType: AreaType;
-  isPrimary: boolean;
-  displayOrder?: number;
+  city?: string;
+  county?: string;
+  state?: string;
+  region?: string;
+  zipCode?: string;
+  displayOrder: number;
   createdAt: Date;
   updatedAt: Date;
 }
