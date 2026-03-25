@@ -54,12 +54,12 @@ notVerifiedDate?: string;
 
 
 function getYouTubeEmbedUrl(url: string): string | null {
-if (!url) return null;
-const match = url.match(/(?:youtube.com/watch?v=|youtu.be/)([a-zA-Z0-9_-]{11})/);
-if (match) return " https://www.youtube.com/embed/ " + match[1] + "?rel=0&modestbranding=1";
-const vimeoMatch = url.match(/vimeo.com/(\d+)/);
-if (vimeoMatch) return " https://player.vimeo.com/video/ " + vimeoMatch[1];
-return null;
+  if (!url) return null;
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (match) return "https://www.youtube.com/embed/" + match[1] + "?rel=0&modestbranding=1";
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return "https://player.vimeo.com/video/" + vimeoMatch[1];
+  return null;
 }
 
 
