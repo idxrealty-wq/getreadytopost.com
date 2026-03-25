@@ -53,9 +53,7 @@ export default function VendorListPage() {
       v.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.categoryId.toLowerCase().includes(searchTerm.toLowerCase());
-
     const matchesStatus = statusFilter === "all" || v.status === statusFilter;
-
     return matchesSearch && matchesStatus;
   });
 
@@ -93,7 +91,6 @@ export default function VendorListPage() {
                 className="w-full bg-gray-800 border border-gray-600 text-white px-3 py-2 rounded-lg focus:outline-none focus:border-yellow-500"
               />
             </div>
-
             <div>
               <label className="block text-gray-400 text-sm mb-2">Status Filter</label>
               <select
@@ -144,22 +141,7 @@ export default function VendorListPage() {
                     <td className="px-6 py-3">
                       <span
                         className={`px-2 py-1 rounded text-xs font-bold ${
-                          vendor.stat<td className="px-6 py-3">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-bold ${
-                          vendor.isVerified
-                            ? "bg-green-500/20 text-green-400"
-                            : "bg-gray-500/20 text-gray-400"
-                        }`}
-                      >
-                        {vendor.isVerified ? "Yes" : "No"}
-                      </span>
-                    </td>
-                    <td className="text-gray-400 px-6 py-3 text-sm">
-                      {vendor.verifiedAt
-                        ? new Date(vendor.verifiedAt).toLocaleDateString()
-                        : "—"}
-                    </td>us === "approved"
+                          vendor.status === "approved"
                             ? "bg-green-500/20 text-green-400"
                             : vendor.status === "pending"
                             ? "bg-yellow-500/20 text-yellow-400"
@@ -181,6 +163,11 @@ export default function VendorListPage() {
                       >
                         {vendor.isVerified ? "Yes" : "No"}
                       </span>
+                    </td>
+                    <td className="text-gray-400 px-6 py-3 text-sm">
+                      {vendor.verifiedAt
+                        ? new Date(vendor.verifiedAt).toLocaleDateString()
+                        : "—"}
                     </td>
                     <td className="text-center px-6 py-3 space-x-2">
                       <button
