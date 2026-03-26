@@ -1,5 +1,5 @@
 "use client";
-if (!vendor) return null;
+
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
@@ -112,7 +112,6 @@ export default function VendorProfilePage() {
 
   const embedUrl = getYouTubeEmbedUrl(vendor.videoUrl || "");
   const isVerified = vendor.isVerified === true || vendor.verificationStatus === "verified";
-  const showUnverified = !isVerified;
   const hasLocations = vendor.locations && vendor.locations.length > 0;
   const primaryAddress = vendor.address ? vendor.address + ", " + vendor.city + ", " + vendor.state + " " + vendor.zip : "";
   const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
