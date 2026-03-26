@@ -54,7 +54,7 @@ interface Vendor {
 function getYouTubeEmbedUrl(url: string): string | null {
   if (!url) return null;
   const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-if (match) return "https://www.youtube.com/embed/" + match[1] + "?start=0";
+  if (match) return "https://www.youtube.com/embed/" + match[1] + "?start=0";
   const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
   if (vimeoMatch) return "https://player.vimeo.com/video/" + vimeoMatch[1];
   return null;
@@ -63,13 +63,8 @@ if (match) return "https://www.youtube.com/embed/" + match[1] + "?start=0";
 function shareVendor(vendor: Vendor) {
   const url = window.location.href;
   const text = vendor.businessName + " - " + vendor.shortDescription;
-  
   if (navigator.share) {
-    navigator.share({
-      title: vendor.businessName,
-      text: text,
-      url: url,
-    }).catch(() => {});
+    navigator.share({ title: vendor.businessName, text, url }).catch(() => {});
   } else {
     navigator.clipboard.writeText(url);
     alert("Link copied to clipboard!");
@@ -115,26 +110,23 @@ export default function VendorProfilePage() {
   );
 
   const embedUrl = getYouTubeEmbedUrl(vendor.videoUrl || "");
+  const isVerified = vendor.isVerified === true || vendor.verificationStatus === "verified";
+  const showUnverified = !isVerified;
+  console.log("DEBUG:", { computedIsVerified: isVerified, showUnverified, rawIsVerified: vendor.isVerified, verificationStatus: vendor.verificationStatus });
   const hasLocations = vendor.locations && vendor.locations.length > 0;
-  const primaryAddress = vendor.address
-    ? vendor.address + ", " + vendor.city + ", " + vendor.state + " " + vendor.zip
-    : "";
+  const primaryAddress = vendor.address ? vendor.address + ", " + vendor.city + ", " + vendor.state + " " + vendor.zip : "";
   const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  const mapEmbedUrl = primaryAddress && mapsKey
-    ? "https://www.google.com/maps/embed/v1/place?key=" + mapsKey + "&q=" + encodeURIComponent(primaryAddress)
-    : null;
+  const mapEmbedUrl = primaryAddress && mapsKey ? "https://www.google.com/maps/embed/v1/place?key=" + mapsKey + "&q=" + encodeURIComponent(primaryAddress) : null;
 
   return (
     <main className="min-h-screen bg-gray-950 pt-24 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden">
-
           {vendor.adGraphicUrl && (
             <div className="w-full h-56 overflow-hidden bg-gray-800">
               <img src={vendor.adGraphicUrl} alt={vendor.businessName + " banner"} className="w-full h-full object-cover" />
             </div>
           )}
-
           <div className="p-8">
             <div className="flex items-start gap-6 mb-4">
               {vendor.logoUrl && (
@@ -143,11 +135,7 @@ export default function VendorProfilePage() {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl font-bold text-white">{vendor.businessName}</h1>
-                  <button
-                    onClick={() => shareVendor(vendor)}
-                    className="text-gray-400 hover:text-yellow-400 transition p-2"
-                    title="Share this vendor"
-                  >
+                  <button onClick={() => shareVendor(vendor)} className="text-gray-400 hover:text-yellow-400 transition p-2" title="Share this vendor">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C9.589 12.938 10 12.052 10 11c0-1.657-1.343-3-3-3s-3 1.343-3 3 1.343 3 3 3c.981 0 1.816-.402 2.684-.842m0 0a3 3 0 002.632 1.632c3.036 0 5.684-2.317 5.684-5.344M9.684 13.342A3.072 3.072 0 0112 15c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6c0 1.657.342 3.229.684 4.342m0 0h.028v.028" />
                     </svg>
@@ -157,10 +145,11 @@ export default function VendorProfilePage() {
                   {vendor.tier && <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 capitalize">{vendor.tier}</span>}
                   {vendor.categoryId && <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400">{vendor.categoryId}</span>}
                   {vendor.marketId && <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">{vendor.marketId}</span>}
-                  {(vendor.isVerified === true || vendor.verificationStatus === "verified") ? (
-                    <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400 font-semibold">✓ Verified</span>
-                  ) : (
+                  {showUnverified && (
                     <span className="text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-400 font-semibold">Unverified</span>
+                  )}
+                  {isVerified && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400 font-semibold">✓ Verified</span>
                   )}
                 </div>
                 {vendor.nowServing && vendor.nowServing.length > 0 && (
@@ -176,14 +165,12 @@ export default function VendorProfilePage() {
                 )}
               </div>
             </div>
-
             {hasLocations && (
               <div className="flex gap-1 mb-6 border-b border-gray-700">
                 <button onClick={() => setActiveTab("about")} className={"px-4 py-2 text-sm font-medium transition border-b-2 -mb-px " + (activeTab === "about" ? "border-yellow-500 text-yellow-400" : "border-transparent text-gray-400 hover:text-white")}>About</button>
                 <button onClick={() => setActiveTab("locations")} className={"px-4 py-2 text-sm font-medium transition border-b-2 -mb-px " + (activeTab === "locations" ? "border-yellow-500 text-yellow-400" : "border-transparent text-gray-400 hover:text-white")}>{"Locations (" + vendor.locations.length + ")"}</button>
               </div>
             )}
-
             {activeTab === "about" && (
               <>
                 {vendor.shortDescription && (
@@ -193,22 +180,22 @@ export default function VendorProfilePage() {
                   <p className="text-gray-300 text-base leading-relaxed mb-6 whitespace-pre-wrap">{vendor.description}</p>
                 )}
                 {vendor.tags && vendor.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
+                  <div className="flex flex-wrap gap-2 mb-6">
                     {vendor.tags.map((tag, i) => (
                       <span key={i} className="text-xs px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">{tag.startsWith("#") ? tag : "#" + tag}</span>
                     ))}
                   </div>
                 )}
                 {vendor.areasServed && vendor.areasServed.length > 0 && (
-  <div className="mb-6">
-    <h3 className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Areas Served</h3>
-    <div className="flex flex-wrap gap-2">
-      {vendor.areasServed.map((area, i) => (
-        <span key={i} className="text-xs px-3 py-1 rounded-full bg-green-500/10 text-green-300 border border-green-500/30 whitespace-nowrap">{area}</span>
-      ))}
-    </div>
-  </div>
-)}
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Areas Served</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {vendor.areasServed.map((area, i) => (
+                        <span key={i} className="text-xs px-3 py-1 rounded-full bg-green-500/10 text-green-300 border border-green-500/30 whitespace-nowrap">{area}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                   {vendor.phone && (
                     <div className="bg-gray-800 rounded-xl p-4">
@@ -281,13 +268,8 @@ export default function VendorProfilePage() {
             {activeTab === "locations" && hasLocations && (
               <div className="space-y-4">
                 {vendor.locations.map((loc, i) => {
-                  const locAddress = loc.address
-                    ? loc.address + ", " + loc.city + ", " + loc.state + " " + loc.zip
-                    : "";
-                  const locMapUrl = locAddress && mapsKey
-                    ? "https://www.google.com/maps/embed/v1/place?key=" + mapsKey + "&q=" + encodeURIComponent(locAddress)
-                    : null;
-
+                  const locAddress = loc.address ? loc.address + ", " + loc.city + ", " + loc.state + " " + loc.zip : "";
+                  const locMapUrl = locAddress && mapsKey ? "https://www.google.com/maps/embed/v1/place?key=" + mapsKey + "&q=" + encodeURIComponent(locAddress) : null;
                   return (
                     <div key={loc.id || i} className="bg-gray-800 border border-gray-700 rounded-xl p-5">
                       <div className="flex items-start justify-between mb-3">
@@ -298,32 +280,27 @@ export default function VendorProfilePage() {
                           )}
                         </div>
                       </div>
-
                       {locAddress && (
                         <p className="text-gray-400 text-sm mb-3">{locAddress}</p>
                       )}
-
                       {loc.phone && (
                         <p className="text-sm mb-2">
                           <span className="text-gray-500">Phone: </span>
                           <a href={"tel:" + loc.phone} className="text-white hover:text-yellow-400 transition">{loc.phone}</a>
                         </p>
                       )}
-
                       {loc.contactName && (
                         <p className="text-sm mb-2">
                           <span className="text-gray-500">Contact: </span>
                           <span className="text-white">{loc.contactName}</span>
                         </p>
                       )}
-
                       {loc.hours && (
                         <p className="text-sm mb-3">
                           <span className="text-gray-500">Hours: </span>
                           <span className="text-white">{loc.hours}</span>
                         </p>
                       )}
-
                       {loc.areasServed && loc.areasServed.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-3">
                           {loc.areasServed.map((area, j) => (
@@ -331,18 +308,9 @@ export default function VendorProfilePage() {
                           ))}
                         </div>
                       )}
-
                       {locMapUrl && (
                         <div className="rounded-xl overflow-hidden border border-gray-700 h-48 mt-3">
-                          <iframe
-                            src={locMapUrl}
-                            width="100%"
-                            height="100%"
-                            style={{ border: 0 }}
-                            allowFullScreen
-                            loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
-                          />
+                          <iframe src={locMapUrl} width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
                         </div>
                       )}
                     </div>
@@ -350,7 +318,6 @@ export default function VendorProfilePage() {
                 })}
               </div>
             )}
-
           </div>
         </div>
       </div>
