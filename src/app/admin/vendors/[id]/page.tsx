@@ -202,6 +202,7 @@ export default function VendorEditPage() {
     await fetch(`/api/admin/vendors/${vid}`, { method: "DELETE" });
     router.push("/admin/vendors");
   }
+
   if (loading)
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
