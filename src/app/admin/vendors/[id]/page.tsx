@@ -203,7 +203,7 @@ export default function VendorEditPage() {
     router.push("/admin/vendors");
   }
 
-  if (loading)
+    if (loading)
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <p className="text-gray-400">Loading vendor...</p>
@@ -213,10 +213,11 @@ export default function VendorEditPage() {
   return (
     <div className="min-h-screen bg-gray-950 p-6">
       {success && (
-        <div className="fixed top-4 right-4 z-50 px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg font-semibold animate-pulse">
+        <div className="fixed top-4 right-4 z-50 px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg font-semibold">
           {success}
         </div>
       )}
+
 
       <div className="max-w-4xl mx-auto">
         <div className="mb-6 flex items-center justify-between">
