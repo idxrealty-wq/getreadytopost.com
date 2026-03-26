@@ -23,6 +23,7 @@ export default function NewVendorPage() {
     ctaText: "",
     destinationUrl: "",
     shortDescription: "",
+	description: "",
     status: "pending" as VendorStatus,
     notes: "",
     address: "",
@@ -63,9 +64,15 @@ export default function NewVendorPage() {
       setLoading(false);
       return;
     }
+    if (!formData.description.trim()) {
+      setError("Full Description is required");
+      setLoading(false);
+      return;
+    }
 
     const payload = {
       ...formData,
+	  description: formData.description.trim(),
       areasServed: formData.areasServed
         ? formData.areasServed.split(",").map((s) => s.trim()).filter(Boolean)
         : [],
@@ -390,7 +397,7 @@ export default function NewVendorPage() {
                 />
               </div>
 
-              <div>
+                            <div>
                 <label className={labelClass}>Short Description</label>
                 <textarea
                   name="shortDescription"
@@ -398,6 +405,18 @@ export default function NewVendorPage() {
                   onChange={handleChange}
                   rows={3}
                   className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Full Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={6}
+                  className={inputClass}
+                  placeholder="Detailed vendor description for profile pages and SEO."
                 />
               </div>
 
@@ -413,6 +432,7 @@ export default function NewVendorPage() {
                   className={inputClass}
                 />
               </div>
+
             </div>
           </fieldset>
 
