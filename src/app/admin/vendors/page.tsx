@@ -233,7 +233,7 @@ export default function VendorListPage() {
 
                         <button
                           onClick={() =>
-                            window.open(`/vendor/${vendor.id}`, "_blank")
+                            window.open(`/vendors/${vendor.id}`, "_blank")
                           }
                           className="text-sky-400 hover:text-sky-300 text-sm font-bold inline-block"
                         >
