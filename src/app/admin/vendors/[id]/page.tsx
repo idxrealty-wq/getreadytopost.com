@@ -80,11 +80,9 @@ function sp(t: string) {
   return t.split(",").map((s) => s.trim()).filter(Boolean);
 }
 
-const inputClass =
-  "w-full bg-gray-800 border border-gray-600 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-yellow-500";
+const inputClass = "w-full bg-gray-800 border border-gray-600 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-yellow-500";
 const labelClass = "block text-gray-400 text-sm mb-1";
-const sectionHeadClass =
-  "text-yellow-500 font-bold text-sm uppercase tracking-wider mb-4 border-b border-gray-700 pb-2";
+const sectionHeadClass = "text-yellow-500 font-bold text-sm uppercase tracking-wider mb-4 border-b border-gray-700 pb-2";
 
 export default function VendorEditPage() {
   const params = useParams();
@@ -96,7 +94,6 @@ export default function VendorEditPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
   const [at, setAt] = useState("");
   const [tt, setTt] = useState("");
   const [nt, setNt] = useState("");
@@ -105,7 +102,7 @@ export default function VendorEditPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const created = new URLSearchParams(window.location.search).get("created");
-      if (created === "1") setSuccess("✅ Vendor created successfully!");
+      if (created === "1") setSuccess("Vendor created successfully!");
     }
   }, []);
 
@@ -118,12 +115,8 @@ export default function VendorEditPage() {
           setForm({
             ...ev,
             ...d.vendor,
-            verifiedDate: d.vendor.verifiedDate
-              ? String(d.vendor.verifiedDate).slice(0, 10)
-              : "",
-            unverifiedDate: d.vendor.unverifiedDate
-              ? String(d.vendor.unverifiedDate).slice(0, 10)
-              : "",
+            verifiedDate: d.vendor.verifiedDate ? String(d.vendor.verifiedDate).slice(0, 10) : "",
+            unverifiedDate: d.vendor.unverifiedDate ? String(d.vendor.unverifiedDate).slice(0, 10) : "",
           });
           setAt((d.vendor.areasServed || []).join(", "));
           setTt((d.vendor.tags || []).join(", "));
@@ -137,9 +130,7 @@ export default function VendorEditPage() {
       .finally(() => setLoading(false));
   }, [vid]);
 
-  function hc(
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) {
+  function hc(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value, type } = e.target;
     if (type === "checkbox") {
       setForm((f) => ({ ...f, [name]: (e.target as HTMLInputElement).checked }));
@@ -153,7 +144,6 @@ export default function VendorEditPage() {
     setSaving(true);
     setError("");
     setSuccess("");
-
     const p = {
       ...form,
       areasServed: sp(at),
@@ -164,7 +154,6 @@ export default function VendorEditPage() {
       unverifiedDate: form.unverifiedDate?.trim() || undefined,
       verificationNotes: form.verificationNotes?.trim() || "",
     };
-
     try {
       const r = await fetch(`/api/admin/vendors/${vid}`, {
         method: "PUT",
@@ -173,22 +162,17 @@ export default function VendorEditPage() {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "Failed");
-
       setForm({
         ...ev,
         ...d.vendor,
-        verifiedDate: d.vendor.verifiedDate
-          ? String(d.vendor.verifiedDate).slice(0, 10)
-          : "",
-        unverifiedDate: d.vendor.unverifiedDate
-          ? String(d.vendor.unverifiedDate).slice(0, 10)
-          : "",
+        verifiedDate: d.vendor.verifiedDate ? String(d.vendor.verifiedDate).slice(0, 10) : "",
+        unverifiedDate: d.vendor.unverifiedDate ? String(d.vendor.unverifiedDate).slice(0, 10) : "",
       });
       setAt((d.vendor.areasServed || []).join(", "));
       setTt((d.vendor.tags || []).join(", "));
       setNt((d.vendor.nowServing || []).join(", "));
       setVt((d.vendor.videoLanguages || []).join(", "));
-      setSuccess("✅ Saved successfully!");
+      setSuccess("Saved successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed.");
@@ -203,7 +187,7 @@ export default function VendorEditPage() {
     router.push("/admin/vendors");
   }
 
-    if (loading)
+  if (loading)
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <p className="text-gray-400">Loading vendor...</p>
@@ -217,32 +201,22 @@ export default function VendorEditPage() {
           {success}
         </div>
       )}
-
-
       <div className="max-w-4xl mx-auto">
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white">Edit Vendor</h1>
-            <p className="text-gray-400 text-sm mt-1">
-              {form.businessName || "Loading..."}
-            </p>
+            <p className="text-gray-400 text-sm mt-1">{form.businessName || "Loading..."}</p>
           </div>
-          <button
-            onClick={() => router.push("/admin/vendors")}
-            className="text-gray-400 hover:text-white text-sm font-medium transition"
-          >
+          <button onClick={() => router.push("/admin/vendors")} className="text-gray-400 hover:text-white text-sm font-medium transition">
             ← Back to Vendors
           </button>
         </div>
-
         {error && (
           <div className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
-
         <form onSubmit={hs} className="space-y-6">
-
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Business Info</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -272,7 +246,6 @@ export default function VendorEditPage() {
               </div>
             </div>
           </div>
-
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Address</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -298,7 +271,6 @@ export default function VendorEditPage() {
               </div>
             </div>
           </div>
-
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Ad Settings</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -344,7 +316,6 @@ export default function VendorEditPage() {
               </div>
             </div>
           </div>
-
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Video</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -366,23 +337,12 @@ export default function VendorEditPage() {
               </div>
             </div>
           </div>
-
-          <div className="bg-gray-900 border border-gray-700 rounded-2xl p
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Verification</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2 flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="isVerified"
-                  id="isVerified"
-                  checked={form.isVerified}
-                  onChange={hc}
-                  className="w-4 h-4 accent-yellow-500"
-                />
-                <label htmlFor="isVerified" className="text-white text-sm font-medium">
-                  Vendor is verified
-                </label>
+                <input type="checkbox" name="isVerified" id="isVerified" checked={form.isVerified} onChange={hc} className="w-4 h-4 accent-yellow-500" />
+                <label htmlFor="isVerified" className="text-white text-sm font-medium">Vendor is verified</label>
               </div>
               <div>
                 <label className={labelClass}>Verification Status</label>
@@ -406,7 +366,6 @@ export default function VendorEditPage() {
               </div>
             </div>
           </div>
-
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Tags and Services</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -419,43 +378,23 @@ export default function VendorEditPage() {
                 <input value={nt} onChange={(e) => setNt(e.target.value)} className={inputClass} />
               </div>
               <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="isParent"
-                  id="isParent"
-                  checked={form.isParent}
-                  onChange={hc}
-                  className="w-4 h-4 accent-yellow-500"
-                />
-                <label htmlFor="isParent" className="text-white text-sm font-medium">
-                  Is Parent Vendor
-                </label>
+                <input type="checkbox" name="isParent" id="isParent" checked={form.isParent} onChange={hc} className="w-4 h-4 accent-yellow-500" />
+                <label htmlFor="isParent" className="text-white text-sm font-medium">Is Parent Vendor</label>
               </div>
             </div>
           </div>
-
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Notes</h2>
             <textarea name="notes" value={form.notes} onChange={hc} rows={4} className={inputClass} />
           </div>
-
           <div className="flex items-center justify-between pt-2 pb-8">
-            <button
-              type="button"
-              onClick={hd}
-              className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-sm transition"
-            >
+            <button type="button" onClick={hd} className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-sm transition">
               Delete Vendor
             </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-8 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg text-sm transition disabled:opacity-50"
-            >
+            <button type="submit" disabled={saving} className="px-8 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg text-sm transition disabled:opacity-50">
               {saving ? "Saving..." : "Save Vendor"}
             </button>
           </div>
-
         </form>
       </div>
     </div>
