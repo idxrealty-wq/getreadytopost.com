@@ -192,15 +192,15 @@ export default function VendorProfilePage() {
                   </div>
                 )}
                 {vendor.areasServed && vendor.areasServed.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Areas Served</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {vendor.areasServed.map((area, i) => (
-                        <span key={i} className="text-xs px-3 py-1 rounded-full bg-gray-800 text-gray-300 border border-gray-600">{area}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+  <div className="mb-6">
+    <h3 className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Areas Served</h3>
+    <div className="flex flex-wrap gap-2">
+      {vendor.areasServed.map((area, i) => (
+        <span key={i} className="text-xs px-3 py-1 rounded-full bg-green-500/10 text-green-300 border border-green-500/30 whitespace-nowrap">{area}</span>
+      ))}
+    </div>
+  </div>
+)}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                   {vendor.phone && (
                     <div className="bg-gray-800 rounded-xl p-4">
