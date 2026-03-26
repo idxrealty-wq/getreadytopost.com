@@ -83,11 +83,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const db = getFirestore();
     const body = await req.json();
 
-    // Get current vendor to check if isVerified status changed
     const currentDoc = await db.collection("vendors").doc(params.id).get();
     const currentData = currentDoc.data();
-    const wasVerified = currentData?.isVerified || false;
-    const nowVerified = body.isVerified || false;
+    const nowVerified = !!body.isVerified;
+
+    const normalizeDateField = (value: any) => {
+      if (value === null || value === undefined || value === "") return null;
+      return value;
+    };
 
     const updateData: any = {
       businessName: body.businessName || "",
@@ -119,23 +122,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       isParent: body.isParent || false,
       locations: Array.isArray(body.locations) ? body.locations : [],
       isVerified: nowVerified,
-      verificationStatus: body.verificationStatus || "not_verified",
+      verificationStatus: body.verificationStatus || (nowVerified ? "verified" : "not_verified"),
+      verifiedDate: normalizeDateField(body.verifiedDate),
+      unverifiedDate: normalizeDateField(body.unverifiedDate),
       verificationNotes: body.verificationNotes || "",
       updatedAt: new Date(),
     };
-
-    // Auto-set date fields based on verification status change
-    if (!wasVerified && nowVerified) {
-      // Transitioning to verified
-      updateData.verifiedDate = new Date();
-      updateData.unverifiedDate = null;
-    } else if (wasVerified && !nowVerified) {
-      // Transitioning to unverified
-      updateData.unverifiedDate = new Date();
-    } else if (nowVerified) {
-      // Already verified, keep existing verifiedDate
-      updateData.verifiedDate = body.verifiedDate || currentData?.verifiedDate || new Date();
-    }
 
     await db.collection("vendors").doc(params.id).update(updateData);
     const doc = await db.collection("vendors").doc(params.id).get();
