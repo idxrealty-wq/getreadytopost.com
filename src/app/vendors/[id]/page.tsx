@@ -157,9 +157,10 @@ export default function VendorProfilePage() {
                   {vendor.tier && <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 capitalize">{vendor.tier}</span>}
                   {vendor.categoryId && <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400">{vendor.categoryId}</span>}
                   {vendor.marketId && <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">{vendor.marketId}</span>}
-                  {vendor.verificationStatus === "verified" || vendor.isVerified ? (
+                  {(vendor.isVerified === true || vendor.verificationStatus === "verified") && (
                     <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400 font-semibold">✓ Verified</span>
-                  ) : (
+                  )}
+                  {!vendor.isVerified && vendor.verificationStatus && vendor.verificationStatus !== "" && vendor.verificationStatus !== "verified" && (
                     <span className="text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-400 font-semibold">Unverified</span>
                   )}
                 </div>
