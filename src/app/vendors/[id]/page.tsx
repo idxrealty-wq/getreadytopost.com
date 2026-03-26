@@ -1,4 +1,5 @@
 "use client";
+if (!vendor) return null;
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
