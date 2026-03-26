@@ -95,12 +95,7 @@ export default function VendorEditPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(
-    typeof window !== "undefined" &&
-      new URLSearchParams(window.location.search).get("created") === "1"
-      ? "✅ Vendor created successfully!"
-      : ""
-  );
+  const [success, setSuccess] = useState("");
 
   const [at, setAt] = useState("");
   const [tt, setTt] = useState("");
@@ -108,8 +103,15 @@ export default function VendorEditPage() {
   const [vt, setVt] = useState("");
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const created = new URLSearchParams(window.location.search).get("created");
+      if (created === "1") setSuccess("✅ Vendor created successfully!");
+    }
+  }, []);
+
+  useEffect(() => {
     if (!vid) return;
-    fetch(`/api/admin/vendors/\${vid}`)
+    fetch(`/api/admin/vendors/${vid}`)
       .then((r) => r.json())
       .then((d) => {
         if (d.vendor) {
@@ -164,7 +166,7 @@ export default function VendorEditPage() {
     };
 
     try {
-      const r = await fetch(`/api/admin/vendors/\${vid}`, {
+      const r = await fetch(`/api/admin/vendors/${vid}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(p),
@@ -197,10 +199,9 @@ export default function VendorEditPage() {
 
   async function hd() {
     if (!confirm("Delete this vendor? This cannot be undone.")) return;
-    await fetch(`/api/admin/vendors/\${vid}`, { method: "DELETE" });
+    await fetch(`/api/admin/vendors/${vid}`, { method: "DELETE" });
     router.push("/admin/vendors");
   }
-
   if (loading)
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -217,7 +218,6 @@ export default function VendorEditPage() {
       )}
 
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white">Edit Vendor</h1>
@@ -241,7 +241,6 @@ export default function VendorEditPage() {
 
         <form onSubmit={hs} className="space-y-6">
 
-          {/* Business Info */}
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Business Info</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -272,7 +271,6 @@ export default function VendorEditPage() {
             </div>
           </div>
 
-          {/* Address */}
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Address</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -299,7 +297,6 @@ export default function VendorEditPage() {
             </div>
           </div>
 
-          {/* Ad Settings */}
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Ad Settings</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -346,7 +343,6 @@ export default function VendorEditPage() {
             </div>
           </div>
 
-          {/* Video */}
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Video</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -369,7 +365,7 @@ export default function VendorEditPage() {
             </div>
           </div>
 
-          {/* Verification */}
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl p
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Verification</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -380,7 +376,6 @@ export default function VendorEditPage() {
                   id="isVerified"
                   checked={form.isVerified}
                   onChange={hc}
-                
                   className="w-4 h-4 accent-yellow-500"
                 />
                 <label htmlFor="isVerified" className="text-white text-sm font-medium">
@@ -410,7 +405,6 @@ export default function VendorEditPage() {
             </div>
           </div>
 
-          {/* Tags and Services */}
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Tags and Services</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -438,13 +432,11 @@ export default function VendorEditPage() {
             </div>
           </div>
 
-          {/* Notes */}
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6">
             <h2 className={sectionHeadClass}>Notes</h2>
             <textarea name="notes" value={form.notes} onChange={hc} rows={4} className={inputClass} />
           </div>
 
-          {/* Action Buttons */}
           <div className="flex items-center justify-between pt-2 pb-8">
             <button
               type="button"
