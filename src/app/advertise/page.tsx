@@ -326,27 +326,33 @@ export default function AdvertisePage() {
       <section className="px-6 py-20">
         <div className="mx-auto max-w-6xl">
           <h2 className="mb-4 text-center text-3xl font-bold md:text-4xl">
-            Video Placement Area
+            Why Collective Branding Works
           </h2>
           <p className="mx-auto mb-12 max-w-3xl text-center text-lg text-blue-100">
-            Reserved for vendor promo video, testimonial reel, or platform overview.
+            Watch how advertising together creates more visibility, more traffic, and more opportunities for every vendor.
           </p>
-          <div className="rounded-3xl border border-dashed border-yellow-400 bg-slate-950/50 p-6">
+          <div className="rounded-3xl border border-2 border-yellow-400 bg-slate-950/50 p-6">
             <div className="aspect-video w-full overflow-hidden rounded-2xl border border-blue-800 bg-slate-900">
-              <video
-                className="h-full w-full object-cover"
-                controls
-                preload="metadata"
-              >
-                <source src="/videos/advertise/advertise-demo.mp4" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/IcYjjjSgAGw"
+                title="Collective Branding vs Single Branding"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full h-full"
+              />
             </div>
-            <p className="mt-4 text-sm text-blue-200">
-              File path:{' '}
-              <span className="font-semibold text-yellow-400">
-                public/videos/advertise/advertise-demo.mp4
-              </span>
+            <p className="mt-4 text-center text-sm text-blue-200">
+              <a
+                href="https://youtu.be/IcYjjjSgAGw"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-yellow-400 hover:text-yellow-300"
+              >
+                Watch on YouTube →
+              </a>
             </p>
           </div>
         </div>
