@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "@/src/lib/firebase";
 
 interface DashboardStats {
   totalVendors: number;
@@ -19,16 +21,37 @@ interface RecentVendor {
   createdAt: string;
 }
 
+const ADMIN_EMAIL = "idxrealty@gmail.com";
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentVendors, setRecentVendors] = useState<RecentVendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        router.push("/");
+        return;
+      }
+
+      if (user.email !== ADMIN_EMAIL) {
+        setError("Unauthorized: Only " + ADMIN_EMAIL + " can access admin.");
+        setLoading(false);
+        return;
+      }
+
+      setUserEmail(user.email);
+      setIsAuthorized(true);
+      fetchDashboardData();
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -56,6 +79,15 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push("/");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Logout failed");
+    }
+  };
+
   const StatCard = ({
     title,
     value,
@@ -80,12 +112,45 @@ export default function AdminDashboard() {
     );
   };
 
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-gray-900 border border-gray-700 rounded-2xl p-8 text-center">
+          <p className="text-4xl mb-4">🔒</p>
+          <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
+          {error ? (
+            <p className="text-red-400 text-sm mb-6">{error}</p>
+          ) : (
+            <p className="text-gray-400 text-sm mb-6">You must be logged in as an admin to access this page.</p>
+          )}
+          <button
+            onClick={() => router.push("/")}
+            className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 rounded-lg transition"
+          >
+            Go Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-950 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white">Admin Dashboard</h1>
-          <p className="text-gray-400 text-sm mt-1">Vendor management and system overview</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-white">Admin Dashboard</h1>
+            <p className="text-gray-400 text-sm mt-1">Vendor management and system overview</p>
+          </div>
+          <div className="text-right">
+            <p className="text-gray-400 text-sm">Logged in as: <span className="text-yellow-400 font-semibold">{userEmail}</span></p>
+            <button
+              onClick={handleLogout}
+              className="mt-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
         {error && (
