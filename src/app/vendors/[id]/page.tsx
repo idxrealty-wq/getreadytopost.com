@@ -133,7 +133,7 @@ export default function VendorProfilePage() {
               )}
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold text-white">{vendor.businessName}</h1>
+                  <h1 className="text-3xl font-bold text-white">{vendor.businessName} TEST PAGE</h1>
                   <button onClick={() => shareVendor(vendor)} className="text-gray-400 hover:text-yellow-400 transition p-2" title="Share this vendor">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C9.589 12.938 10 12.052 10 11c0-1.657-1.343-3-3-3s-3 1.343-3 3 1.343 3 3 3c.981 0 1.816-.402 2.684-.842m0 0a3 3 0 002.632 1.632c3.036 0 5.684-2.317 5.684-5.344M9.684 13.342A3.072 3.072 0 0112 15c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6c0 1.657.342 3.229.684 4.342m0 0h.028v.028" />
