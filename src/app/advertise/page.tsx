@@ -71,10 +71,11 @@ export default function AdvertisePage() {
       <section
         className="relative px-6 py-20"
         style={{
-          backgroundImage: 'url(https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/448d2c34-5933-44fd-9e4a-af89da593ecb/image.png?w=1184&h=864)',
+          backgroundImage: 'url("https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/448d2c34-5933-44fd-9e4a-af89da593ecb/image.png?w=1184&h=864")',
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',
+          minHeight: '500px',
         }}
       >
         <div className="absolute inset-0 bg-slate-950/70 z-0" />
