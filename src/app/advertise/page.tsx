@@ -90,7 +90,7 @@ export default function AdvertisePage() {
             Put your business in front of agents and professionals across active markets.
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
-            <a href="#apply" className="rounded-xl bg-yellow-400 px-8 py-4 text-base font-bold text-slate-950 transition hover:bg-yellow-300">
+            <a href="/admin/vendors/new" className="rounded-xl bg-yellow-400 px-8 py-4 text-base font-bold text-slate-950 transition hover:bg-yellow-300">
               Apply to Advertise
             </a>
             <a href="#listed" className="rounded-xl border border-yellow-400 px-8 py-4 text-base font-bold text-yellow-400 transition hover:bg-yellow-400 hover:text-slate-950">
@@ -174,7 +174,7 @@ export default function AdvertisePage() {
                     </li>
                   ))}
                 </ul>
-                <a href="#apply" className="inline-flex w-full items-center justify-center rounded-xl bg-yellow-400 px-6 py-3 font-bold text-slate-950 transition hover:bg-yellow-300">
+                <a href="/admin/vendors/new" className="inline-flex w-full items-center justify-center rounded-xl bg-yellow-400 px-6 py-3 font-bold text-slate-950 transition hover:bg-yellow-300">
                   {tier.cta}
                 </a>
               </div>
@@ -284,7 +284,7 @@ export default function AdvertisePage() {
             Apply for placement and put your business in front of real estate professionals on GetReadyToPost.
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
-            <a href="#apply" className="rounded-xl bg-yellow-400 px-8 py-4 font-bold text-slate-950 transition hover:bg-yellow-300">
+            <a href="/admin/vendors/new" className="rounded-xl bg-yellow-400 px-8 py-4 font-bold text-slate-950 transition hover:bg-yellow-300">
               Apply to Advertise
             </a>
             <Link href="/contact-broker" className="rounded-xl border border-yellow-400 px-8 py-4 font-bold text-yellow-400 transition hover:bg-yellow-400 hover:text-slate-950">
@@ -311,7 +311,7 @@ export default function AdvertisePage() {
               <h3 className="mb-4 text-lg font-bold text-yellow-400">For Vendors</h3>
               <ul className="space-y-2 text-sm text-blue-200">
                 <li><Link href="/advertise">Advertise</Link></li>
-                <li><a href="#apply">Apply Now</a></li>
+                <li><a href="/admin/vendors/new">Apply Now</a></li>
                 <li><a href="#pricing">Pricing</a></li>
                 <li><a href="#faq">FAQ</a></li>
               </ul>
