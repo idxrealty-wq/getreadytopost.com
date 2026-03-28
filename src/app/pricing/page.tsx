@@ -1,5 +1,6 @@
 ﻿import ShareButtons from '@/components/ShareButtons';
 import Link from 'next/link';
+import PricingCheckoutButton from '@/components/PricingCheckoutButton';
 
 export const metadata = {
   title: 'Pricing - GetReadyToPost',
@@ -50,14 +51,11 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Workspace access</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Cancel anytime</li>
               </ul>
-              <a
-                href="https://square.link/u/M26Auzjb"
-                target="_blank"
-                rel="noopener noreferrer"
+              <PricingCheckoutButton
+                packageType="monthly"
+                label="Get Started"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
-                Get Started
-              </a>
+              />
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
@@ -75,14 +73,11 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Workspace access</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> 6-month term</li>
               </ul>
-              <a
-                href="https://square.link/u/uGBrXdPr"
-                target="_blank"
-                rel="noopener noreferrer"
+              <PricingCheckoutButton
+                packageType="semi-annual"
+                label="Get Started"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
-                Get Started
-              </a>
+              />
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-[#c9a227] p-8 relative flex flex-col transform md:scale-105 shadow-2xl">
@@ -103,14 +98,11 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Workspace access</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Full year access</li>
               </ul>
-              <a
-                href="https://square.link/u/z7zZwqR3"
-                target="_blank"
-                rel="noopener noreferrer"
+              <PricingCheckoutButton
+                packageType="annual"
+                label="Get Started"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
-                Get Started
-              </a>
+              />
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
@@ -128,20 +120,15 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Workspace access</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Priority support</li>
               </ul>
-              <a
-                href="https://square.link/u/FkNI9CP8"
-                target="_blank"
-                rel="noopener noreferrer"
+              <PricingCheckoutButton
+                packageType="elite-annual"
+                label="Get Started"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
-                Get Started
-              </a>
+              />
             </div>
 
           </div>
-        </div>
-
-        <div className="mb-16">
+         <div className="mb-16">
           <h2 className="text-3xl font-bold text-white mb-8 text-center">One-Time Purchases</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
@@ -163,14 +150,11 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Actionable recommendations</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Uses 20 credits</li>
               </ul>
-              <a
+              <PricingCheckoutButton
+                packageType="single"
+                label="Buy Now"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-                href="https://square.link/u/22tY4Rla"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Buy Now
-              </a>
+              />
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
@@ -191,22 +175,20 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Rate My Listing = 20 credits</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Property pulls vary by plan</li>
               </ul>
-              <a
-                href="https://square.link/u/UqdJJZpR"
-                target="_blank"
-                rel="noopener noreferrer"
+              <PricingCheckoutButton
+                packageType="credit"
+                label="Buy Now"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
-                Buy Now
-              </a>
+              />
             </div>
+
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
-  <img
-    src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/e882dfc4-ae35-4d83-9018-05cd63c389d8/image.png"
-    alt="5-Pack"
-    className="w-full rounded-xl mb-4"
-  />
-  <h3 className="text-2xl font-bold text-white mb-2">5-Pack</h3>
+              <img
+                src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/e882dfc4-ae35-4d83-9018-05cd63c389d8/image.png"
+                alt="5-Pack"
+                className="w-full rounded-xl mb-4"
+              />
+              <h3 className="text-2xl font-bold text-white mb-2">5-Pack</h3>
               <p className="text-gray-400 text-sm mb-6">Bulk credit option</p>
               <div className="mb-6">
                 <span className="text-4xl font-bold text-[#c9a227]">$85</span>
@@ -218,23 +200,20 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Never expires</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Good for add-on usage</li>
               </ul>
-              <a
-                href="https://square.link/u/15NaVu0p"
-                target="_blank"
-                rel="noopener noreferrer"
+              <PricingCheckoutButton
+                packageType="five-pack"
+                label="Buy Now"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
-                Buy Now
-              </a>
+              />
             </div>
 
-           <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
-  <img
-    src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/36b3584a-cf2a-40d9-9caf-1338472e8fa4/image.png"
-    alt="Vault Only"
-    className="w-full rounded-xl mb-4"
-  />
-  <h3 className="text-2xl font-bold text-white mb-2">Vault Only</h3>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
+              <img
+                src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/36b3584a-cf2a-40d9-9caf-1338472e8fa4/image.png"
+                alt="Vault Only"
+                className="w-full rounded-xl mb-4"
+              />
+              <h3 className="text-2xl font-bold text-white mb-2">Vault Only</h3>
               <p className="text-gray-400 text-sm mb-6">Organization tool</p>
               <div className="mb-6">
                 <span className="text-4xl font-bold text-[#c9a227]">$49.95</span>
@@ -246,12 +225,11 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> No credits included</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Annual renewal</li>
               </ul>
-              <Link
-                href="/checkout?pkg=vault-only"
+              <PricingCheckoutButton
+                packageType="vault-only"
+                label="Buy Now"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
-                Buy Now
-              </Link>
+              />
             </div>
 
           </div>
@@ -277,14 +255,11 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Phone verification required</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Annual renewal</li>
               </ul>
-              <a
-                href="https://square.link/u/o0gy2tby"
-                target="_blank"
-                rel="noopener noreferrer"
+              <PricingCheckoutButton
+                packageType="agent-verified"
+                label="Get Verified"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
-                Get Verified
-              </a>
+              />
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
@@ -300,14 +275,11 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Team credibility signal</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Annual renewal</li>
               </ul>
-              <a
-                href="https://square.link/u/Z8le2Ijg"
-                target="_blank"
-                rel="noopener noreferrer"
+              <PricingCheckoutButton
+                packageType="company-verified"
+                label="Get Company Badge"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
-                Get Company Badge
-              </a>
+              />
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
@@ -323,17 +295,14 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Before signing agreements</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> One-time payment</li>
               </ul>
-              <a
-                href="https://square.link/u/X74D5bgW"
-                target="_blank"
-                rel="noopener noreferrer"
+              <PricingCheckoutButton
+                packageType="verify-my-agent"
+                label="Verify My Agent"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
-                Verify My Agent
-              </a>
+              />
             </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
+       </div>
+	               <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
               <h3 className="text-xl font-bold text-white mb-2">Verified Buyer / Seller</h3>
               <p className="text-gray-400 text-sm mb-4">Show you are serious</p>
               <div className="mb-6">
@@ -346,14 +315,11 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Transaction credibility</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> One-time payment</li>
               </ul>
-              <a
-                href="https://square.link/u/xe0oMnV6"
-                target="_blank"
-                rel="noopener noreferrer"
+              <PricingCheckoutButton
+                packageType="verified-buyer-seller"
+                label="Get Verified"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
-                Get Verified
-              </a>
+              />
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 hover:border-[#c9a227]/50 transition flex flex-col">
@@ -369,14 +335,11 @@ export default function PricingPage() {
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Uninterrupted trust signal</li>
                 <li className="flex gap-2"><span className="text-[#c9a227]">✓</span> Required every 12 months</li>
               </ul>
-              <a
-                href="https://square.link/u/XjhkSbC3"
-                target="_blank"
-                rel="noopener noreferrer"
+              <PricingCheckoutButton
+                packageType="reverification"
+                label="Renew Badge"
                 className="block w-full bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold text-center transition"
-              >
-                Renew Badge
-              </a>
+              />
             </div>
 
           </div>
@@ -442,3 +405,4 @@ export default function PricingPage() {
     </main>
   );
 }
+

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 interface TransactionData {
@@ -19,19 +19,25 @@ interface TransactionData {
 
 export default function SuccessContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [transactionData, setTransactionData] = useState<TransactionData | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     const validateTransaction = async () => {
-      const checkoutId =
+      let checkoutId =
         searchParams.get('checkoutId') ||
         searchParams.get('transactionId') ||
         searchParams.get('orderId');
-      const tier = searchParams.get('tier');
-      const userId = searchParams.get('userId');
+
+      let tier = searchParams.get('tier');
+      let userId = searchParams.get('userId');
+
+      if (!checkoutId && typeof window !== 'undefined') {
+        checkoutId = localStorage.getItem('checkoutId');
+        tier = tier || localStorage.getItem('checkoutPackageType');
+        userId = userId || localStorage.getItem('checkoutUserId');
+      }
 
       if (!checkoutId) {
         setStatus('error');
@@ -43,28 +49,34 @@ export default function SuccessContent() {
         const response = await fetch('/api/credits/validate-transaction', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ checkoutId, tier, userId }),
+          body: JSON.stringify({
+            checkoutId,
+            tier: tier || undefined,
+            userId: userId || undefined,
+          }),
         });
 
         const data = await response.json();
 
-        if (response.ok && data.success) {
+        if (response.ok && data?.success && data?.transaction) {
           setStatus('success');
           setTransactionData(data.transaction);
 
-          fetch('/api/emails/send-receipt', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ transaction: data.transaction }),
-          }).catch((err) => console.error('Failed to send receipt email:', err));
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('checkoutId');
+            localStorage.removeItem('checkoutPackageType');
+            localStorage.removeItem('checkoutUserId');
+          }
         } else {
           setStatus('error');
-          setErrorMsg(data.message || 'Transaction not found or not yet processed.');
+          setErrorMsg(
+            data?.message || 'Transaction not found or not yet processed. Please try again in a few moments.'
+          );
         }
       } catch (err) {
+        console.error('Validation error:', err);
         setStatus('error');
         setErrorMsg('Error validating transaction. Please try again.');
-        console.error('Validation error:', err);
       }
     };
 
@@ -74,7 +86,7 @@ export default function SuccessContent() {
   const getNextAction = () => {
     if (!transactionData) return null;
 
-    const { packageType, vaultAccess, credits } = transactionData;
+    const { packageType, credits } = transactionData;
 
     if (
       packageType === 'monthly' ||
@@ -99,9 +111,9 @@ export default function SuccessContent() {
       };
     }
 
-    if (packageType === 'credits' || packageType === '5pack' || packageType === 'single') {
+    if (packageType === 'credit' || packageType === '5pack' || packageType === 'single') {
       return {
-        title: `${credits} Credits Added!`,
+        title: `${credits || 0} Credits Added!`,
         description: 'Ready to analyze listings and pull property data.',
         primaryAction: { label: 'Rate My Listing', href: '/' },
         secondaryAction: { label: 'Agent Vault', href: '/agent-vault' },
@@ -146,7 +158,7 @@ export default function SuccessContent() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Transaction ID</span>
-                  <span className="text-white font-mono text-sm">{transactionData.checkoutId}</span>
+                  <span className="text-white font-mono text-sm break-all">{transactionData.checkoutId}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Amount Paid</span>
@@ -154,7 +166,7 @@ export default function SuccessContent() {
                     ${(transactionData.amount / 100).toFixed(2)}
                   </span>
                 </div>
-                {transactionData.credits && (
+                {transactionData.credits !== undefined && transactionData.credits > 0 && (
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400">Credits Added</span>
                     <span className="text-[#c9a227] font-bold">{transactionData.credits}</span>
@@ -179,8 +191,7 @@ export default function SuccessContent() {
 
             <div className="bg-blue-900/30 border border-blue-500/30 rounded-xl p-4 mb-8">
               <p className="text-blue-200 text-sm">
-                <strong>📧 Confirmation email sent</strong> to your registered email address.
-                Check your inbox for receipt and next steps.
+                <strong>Payment confirmed.</strong> Your account access and purchase details have been updated.
               </p>
             </div>
 
@@ -228,8 +239,8 @@ export default function SuccessContent() {
 
             <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 mb-8">
               <p className="text-red-200 text-sm">
-                <strong>If you were charged</strong>, your transaction will be processed shortly.
-                If the issue persists, please contact support.
+                <strong>If you were charged</strong>, your transaction will be processed shortly. If the issue
+                persists, please contact support.
               </p>
             </div>
 
