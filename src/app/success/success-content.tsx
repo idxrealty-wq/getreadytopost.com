@@ -33,8 +33,8 @@ export default function SuccessContent() {
       let tier = searchParams.get('tier');
       let userId = searchParams.get('userId');
 
-      if (!checkoutId && typeof window !== 'undefined') {
-        checkoutId = localStorage.getItem('checkoutId');
+      if (typeof window !== 'undefined') {
+        checkoutId = checkoutId || localStorage.getItem('checkoutId');
         tier = tier || localStorage.getItem('checkoutPackageType');
         userId = userId || localStorage.getItem('checkoutUserId');
       }
