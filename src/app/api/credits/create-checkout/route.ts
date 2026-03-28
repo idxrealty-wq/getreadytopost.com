@@ -57,6 +57,15 @@ export async function POST(req: NextRequest) {
 
     const idempotencyKey = `pl-${userId}-${packageType}-${Date.now()}`;
 
+    // BUILD SUCCESS URL WITH ALL PARAMS BEFORE CREATING CHECKOUT
+    const successUrl = new URL('https://getreadytopost.com/success');
+    successUrl.searchParams.set('checkoutId', `pending-${idempotencyKey}`);
+    successUrl.searchParams.set('tier', packageType);
+    successUrl.searchParams.set('credits', String(credits));
+    successUrl.searchParams.set('type', packageInfo.type);
+    successUrl.searchParams.set('userId', userId);
+    successUrl.searchParams.set('email', email || 'unknown');
+
     const payload = {
       idempotency_key: idempotencyKey,
       order: {
@@ -81,7 +90,7 @@ export async function POST(req: NextRequest) {
         },
       },
       checkout_options: {
-        redirect_url: 'https://getreadytopost.com/success',
+        redirect_url: successUrl.toString(),
       },
     };
 
@@ -128,14 +137,6 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
-
-    // BUILD SUCCESS URL AFTER WE HAVE checkoutId
-    const successUrl = new URL('https://getreadytopost.com/success');
-    successUrl.searchParams.set('checkoutId', checkoutId);
-    successUrl.searchParams.set('tier', packageType);
-    successUrl.searchParams.set('credits', String(credits));
-    successUrl.searchParams.set('type', packageInfo.type);
-    successUrl.searchParams.set('userId', userId);
 
     return NextResponse.json({
       checkout_url: checkoutUrl,
