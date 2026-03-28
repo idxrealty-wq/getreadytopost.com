@@ -46,14 +46,15 @@ export default function SuccessContent() {
       }
 
       try {
-        const response = await fetch('/api/credits/validate-transaction', {
+        const params = new URLSearchParams({
+          checkoutId: checkoutId || '',
+          ...(tier && { tier }),
+          ...(userId && { userId }),
+        });
+
+        const response = await fetch(`/api/credits/validate-transaction?${params.toString()}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            checkoutId,
-            tier: tier || undefined,
-            userId: userId || undefined,
-          }),
         });
 
         const data = await response.json();
