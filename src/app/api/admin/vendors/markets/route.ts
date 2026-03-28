@@ -31,7 +31,6 @@ export async function GET() {
     const snapshot = await db
       .collection("markets")
       .where("isActive", "==", true)
-      .orderBy("name", "asc")
       .get();
 
     const markets = snapshot.docs.map((doc) => {
