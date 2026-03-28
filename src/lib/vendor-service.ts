@@ -174,6 +174,20 @@ export async function deactivateVendor(vendorId: string): Promise<void> {
   await updateVendor(vendorId, { status: 'inactive' });
 }
 
+export async function setVendorVerified(
+  vendorId: string,
+  isVerified: boolean,
+  verificationStatus: VerificationStatus = 'verified',
+  notes?: string
+): Promise<void> {
+  await updateVendor(vendorId, {
+    isVerified,
+    verificationStatus,
+    verifiedDate: isVerified ? new Date() : null,
+    ...(notes !== undefined ? { verificationNotes: notes } : {}),
+  });
+}
+
 export async function listCategories(): Promise<Category[]> {
   const q = query(
     collection(db, CATEGORIES_COLLECTION),
