@@ -200,10 +200,12 @@ export async function initializeDefaultCategories(): Promise<void> {
   const now = new Date();
 
   DEFAULT_CATEGORIES.forEach((category) => {
-    const ref = doc(collection(db, CATEGORIES_COLLECTION));
+    const categoryId = category.toLowerCase().replace(/\s+/g, '-');
+    const ref = doc(collection(db, CATEGORIES_COLLECTION), categoryId);
     batch.set(ref, {
+      id: categoryId,
       name: category,
-      slug: category.toLowerCase().replace(/\s+/g, '-'),
+      slug: categoryId,
       isActive: true,
       createdAt: now,
       updatedAt: now,

@@ -1,34 +1,27 @@
 export type VendorStatus =
-  | 'PENDING'
-  | 'APPROVED'
-  | 'ACTIVE'
-  | 'INACTIVE'
-  | 'REJECTED'
-  | 'SUSPENDED'
   | 'pending'
   | 'approved'
+  | 'active'
   | 'inactive'
-  | 'rejected';
+  | 'rejected'
+  | 'suspended'
+  | 'expired';
 
 export type VendorTier =
-  | 'BASIC'
-  | 'AI_ASSISTED'
-  | 'GROWTH'
-  | 'PREMIUM'
-  | 'local';
+  | 'local'
+  | 'state'
+  | 'national';
 
 export type VerificationStatus =
-  | 'UNVERIFIED'
-  | 'PENDING'
-  | 'VERIFIED'
-  | 'REJECTED'
-  | 'not_verified';
+  | 'not_verified'
+  | 'pending'
+  | 'verified'
+  | 'rejected';
 
 export type VideoTier =
-  | 'NONE'
-  | 'BASIC'
-  | 'PREMIUM'
-  | 'none';
+  | 'none'
+  | 'basic'
+  | 'premium';
 
 export const DEFAULT_CATEGORIES = [
   'Home Services',
@@ -75,7 +68,7 @@ export interface Vendor {
   isVerified: boolean;
   verificationStatus?: VerificationStatus;
   verifiedDate?: Date | string | null;
-  unverifiedDate?: Date;
+  unverifiedDate?: Date | string | null;
   verificationNotes?: string;
   ctaText?: string;
   ctaUrl?: string;
