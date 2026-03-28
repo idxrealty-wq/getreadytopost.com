@@ -28,7 +28,7 @@ function getRenewalDate(billingCycle: 'monthly' | 'semi-annual' | 'annual') {
 export async function POST(req: NextRequest) {
   try {
     const searchParams = new URL(req.url).searchParams;
-let body: any = {};
+    let body: any = {};
     try {
       body = await req.json();
     } catch {
@@ -36,19 +36,19 @@ let body: any = {};
     }
 
     const checkoutId = searchParams.get('checkoutId') || body.checkoutId;
+    const transactionId = searchParams.get('transactionId') || body.transactionId;
     const tier = searchParams.get('tier') || body.tier;
     const userIdFromRequest = searchParams.get('userId') || body.userId;
 
-    if (!checkoutId) {
+    if (!checkoutId && !transactionId) {
       return NextResponse.json(
-        { success: false, message: 'Checkout ID is required' },
+        { success: false, message: 'Checkout ID or Transaction ID is required' },
         { status: 400 }
       );
     }
 
     const adminDb = getAdminDb();
 
-    // First, try to find existing transaction
     const usersRef = adminDb.collection('users');
     const usersSnap = await usersRef.get();
     let foundTransaction: any = null;
@@ -56,21 +56,34 @@ let body: any = {};
 
     for (const userDoc of usersSnap.docs) {
       const transactionsRef = userDoc.ref.collection('transactions');
-      const q = transactionsRef.where('orderId', '==', checkoutId);
-      const snapshot = await q.get();
-      if (!snapshot.empty) {
-        foundTransaction = snapshot.docs[0].data();
-        userId = userDoc.id;
-        break;
+
+      if (transactionId) {
+        const q1 = transactionsRef.where('transactionId', '==', transactionId);
+        const snapshot1 = await q1.get();
+        if (!snapshot1.empty) {
+          foundTransaction = snapshot1.docs[0].data();
+          userId = userDoc.id;
+          break;
+        }
+      }
+
+      if (!foundTransaction && checkoutId) {
+        const q2 = transactionsRef.where('orderId', '==', checkoutId);
+        const snapshot2 = await q2.get();
+        if (!snapshot2.empty) {
+          foundTransaction = snapshot2.docs[0].data();
+          userId = userDoc.id;
+          break;
+        }
       }
     }
 
-    // If transaction found, return it
     if (foundTransaction && userId) {
       return NextResponse.json({
         success: true,
         transaction: {
-          checkoutId: foundTransaction.orderId,
+          checkoutId: foundTransaction.orderId || checkoutId || transactionId,
+          transactionId: foundTransaction.transactionId || transactionId || foundTransaction.orderId,
           amount: Math.round(foundTransaction.revenue * 100),
           credits: foundTransaction.creditsAdded,
           packageType: foundTransaction.packageType,
@@ -81,7 +94,6 @@ let body: any = {};
       });
     }
 
-    // Fallback fulfillment if webhook did not create the transaction yet
     if (!userIdFromRequest || !tier || !(tier in CREDIT_PACKAGES)) {
       return NextResponse.json(
         { success: false, message: 'Transaction not found. Payment may still be processing.' },
@@ -93,8 +105,6 @@ let body: any = {};
     const pkg = CREDIT_PACKAGES[tier];
     const userRef = adminDb.collection('users').doc(userIdSafe);
     const userCreditsRef = userRef.collection('credits').doc('balance');
-
-    // Add credits
     if (pkg.creditsToAdd > 0) {
       await userCreditsRef.set(
         {
@@ -105,7 +115,6 @@ let body: any = {};
       );
     }
 
-    // Add subscription if applicable
     if (pkg.type === 'subscription') {
       const billingCycle = pkg.billingCycle || 'annual';
       const renewalDate = getRenewalDate(billingCycle);
@@ -130,15 +139,15 @@ let body: any = {};
       );
     }
 
-    // Create transaction record
     const transactionsRef = userRef.collection('transactions');
     await transactionsRef.add({
       type: 'purchase',
       packageType: tier,
       creditsAdded: pkg.creditsToAdd,
       revenue: pkg.revenue,
-      orderId: checkoutId,
-      paymentId: checkoutId,
+      orderId: checkoutId || transactionId,
+      paymentId: transactionId || checkoutId,
+      transactionId: transactionId || checkoutId,
       subscriptionApplied: pkg.type === 'subscription',
       timestamp: FieldValue.serverTimestamp(),
       source: 'success-page-validation',
@@ -149,7 +158,8 @@ let body: any = {};
     return NextResponse.json({
       success: true,
       transaction: {
-        checkoutId,
+        checkoutId: checkoutId || transactionId,
+        transactionId: transactionId || checkoutId,
         amount: Math.round(pkg.revenue * 100),
         credits: pkg.creditsToAdd,
         packageType: tier,
