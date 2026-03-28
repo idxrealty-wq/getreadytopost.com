@@ -28,9 +28,16 @@ function getRenewalDate(billingCycle: 'monthly' | 'semi-annual' | 'annual') {
 export async function POST(req: NextRequest) {
   try {
     const searchParams = new URL(req.url).searchParams;
-const checkoutId = searchParams.get('checkoutId') || (await req.json()).checkoutId;
-const tier = searchParams.get('tier') || (await req.json()).tier;
-const userIdFromRequest = searchParams.get('userId') || (await req.json()).userId;
+let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
+
+    const checkoutId = searchParams.get('checkoutId') || body.checkoutId;
+    const tier = searchParams.get('tier') || body.tier;
+    const userIdFromRequest = searchParams.get('userId') || body.userId;
 
     if (!checkoutId) {
       return NextResponse.json(
