@@ -27,7 +27,10 @@ function getRenewalDate(billingCycle: 'monthly' | 'semi-annual' | 'annual') {
 
 export async function POST(req: NextRequest) {
   try {
-    const { checkoutId, tier, userId: userIdFromRequest } = await req.json();
+    const searchParams = new URL(req.url).searchParams;
+const checkoutId = searchParams.get('checkoutId') || (await req.json()).checkoutId;
+const tier = searchParams.get('tier') || (await req.json()).tier;
+const userIdFromRequest = searchParams.get('userId') || (await req.json()).userId;
 
     if (!checkoutId) {
       return NextResponse.json(
