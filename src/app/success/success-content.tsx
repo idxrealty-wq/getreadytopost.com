@@ -1,4 +1,4 @@
-'use client';
+ 'use client';
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -6,10 +6,10 @@ import Link from 'next/link';
 
 interface TransactionData {
   checkoutId: string;
+  transactionId?: string;
   amount: number;
   credits?: number;
   packageType: string;
-  planId?: string;
   status: string;
   vaultAccess?: boolean;
   workspaceAccess?: boolean;
@@ -25,32 +25,30 @@ export default function SuccessContent() {
 
   useEffect(() => {
     const validateTransaction = async () => {
-      let checkoutId =
-        searchParams.get('checkoutId') ||
-        searchParams.get('transactionId') ||
-        searchParams.get('orderId');
-
+      let transactionId = searchParams.get('transactionId') || searchParams.get('orderId');
+      let checkoutId = searchParams.get('checkoutId');
       let tier = searchParams.get('tier');
       let userId = searchParams.get('userId');
 
       if (typeof window !== 'undefined') {
+        transactionId = transactionId || localStorage.getItem('checkoutId');
         checkoutId = checkoutId || localStorage.getItem('checkoutId');
         tier = tier || localStorage.getItem('checkoutPackageType');
         userId = userId || localStorage.getItem('checkoutUserId');
       }
 
-      if (!checkoutId) {
+      if (!transactionId && !checkoutId) {
         setStatus('error');
         setErrorMsg('No transaction ID found. Please contact support.');
         return;
       }
 
       try {
-        const params = new URLSearchParams({
-          checkoutId: checkoutId || '',
-          ...(tier && { tier }),
-          ...(userId && { userId }),
-        });
+        const params = new URLSearchParams();
+        if (transactionId) params.append('transactionId', transactionId);
+        if (checkoutId) params.append('checkoutId', checkoutId);
+        if (userId) params.append('userId', userId);
+        if (tier) params.append('tier', tier);
 
         const response = await fetch(`/api/credits/validate-transaction?${params.toString()}`, {
           method: 'POST',
@@ -112,11 +110,16 @@ export default function SuccessContent() {
       };
     }
 
-    if (packageType === 'credit' || packageType === '5pack' || packageType === 'single') {
+    if (
+      packageType === 'credit' ||
+      packageType === '5pack' ||
+      packageType === 'single' ||
+      packageType === 'rate-my-listing'
+    ) {
       return {
         title: `${credits || 0} Credits Added!`,
         description: 'Ready to analyze listings and pull property data.',
-        primaryAction: { label: 'Rate My Listing', href: '/' },
+        primaryAction: { label: 'Rate My Listing', href: '/rate-my-listing' },
         secondaryAction: { label: 'Agent Vault', href: '/agent-vault' },
       };
     }
@@ -159,7 +162,9 @@ export default function SuccessContent() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Transaction ID</span>
-                  <span className="text-white font-mono text-sm break-all">{transactionData.checkoutId}</span>
+                  <span className="text-white font-mono text-sm break-all">
+                    {transactionData.transactionId || transactionData.checkoutId}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Amount Paid</span>
@@ -265,3 +270,4 @@ export default function SuccessContent() {
     </main>
   );
 }
+                                                
