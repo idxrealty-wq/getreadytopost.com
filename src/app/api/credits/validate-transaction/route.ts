@@ -25,6 +25,13 @@ function getRenewalDate(billingCycle: 'monthly' | 'semi-annual' | 'annual') {
   return renewalDate;
 }
 
+function getPropertyPullPrice(tier: string): number {
+  if (tier === 'monthly') return 3;
+  if (tier === 'semi-annual') return 2.5;
+  if (tier === 'elite-annual') return 1.0;
+  return 1.75;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const searchParams = new URL(req.url).searchParams;
@@ -48,7 +55,6 @@ export async function POST(req: NextRequest) {
     }
 
     const adminDb = getAdminDb();
-
     const usersRef = adminDb.collection('users');
     const usersSnap = await usersRef.get();
     let foundTransaction: any = null;
@@ -57,28 +63,60 @@ export async function POST(req: NextRequest) {
     for (const userDoc of usersSnap.docs) {
       const transactionsRef = userDoc.ref.collection('transactions');
 
+      // Search 1: by transactionId field
       if (transactionId) {
-        const q1 = transactionsRef.where('transactionId', '==', transactionId);
-        const snapshot1 = await q1.get();
-        if (!snapshot1.empty) {
-          foundTransaction = snapshot1.docs[0].data();
+        const snap1 = await transactionsRef.where('transactionId', '==', transactionId).get();
+        if (!snap1.empty) {
+          foundTransaction = snap1.docs[0].data();
           userId = userDoc.id;
           break;
         }
       }
 
+      // Search 2: by squareOrderId field (written by webhook)
+      if (!foundTransaction && transactionId) {
+        const snap2 = await transactionsRef.where('squareOrderId', '==', transactionId).get();
+        if (!snap2.empty) {
+          foundTransaction = snap2.docs[0].data();
+          userId = userDoc.id;
+          break;
+        }
+      }
+
+      // Search 3: by orderId field matching checkoutId
       if (!foundTransaction && checkoutId) {
-        const q2 = transactionsRef.where('orderId', '==', checkoutId);
-        const snapshot2 = await q2.get();
-        if (!snapshot2.empty) {
-          foundTransaction = snapshot2.docs[0].data();
+        const snap3 = await transactionsRef.where('orderId', '==', checkoutId).get();
+        if (!snap3.empty) {
+          foundTransaction = snap3.docs[0].data();
+          userId = userDoc.id;
+          break;
+        }
+      }
+
+      // Search 4: by squareOrderId field matching checkoutId
+      if (!foundTransaction && checkoutId) {
+        const snap4 = await transactionsRef.where('squareOrderId', '==', checkoutId).get();
+        if (!snap4.empty) {
+          foundTransaction = snap4.docs[0].data();
+          userId = userDoc.id;
+          break;
+        }
+      }
+
+      // Search 5: by paymentId field
+      if (!foundTransaction && transactionId) {
+        const snap5 = await transactionsRef.where('paymentId', '==', transactionId).get();
+        if (!snap5.empty) {
+          foundTransaction = snap5.docs[0].data();
           userId = userDoc.id;
           break;
         }
       }
     }
 
+    // FOUND — return existing transaction, do not write anything
     if (foundTransaction && userId) {
+      console.log(`[Validate] Found existing transaction for user ${userId}`);
       return NextResponse.json({
         success: true,
         transaction: {
@@ -94,7 +132,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // NOT FOUND — fallback fulfillment only if userId and tier are present
     if (!userIdFromRequest || !tier || !(tier in CREDIT_PACKAGES)) {
+      console.warn(`[Validate] Transaction not found. checkoutId=${checkoutId} transactionId=${transactionId}`);
       return NextResponse.json(
         { success: false, message: 'Transaction not found. Payment may still be processing.' },
         { status: 404 }
@@ -105,6 +145,7 @@ export async function POST(req: NextRequest) {
     const pkg = CREDIT_PACKAGES[tier];
     const userRef = adminDb.collection('users').doc(userIdSafe);
     const userCreditsRef = userRef.collection('credits').doc('balance');
+
     if (pkg.creditsToAdd > 0) {
       await userCreditsRef.set(
         {
@@ -125,8 +166,7 @@ export async function POST(req: NextRequest) {
             planId: tier,
             status: 'active',
             creditsPerCycle: pkg.creditsToAdd,
-            propertyPullPrice:
-              tier === 'monthly' ? 3 : tier === 'semi-annual' ? 2.5 : 1.75,
+            propertyPullPrice: getPropertyPullPrice(tier),
             vaultAccess: true,
             workspaceAccess: true,
             billingCycle,
@@ -153,7 +193,7 @@ export async function POST(req: NextRequest) {
       source: 'success-page-validation',
     });
 
-    console.log(`[Validate] Fulfilled ${tier} for user ${userIdSafe} via success page`);
+    console.log(`[Validate] Fallback fulfilled ${tier} for user ${userIdSafe}`);
 
     return NextResponse.json({
       success: true,
@@ -169,7 +209,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Validation error:', error);
+    console.error('[Validate] Error:', error);
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
       { status: 500 }

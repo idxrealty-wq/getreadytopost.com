@@ -1,6 +1,6 @@
- 'use client';
+'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -17,38 +17,52 @@ interface TransactionData {
   billingCycle?: string;
 }
 
+const MAX_RETRIES = 5;
+const RETRY_DELAY_MS = 3000;
+
 export default function SuccessContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [transactionData, setTransactionData] = useState<TransactionData | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
+  const hasStarted = useRef(false);
 
   useEffect(() => {
-    const validateTransaction = async () => {
-      let transactionId = searchParams.get('transactionId') || searchParams.get('orderId');
-      let checkoutId = searchParams.get('checkoutId');
-      let tier = searchParams.get('tier');
-      let userId = searchParams.get('userId');
+    if (hasStarted.current) return;
+    hasStarted.current = true;
 
-      if (typeof window !== 'undefined') {
-        transactionId = transactionId || localStorage.getItem('checkoutId');
-        checkoutId = checkoutId || localStorage.getItem('checkoutId');
-        tier = tier || localStorage.getItem('checkoutPackageType');
-        userId = userId || localStorage.getItem('checkoutUserId');
-      }
+    let transactionId = searchParams.get('transactionId') || searchParams.get('orderId');
+    let checkoutId = searchParams.get('checkoutId');
+    let tier = searchParams.get('tier');
+    let userId = searchParams.get('userId');
 
-      if (!transactionId && !checkoutId) {
-        setStatus('error');
-        setErrorMsg('No transaction ID found. Please contact support.');
-        return;
-      }
+    if (typeof window !== 'undefined') {
+      transactionId = transactionId || localStorage.getItem('checkoutId');
+      checkoutId = checkoutId || localStorage.getItem('checkoutId');
+      tier = tier || localStorage.getItem('checkoutPackageType');
+      userId = userId || localStorage.getItem('checkoutUserId');
+    }
 
+    if (!transactionId && !checkoutId) {
+      setStatus('error');
+      setErrorMsg('No transaction ID found. Please contact support.');
+      return;
+    }
+
+    const callValidate = async (attempt: number, includeFallback: boolean): Promise<boolean> => {
       try {
         const params = new URLSearchParams();
         if (transactionId) params.append('transactionId', transactionId);
         if (checkoutId) params.append('checkoutId', checkoutId);
-        if (userId) params.append('userId', userId);
-        if (tier) params.append('tier', tier);
+
+        // Only send userId and tier on the final attempt (fallback fulfillment)
+        if (includeFallback) {
+          if (userId) params.append('userId', userId);
+          if (tier) params.append('tier', tier);
+        }
+
+        console.log(`[Success] Attempt ${attempt}/${MAX_RETRIES} — fallback=${includeFallback}`);
 
         const response = await fetch(`/api/credits/validate-transaction?${params.toString()}`, {
           method: 'POST',
@@ -66,20 +80,41 @@ export default function SuccessContent() {
             localStorage.removeItem('checkoutPackageType');
             localStorage.removeItem('checkoutUserId');
           }
-        } else {
-          setStatus('error');
-          setErrorMsg(
-            data?.message || 'Transaction not found or not yet processed. Please try again in a few moments.'
-          );
+
+          return true;
         }
+
+        return false;
       } catch (err) {
-        console.error('Validation error:', err);
-        setStatus('error');
-        setErrorMsg('Error validating transaction. Please try again.');
+        console.error(`[Success] Attempt ${attempt} error:`, err);
+        return false;
       }
     };
 
-    validateTransaction();
+    const runRetryLoop = async () => {
+      // Attempts 1 through 4: search only, no fallback fulfillment
+      for (let attempt = 1; attempt <= MAX_RETRIES - 1; attempt++) {
+        setRetryCount(attempt);
+        const found = await callValidate(attempt, false);
+        if (found) return;
+
+        // Wait before next attempt
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      }
+
+      // Attempt 5 (final): include userId and tier so fallback can run
+      setRetryCount(MAX_RETRIES);
+      const found = await callValidate(MAX_RETRIES, true);
+      if (found) return;
+
+      // All attempts failed
+      setStatus('error');
+      setErrorMsg(
+        'Transaction not found after multiple attempts. If you were charged, your credits will appear shortly. Please contact support if the issue persists.'
+      );
+    };
+
+    runRetryLoop();
   }, [searchParams]);
 
   const getNextAction = () => {
@@ -143,7 +178,11 @@ export default function SuccessContent() {
               <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#c9a227]/30 border-t-[#c9a227]"></div>
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">Validating Payment</h2>
-            <p className="text-gray-300">Please wait while we confirm your transaction...</p>
+            <p className="text-gray-300">
+              {retryCount <= 1
+                ? 'Please wait while we confirm your transaction...'
+                : `Confirming with payment processor... (${retryCount}/${MAX_RETRIES})`}
+            </p>
           </div>
         )}
 
@@ -270,4 +309,3 @@ export default function SuccessContent() {
     </main>
   );
 }
-                                                
