@@ -1,13 +1,34 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { VendorTier, VendorStatus, VerificationStatus, VideoTier } from "@/types/vendor";
+import { VendorTier, VendorStatus, VerificationStatus, VideoTier, Category, Market } from "@/types/vendor";
 
 export default function NewVendorPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [markets, setMarkets] = useState<Market[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [catRes, mktRes] = await Promise.all([
+          fetch("/api/admin/vendors/categories"),
+          fetch("/api/admin/vendors/markets"),
+        ]);
+        if (catRes.ok) setCategories(await catRes.json());
+        if (mktRes.ok) setMarkets(await mktRes.json());
+      } catch (err) {
+        console.error("Failed to load categories/markets:", err);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const [formData, setFormData] = useState({
     businessName: "",
@@ -257,14 +278,21 @@ export default function NewVendorPage() {
             <legend className="text-lg font-bold text-white mb-4">Classification</legend>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className={labelClass}>Category ID</label>
-                <input
-                  type="text"
+                <label className={labelClass}>Category</label>
+                <select
                   name="categoryId"
                   value={formData.categoryId}
                   onChange={handleChange}
                   className={inputClass}
-                />
+                  disabled={loadingData}
+                >
+                  <option value="">Select a category...</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -282,14 +310,21 @@ export default function NewVendorPage() {
               </div>
 
               <div>
-                <label className={labelClass}>Market ID</label>
-                <input
-                  type="text"
+                <label className={labelClass}>Market</label>
+                <select
                   name="marketId"
                   value={formData.marketId}
                   onChange={handleChange}
                   className={inputClass}
-                />
+                  disabled={loadingData}
+                >
+                  <option value="">Select a market...</option>
+                  {markets.map((mkt) => (
+                    <option key={mkt.id} value={mkt.id}>
+                      {mkt.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
