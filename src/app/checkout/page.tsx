@@ -73,6 +73,9 @@ function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useUser();
+  useEffect(() => {
+  console.log('[Checkout] User state:', { user: user?.uid, email: user?.email, loading: authLoading });
+  }, [user, authLoading]);
 
   const pkgParam = searchParams.get('pkg');
   const initialPkg = packages.find((p) => p.id === pkgParam) || packages[0];
@@ -115,17 +118,11 @@ function CheckoutContent() {
         return;
       }
 
-      // Store checkout metadata in sessionStorage for success page retrieval
-      sessionStorage.setItem(
-        'checkoutMetadata',
-        JSON.stringify({
-          checkoutId: data.checkoutId,
-          tier: selectedPackage.id,
-          userId: user?.uid || '',
-          credits: data.credits,
-          packageType: data.packageType,
-        })
-      );
+            // Store checkout metadata for success page retrieval
+      localStorage.setItem('checkoutId', data.checkoutId || '');
+      localStorage.setItem('checkoutPackageType', selectedPackage.id);
+      localStorage.setItem('checkoutUserId', user?.uid || '');
+
 
       // Redirect directly to Square's hosted checkout URL (unmodified)
       window.location.href = data.checkout_url;
