@@ -14,13 +14,13 @@ export type VendorTier =
 
 export type VerificationStatus =
   | 'not_verified'
-  | 'pending'
+  | 'pending_verification'
   | 'verified'
   | 'rejected';
 
 export type VideoTier =
   | 'none'
-  | 'basic'
+  | 'free'
   | 'premium';
 
 export const DEFAULT_CATEGORIES = [
