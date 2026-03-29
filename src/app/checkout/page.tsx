@@ -67,7 +67,6 @@ const packages = [
     features: ['899 credits/year', 'Property pulls @ $1.00', 'Agent Vault', 'Workspace', 'Priority support'],
     billingCycle: 'annual',
   },
-];
   {
     id: 'vault-only',
     name: 'Vault Only',
@@ -87,13 +86,14 @@ const packages = [
     type: 'one-time',
     features: ['100 credits', 'Listing rewrites', 'Workspace access', 'Vault access'],
   },
+];
 
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useUser();
   useEffect(() => {
-  console.log('[Checkout] User state:', { user: user?.uid, email: user?.email, loading: authLoading });
+    console.log('[Checkout] User state:', { user: user?.uid, email: user?.email, loading: authLoading });
   }, [user, authLoading]);
 
   const pkgParam = searchParams.get('pkg');
@@ -129,7 +129,6 @@ function CheckoutContent() {
           userId: user?.uid,
         }),
       });
-
       const data = await res.json();
 
       if (!res.ok) {
@@ -137,11 +136,10 @@ function CheckoutContent() {
         return;
       }
 
-            // Store checkout metadata for success page retrieval
+      // Store checkout metadata for success page retrieval
       localStorage.setItem('checkoutId', data.checkoutId || '');
       localStorage.setItem('checkoutPackageType', selectedPackage.id);
       localStorage.setItem('checkoutUserId', user?.uid || '');
-
 
       // Redirect directly to Square's hosted checkout URL (unmodified)
       window.location.href = data.checkout_url;
@@ -188,7 +186,6 @@ function CheckoutContent() {
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto">
-        {/* Header */}
         <div className="mb-12">
           <button
             onClick={() => router.back()}
@@ -202,9 +199,7 @@ function CheckoutContent() {
           </div>
         </div>
 
-        {/* Main Card */}
         <div className="bg-[#0f1e35]/60 backdrop-blur-xl border border-[#c9a227]/20 rounded-3xl p-8 md:p-12 shadow-2xl">
-          {/* Error Alert */}
           {error && (
             <div className="mb-8 bg-red-500/15 border border-red-500/40 text-red-200 p-4 rounded-xl">
               <p className="font-medium">{error}</p>
@@ -212,7 +207,6 @@ function CheckoutContent() {
           )}
 
           <form onSubmit={handlePayment} className="space-y-10">
-            {/* Plan Selection */}
             <div>
               <label className="block text-white font-bold text-lg mb-6">Select Your Plan</label>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -227,7 +221,6 @@ function CheckoutContent() {
                         : 'border-white/10 bg-white/5 hover:border-white/20'
                     }`}
                   >
-                    {/* Badge */}
                     {pkg.badge && (
                       <div className="absolute -top-3 right-4 bg-[#c9a227] text-[#1a2b4a] text-xs font-bold px-3 py-1 rounded-full">
                         {pkg.badge}
@@ -235,7 +228,6 @@ function CheckoutContent() {
                     )}
                     <h3 className="text-white font-bold text-lg mb-1">{pkg.name}</h3>
                     <p className="text-gray-400 text-sm mb-4">{pkg.description}</p>
-                    {/* Features List */}
                     <ul className="mb-4 space-y-2 text-xs text-gray-300">
                       {pkg.features.slice(0, 2).map((feature, idx) => (
                         <li key={idx} className="flex items-start gap-2">
@@ -253,7 +245,6 @@ function CheckoutContent() {
               </div>
             </div>
 
-            {/* Email Input */}
             <div>
               <label className="block text-white font-bold mb-3">Email Address</label>
               <input
@@ -266,7 +257,6 @@ function CheckoutContent() {
               />
             </div>
 
-            {/* Order Summary */}
             <div className="bg-black/40 border border-[#c9a227]/20 rounded-2xl p-6 space-y-4">
               <div className="space-y-3">
                 <div className="flex justify-between text-gray-300">
@@ -288,7 +278,6 @@ function CheckoutContent() {
               </div>
             </div>
 
-            {/* CTA Button */}
             <button
               type="submit"
               disabled={loading}
@@ -297,7 +286,6 @@ function CheckoutContent() {
               {loading ? 'Processing...' : 'Continue to Payment'}
             </button>
 
-            {/* Trust Footer */}
             <div className="text-center space-y-3 pt-4 border-t border-white/10">
               <p className="text-gray-400 text-sm">
                 💳 Secure payment powered by <span className="font-semibold text-white">Square</span>
