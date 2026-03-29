@@ -125,7 +125,7 @@ function CheckoutContent() {
 
 
       // Redirect directly to Square's hosted checkout URL (unmodified)
-      window.location.href = data.checkout_url;
+      window.location.href = data.checkoutUrl;
     } catch (err) {
       setError(String(err));
     } finally {
