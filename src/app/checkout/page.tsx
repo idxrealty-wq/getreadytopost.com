@@ -68,6 +68,25 @@ const packages = [
     billingCycle: 'annual',
   },
 ];
+  {
+    id: 'vault-only',
+    name: 'Vault Only',
+    credits: 0,
+    price: 49.95,
+    description: 'Agent Vault access',
+    type: 'subscription',
+    features: ['Agent Vault only', 'Save & organize', 'No credits included', 'Annual renewal'],
+    billingCycle: 'annual',
+  },
+  {
+    id: 'fsbo-launch',
+    name: 'FSBO Launch',
+    credits: 100,
+    price: 100,
+    description: '100 credits + workspace',
+    type: 'one-time',
+    features: ['100 credits', 'Listing rewrites', 'Workspace access', 'Vault access'],
+  },
 
 function CheckoutContent() {
   const router = useRouter();
@@ -125,7 +144,7 @@ function CheckoutContent() {
 
 
       // Redirect directly to Square's hosted checkout URL (unmodified)
-      window.location.href = data.checkoutUrl;
+      window.location.href = data.checkout_url;
     } catch (err) {
       setError(String(err));
     } finally {

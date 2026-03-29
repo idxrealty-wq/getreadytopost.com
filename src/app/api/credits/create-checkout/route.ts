@@ -11,6 +11,8 @@ const CREDIT_PACKAGES = {
   'semi-annual': { amount: 49500, credits: 300, type: 'subscription', billingCycle: 'semi-annual' },
   annual: { amount: 89900, credits: 450, type: 'subscription', billingCycle: 'annual' },
   'elite-annual': { amount: 99900, credits: 899, type: 'subscription', billingCycle: 'annual' },
+  'vault-only': { amount: 4995, credits: 0, type: 'subscription', billingCycle: 'annual' },
+  'fsbo-launch': { amount: 10000, credits: 100, type: 'one-time' },
 } as const;
 
 type PackageInfo = {
@@ -57,7 +59,6 @@ export async function POST(req: NextRequest) {
 
     const idempotencyKey = `pl-${userId}-${packageType}-${Date.now()}`;
 
-    // BUILD SUCCESS URL WITH ALL PARAMS BEFORE CREATING CHECKOUT
     const successUrl = new URL('https://getreadytopost.com/success');
     successUrl.searchParams.set('checkoutId', `pending-${idempotencyKey}`);
     successUrl.searchParams.set('tier', packageType);
