@@ -5,16 +5,13 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 interface TransactionData {
-  checkoutId: string;
-  transactionId?: string;
+  squarePaymentId: string;
+  squareOrderId?: string;
   amount: number;
   credits?: number;
   packageType: string;
   status: string;
-  vaultAccess?: boolean;
-  workspaceAccess?: boolean;
-  renewalDate?: string;
-  billingCycle?: string;
+  userId?: string;
 }
 
 const MAX_RETRIES = 5;
@@ -32,55 +29,39 @@ export default function SuccessContent() {
     if (hasStarted.current) return;
     hasStarted.current = true;
 
-    let transactionId = searchParams.get('transactionId') || searchParams.get('orderId');
-    let checkoutId = searchParams.get('checkoutId');
-    let tier = searchParams.get('tier');
-    let userId = searchParams.get('userId');
+    // Square returns these two params on redirect — that is all we need
+    const squarePaymentId = searchParams.get('transactionId');
+    const squareOrderId = searchParams.get('orderId');
 
-    if (typeof window !== 'undefined') {
-      transactionId = transactionId || localStorage.getItem('checkoutId');
-      checkoutId = checkoutId || localStorage.getItem('checkoutId');
-      tier = tier || localStorage.getItem('checkoutPackageType');
-      userId = userId || localStorage.getItem('checkoutUserId');
-    }
+    console.log(`[Success] squarePaymentId=${squarePaymentId} squareOrderId=${squareOrderId}`);
 
-    if (!transactionId && !checkoutId) {
+    if (!squarePaymentId && !squareOrderId) {
       setStatus('error');
       setErrorMsg('No transaction ID found. Please contact support.');
       return;
     }
 
-    const callValidate = async (attempt: number, includeFallback: boolean): Promise<boolean> => {
+    const callValidate = async (attempt: number): Promise<boolean> => {
       try {
         const params = new URLSearchParams();
-        if (transactionId) params.append('transactionId', transactionId);
-        if (checkoutId) params.append('checkoutId', checkoutId);
+        if (squarePaymentId) params.append('transactionId', squarePaymentId);
+        if (squareOrderId) params.append('orderId', squareOrderId);
 
-        // Only send userId and tier on the final attempt (fallback fulfillment)
-        if (includeFallback) {
-          if (userId) params.append('userId', userId);
-          if (tier) params.append('tier', tier);
-        }
+        console.log(`[Success] Attempt ${attempt}/${MAX_RETRIES}`);
 
-        console.log(`[Success] Attempt ${attempt}/${MAX_RETRIES} — fallback=${includeFallback}`);
-
-        const response = await fetch(`/api/credits/validate-transaction?${params.toString()}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
+        const response = await fetch(
+          `/api/credits/validate-transaction?${params.toString()}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
 
         const data = await response.json();
 
         if (response.ok && data?.success && data?.transaction) {
           setStatus('success');
           setTransactionData(data.transaction);
-
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('checkoutId');
-            localStorage.removeItem('checkoutPackageType');
-            localStorage.removeItem('checkoutUserId');
-          }
-
           return true;
         }
 
@@ -92,25 +73,21 @@ export default function SuccessContent() {
     };
 
     const runRetryLoop = async () => {
-      // Attempts 1 through 4: search only, no fallback fulfillment
-      for (let attempt = 1; attempt <= MAX_RETRIES - 1; attempt++) {
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         setRetryCount(attempt);
-        const found = await callValidate(attempt, false);
+        const found = await callValidate(attempt);
         if (found) return;
 
-        // Wait before next attempt
-        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+        if (attempt < MAX_RETRIES) {
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+        }
       }
 
-      // Attempt 5 (final): include userId and tier so fallback can run
-      setRetryCount(MAX_RETRIES);
-      const found = await callValidate(MAX_RETRIES, true);
-      if (found) return;
-
-      // All attempts failed
+      // All 5 attempts failed
       setStatus('error');
       setErrorMsg(
-        'Transaction not found after multiple attempts. If you were charged, your credits will appear shortly. Please contact support if the issue persists.'
+        'Your payment was received but confirmation is taking longer than expected. ' +
+        'Your credits will appear within 5 minutes. Contact support if they do not.'
       );
     };
 
@@ -119,15 +96,9 @@ export default function SuccessContent() {
 
   const getNextAction = () => {
     if (!transactionData) return null;
-
     const { packageType, credits } = transactionData;
 
-    if (
-      packageType === 'monthly' ||
-      packageType === 'annual' ||
-      packageType === 'semi-annual' ||
-      packageType === 'elite-annual'
-    ) {
+    if (['monthly', 'annual', 'semi-annual', 'elite-annual'].includes(packageType)) {
       return {
         title: 'Your Membership is Active',
         description: 'You now have full access to Agent Vault and workspace tools.',
@@ -145,12 +116,25 @@ export default function SuccessContent() {
       };
     }
 
-    if (
-      packageType === 'credit' ||
-      packageType === '5pack' ||
-      packageType === 'single' ||
-      packageType === 'rate-my-listing'
-    ) {
+    if (packageType === 'fsbo-launch') {
+      return {
+        title: '100 Credits Added!',
+        description: 'Your FSBO Launch Package is active. Start with Rate My Listing.',
+        primaryAction: { label: 'Rate My Listing', href: '/rate-my-listing' },
+        secondaryAction: { label: 'Go to Workspace', href: '/workspace' },
+      };
+    }
+
+    if (['agent-verified', 'company-verified', 'verify-my-agent', 'verified-buyer-seller', 'reverification'].includes(packageType)) {
+      return {
+        title: 'Verification Complete',
+        description: 'Your verified badge has been applied to your profile.',
+        primaryAction: { label: 'View Profile', href: '/agent-vault' },
+        secondaryAction: { label: 'Back to Home', href: '/' },
+      };
+    }
+
+    if (['single', '5pack', 'credit'].includes(packageType)) {
       return {
         title: `${credits || 0} Credits Added!`,
         description: 'Ready to analyze listings and pull property data.',
@@ -172,20 +156,23 @@ export default function SuccessContent() {
   return (
     <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
+
+        {/* LOADING */}
         {status === 'loading' && (
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20 text-center">
             <div className="flex justify-center mb-6">
               <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#c9a227]/30 border-t-[#c9a227]"></div>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Validating Payment</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">Confirming Payment</h2>
             <p className="text-gray-300">
               {retryCount <= 1
                 ? 'Please wait while we confirm your transaction...'
-                : `Confirming with payment processor... (${retryCount}/${MAX_RETRIES})`}
+                : `Still confirming... (${retryCount}/${MAX_RETRIES})`}
             </p>
           </div>
         )}
 
+        {/* SUCCESS */}
         {status === 'success' && transactionData && nextAction && (
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
             <div className="text-center mb-8">
@@ -202,7 +189,7 @@ export default function SuccessContent() {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Transaction ID</span>
                   <span className="text-white font-mono text-sm break-all">
-                    {transactionData.transactionId || transactionData.checkoutId}
+                    {transactionData.squarePaymentId}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -217,26 +204,16 @@ export default function SuccessContent() {
                     <span className="text-[#c9a227] font-bold">{transactionData.credits}</span>
                   </div>
                 )}
-                {transactionData.renewalDate && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400">Renewal Date</span>
-                    <span className="text-white">
-                      {new Date(transactionData.renewalDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
-                {transactionData.vaultAccess && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400">Agent Vault</span>
-                    <span className="text-green-400 font-bold">✓ Unlocked</span>
-                  </div>
-                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Plan</span>
+                  <span className="text-white capitalize">{transactionData.packageType}</span>
+                </div>
               </div>
             </div>
 
             <div className="bg-blue-900/30 border border-blue-500/30 rounded-xl p-4 mb-8">
               <p className="text-blue-200 text-sm">
-                <strong>Payment confirmed.</strong> Your account access and purchase details have been updated.
+                <strong>Payment confirmed.</strong> Your account has been updated.
               </p>
             </div>
 
@@ -263,10 +240,7 @@ export default function SuccessContent() {
             <div className="mt-8 pt-8 border-t border-white/10">
               <p className="text-gray-400 text-sm text-center">
                 Questions? Contact us at{' '}
-                <a
-                  href="mailto:idxrealty@gmail.com"
-                  className="text-[#c9a227] hover:text-[#e8c547]"
-                >
+                <a href="mailto:idxrealty@gmail.com" className="text-[#c9a227] hover:text-[#e8c547]">
                   idxrealty@gmail.com
                 </a>
               </p>
@@ -274,18 +248,19 @@ export default function SuccessContent() {
           </div>
         )}
 
+        {/* ERROR */}
         {status === 'error' && (
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-red-500/30">
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">⚠️</div>
-              <h1 className="text-4xl font-bold text-red-400 mb-2">Payment Issue</h1>
-              <p className="text-gray-300 text-lg">{errorMsg}</p>
+              <h1 className="text-3xl font-bold text-red-400 mb-2">Confirmation Delayed</h1>
+              <p className="text-gray-300">{errorMsg}</p>
             </div>
 
             <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 mb-8">
               <p className="text-red-200 text-sm">
-                <strong>If you were charged</strong>, your transaction will be processed shortly. If the issue
-                persists, please contact support.
+                <strong>If you were charged</strong>, your credits will appear within 5 minutes.
+                Contact support if they do not arrive.
               </p>
             </div>
 
@@ -305,6 +280,7 @@ export default function SuccessContent() {
             </div>
           </div>
         )}
+
       </div>
     </main>
   );

@@ -1,406 +1,231 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAdminDb } from "@/lib/firebaseAdmin";
-import { FieldValue } from "firebase-admin/firestore";
-import crypto from "crypto";
+import { NextRequest, NextResponse } from 'next/server';
+import { getAdminDb } from '@/lib/firebaseAdmin';
+import { FieldValue } from 'firebase-admin/firestore';
+import crypto from 'crypto';
 
 const SQUARE_WEBHOOK_SIGNATURE_KEY = process.env.SQUARE_WEBHOOK_SIGNATURE_KEY;
 const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
+const SQUARE_ENV = process.env.SQUARE_ENV || 'production';
+const BASE_URL = SQUARE_ENV === 'sandbox'
+  ? 'https://connect.squareupsandbox.com'
+  : 'https://connect.squareup.com';
 
-function verifySquareSignature(body: string, signature: string): boolean {
+// ─── PACKAGE MAP ─────────────────────────────────────────────────────────────
+// Identical to create-checkout. Single source of truth for fulfillment.
+const PACKAGE_MAP: Record<string, {
+  amount: number;
+  credits: number;
+  type: 'one-time' | 'subscription';
+  billingCycle: string | null;
+  propertyPullPrice: number;
+  vaultAccess: boolean;
+  workspaceAccess: boolean;
+}> = {
+  'single':               { amount: 1999,  credits: 1,   type: 'one-time',    billingCycle: null,          propertyPullPrice: 0,    vaultAccess: false, workspaceAccess: false },
+  '5pack':                { amount: 8500,  credits: 5,   type: 'one-time',    billingCycle: null,          propertyPullPrice: 0,    vaultAccess: false, workspaceAccess: false },
+  'monthly':              { amount: 3000,  credits: 30,  type: 'subscription', billingCycle: 'monthly',    propertyPullPrice: 3.0,  vaultAccess: true,  workspaceAccess: true },
+  'semi-annual':          { amount: 49500, credits: 300, type: 'subscription', billingCycle: 'semi-annual', propertyPullPrice: 2.5,  vaultAccess: true,  workspaceAccess: true },
+  'annual':               { amount: 89900, credits: 450, type: 'subscription', billingCycle: 'annual',     propertyPullPrice: 1.75, vaultAccess: true,  workspaceAccess: true },
+  'elite-annual':         { amount: 99900, credits: 899, type: 'subscription', billingCycle: 'annual',     propertyPullPrice: 1.0,  vaultAccess: true,  workspaceAccess: true },
+  'vault-only':           { amount: 4995,  credits: 0,   type: 'subscription', billingCycle: 'annual',     propertyPullPrice: 0,    vaultAccess: true,  workspaceAccess: false },
+  'fsbo-launch':          { amount: 10000, credits: 100, type: 'one-time',    billingCycle: null,          propertyPullPrice: 3.0,  vaultAccess: true,  workspaceAccess: true },
+  'agent-verified':       { amount: 1999,  credits: 0,   type: 'subscription', billingCycle: 'annual',     propertyPullPrice: 0,    vaultAccess: false, workspaceAccess: false },
+  'company-verified':     { amount: 1000,  credits: 0,   type: 'subscription', billingCycle: 'annual',     propertyPullPrice: 0,    vaultAccess: false, workspaceAccess: false },
+  'verify-my-agent':      { amount: 1000,  credits: 0,   type: 'one-time',    billingCycle: null,          propertyPullPrice: 0,    vaultAccess: false, workspaceAccess: false },
+  'verified-buyer-seller':{ amount: 1000,  credits: 0,   type: 'one-time',    billingCycle: null,          propertyPullPrice: 0,    vaultAccess: false, workspaceAccess: false },
+  'reverification':       { amount: 1000,  credits: 0,   type: 'subscription', billingCycle: 'annual',     propertyPullPrice: 0,    vaultAccess: false, workspaceAccess: false },
+};
+
+function verifySignature(body: string, signature: string): boolean {
   if (!SQUARE_WEBHOOK_SIGNATURE_KEY) {
-    console.warn("[Webhook] SQUARE_WEBHOOK_SIGNATURE_KEY not set, skipping verification");
+    console.warn('[Webhook] SQUARE_WEBHOOK_SIGNATURE_KEY not set, skipping verification');
     return true;
   }
-
   const hash = crypto
-    .createHmac("sha256", SQUARE_WEBHOOK_SIGNATURE_KEY)
+    .createHmac('sha256', SQUARE_WEBHOOK_SIGNATURE_KEY)
     .update(body)
-    .digest("base64");
-
+    .digest('base64');
   return hash === signature;
 }
 
-type PackageResult = {
-  packageType: string;
-  creditsToAdd: number;
-  revenue: number;
-  subscription: {
-    planId: string;
-    status: string;
-    creditsPerCycle: number;
-    propertyPullPrice: number;
-    vaultAccess: boolean;
-    workspaceAccess: boolean;
-    billingCycle: string;
-  } | null;
-};
+function resolvePackage(metadataPackageType: string, lineName: string, amountCents: number): string | null {
+  // Priority 1: exact match from metadata
+  const metaKey = (metadataPackageType || '').toLowerCase().trim();
+  if (metaKey && PACKAGE_MAP[metaKey]) return metaKey;
 
-function getPackageDetails(params: {
-  lineName?: string;
-  quantity?: number;
-  amountMoney?: number;
-  metadataPackageType?: string;
-}): PackageResult | null {
-  const lineName = params.lineName || "";
-  const quantity = params.quantity || 1;
-  const amountMoney = params.amountMoney || 0;
-  const metadataPackageType = (params.metadataPackageType || "").toLowerCase().trim();
+  // Priority 2: match from line item name
+  const normalized = (lineName || '').toLowerCase().replace(/[\s\-_]+/g, '');
+  if (normalized.includes('eliteannual')) return 'elite-annual';
+  if (normalized.includes('fsbolaunch')) return 'fsbo-launch';
+  if (normalized.includes('agentverified')) return 'agent-verified';
+  if (normalized.includes('companyverified')) return 'company-verified';
+  if (normalized.includes('verifymyagent')) return 'verify-my-agent';
+  if (normalized.includes('verifiedbuyerseller')) return 'verified-buyer-seller';
+  if (normalized.includes('reverification')) return 'reverification';
+  if (normalized.includes('vaultonly') || normalized.includes('vault')) return 'vault-only';
+  if (normalized.includes('semiannual') || normalized.includes('6month')) return 'semi-annual';
+  if (normalized.includes('monthly')) return 'monthly';
+  if (normalized.includes('annual')) return 'annual';
+  if (normalized.includes('5pack')) return '5pack';
+  if (normalized.includes('single')) return 'single';
 
-  const normalized = lineName.toLowerCase().replace(/[\s\-_]+/g, "");
-
-  const packageMap: Record<string, PackageResult> = {
-    single: {
-      packageType: "single",
-      creditsToAdd: 1,
-      revenue: 19.99,
-      subscription: null,
-    },
-    "5pack": {
-      packageType: "5pack",
-      creditsToAdd: 5,
-      revenue: 85.0,
-      subscription: null,
-    },
-    monthly: {
-      packageType: "monthly",
-      creditsToAdd: 30,
-      revenue: 30.0,
-      subscription: {
-        planId: "monthly",
-        status: "active",
-        creditsPerCycle: 30,
-        propertyPullPrice: 3,
-        vaultAccess: true,
-        workspaceAccess: true,
-        billingCycle: "monthly",
-      },
-    },
-    "semi-annual": {
-      packageType: "semi-annual",
-      creditsToAdd: 300,
-      revenue: 495.0,
-      subscription: {
-        planId: "semi-annual",
-        status: "active",
-        creditsPerCycle: 300,
-        propertyPullPrice: 2.5,
-        vaultAccess: true,
-        workspaceAccess: true,
-        billingCycle: "semi-annual",
-      },
-    },
-    "6month": {
-      packageType: "semi-annual",
-      creditsToAdd: 300,
-      revenue: 495.0,
-      subscription: {
-        planId: "semi-annual",
-        status: "active",
-        creditsPerCycle: 300,
-        propertyPullPrice: 2.5,
-        vaultAccess: true,
-        workspaceAccess: true,
-        billingCycle: "semi-annual",
-      },
-    },
-    annual: {
-      packageType: "annual",
-      creditsToAdd: 450,
-      revenue: 899.0,
-      subscription: {
-        planId: "annual",
-        status: "active",
-        creditsPerCycle: 450,
-        propertyPullPrice: 1.75,
-        vaultAccess: true,
-        workspaceAccess: true,
-        billingCycle: "annual",
-      },
-    },
-    "elite-annual": {
-      packageType: "elite-annual",
-      creditsToAdd: 899,
-      revenue: 999.0,
-      subscription: {
-        planId: "elite-annual",
-        status: "active",
-        creditsPerCycle: 899,
-        propertyPullPrice: 1.0,
-        vaultAccess: true,
-        workspaceAccess: true,
-        billingCycle: "annual",
-      },
-    },
-    "vault-only": {
-      packageType: "vault-only",
-      creditsToAdd: 0,
-      revenue: 49.95,
-      subscription: {
-        planId: "vault-only",
-        status: "active",
-        creditsPerCycle: 0,
-        propertyPullPrice: 0,
-        vaultAccess: true,
-        workspaceAccess: false,
-        billingCycle: "annual",
-      },
-    },
+  // Priority 3: match from amount
+  const amountMap: Record<number, string> = {
+    1999: 'single',
+    8500: '5pack',
+    3000: 'monthly',
+    49500: 'semi-annual',
+    89900: 'annual',
+    99900: 'elite-annual',
+    4995: 'vault-only',
+    10000: 'fsbo-launch',
+    1000: 'verify-my-agent',
   };
-
-  if (metadataPackageType && packageMap[metadataPackageType]) {
-    return packageMap[metadataPackageType];
-  }
-
-  if (normalized.includes("eliteannual")) {
-    return packageMap["elite-annual"];
-  }
-
-  if (normalized.includes("semiannual") || normalized.includes("6month") || normalized.includes("6months")) {
-    return packageMap["semi-annual"];
-  }
-
-  if (normalized.includes("monthly")) {
-    return packageMap["monthly"];
-  }
-
-  if (normalized.includes("annual")) {
-    return packageMap["annual"];
-  }
-
-  if (normalized.includes("5pack")) {
-    return packageMap["5pack"];
-  }
-
-  if (normalized.includes("single")) {
-    return packageMap["single"];
-  }
-
-  if (normalized.includes("vault")) {
-    return packageMap["vault-only"];
-  }
-
-  if (amountMoney === 3000) {
-    return packageMap["monthly"];
-  }
-
-  if (amountMoney === 49500) {
-    return packageMap["semi-annual"];
-  }
-
-  if (amountMoney === 89900) {
-    return packageMap["annual"];
-  }
-
-  if (amountMoney === 99900) {
-    return packageMap["elite-annual"];
-  }
-
-  if (amountMoney === 8500) {
-    return packageMap["5pack"];
-  }
-
-  if (amountMoney === 1999) {
-    return packageMap["single"];
-  }
-
-  if (normalized.includes("credit")) {
-    return {
-      packageType: "credits",
-      creditsToAdd: quantity,
-      revenue: quantity * 1.0,
-      subscription: null,
-    };
-  }
+  if (amountMap[amountCents]) return amountMap[amountCents];
 
   return null;
 }
 
-function getRenewalDate(billingCycle: "monthly" | "semi-annual" | "annual") {
-  const renewalDate = new Date();
-
-  if (billingCycle === "monthly") {
-    renewalDate.setMonth(renewalDate.getMonth() + 1);
-  } else if (billingCycle === "semi-annual") {
-    renewalDate.setMonth(renewalDate.getMonth() + 6);
+function getRenewalDate(billingCycle: string): Date {
+  const d = new Date();
+  if (billingCycle === 'monthly') {
+    d.setMonth(d.getMonth() + 1);
+  } else if (billingCycle === 'semi-annual') {
+    d.setMonth(d.getMonth() + 6);
   } else {
-    renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+    d.setFullYear(d.getFullYear() + 1);
   }
-
-  return renewalDate;
+  return d;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.text();
-    const signature = req.headers.get("x-square-hmac-sha256") || "";
+    const signature = req.headers.get('x-square-hmac-sha256') || '';
 
-    if (!verifySquareSignature(body, signature)) {
-      console.error("[Webhook] Invalid signature");
-      return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
+    if (!verifySignature(body, signature)) {
+      console.error('[Webhook] Invalid signature');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
     }
 
     const data = JSON.parse(body);
     const eventType = data.type;
 
-    console.log(`[Webhook] Received event: ${eventType}`);
+    console.log(`[Webhook] Event received: ${eventType}`);
 
-    if (eventType !== "payment.created") {
+    if (eventType !== 'payment.created') {
       return NextResponse.json({ success: true, ignored: eventType });
     }
 
     const payment = data.data?.object?.payment;
-
     if (!payment) {
-      console.log("[Webhook] No payment object found");
+      console.log('[Webhook] No payment object');
       return NextResponse.json({ success: true });
     }
 
-    const paymentId = payment.id;
-    const orderId = payment.order_id;
+    const squarePaymentId = payment.id;
+    const squareOrderId = payment.order_id;
 
-    if (!orderId) {
-      console.log("[Webhook] No order_id on payment");
+    if (!squareOrderId) {
+      console.log('[Webhook] No order_id on payment');
       return NextResponse.json({ success: true });
     }
 
-    console.log(`[Webhook] Processing payment ${paymentId} for orderId: ${orderId}`);
+    console.log(`[Webhook] Processing squarePaymentId=${squarePaymentId} squareOrderId=${squareOrderId}`);
 
     const adminDb = getAdminDb();
-    const processedRef = adminDb.collection("webhook_processed").doc(paymentId);
+
+    // ─── IDEMPOTENCY CHECK ───────────────────────────────────────────────
+    const processedRef = adminDb.collection('webhook_processed').doc(squarePaymentId);
     const processedSnap = await processedRef.get();
 
     if (processedSnap.exists) {
-      console.log(`[Webhook] Payment ${paymentId} already processed, skipping`);
+      console.log(`[Webhook] Already processed ${squarePaymentId}, skipping`);
       return NextResponse.json({ success: true, idempotent: true });
     }
 
     await processedRef.set({
-      paymentId,
-      orderId,
-      status: "processing",
+      squarePaymentId,
+      squareOrderId,
+      status: 'processing',
       createdAt: FieldValue.serverTimestamp(),
     });
 
+    // ─── FETCH ORDER FROM SQUARE ─────────────────────────────────────────
     if (!SQUARE_ACCESS_TOKEN) {
-      throw new Error("SQUARE_ACCESS_TOKEN is not set");
+      throw new Error('SQUARE_ACCESS_TOKEN is not set');
     }
 
-    const orderResp = await fetch(`https://connect.squareup.com/v2/orders/${orderId}`, {
+    const orderResp = await fetch(`${BASE_URL}/v2/orders/${squareOrderId}`, {
       headers: {
-        "Square-Version": "2024-01-18",
+        'Square-Version': '2024-01-18',
         Authorization: `Bearer ${SQUARE_ACCESS_TOKEN}`,
       },
     });
 
-    const orderText = await orderResp.text();
-
     if (!orderResp.ok) {
-      console.error("[Webhook] Failed to fetch order:", orderText);
-      await processedRef.update({
-        status: "failed",
-        error: "Failed to fetch order",
-        orderFetchResponse: orderText,
-        failedAt: FieldValue.serverTimestamp(),
-      });
-      return NextResponse.json({ error: "Failed to fetch order" }, { status: 500 });
+      const errText = await orderResp.text();
+      console.error('[Webhook] Failed to fetch order:', errText);
+      await processedRef.update({ status: 'failed', error: 'Failed to fetch order', failedAt: FieldValue.serverTimestamp() });
+      return NextResponse.json({ error: 'Failed to fetch order' }, { status: 500 });
     }
 
-    const orderData = JSON.parse(orderText);
+    const orderData = await orderResp.json();
+    const order = orderData.order;
 
-    console.log("[Webhook] Full order data from Square:", JSON.stringify(orderData, null, 2));
+    const userId = order?.reference_id;
+    const lineItem = order?.line_items?.[0];
+    const lineName = lineItem?.name || '';
+    const amountCents = lineItem?.base_price_money?.amount || 0;
+    const metadataPackageType = order?.metadata?.packageType || '';
 
-    const userId = orderData.order?.reference_id;
-    const lineItem = orderData.order?.line_items?.[0];
-    const lineName = lineItem?.name || "";
-    const quantity = parseInt(lineItem?.quantity || "1", 10);
-    const amountMoney = lineItem?.base_price_money?.amount || 0;
-    const metadataPackageType = orderData.order?.metadata?.packageType || "";
-
-    console.log("[Webhook] Extracted fields:", {
-      userId,
-      lineName,
-      quantity,
-      amountMoney,
-      metadataPackageType,
-      referenceId: orderData.order?.reference_id,
-      allOrderFields: Object.keys(orderData.order || {}),
-    });
+    console.log(`[Webhook] userId=${userId} lineName=${lineName} amount=${amountCents} metadata=${metadataPackageType}`);
 
     if (!userId) {
-      console.error("[Webhook] No userId (reference_id) on order");
-      await processedRef.update({
-        status: "failed",
-        error: "No userId on order",
-        orderDataSnapshot: JSON.stringify(orderData),
-        failedAt: FieldValue.serverTimestamp(),
-      });
-      return NextResponse.json({ error: "No userId on order" }, { status: 500 });
+      console.error('[Webhook] No userId (reference_id) on order');
+      await processedRef.update({ status: 'failed', error: 'No userId on order', failedAt: FieldValue.serverTimestamp() });
+      return NextResponse.json({ error: 'No userId on order' }, { status: 500 });
     }
 
-    const packageDetails = getPackageDetails({
-      lineName,
-      quantity,
-      amountMoney,
-      metadataPackageType,
-    });
+    // ─── RESOLVE PACKAGE ─────────────────────────────────────────────────
+    const packageType = resolvePackage(metadataPackageType, lineName, amountCents);
 
-    if (!packageDetails) {
-      console.error("[Webhook] Could not determine package from order:", {
-        lineName,
-        quantity,
-        amountMoney,
-        metadataPackageType,
-      });
-      await processedRef.update({
-        status: "failed",
-        error: "Could not determine package",
-        lineName,
-        quantity,
-        amountMoney,
-        metadataPackageType,
-        failedAt: FieldValue.serverTimestamp(),
-      });
-      return NextResponse.json({ error: "Could not determine package" }, { status: 500 });
+    if (!packageType) {
+      console.error(`[Webhook] Unknown package: name=${lineName} amount=${amountCents} meta=${metadataPackageType}`);
+      await processedRef.update({ status: 'failed', error: 'Unknown package', failedAt: FieldValue.serverTimestamp() });
+      return NextResponse.json({ error: 'Unknown package' }, { status: 500 });
     }
 
-    const { packageType, creditsToAdd, revenue, subscription } = packageDetails;
+    const pkg = PACKAGE_MAP[packageType];
 
-    console.log(`[Webhook] Processing package ${packageType} for user ${userId} with ${creditsToAdd} credits`);
-    const userRef = adminDb.collection("users").doc(userId);
-    const userCreditsRef = userRef.collection("credits").doc("balance");
+    console.log(`[Webhook] Fulfilling ${packageType} for ${userId} — ${pkg.credits} credits`);
 
-    if (creditsToAdd > 0) {
-      await userCreditsRef.set(
+    // ─── WRITE CREDITS ───────────────────────────────────────────────────
+    const userRef = adminDb.collection('users').doc(userId);
+
+    if (pkg.credits > 0) {
+      await userRef.collection('credits').doc('balance').set(
         {
-          balance: FieldValue.increment(creditsToAdd),
+          balance: FieldValue.increment(pkg.credits),
           updatedAt: FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
     }
 
-    if (subscription) {
-      const billingCycleMap: Record<string, "monthly" | "semi-annual" | "annual"> = {
-        monthly: "monthly",
-        "semi-annual": "semi-annual",
-        annual: "annual",
-      };
-
-      const billingCycle =
-        billingCycleMap[subscription.billingCycle] || "annual";
-      const renewalDate = getRenewalDate(billingCycle);
-
+    // ─── WRITE SUBSCRIPTION ──────────────────────────────────────────────
+    if (pkg.type === 'subscription' && pkg.billingCycle) {
       await userRef.set(
         {
           subscription: {
-            planId: subscription.planId,
-            status: subscription.status,
-            creditsPerCycle: subscription.creditsPerCycle,
-            propertyPullPrice: subscription.propertyPullPrice,
-            vaultAccess: subscription.vaultAccess,
-            workspaceAccess: subscription.workspaceAccess,
-            billingCycle: subscription.billingCycle,
-            renewalDate,
+            planId: packageType,
+            status: 'active',
+            creditsPerCycle: pkg.credits,
+            propertyPullPrice: pkg.propertyPullPrice,
+            vaultAccess: pkg.vaultAccess,
+            workspaceAccess: pkg.workspaceAccess,
+            billingCycle: pkg.billingCycle,
+            renewalDate: getRenewalDate(pkg.billingCycle),
             lastPaymentDate: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
           },
@@ -409,70 +234,53 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const transactionsRef = userRef.collection("transactions");
-
-    await transactionsRef.add({
-      type: "purchase",
+    // ─── WRITE TRANSACTION ───────────────────────────────────────────────
+    await userRef.collection('transactions').add({
       packageType,
-      creditsAdded: creditsToAdd,
-      revenue,
-      orderId,
-      paymentId,
-      squarePaymentId: paymentId,
-      squareOrderId: orderId,
-      subscriptionApplied: !!subscription,
-      lineName,
-      amountMoney,
-      metadataPackageType,
+      creditsAdded: pkg.credits,
+      revenue: pkg.amount / 100,
+      squarePaymentId,
+      squareOrderId,
+      billingCycle: pkg.billingCycle || null,
+      subscriptionApplied: pkg.type === 'subscription',
+      source: 'square-webhook',
+      status: 'completed',
       timestamp: FieldValue.serverTimestamp(),
-      source: "square-webhook",
     });
 
+    // ─── MARK PROCESSED ──────────────────────────────────────────────────
     await processedRef.update({
       userId,
-      creditsAdded: creditsToAdd,
       packageType,
-      revenue,
-      subscriptionApplied: !!subscription,
-      lineName,
-      amountMoney,
-      metadataPackageType,
-      status: "completed",
+      creditsAdded: pkg.credits,
+      status: 'completed',
       processedAt: FieldValue.serverTimestamp(),
     });
 
-    console.log(`[Webhook] Successfully processed ${packageType} for ${userId}`);
+    console.log(`[Webhook] Done — ${packageType} for ${userId}`);
 
     return NextResponse.json({
       success: true,
       userId,
-      creditsAdded: creditsToAdd,
       packageType,
-      revenue,
-      subscriptionApplied: !!subscription,
+      creditsAdded: pkg.credits,
     });
+
   } catch (e: any) {
-    console.error("[Webhook] Error:", e);
+    console.error('[Webhook] Error:', e);
 
     try {
       const adminDb = getAdminDb();
-      await adminDb.collection("errors").add({
-        source: "square-webhook",
+      await adminDb.collection('errors').add({
+        source: 'square-webhook',
         message: String(e),
         stack: e?.stack || null,
         createdAt: FieldValue.serverTimestamp(),
       });
     } catch (logErr) {
-      console.error("[Webhook] Failed to write error log:", logErr);
+      console.error('[Webhook] Failed to log error:', logErr);
     }
 
-    await import("@/lib/logError").then(({ logError }) =>
-      logError({ source: "square-webhook", error: e, context: {} })
-    );
-
-    return NextResponse.json(
-      { error: "Failed", details: String(e) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed', details: String(e) }, { status: 500 });
   }
 }
