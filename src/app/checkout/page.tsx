@@ -7,24 +7,29 @@ import Link from 'next/link';
 
 const BG_URL = 'https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/e2af6091-9b63-4698-8f57-f02cfe21cfc7/image.png?w=1200&h=896';
 
-const packages = [
+type Package = {
+  id: string;
+  name: string;
+  credits: number | null;
+  price: number | null;
+  description: string;
+  type: 'one-time' | 'subscription';
+  features: string[];
+  billingCycle?: string;
+  badge?: string;
+  isCredits?: boolean;
+};
+
+const packages: Package[] = [
   {
-    id: 'single',
-    name: 'Single',
-    credits: 1,
-    price: 19.99,
-    description: 'One property pull',
+    id: 'credit',
+    name: 'Buy Credits',
+    credits: null,
+    price: null,
+    description: 'Purchase any amount of credits',
     type: 'one-time',
-    features: ['1 property pull', 'Rate My Listing', 'Never expires'],
-  },
-  {
-    id: '5pack',
-    name: '5-Pack',
-    credits: 5,
-    price: 85,
-    description: '5 property pulls',
-    type: 'one-time',
-    features: ['5 property pulls', '$17 per pull', 'Never expires'],
+    features: ['$1 per credit', 'Use for rewrites, pulls & more', 'Never expires'],
+    isCredits: true,
   },
   {
     id: 'monthly',
@@ -92,6 +97,7 @@ function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useUser();
+
   useEffect(() => {
     console.log('[Checkout] User state:', { user: user?.uid, email: user?.email, loading: authLoading });
   }, [user, authLoading]);
@@ -99,7 +105,8 @@ function CheckoutContent() {
   const pkgParam = searchParams.get('pkg');
   const initialPkg = packages.find((p) => p.id === pkgParam) || packages[0];
 
-  const [selectedPackage, setSelectedPackage] = useState(initialPkg);
+  const [selectedPackage, setSelectedPackage] = useState<Package>(initialPkg);
+  const [creditQty, setCreditQty] = useState<number>(20);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -107,6 +114,23 @@ function CheckoutContent() {
   useEffect(() => {
     if (user?.email) setEmail(user.email);
   }, [user]);
+
+  const getPrice = (): number => {
+    if (selectedPackage.isCredits) return creditQty;
+    return selectedPackage.price ?? 0;
+  };
+
+  const getCredits = (): number => {
+    if (selectedPackage.isCredits) return creditQty;
+    return selectedPackage.credits ?? 0;
+  };
+
+  const handleQtyChange = (val: string) => {
+    const n = parseInt(val, 10);
+    if (isNaN(n) || n < 1) { setCreditQty(1); return; }
+    if (n > 250) { setCreditQty(250); return; }
+    setCreditQty(n);
+  };
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,18 +140,29 @@ function CheckoutContent() {
       return;
     }
 
+    if (selectedPackage.isCredits && (creditQty < 1 || creditQty > 250)) {
+      setError('Please enter a credit amount between 1 and 250');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
+      const body: Record<string, unknown> = {
+        packageType: selectedPackage.id,
+        email,
+        userId: user?.uid,
+      };
+
+      if (selectedPackage.isCredits) {
+        body.quantity = creditQty;
+      }
+
       const res = await fetch('/api/credits/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          packageType: selectedPackage.id,
-          email,
-          userId: user?.uid,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
 
@@ -207,6 +242,7 @@ function CheckoutContent() {
           )}
 
           <form onSubmit={handlePayment} className="space-y-10">
+            {/* Plan Selection */}
             <div>
               <label className="block text-white font-bold text-lg mb-6">Select Your Plan</label>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -237,14 +273,55 @@ function CheckoutContent() {
                       ))}
                     </ul>
                     <div className="flex justify-between items-end pt-4 border-t border-white/10">
-                      <span className="text-gray-300 text-xs">{pkg.credits} credits</span>
-                      <span className="text-[#c9a227] font-bold text-xl">${pkg.price}</span>
+                      <span className="text-gray-300 text-xs">
+                        {pkg.isCredits ? 'You choose' : `${pkg.credits} credits`}
+                      </span>
+                      <span className="text-[#c9a227] font-bold text-xl">
+                        {pkg.isCredits ? '$1/credit' : `$${pkg.price}`}
+                      </span>
                     </div>
                   </button>
                 ))}
               </div>
             </div>
 
+            {/* Credit Quantity Selector — only shown when Buy Credits is selected */}
+            {selectedPackage.isCredits && (
+              <div>
+                <label className="block text-white font-bold mb-3">
+                  How many credits? <span className="text-gray-400 font-normal text-sm">(1–250)</span>
+                </label>
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => handleQtyChange(String(creditQty - 1))}
+                    className="w-12 h-12 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xl transition flex items-center justify-center"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    min={1}
+                    max={250}
+                    value={creditQty}
+                    onChange={(e) => handleQtyChange(e.target.value)}
+                    className="w-32 text-center bg-black/40 border border-white/10 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:border-[#c9a227] focus:ring-2 focus:ring-[#c9a227]/30 transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleQtyChange(String(creditQty + 1))}
+                    className="w-12 h-12 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xl transition flex items-center justify-center"
+                  >
+                    +
+                  </button>
+                  <span className="text-gray-300 text-sm">
+                    = <span className="text-[#c9a227] font-bold text-lg">${creditQty}.00</span>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Email Input */}
             <div>
               <label className="block text-white font-bold mb-3">Email Address</label>
               <input
@@ -257,11 +334,16 @@ function CheckoutContent() {
               />
             </div>
 
+            {/* Order Summary */}
             <div className="bg-black/40 border border-[#c9a227]/20 rounded-2xl p-6 space-y-4">
               <div className="space-y-3">
                 <div className="flex justify-between text-gray-300">
-                  <span className="font-medium">{selectedPackage.name} Plan</span>
-                  <span>${selectedPackage.price.toFixed(2)}</span>
+                  <span className="font-medium">
+                    {selectedPackage.isCredits
+                      ? `${creditQty} Credits`
+                      : `${selectedPackage.name} Plan`}
+                  </span>
+                  <span>${getPrice().toFixed(2)}</span>
                 </div>
                 {selectedPackage.type === 'subscription' && (
                   <div className="flex justify-between text-gray-400 text-sm">
@@ -269,15 +351,22 @@ function CheckoutContent() {
                     <span>Auto-renews</span>
                   </div>
                 )}
+                {selectedPackage.isCredits && (
+                  <div className="flex justify-between text-gray-400 text-sm">
+                    <span>{creditQty} credits @ $1.00 each</span>
+                    <span>Never expires</span>
+                  </div>
+                )}
               </div>
               <div className="border-t border-white/10 pt-4 flex justify-between items-center">
                 <span className="text-white font-bold">Total Due Today</span>
                 <span className="text-[#c9a227] font-bold text-2xl">
-                  ${selectedPackage.price.toFixed(2)}
+                  ${getPrice().toFixed(2)}
                 </span>
               </div>
             </div>
 
+            {/* CTA Button */}
             <button
               type="submit"
               disabled={loading}
@@ -286,6 +375,7 @@ function CheckoutContent() {
               {loading ? 'Processing...' : 'Continue to Payment'}
             </button>
 
+            {/* Trust Footer */}
             <div className="text-center space-y-3 pt-4 border-t border-white/10">
               <p className="text-gray-400 text-sm">
                 💳 Secure payment powered by <span className="font-semibold text-white">Square</span>
