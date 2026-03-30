@@ -102,6 +102,16 @@ export default function PropertyIdentifyPage() {
                   <p className="text-xs text-gray-400 mt-2">
                     Lat: {result.latitude.toFixed(6)} | Lng: {result.longitude.toFixed(6)}
                   </p>
+                  {result.accuracy && (
+                    <div className={`mt-3 p-2 rounded ${result.accuracy < 20 ? 'bg-green-900/30 border border-green-600/50' : result.accuracy < 50 ? 'bg-yellow-900/30 border border-yellow-600/50' : 'bg-orange-900/30 border border-orange-600/50'}`}>
+                      <p className={`text-xs font-bold ${result.accuracy < 20 ? 'text-green-300' : result.accuracy < 50 ? 'text-yellow-300' : 'text-orange-300'}`}>
+                        📍 GPS Accuracy: ±{Math.round(result.accuracy)} meters
+                      </p>
+                      <p className="text-xs text-gray-300 mt-1">
+                        {result.accuracy < 20 ? '✓ Excellent — likely exact property' : result.accuracy < 50 ? '⚠ Good — verify address is correct' : '⚠ Fair — may need adjustment in subdivision'}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

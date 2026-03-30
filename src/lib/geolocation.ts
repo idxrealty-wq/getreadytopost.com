@@ -4,6 +4,7 @@
 export interface GeolocationResult {
   latitude: number;
   longitude: number;
+  accuracy?: number;
   address?: string;
   city?: string;
   state?: string;
@@ -27,6 +28,7 @@ export async function requestUserLocation(): Promise<GeolocationResult> {
         resolve({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
         });
       },
       (error) => {
@@ -40,7 +42,7 @@ export async function requestUserLocation(): Promise<GeolocationResult> {
         }
         resolve({ latitude: 0, longitude: 0, error: errorMsg });
       },
-      { timeout: 10000, enableHighAccuracy: false }
+      { timeout: 20000, enableHighAccuracy: true, maximumAge: 0 }
     );
   });
 }
