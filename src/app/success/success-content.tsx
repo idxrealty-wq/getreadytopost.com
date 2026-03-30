@@ -14,8 +14,8 @@ interface TransactionData {
   userId?: string;
 }
 
-const MAX_RETRIES = 5;
-const RETRY_DELAY_MS = 3000;
+const MAX_RETRIES = 10;
+const RETRY_DELAY_MS = 5000;
 
 export default function SuccessContent() {
   const searchParams = useSearchParams();
@@ -50,11 +50,7 @@ export default function SuccessContent() {
         console.log(`[Success] Attempt ${attempt}/${MAX_RETRIES}`);
 
         const response = await fetch(
-          `/api/credits/validate-transaction?${params.toString()}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-          }
+          `/api/credits/validate-transaction?${params.toString()}`
         );
 
         const data = await response.json();
