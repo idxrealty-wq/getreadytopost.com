@@ -1,157 +1,283 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebaseAdmin';
-export async function GET(req: NextRequest) {
-  return POST(req);
+import { FieldValue } from 'firebase-admin/firestore';
+
+const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN;
+const SQUARE_ENV = process.env.SQUARE_ENV || 'production';
+const BASE_URL = SQUARE_ENV === 'sandbox'
+  ? 'https://connect.squareupsandbox.com'
+  : 'https://connect.squareup.com';
+
+const PACKAGE_MAP: Record<string, {
+  amount: number;
+  credits: number;
+  type: 'one-time' | 'subscription';
+  billingCycle: string | null;
+  propertyPullPrice: number;
+  vaultAccess: boolean;
+  workspaceAccess: boolean;
+}> = {
+  'credit':               { amount: 0,     credits: 0,   type: 'one-time',    billingCycle: null,          propertyPullPrice: 0,    vaultAccess: false, workspaceAccess: false },
+  'single':               { amount: 1999,  credits: 1,   type: 'one-time',    billingCycle: null,          propertyPullPrice: 0,    vaultAccess: false, workspaceAccess: false },
+  '5pack':                { amount: 8500,  credits: 5,   type: 'one-time',    billingCycle: null,          propertyPullPrice: 0,    vaultAccess: false, workspaceAccess: false },
+  'monthly':              { amount: 3000,  credits: 30,  type: 'subscription', billingCycle: 'monthly',    propertyPullPrice: 3.0,  vaultAccess: true,  workspaceAccess: true },
+  'semi-annual':          { amount: 49500, credits: 300, type: 'subscription', billingCycle: 'semi-annual', propertyPullPrice: 2.5,  vaultAccess: true,  workspaceAccess: true },
+  'annual':               { amount: 89900, credits: 450, type: 'subscription', billingCycle: 'annual',     propertyPullPrice: 1.75, vaultAccess: true,  workspaceAccess: true },
+  'elite-annual':         { amount: 99900, credits: 899, type: 'subscription', billingCycle: 'annual',     propertyPullPrice: 1.0,  vaultAccess: true,  workspaceAccess: true },
+  'vault-only':           { amount: 4995,  credits: 0,   type: 'subscription', billingCycle: 'annual',     propertyPullPrice: 0,    vaultAccess: true,  workspaceAccess: false },
+  'fsbo-launch':          { amount: 10000, credits: 100, type: 'one-time',    billingCycle: null,          propertyPullPrice: 3.0,  vaultAccess: true,  workspaceAccess: true },
+};
+
+function getRenewalDate(billingCycle: string): Date {
+  const d = new Date();
+  if (billingCycle === 'monthly') d.setMonth(d.getMonth() + 1);
+  else if (billingCycle === 'semi-annual') d.setMonth(d.getMonth() + 6);
+  else d.setFullYear(d.getFullYear() + 1);
+  return d;
 }
 
-export async function POST(req: NextRequest) {
+async function handleValidation(req: NextRequest) {
   try {
     const searchParams = new URL(req.url).searchParams;
-    let body: any = {};
-    try {
-      body = await req.json();
-    } catch {
-      body = {};
-    }
+    const squareOrderId = searchParams.get('orderId');
+    const passedUserId = searchParams.get('userId');
 
-    const squarePaymentId = searchParams.get('transactionId') || body.transactionId;
-    const squareOrderId = searchParams.get('orderId') || body.orderId;
-
-    if (!squarePaymentId && !squareOrderId) {
+    if (!squareOrderId) {
       return NextResponse.json(
-        { success: false, message: 'transactionId or orderId is required' },
+        { success: false, message: 'orderId is required' },
         { status: 400 }
       );
     }
 
-    console.log(`[Validate] Searching — squarePaymentId=${squarePaymentId} squareOrderId=${squareOrderId}`);
+    if (!SQUARE_ACCESS_TOKEN) {
+      return NextResponse.json(
+        { success: false, message: 'Server config error' },
+        { status: 500 }
+      );
+    }
 
     const adminDb = getAdminDb();
 
-    // ─── SEARCH 1: webhook_processed by squarePaymentId ──────────────────
-    // This is the fastest check — if webhook fired, this doc exists
-    if (squarePaymentId) {
-      const processedSnap = await adminDb
-        .collection('webhook_processed')
-        .doc(squarePaymentId)
+    // ─── CHECK 1: Already fulfilled by webhook? ─────────────────────────
+    const processedSnap = await adminDb
+      .collection('webhook_processed')
+      .where('squareOrderId', '==', squareOrderId)
+      .where('status', '==', 'completed')
+      .limit(1)
+      .get();
+
+    if (!processedSnap.empty) {
+      const processed = processedSnap.docs[0].data();
+      const userId = processed.userId;
+
+      // Fetch transaction details
+      const txSnap = await adminDb
+        .collection('users')
+        .doc(userId)
+        .collection('transactions')
+        .where('squareOrderId', '==', squareOrderId)
+        .limit(1)
         .get();
 
-      if (processedSnap.exists) {
-        const processed = processedSnap.data()!;
+      if (!txSnap.empty) {
+        const tx = txSnap.docs[0].data();
+        console.log(`[Validate] Already fulfilled by webhook — userId=${userId}`);
+        return NextResponse.json({
+          success: true,
+          transaction: {
+            squarePaymentId: tx.squarePaymentId || '',
+            squareOrderId,
+            amount: Math.round(tx.revenue * 100),
+            credits: tx.creditsAdded,
+            packageType: tx.packageType,
+            status: 'completed',
+            userId,
+            createdAt: tx.timestamp,
+          },
+        });
+      }
+    }
+    // ─── CHECK 2: Call Square directly for order details ───────────────
+    console.log(`[Validate] Fetching order from Square — orderId=${squareOrderId}`);
 
-        if (processed.status === 'completed' && processed.userId) {
-          console.log(`[Validate] Found in webhook_processed — userId=${processed.userId}`);
+    const orderResp = await fetch(`${BASE_URL}/v2/orders/${squareOrderId}`, {
+      headers: {
+        'Square-Version': '2024-01-18',
+        Authorization: `Bearer ${SQUARE_ACCESS_TOKEN}`,
+      },
+    });
 
-          // Fetch the actual transaction record for full details
-          const txSnap = await adminDb
-            .collection('users')
-            .doc(processed.userId)
-            .collection('transactions')
-            .where('squarePaymentId', '==', squarePaymentId)
-            .limit(1)
-            .get();
+    if (!orderResp.ok) {
+      const errText = await orderResp.text();
+      console.error('[Validate] Failed to fetch order from Square:', errText);
+      return NextResponse.json(
+        { success: false, message: 'Could not verify payment with Square' },
+        { status: 404 }
+      );
+    }
 
-          if (!txSnap.empty) {
-            const tx = txSnap.docs[0].data();
-            return NextResponse.json({
-              success: true,
-              transaction: {
-                squarePaymentId,
-                squareOrderId: tx.squareOrderId || squareOrderId,
-                amount: Math.round(tx.revenue * 100),
-                credits: tx.creditsAdded,
-                packageType: tx.packageType,
-                status: 'completed',
-                userId: processed.userId,
-                createdAt: tx.timestamp,
-              },
-            });
-          }
+    const orderData = await orderResp.json();
+    const order = orderData.order;
 
-          // webhook_processed exists but transaction not written yet — still processing
-          if (processed.status === 'processing') {
-            return NextResponse.json(
-              { success: false, message: 'Payment is being processed' },
-              { status: 404 }
-            );
-          }
-        }
+    if (!order) {
+      return NextResponse.json(
+        { success: false, message: 'Order not found in Square' },
+        { status: 404 }
+      );
+    }
 
-        if (processed.status === 'failed') {
-          return NextResponse.json(
-            { success: false, message: 'Payment processing failed. Please contact support.' },
-            { status: 404 }
-          );
-        }
+    // ─── Confirm order is paid ──────────────────────────────────────────
+    const orderState = order.state;
+    if (orderState !== 'COMPLETED') {
+      console.log(`[Validate] Order not completed yet — state=${orderState}`);
+      return NextResponse.json(
+        { success: false, message: `Payment not completed yet (${orderState})` },
+        { status: 404 }
+      );
+    }
+
+    // ─── Extract order details ──────────────────────────────────────────
+    const userId = order.reference_id || passedUserId;
+    const lineItem = order?.line_items?.[0];
+    const lineName = lineItem?.name || '';
+    const amountCents = lineItem?.base_price_money?.amount || 0;
+    const metadataPackageType = order?.metadata?.packageType || '';
+
+    console.log(`[Validate] Order COMPLETED — userId=${userId} package=${metadataPackageType} amount=${amountCents}`);
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: 'No userId on order' },
+        { status: 404 }
+      );
+    }
+
+    // ─── Resolve package type ───────────────────────────────────────────
+    let packageType = metadataPackageType.toLowerCase().trim();
+
+    // Handle dynamic credit purchases
+    let creditsToAdd = 0;
+    let resolvedAmount = amountCents;
+
+    if (packageType === 'credit') {
+      creditsToAdd = Math.round(amountCents / 100);
+    } else if (PACKAGE_MAP[packageType]) {
+      creditsToAdd = PACKAGE_MAP[packageType].credits;
+    } else {
+      // Fallback: resolve from line name
+      const normalized = lineName.toLowerCase().replace(/[\s\-_]+/g, '');
+      if (normalized.includes('eliteannual')) packageType = 'elite-annual';
+      else if (normalized.includes('fsbolaunch')) packageType = 'fsbo-launch';
+      else if (normalized.includes('vaultonly')) packageType = 'vault-only';
+      else if (normalized.includes('semiannual')) packageType = 'semi-annual';
+      else if (normalized.includes('monthly')) packageType = 'monthly';
+      else if (normalized.includes('annual')) packageType = 'annual';
+      else packageType = 'credit';
+
+      creditsToAdd = PACKAGE_MAP[packageType]?.credits || Math.round(amountCents / 100);
+    }
+
+    const pkg = PACKAGE_MAP[packageType];
+
+    // ─── IDEMPOTENCY: Don't double-fulfill ─────────────────────────────
+    const alreadyDone = await adminDb
+      .collection('webhook_processed')
+      .where('squareOrderId', '==', squareOrderId)
+      .limit(1)
+      .get();
+
+    if (!alreadyDone.empty) {
+      const done = alreadyDone.docs[0].data();
+      if (done.status === 'completed') {
+        console.log(`[Validate] Already fulfilled — skipping double write`);
+        return NextResponse.json({
+          success: true,
+          transaction: {
+            squarePaymentId: done.squarePaymentId || '',
+            squareOrderId,
+            amount: resolvedAmount,
+            credits: creditsToAdd,
+            packageType,
+            status: 'completed',
+            userId,
+          },
+        });
       }
     }
 
-    // ─── SEARCH 2: transactions by squarePaymentId ────────────────────────
-    if (squarePaymentId) {
-      const usersSnap = await adminDb.collection('users').get();
-      for (const userDoc of usersSnap.docs) {
-        const txSnap = await userDoc.ref
-          .collection('transactions')
-          .where('squarePaymentId', '==', squarePaymentId)
-          .limit(1)
-          .get();
+    // ─── FULFILL: Write credits to Firebase ────────────────────────────
+    const userRef = adminDb.collection('users').doc(userId);
 
-        if (!txSnap.empty) {
-          const tx = txSnap.docs[0].data();
-          console.log(`[Validate] Found by squarePaymentId — userId=${userDoc.id}`);
-          return NextResponse.json({
-            success: true,
-            transaction: {
-              squarePaymentId,
-              squareOrderId: tx.squareOrderId || squareOrderId,
-              amount: Math.round(tx.revenue * 100),
-              credits: tx.creditsAdded,
-              packageType: tx.packageType,
-              status: 'completed',
-              userId: userDoc.id,
-              createdAt: tx.timestamp,
-            },
-          });
-        }
-      }
+    if (creditsToAdd > 0) {
+      await userRef.collection('credits').doc('balance').set(
+        {
+          balance: FieldValue.increment(creditsToAdd),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
     }
 
-    // ─── SEARCH 3: transactions by squareOrderId ──────────────────────────
-    if (squareOrderId) {
-      const usersSnap = await adminDb.collection('users').get();
-      for (const userDoc of usersSnap.docs) {
-        const txSnap = await userDoc.ref
-          .collection('transactions')
-          .where('squareOrderId', '==', squareOrderId)
-          .limit(1)
-          .get();
-
-        if (!txSnap.empty) {
-          const tx = txSnap.docs[0].data();
-          console.log(`[Validate] Found by squareOrderId — userId=${userDoc.id}`);
-          return NextResponse.json({
-            success: true,
-            transaction: {
-              squarePaymentId: tx.squarePaymentId || squarePaymentId,
-              squareOrderId,
-              amount: Math.round(tx.revenue * 100),
-              credits: tx.creditsAdded,
-              packageType: tx.packageType,
-              status: 'completed',
-              userId: userDoc.id,
-              createdAt: tx.timestamp,
-            },
-          });
-        }
-      }
+    // ─── Write subscription if applicable ──────────────────────────────
+    if (pkg && pkg.type === 'subscription' && pkg.billingCycle) {
+      await userRef.set(
+        {
+          subscription: {
+            planId: packageType,
+            status: 'active',
+            creditsPerCycle: pkg.credits,
+            propertyPullPrice: pkg.propertyPullPrice,
+            vaultAccess: pkg.vaultAccess,
+            workspaceAccess: pkg.workspaceAccess,
+            billingCycle: pkg.billingCycle,
+            renewalDate: getRenewalDate(pkg.billingCycle),
+            lastPaymentDate: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+        },
+        { merge: true }
+      );
     }
 
-    // ─── NOT FOUND ────────────────────────────────────────────────────────
-    console.log(`[Validate] Not found — squarePaymentId=${squarePaymentId} squareOrderId=${squareOrderId}`);
-    return NextResponse.json(
-      { success: false, message: 'Transaction not found. Payment may still be processing.' },
-      { status: 404 }
-    );
+    // ─── Write transaction record ───────────────────────────────────────
+    await userRef.collection('transactions').add({
+      packageType,
+      creditsAdded: creditsToAdd,
+      revenue: resolvedAmount / 100,
+      squarePaymentId: '',
+      squareOrderId,
+      billingCycle: pkg?.billingCycle || null,
+      subscriptionApplied: pkg?.type === 'subscription',
+      source: 'validate-transaction',
+      status: 'completed',
+      timestamp: FieldValue.serverTimestamp(),
+    });
+
+    // ─── Mark as processed ─────────────────────────────────────────────
+    await adminDb.collection('webhook_processed').add({
+      squarePaymentId: '',
+      squareOrderId,
+      userId,
+      packageType,
+      creditsAdded: creditsToAdd,
+      status: 'completed',
+      processedAt: FieldValue.serverTimestamp(),
+    });
+
+    console.log(`[Validate] Fulfilled directly — ${packageType} ${creditsToAdd} credits for ${userId}`);
+
+    return NextResponse.json({
+      success: true,
+      transaction: {
+        squarePaymentId: '',
+        squareOrderId,
+        amount: resolvedAmount,
+        credits: creditsToAdd,
+        packageType,
+        status: 'completed',
+        userId,
+      },
+    });
 
   } catch (error) {
     console.error('[Validate] Error:', error);
@@ -160,4 +286,12 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+export async function GET(req: NextRequest) {
+  return handleValidation(req);
+}
+
+export async function POST(req: NextRequest) {
+  return handleValidation(req);
 }
