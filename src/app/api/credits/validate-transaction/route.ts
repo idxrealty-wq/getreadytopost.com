@@ -128,8 +128,13 @@ async function handleValidation(req: NextRequest) {
 
     // ─── Confirm order is paid ──────────────────────────────────────────
     const orderState = order.state;
-    if (orderState !== 'COMPLETED') {
-      console.log(`[Validate] Order not completed yet — state=${orderState}`);
+    const tenders = order.tenders || [];
+    const hasPaidTender = tenders.some(
+      (t: any) => t.type === 'CARD' && t.card_details?.status === 'CAPTURED'
+    );
+
+    if (orderState !== 'COMPLETED' && !hasPaidTender) {
+      console.log(`[Validate] Order not paid — state=${orderState} tenders=${tenders.length}`);
       return NextResponse.json(
         { success: false, message: `Payment not completed yet (${orderState})` },
         { status: 404 }
