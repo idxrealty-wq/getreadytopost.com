@@ -479,11 +479,6 @@ export default function HomePage() {
                     FAQ
                   </Link>
                 </li>
-                <li>
-                  <Link href="/blog" className="text-sm text-slate-400 hover:text-white">
-                    Blog
-                  </Link>
-                </li>
               </ul>
             </div>
             <div>
