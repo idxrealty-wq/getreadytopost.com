@@ -1,10 +1,13 @@
 ﻿"use client";
 import { CHARGEABLE_FIELDS, SECTIONS } from '@/lib/chargeableFields';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { getPropertyLocationFromGPS } from '@/lib/geolocation';
 const SchoolMap = dynamic(() => import('@/components/SchoolMap'), { ssr: false });
 
-export default function Tab1PropertyBasics({ data, setData, onNext, address }: any) {
+export default function Tab1PropertyBasics({ data, setData, onNext, address, setAddress }: any) {
+const [locating, setLocating] = useState(false);
+const [locationError, setLocationError] = useState('');
   useEffect(() => {
     if (!data.dateAdded) {
       const today = new Date().toISOString().split('T')[0];
@@ -14,6 +17,34 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
 
   const updateField = (field: string, value: string) => {
     setData((prev: any) => ({ ...prev, [field]: value }));
+  };
+  const handleUseCurrentLocation = async () => {
+    setLocating(true);
+    setLocationError('');
+
+    const result = await getPropertyLocationFromGPS();
+
+    if (result.error) {
+      setLocationError(result.error);
+      setLocating(false);
+      return;
+    }
+
+    // Update both address field and property data
+    if (setAddress) {
+      setAddress(result.address || '');
+    }
+
+    setData((prev: any) => ({
+      ...prev,
+      address: result.address || prev.address || '',
+      city: result.city || prev.city || '',
+      county: result.county || prev.county || '',
+      latitude: result.latitude,
+      longitude: result.longitude,
+    }));
+
+    setLocating(false);
   };
 
   const canProceed = address && data.taxId && data.yearBuilt;
@@ -45,7 +76,25 @@ export default function Tab1PropertyBasics({ data, setData, onNext, address }: a
   return (
     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
       <h2 className="text-2xl font-bold text-white mb-6">Property Basics</h2>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+
+      <div className="mb-6">
+        <button
+          type="button"
+          onClick={handleUseCurrentLocation}
+          disabled={locating}
+          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-3 rounded-xl font-bold transition"
+        >
+          {locating ? 'Getting Current Location...' : '📍 Use Current Location'}
+        </button>
+
+        {locationError && (
+          <div className="mt-3 text-sm text-red-300 font-bold">
+            {locationError}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
         <div className="flex items-center justify-between gap-4 mb-4">
           <h3 className="text-lg font-bold text-[#c9a227]">ATTOM Data Coverage (Chargeable Fields)</h3>
           <div className="text-xs text-gray-300">

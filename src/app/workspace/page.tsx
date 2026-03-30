@@ -1,6 +1,6 @@
 ﻿"use client";
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -16,8 +16,10 @@ import Tab5Save from './tabs/tab5';
 import Tab6ClosingCosts from './tabs/tab6';
 
 function WorkspaceContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
+
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -58,6 +60,27 @@ function WorkspaceContent() {
     return () => unsubscribe();
   }, []);
 
+  // Load property identify data from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('propertyIdentifyData');
+    if (stored) {
+      try {
+        const data = JSON.parse(stored);
+        setAddress(data.address || '');
+        setPropertyData((prev: any) => ({
+          ...prev,
+          city: data.city || '',
+          county: data.county || '',
+          latitude: data.latitude,
+          longitude: data.longitude,
+        }));
+        setSearchState(data.state || 'Florida');
+        localStorage.removeItem('propertyIdentifyData');
+      } catch (err) {
+        console.error('Failed to parse property identify data:', err);
+      }
+    }
+  }, []);
   // Auto-create draft for new listings
   useEffect(() => {
     if (!authLoading && user && !editId && !listingId) {
@@ -403,7 +426,12 @@ function WorkspaceContent() {
           />
         </div>
         <div className="flex justify-between items-center mb-4">
-          <div></div>
+          <button
+            onClick={() => router.push('/property-identify')}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition flex items-center gap-2"
+          >
+            📍 Identify Property
+          </button>
           <button
             onClick={() => { setSaveNowNonce(n => n + 1); setTimeout(() => window.open("/agent-vault", "_blank"), 600); }}
             className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition"
@@ -432,7 +460,7 @@ function WorkspaceContent() {
         {activeTab === 1 && (
           <>
             <CSVImport onImport={handleCSVImport} />
-            <Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} />
+            <Tab1PropertyBasics data={propertyData} setData={setPropertyData} onNext={() => setActiveTab(2)} address={address} setAddress={setAddress} />
           </>
         )}
         {activeTab === 2 && (
