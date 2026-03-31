@@ -59,6 +59,7 @@ export default function Tab5Save({
           aiListing: listing,
           checklistState,
           notes,
+          documents: existingDocuments || [],
           documentAccessCode,
           updatedAt: new Date().toISOString(),
         });

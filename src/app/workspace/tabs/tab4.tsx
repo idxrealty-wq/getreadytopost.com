@@ -255,8 +255,15 @@ export default function Tab4Checklist({
           required: DOCUMENT_SLOTS.find((d) => d.id === docId)?.required || false,
           sharedWithBuyer: false,
         };
-        await updateDoc(doc(db, "listings", listingId), { documents: arrayUnion(docMetaItem) });
-        if (setExistingDocuments) setExistingDocuments((prev: any[]) => [...prev, docMetaItem]);
+        const snap = await getDoc(doc(db, "listings", listingId));
+        if (snap.exists()) {
+          const allDocs = snap.data().documents || [];
+          const updated = allDocs.filter((d: any) => d.docId !== docId).concat([docMetaItem]);
+          await updateDoc(doc(db, "listings", listingId), { documents: updated });
+          if (setExistingDocuments) {
+            setExistingDocuments(updated);
+          }
+        }
       }
     } catch (e) {
       console.error("[Tab4] upload failed", e);
@@ -276,6 +283,9 @@ export default function Tab4Checklist({
         }
       }
       setUploads((prev) => ({ ...prev, [docId]: null }));
+      if (setExistingDocuments) {
+        setExistingDocuments((prev: any[]) => prev.filter((d: any) => d.docId !== docId));
+      }
     } catch (e) {
       console.error(e);
     } finally {
