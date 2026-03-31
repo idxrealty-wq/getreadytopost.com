@@ -1,7 +1,7 @@
 ﻿"use client";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { Listing } from '@/lib/listings';
@@ -117,6 +117,21 @@ function WorkspaceContent() {
       })();
     }
   }, [authLoading, user, editId, listingId]);
+  // Auto-update draft address whenever it changes
+  useEffect(() => {
+    if (listingId && address && !editId) {
+      (async () => {
+        try {
+          await updateDoc(doc(db, 'listings', listingId), {
+            address,
+            updatedAt: new Date().toISOString(),
+          });
+        } catch (err: any) {
+          console.error('Failed to update draft address:', err.message);
+        }
+      })();
+    }
+  }, [address, listingId, editId]);
 
   // Load listing for edit mode
   useEffect(() => {

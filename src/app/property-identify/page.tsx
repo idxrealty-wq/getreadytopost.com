@@ -49,6 +49,7 @@ export default function PropertyIdentifyPage() {
   const handleCancel = () => {
     setResult(null);
     setError('');
+    setLoading(false);
   };
 
   return (

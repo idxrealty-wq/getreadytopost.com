@@ -1,0 +1,10 @@
+$apiKey="937e0cd576871a7e60d2192f8adaeb2a"
+$headers=@{ apikey=$apiKey; Accept="application/json" }
+$url="https://api.developer.attomdata.com/propertyapi/v1.0.0/property/address?address=11924+Lane+Park+Rd&city=Tavares&state=FL&zip=32778"
+Invoke-RestMethod -Method Get -Uri $url -Headers $headers | ConvertTo-Json -Depth 3
+
+
+ $apiKey="937e0cd576871a7e60d2192f8adaeb2a"
+PS C:\Users\Christopher\getreadytopost.com> $headers=@{ apikey=$apiKey; Accept="application/json" }
+PS C:\Users\Christopher\getreadytopost.com> $url="https://api.developer.attomdata.com/propertyapi/v1.0.0/property/address?address=11924+Lane+Park+Rd&city=Tavares&state=FL&zip=32778"
+PS C:\Users\Christopher\getreadytopost.com> Invoke-RestMethod -Method Get -Uri $url -Headers $headers | ConvertTo-Json -Depth 3
