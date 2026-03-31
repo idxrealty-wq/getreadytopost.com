@@ -1,5 +1,4 @@
-﻿// src/lib/listings.ts
-import { collection, doc, setDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
+﻿import { collection, doc, setDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from './firebaseClient';
 
 export interface Listing {
@@ -111,7 +110,7 @@ export const saveListing = async (
   const listingId = `listing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const listingRef = doc(db, 'listings', listingId);
 
-  const listingData: Listing = {
+  const listingData: any = {
     id: listingId,
     userId,
     status: 'completed',
@@ -123,11 +122,14 @@ export const saveListing = async (
     notes,
     photos: photos || [],
     documents: documents || [],
-    googlePhoto,
     documentAccessCode: documentAccessCode || '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
+
+  if (googlePhoto) {
+    listingData.googlePhoto = googlePhoto;
+  }
 
   await setDoc(listingRef, listingData);
   return listingId;
