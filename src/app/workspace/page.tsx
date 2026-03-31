@@ -14,7 +14,7 @@ import Tab3Listing from './tabs/tab3';
 import Tab4Checklist from './tabs/tab4';
 import Tab5Save from './tabs/tab5';
 import Tab6ClosingCosts from './tabs/tab6';
-
+type Photo = { file: File; preview: string; date: string };
 function WorkspaceContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,7 +45,7 @@ function WorkspaceContent() {
   const [documentAccessCode, setDocumentAccessCode] = useState('');
   const [saved, setSaved] = useState(false);
   const [saveNowNonce, setSaveNowNonce] = useState(0);
-  const [photos, setPhotos] = useState<Record<string, { file: File; preview: string; date: string }[]>>({});
+  const [photos, setPhotos] = useState<Record<string, Photo[]>>({});
   const [existingPhotos, setExistingPhotos] = useState<Array<any>>([]);
   const [existingDocuments, setExistingDocuments] = useState<Array<any>>([]);
   const [listingId, setListingId] = useState<string | null>(null);
