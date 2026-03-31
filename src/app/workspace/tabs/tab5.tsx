@@ -49,7 +49,10 @@ export default function Tab5Save({ address, propertyData, nearby, listing, check
           nearby,
           listing,
           checklistState,
-          notes
+          notes,
+          Object.values(photos || {}).flat(),
+          existingDocuments,
+          documentAccessCode
         );
       }
       setSaved(true);
