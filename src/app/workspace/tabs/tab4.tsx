@@ -88,7 +88,6 @@ export default function Tab4Checklist({
   const [dragOverCategory, setDragOverCategory] = useState<string | null>(null);
   const [draggedPhoto, setDraggedPhoto] = useState<{ categoryId: string; index: number; isSaved: boolean } | null>(null);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-
   useEffect(() => {
     if (listingId) setShareUrl("https://getreadytopost.com/documents/view?id=" + listingId);
   }, [listingId]);
@@ -207,6 +206,8 @@ export default function Tab4Checklist({
       }
       const allDocs = snap.data().documents || [];
       const meta = docMeta[docId] || {};
+      const upload = uploads[docId] || {};
+      const slot = DOCUMENT_SLOTS.find((d) => d.id === docId);
       let found = false;
       const updated = allDocs.map((d: any) => {
         if (d.docId !== docId) return d;
@@ -219,13 +220,30 @@ export default function Tab4Checklist({
           sharedWithBuyer: meta.sharedWithBuyer === true,
         };
       });
-      if (!found) {
-        alert("Doc not found in Firestore. Total docs: " + allDocs.length);
-        return;
-      }
-      await updateDoc(listingRef, { documents: updated });
+      const finalDocs = found
+        ? updated
+        : [
+            ...allDocs,
+            {
+              docId,
+              label: slot?.label || docId,
+              required: !!slot?.required,
+              fileName: upload?.file?.name || "",
+              fileSize: upload?.file?.size || 0,
+              fileType: upload?.file?.type || "",
+              downloadURL: upload?.url || "",
+              storagePath: upload?.storagePath || "",
+              uploadedAt: new Date().toISOString(),
+              accessCode: meta.accessCode || "",
+              price: meta.price || "",
+              party: meta.party || "Buyer",
+              sharedWithBuyer: meta.sharedWithBuyer === true,
+            },
+          ];
+      await updateDoc(listingRef, { documents: finalDocs });
+      if (setExistingDocuments) setExistingDocuments(finalDocs);
       setDocMeta((prev) => ({ ...prev, [docId]: { ...prev[docId], codeSaved: true } }));
-      alert("Saved! sharedWithBuyer=" + (meta.sharedWithBuyer === true));
+      alert("Document settings saved.");
     } catch (e: any) {
       alert("Error: " + (e?.message || "unknown"));
     }
@@ -321,6 +339,7 @@ export default function Tab4Checklist({
       [categoryId]: (prev[categoryId] || []).filter((_: any, i: number) => i !== index),
     }));
   };
+
   const handleUnlockGooglePhoto = async () => {
     if (!listingId) {
       alert("No listing found yet.");
@@ -354,30 +373,24 @@ export default function Tab4Checklist({
 
   const handlePhotoUpload = async (categoryId: string, files: FileList | null) => {
     if (!files) return;
-
     const incomingFiles = Array.from(files).filter((file) => file.type.startsWith("image/"));
-
     if (incomingFiles.length === 0) {
       alert("Please upload image files only.");
       return;
     }
-
     if (remainingPhotoSlots <= 0) {
       alert(`Photo limit reached. You can only upload up to ${MAX_PHOTOS} photos total.`);
       return;
     }
-
     if (incomingFiles.length > remainingPhotoSlots) {
       alert(`You only have ${remainingPhotoSlots} photo slot${remainingPhotoSlots !== 1 ? "s" : ""} remaining.`);
       return;
     }
-
     const newPhotos = incomingFiles.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
       date: new Date().toLocaleString(),
     }));
-
     setPhotos((prev: any) => ({
       ...prev,
       [categoryId]: [...(prev[categoryId] || []), ...newPhotos],
@@ -391,204 +404,230 @@ export default function Tab4Checklist({
   }, {});
 
   const sharedCount = DOCUMENT_SLOTS.filter((slot) => docMeta[slot.id]?.sharedWithBuyer).length;
-
   return (
     <div className="space-y-8">
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-2">Buyer Document Share Link</h2>
-        <p className="text-gray-300 mb-6 text-sm">
-          Set an access code and choose which documents to share. Only documents marked "Include in share link" will be
-          visible to the buyer.{" "}
-          <span className="text-[#c9a227] font-semibold">
-            {sharedCount} document{sharedCount !== 1 ? "s" : ""} selected for sharing.
-          </span>
-        </p>
-
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <input
-            type="text"
-            value={documentAccessCode}
-            onChange={(e) => {
-              setDocumentAccessCode(e.target.value);
-              setCodeSaved(false);
-            }}
-            placeholder="Set access code (e.g. SMITH2024)"
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black"
-          />
-          <button
-            onClick={handleShareClick}
-            disabled={savingCode}
-            className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-3 rounded-xl font-bold transition disabled:opacity-50"
-          >
-            {savingCode ? "Saving..." : "Save & Generate Link"}
-          </button>
-        </div>
-
-        {codeSaved && shareUrl && (
-          <div className="bg-white/10 rounded-xl p-4 border border-white/20">
-            <p className="text-gray-300 text-sm mb-2">Share this link with your buyer:</p>
-            <div className="flex items-center gap-3">
-              <code className="text-[#c9a227] text-sm break-all flex-1">{shareUrl}</code>
+      {/* Share Access Code Panel */}
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-bold text-white mb-1">🔗 Buyer Document Access</h3>
+            <p className="text-gray-400 text-sm">
+              Set a master access code for this listing's documents. Share the link with your buyer.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+            <input
+              type="text"
+              placeholder="Access code (optional)"
+              value={documentAccessCode || ""}
+              onChange={(e) => setDocumentAccessCode(e.target.value)}
+              className="bg-white/10 border border-white/20 text-white placeholder-gray-400 rounded-lg px-3 py-2 text-sm w-44 focus:outline-none focus:border-yellow-400"
+            />
+            <button
+              onClick={handleShareClick}
+              disabled={savingCode}
+              className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-2 rounded-lg font-bold text-sm transition disabled:opacity-50"
+            >
+              {savingCode ? "Saving..." : codeSaved ? "✅ Saved" : "Save & Share"}
+            </button>
+            {shareUrl && (
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(shareUrl);
                   setCodeCopied(true);
+                  setTimeout(() => setCodeCopied(false), 2000);
                 }}
-                className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-semibold transition whitespace-nowrap"
+                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-bold text-sm transition border border-white/20"
               >
-                {codeCopied ? "Copied!" : "Copy Link"}
+                {codeCopied ? "✅ Copied!" : "📋 Copy Link"}
+              </button>
+            )}
+          </div>
+        </div>
+        {shareUrl && (
+          <div className="mt-3 bg-white/5 rounded-lg px-4 py-2 text-xs text-gray-300 font-mono break-all">
+            {shareUrl}
+          </div>
+        )}
+        {showShareConfirm && (
+          <div className="mt-4 bg-yellow-900/40 border border-yellow-500/40 rounded-xl p-4">
+            <p className="text-yellow-200 text-sm mb-3">
+              ⚠️ No access code set. Documents will be accessible to anyone with the link. Continue?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setShowShareConfirm(false); handleSaveAccessCode(); }}
+                className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-bold"
+              >
+                Yes, Share Without Code
+              </button>
+              <button
+                onClick={() => setShowShareConfirm(false)}
+                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-bold"
+              >
+                Cancel
               </button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-2">Transaction Documents</h2>
-        <p className="text-gray-300 mb-6 text-sm">
-          Upload documents, set access codes, and choose which files are included in the buyer share link.
-        </p>
-
-        <div className="space-y-6">
-          {DOCUMENT_SLOTS.map((docSlot) => {
-            const upload = uploads[docSlot.id];
-            const hasDocument = !!upload?.file || !!upload?.url;
-            const meta = docMeta[docSlot.id] || {
-              price: "",
-              party: "Buyer",
-              accessCode: "",
-              codeSaved: false,
-              sharedWithBuyer: false,
-            };
-
+      {/* Documents Section */}
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-bold text-white">📄 Listing Documents</h3>
+          <span className="text-xs text-gray-400">{sharedCount} shared with buyer</span>
+        </div>
+        <div className="space-y-4">
+          {DOCUMENT_SLOTS.map((slot) => {
+            const upload = uploads[slot.id];
+            const meta = docMeta[slot.id] || {};
+            const isUploaded = !!(upload?.url);
+            const isUploading = upload?.uploading;
+            const isDeleting = deletingDoc === slot.id;
+            const isViewing = viewingDoc === slot.id;
             return (
-              <div key={docSlot.id} className="bg-white/5 rounded-xl p-5 border border-white/20">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
-                  <div>
-                    <h3 className="text-white font-bold">
-                      {docSlot.label}
-                      {docSlot.required && <span className="text-red-400 text-xs ml-2">Required</span>}
-                    </h3>
-
-                    {hasDocument ? (
-                      <p className="text-sm text-green-400 mt-1">
-                        {upload?.uploading
-                          ? "Uploading..."
-                          : `${upload?.file?.name || "Document uploaded"}${upload?.date ? ` — uploaded ${upload.date}` : ""}`}
-                      </p>
+              <div key={slot.id} className="bg-white/5 rounded-xl border border-white/10 p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{isUploaded ? "📄" : "📭"}</span>
+                    <div>
+                      <p className="text-white font-bold text-sm">{slot.label}</p>
+                      {slot.required && (
+                        <span className="text-xs text-red-400 font-semibold">Required</span>
+                      )}
+                      {upload?.file && (
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {upload.file.name} · {upload.date}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {!isUploaded ? (
+                      <>
+                        <label className="cursor-pointer bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition border border-white/20">
+                          {isUploading ? "Uploading..." : "📎 Upload"}
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            onChange={(e) => handleFileUpload(slot.id, e.target.files?.[0] || null)}
+                            disabled={isUploading}
+                          />
+                        </label>
+                      </>
                     ) : (
-                      <p className="text-sm text-gray-400 mt-1">No file uploaded yet.</p>
+                      <>
+                        <button
+                          onClick={() => handleViewClick(slot.id)}
+                          className="bg-blue-600/80 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition"
+                        >
+                          👁 View
+                        </button>
+                        <a
+                          href={upload.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition border border-white/20"
+                        >
+                          ⬇ Download
+                        </a>
+                        <button
+                          onClick={() => handleDeleteDoc(slot.id)}
+                          disabled={isDeleting}
+                          className="bg-red-900/60 hover:bg-red-800 text-red-200 px-3 py-1.5 rounded-lg text-xs font-bold transition disabled:opacity-50"
+                        >
+                          {isDeleting ? "Deleting..." : "🗑 Delete"}
+                        </button>
+                      </>
                     )}
                   </div>
+                </div>
 
-                  {hasDocument && (
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleViewClick(docSlot.id)}
-                        className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition"
-                      >
-                        View Document
-                      </button>
+                {/* Document Settings */}
+                <div className="mt-3 pt-3 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">Price / Cost</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. $350"
+                      value={meta.price || ""}
+                      onChange={(e) =>
+                        setDocMeta((prev) => ({ ...prev, [slot.id]: { ...prev[slot.id], price: e.target.value } }))
+                      }
+                      className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-yellow-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">Paid By</label>
+                    <select
+                      value={meta.party || "Buyer"}
+                      onChange={(e) =>
+                        setDocMeta((prev) => ({ ...prev, [slot.id]: { ...prev[slot.id], party: e.target.value } }))
+                      }
+                      className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-yellow-400"
+                    >
+                      <option value="Buyer">Buyer</option>
+                      <option value="Seller">Seller</option>
+                      <option value="Split">Split</option>
+                      <option value="N/A">N/A</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">Doc Access Code</label>
+                    <input
+                      type="text"
+                      placeholder="Optional per-doc code"
+                      value={meta.accessCode || ""}
+                      onChange={(e) =>
+                        setDocMeta((prev) => ({ ...prev, [slot.id]: { ...prev[slot.id], accessCode: e.target.value, codeSaved: false } }))
+                      }
+                      className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-yellow-400"
+                    />
+                  </div>
+                </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteDoc(docSlot.id)}
-                        disabled={deletingDoc === docSlot.id}
-                        className="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition disabled:opacity-50"
-                      >
-                        {deletingDoc === docSlot.id ? "Deleting..." : "Delete Document"}
-                      </button>
-                    </div>
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={meta.sharedWithBuyer === true}
+                      onChange={(e) =>
+                        setDocMeta((prev) => ({
+                          ...prev,
+                          [slot.id]: { ...prev[slot.id], sharedWithBuyer: e.target.checked },
+                        }))
+                      }
+                      className="accent-yellow-400 w-4 h-4"
+                    />
+                    <span className="text-xs text-gray-300">Share with Buyer</span>
+                  </label>
+                  <button
+                    onClick={() => handleSaveDocMeta(slot.id)}
+                    className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-3 py-1.5 rounded-lg text-xs font-bold transition"
+                  >
+                    💾 Save Settings
+                  </button>
+                  {meta.codeSaved && (
+                    <span className="text-xs text-green-400">✅ Settings saved</span>
                   )}
                 </div>
 
-                <div className="mb-4">
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileUpload(docSlot.id, e.target.files?.[0] || null)}
-                    className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
-                  />
-                </div>
-
-                {hasDocument && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                    <div className="col-span-2">
-                      <label className="flex items-center gap-3 cursor-pointer bg-[#c9a227]/10 hover:bg-[#c9a227]/20 border border-[#c9a227]/40 p-3 rounded-xl transition">
-                        <input
-                          type="checkbox"
-                          checked={meta.sharedWithBuyer || false}
-                          onChange={(e) =>
-                            setDocMeta((prev: any) => ({
-                              ...prev,
-                              [docSlot.id]: {
-                                ...prev[docSlot.id],
-                                sharedWithBuyer: e.target.checked,
-                                codeSaved: false,
-                              },
-                            }))
-                          }
-                          className="w-5 h-5 accent-[#c9a227]"
-                        />
-                        <span className="text-white font-semibold text-sm">Include in buyer share link</span>
-                        {meta.sharedWithBuyer && (
-                          <span className="ml-auto text-[#c9a227] text-xs font-bold">WILL BE SHARED</span>
-                        )}
-                      </label>
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">Access Code (optional)</label>
-                      <input
-                        type="text"
-                        value={meta.accessCode || ""}
-                        onChange={(e) =>
-                          setDocMeta((prev: any) => ({
-                            ...prev,
-                            [docSlot.id]: {
-                              ...prev[docSlot.id],
-                              accessCode: e.target.value,
-                              codeSaved: false,
-                            },
-                          }))
-                        }
-                        placeholder="e.g. SMITH2024"
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">Visible To</label>
-                      <select
-                        value={meta.party || "Buyer"}
-                        onChange={(e) =>
-                          setDocMeta((prev: any) => ({
-                            ...prev,
-                            [docSlot.id]: {
-                              ...prev[docSlot.id],
-                              party: e.target.value,
-                              codeSaved: false,
-                            },
-                          }))
-                        }
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black text-sm"
-                      >
-                        <option>Buyer</option>
-                        <option>Seller</option>
-                        <option>Both</option>
-                        <option>Agent Only</option>
-                      </select>
-                    </div>
-
-                    <div className="col-span-2">
-                      <button
-                        type="button"
-                        onClick={() => handleSaveDocMeta(docSlot.id)}
-                        className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-5 py-2 rounded-lg text-sm font-bold transition"
-                      >
-                        {meta.codeSaved ? "Saved!" : "Save Settings"}
-                      </button>
-                    </div>
+                {/* Inline doc viewer */}
+                {isViewing && upload?.url && (
+                  <div className="mt-4 rounded-xl overflow-hidden border border-white/20">
+                    {upload.file?.type?.includes("pdf") || upload.url?.includes(".pdf") ? (
+                      <iframe src={upload.url} className="w-full h-96" title={slot.label} />
+                    ) : (
+                      <img src={upload.url} alt={slot.label} className="w-full max-h-96 object-contain bg-black" />
+                    )}
+                    <button
+                      onClick={() => setViewingDoc(null)}
+                      className="w-full bg-white/10 hover:bg-white/20 text-white py-2 text-xs font-bold"
+                    >
+                      Close Preview
+                    </button>
                   </div>
                 )}
               </div>
@@ -597,209 +636,210 @@ export default function Tab4Checklist({
         </div>
       </div>
 
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-4">Property Photos</h2>
-        <p className="text-gray-300 mb-6">Upload photos organized by category. Total: {totalPhotos}/20</p>
-
-        <div className="bg-gradient-to-r from-blue-900/30 to-blue-800/30 rounded-xl p-6 border border-blue-500/40 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-white font-bold text-lg">Front Property Photo</h3>
-              <p className="text-gray-300 text-sm mt-1">Professional Street View photo of your property</p>
-            </div>
-            {googlePhoto && (
-              <span className="bg-green-600/30 text-green-300 px-3 py-1 rounded-lg text-xs font-bold border border-green-500/40">
-                UNLOCKED
-              </span>
-            )}
-          </div>
-
-          {googlePhoto ? (
-            <div className="space-y-3">
-              <img
-                src={googlePhoto.downloadURL}
-                alt="Property front photo"
-                className="w-full h-auto max-h-[400px] object-contain rounded-lg border border-blue-500/40 bg-black/20"
-              />
-              <div className="flex items-center justify-between mt-2">
-                <div className="text-xs text-gray-400 space-y-1">
-                  <p>Source: {googlePhoto.source === "streetview" ? "Google Street View" : "Aerial"}</p>
-                  <p>Unlocked: {new Date(googlePhoto.unlockedAt).toLocaleString()}</p>
-                </div>
-                <div className="flex gap-2">
-                  <a
-                    href={googlePhoto.downloadURL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition"
-                  >
-                    View Full Size
-                  </a>
-                  <button
-                    onClick={() => {
-                      const link = document.createElement("a");
-                      link.href = googlePhoto.downloadURL;
-                      link.download = "property-front-photo.jpg";
-                      link.target = "_blank";
-                      link.click();
-                    }}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition"
-                  >
-                    Download
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (!listingId) {
-                        alert("Save the listing first.");
-                        return;
-                      }
-                      const alreadySaved = savedPhotos.some(
-                        (p) => p.downloadURL === googlePhoto.downloadURL && p.categoryId === "exterior"
-                      );
-                      if (alreadySaved) {
-                        alert("This photo is already saved to Exterior Photos.");
-                        return;
-                      }
-                      try {
-                        const photoEntry = {
-                          categoryId: "exterior",
-                          fileName: "front-property-photo.jpg",
-                          downloadURL: googlePhoto.downloadURL,
-                          storagePath: googlePhoto.storagePath || "",
-                          uploadedAt: new Date().toISOString(),
-                          source: "google-streetview",
-                          isPrimary: true,
-                        };
-                        await updateDoc(doc(db, "listings", listingId), {
-                          photos: arrayUnion(photoEntry),
-                        });
-                        setSavedPhotos((prev) => [...prev, photoEntry]);
-                        alert("Saved as primary Exterior Photo!");
-                      } catch (e: any) {
-                        alert("Failed to save: " + (e?.message || "unknown error"));
-                      }
-                    }}
-                    className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-2 rounded-lg text-xs font-bold transition"
-                  >
-                    Save to Exterior Photos
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (!listingId) return;
-                      if (!window.confirm("Delete this photo and try a new fetch? This will use 1 credit.")) return;
-                      try {
-                        await updateDoc(doc(db, "listings", listingId), { googlePhoto: null });
-                        setGooglePhoto(null);
-                      } catch (e: any) {
-                        alert("Failed to delete: " + (e?.message || "unknown error"));
-                      }
-                    }}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition"
-                  >
-                    Re-fetch Photo
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-gray-300 text-sm">
-                Unlock a professional front photo of your property using credits or payment.
-              </p>
+      {/* View Code Modal */}
+      {viewCodePending && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+          <div className="bg-[#1a2b4a] border border-white/20 rounded-2xl p-8 w-full max-w-sm shadow-2xl">
+            <h3 className="text-white font-bold text-lg mb-2">🔒 Enter Access Code</h3>
+            <p className="text-gray-400 text-sm mb-4">This document is protected. Enter the access code to view it.</p>
+            <input
+              type="password"
+              className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-4 py-3 mb-3 focus:outline-none focus:border-yellow-400 text-center text-xl tracking-widest"
+              placeholder="••••••••"
+              value={viewCodeInput}
+              onChange={(e) => { setViewCodeInput(e.target.value); setViewCodeError(false); }}
+              autoFocus
+            />
+            {viewCodeError && <p className="text-red-400 text-sm text-center mb-3">Incorrect code. Try again.</p>}
+            <div className="flex gap-3">
               <button
-                onClick={handleUnlockGooglePhoto}
-                disabled={googlePhotoLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 rounded-lg transition"
+                onClick={() => { setViewCodePending(null); setViewCodeInput(""); setViewCodeError(false); }}
+                className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 rounded-lg font-bold text-sm"
               >
-                {googlePhotoLoading ? "Fetching Photo..." : "Unlock Photo ($1 or 1 Credit)"}
+                Cancel
               </button>
-              {googlePhotoError && <p className="text-red-400 text-sm">{googlePhotoError}</p>}
+              <button
+                onClick={handleViewCodeSubmit}
+                className="flex-1 bg-[#c9a227] hover:bg-[#b8911f] text-white py-2 rounded-lg font-bold text-sm"
+              >
+                Unlock
+              </button>
             </div>
-          )}
+          </div>
+        </div>
+      )}
+      {/* Google Street View Photo */}
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-white">🗺️ Google Street View Photo</h3>
+        </div>
+        {googlePhoto ? (
+          <div className="rounded-xl overflow-hidden border border-white/20">
+            <img src={googlePhoto.url} alt="Street View" className="w-full max-h-64 object-cover" />
+            <p className="text-xs text-gray-400 text-center py-2">{googlePhoto.attribution || "Google Street View"}</p>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-400 text-sm mb-4">
+              Unlock a Google Street View photo for this property address.
+            </p>
+            {googlePhotoError && (
+              <p className="text-red-400 text-xs mb-3">{googlePhotoError}</p>
+            )}
+            <button
+              onClick={handleUnlockGooglePhoto}
+              disabled={googlePhotoLoading || !listingId}
+              className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-6 py-2 rounded-lg font-bold text-sm transition disabled:opacity-50"
+            >
+              {googlePhotoLoading ? "Fetching..." : "🔓 Unlock Street View Photo"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Photo Upload Section */}
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-white">📸 Listing Photos</h3>
+          <span className="text-xs text-gray-400">
+            {totalPhotos}/{MAX_PHOTOS} photos uploaded
+          </span>
         </div>
 
-        <div className="space-y-6">
-          {PHOTO_CATEGORIES.map((cat) => (
-            <div key={cat.id} className="bg-white/5 rounded-xl p-4 border border-white/20">
-              <h3 className="text-white font-bold mb-3">{cat.label}</h3>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={(e) => handlePhotoUpload(cat.id, e.target.files)}
-                className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer mb-3"
-              />
-              {(() => {
-                const catSaved = savedPhotos.filter((p) => p.categoryId === cat.id);
-                const catLocal = photos[cat.id] || [];
-                const allPhotos = [
-                  ...catSaved.map((p: any) => ({
-                    src: p.downloadURL,
-                    date: p.uploadedAt ? new Date(p.uploadedAt).toLocaleString() : "",
-                    isSaved: true,
-                    photo: p,
-                  })),
-                  ...catLocal.map((p: any, i: number) => ({
-                    src: p.preview,
-                    date: p.date,
-                    isSaved: false,
-                    localIndex: i,
-                  })),
-                ];
-                if (allPhotos.length === 0) return null;
-                return (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {allPhotos.map((item: any, i: number) => (
-                      <div key={i} className="relative group">
-                        <img src={item.src} alt={cat.label} className="w-full h-32 object-cover rounded-lg" />
-                        <div className="flex items-center justify-between mt-1">
-                          <p className="text-xs text-gray-400">{item.date}</p>
-                          {item.isSaved ? (
-                            <button
-                              onClick={() => handleDeleteSavedPhoto(item.photo)}
-                              className="text-xs text-red-400 hover:text-red-300 transition"
-                            >
-                              Delete
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleDeleteLocalPhoto(cat.id, item.localIndex)}
-                              className="text-xs text-red-400 hover:text-red-300 transition"
-                            >
-                              Remove
-                            </button>
-                          )}
+        {/* Saved Photos */}
+        {savedPhotos.length > 0 && (
+          <div className="mb-6">
+            <p className="text-sm text-gray-400 mb-3 font-semibold">Previously Saved Photos</p>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+              {savedPhotos.map((photo, i) => (
+                <div key={i} className="relative group rounded-lg overflow-hidden border border-white/10 aspect-square">
+                  <img src={photo.downloadURL} alt="" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                    <button
+                      onClick={() => handleDeleteSavedPhoto(photo)}
+                      className="text-red-400 hover:text-red-300 text-xs font-bold"
+                    >
+                      🗑 Delete
+                    </button>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-xs text-gray-300 px-1 py-0.5 truncate">
+                    {photo.category || "Photo"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Category Upload Zones */}
+        <div className="space-y-4">
+          {PHOTO_CATEGORIES.map((cat) => {
+            const catPhotos = photos?.[cat.id] || [];
+            const isDragOver = dragOverCategory === cat.id;
+            return (
+              <div
+                key={cat.id}
+                className={`rounded-xl border-2 border-dashed p-4 transition ${
+                  isDragOver ? "border-yellow-400 bg-yellow-400/10" : "border-white/20 bg-white/5"
+                }`}
+                onDragOver={(e) => { e.preventDefault(); setDragOverCategory(cat.id); }}
+                onDragLeave={() => setDragOverCategory(null)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOverCategory(null);
+                  handlePhotoUpload(cat.id, e.dataTransfer.files);
+                }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-white font-semibold text-sm">{cat.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400">{catPhotos.length} photo{catPhotos.length !== 1 ? "s" : ""}</span>
+                    <label className="cursor-pointer bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded-lg text-xs font-bold transition border border-white/20">
+                      + Add
+                      <input
+                        ref={(el) => { fileInputRefs.current[cat.id] = el; }}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handlePhotoUpload(cat.id, e.target.files)}
+                        disabled={remainingPhotoSlots <= 0}
+                      />
+                    </label>
+                  </div>
+                </div>
+                {catPhotos.length > 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                    {catPhotos.map((photo: any, i: number) => (
+                      <div
+                        key={i}
+                        draggable
+                        onDragStart={() => setDraggedPhoto({ categoryId: cat.id, index: i, isSaved: false })}
+                        onDragEnd={() => setDraggedPhoto(null)}
+                        className="relative group rounded-lg overflow-hidden border border-white/10 aspect-square cursor-grab"
+                      >
+                        <img src={photo.preview} alt="" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                          <button
+                            onClick={() => handleDeleteLocalPhoto(cat.id, i)}
+                            className="text-red-400 hover:text-red-300 text-xs font-bold"
+                          >
+                            🗑 Delete
+                          </button>
                         </div>
                       </div>
                     ))}
                   </div>
-                );
-              })()}
-            </div>
-          ))}
+                ) : (
+                  <p className="text-gray-500 text-xs text-center py-4">
+                    Drag & drop or click "+ Add" to upload {cat.label.toLowerCase()}
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
+
+        {remainingPhotoSlots <= 0 && (
+          <div className="mt-4 bg-yellow-900/40 border border-yellow-500/40 rounded-xl p-3 text-center">
+            <p className="text-yellow-200 text-sm">
+              📸 Photo limit reached ({MAX_PHOTOS} max). Delete a photo to add more.
+            </p>
+          </div>
+        )}
       </div>
 
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-4">Pre-Listing Checklist</h2>
-        <p className="text-gray-300 mb-6">Track your progress: {completedCount}/{totalCount} complete</p>
+      {/* Checklist Section */}
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-bold text-white">✅ Listing Checklist</h3>
+          <span className="text-sm text-gray-300">
+            {completedCount}/{totalCount} complete
+          </span>
+        </div>
+        <div className="w-full bg-white/10 rounded-full h-2 mb-6">
+          <div
+            className="bg-gradient-to-r from-emerald-500 to-green-400 h-2 rounded-full transition-all"
+            style={{ width: totalCount > 0 ? `${(completedCount / totalCount) * 100}%` : "0%" }}
+          />
+        </div>
         <div className="space-y-6">
           {Object.entries(groupedChecklist).map(([category, items]: [string, any]) => (
             <div key={category}>
-              <h3 className="text-lg font-bold text-[#c9a227] mb-3">{category}</h3>
+              <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">{category}</h4>
               <div className="space-y-2">
                 {items.map((item: any) => (
                   <label
                     key={item.id}
-                    className="flex items-center gap-3 cursor-pointer bg-white/5 hover:bg-white/10 p-3 rounded-lg border border-white/20 transition"
+                    className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer transition border border-white/10"
                   >
                     <input
                       type="checkbox"
-                      checked={checklistState[item.id] || false}
+                      checked={!!checklistState[item.id]}
                       onChange={() => toggleChecklist(item.id)}
-                      className="w-5 h-5 accent-[#c9a227]"
+                      className="accent-yellow-400 w-4 h-4 flex-shrink-0"
                     />
-                    <span className={"text-white " + (checklistState[item.id] ? "line-through opacity-60" : "")}>
+                    <span className={`text-sm ${checklistState[item.id] ? "text-green-400 line-through" : "text-white"}`}>
                       {item.label}
                     </span>
                   </label>
@@ -810,138 +850,29 @@ export default function Tab4Checklist({
         </div>
       </div>
 
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-4">Notes</h2>
+      {/* Notes Section */}
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+        <h3 className="text-lg font-bold text-white mb-4">📝 Agent Notes</h3>
         <textarea
-          value={notes}
+          value={notes || ""}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Add any notes, reminders, or special instructions..."
-          rows={6}
-          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none resize-none"
+          placeholder="Add private notes about this listing (visible only to you)..."
+          rows={5}
+          className="w-full bg-white/5 border border-white/20 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-yellow-400 resize-none"
         />
+        <p className="text-xs text-gray-500 mt-2">Notes are saved when you save the listing package.</p>
       </div>
 
-      {showShareConfirm && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-md p-8">
-            <h3 className="text-white font-bold text-xl mb-3 text-center">No Access Code Set</h3>
-            <p className="text-gray-400 text-sm mb-6 text-center">
-              This link is not password protected. Anyone with the link can view all shared documents. Do you want to
-              add an access code first?
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowShareConfirm(false)}
-                className="flex-1 bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-3 rounded-xl font-bold transition"
-              >
-                Add Code First
-              </button>
-              <button
-                onClick={async () => {
-                  setShowShareConfirm(false);
-                  await handleSaveAccessCode();
-                }}
-                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl font-bold transition"
-              >
-                Share Anyway
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {viewCodePending && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-md p-8">
-            <h3 className="text-white font-bold text-xl mb-4">Enter Access Code</h3>
-            <p className="text-gray-400 text-sm mb-4">This document is protected. Enter the access code to view.</p>
-            <input
-              type="text"
-              value={viewCodeInput}
-              onChange={(e) => {
-                setViewCodeInput(e.target.value);
-                setViewCodeError(false);
-              }}
-              placeholder="Enter access code"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-[#c9a227] focus:outline-none text-black mb-3"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleViewCodeSubmit();
-              }}
-            />
-            {viewCodeError && <p className="text-red-400 text-sm mb-3">Incorrect code. Try again.</p>}
-            <div className="flex gap-3">
-              <button
-                onClick={handleViewCodeSubmit}
-                className="flex-1 bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-3 rounded-xl font-bold transition"
-              >
-                Unlock
-              </button>
-              <button
-                onClick={() => {
-                  setViewCodePending(null);
-                  setViewCodeInput("");
-                  setViewCodeError(false);
-                }}
-                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl font-bold transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {viewingDoc && uploads[viewingDoc]?.url && (() => {
-        const url = String(uploads[viewingDoc]?.url || "");
-        const lower = url.toLowerCase();
-        const isPdf = lower.includes(".pdf");
-        const isImage = /\.(png|jpg|jpeg|webp|gif)$/i.test(lower);
-        const title = uploads[viewingDoc]?.file?.name || "Document";
-
-        return (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-4xl max-h-[90vh] overflow-auto">
-              <div className="sticky top-0 bg-gray-800 border-b border-white/20 p-4 flex justify-between items-center">
-                <h3 className="text-white font-bold">{title}</h3>
-                <button
-                  onClick={() => setViewingDoc(null)}
-                  className="text-gray-300 hover:text-white text-2xl font-bold"
-                >
-                  X
-                </button>
-              </div>
-              <div className="p-6">
-                {isPdf ? (
-                  <iframe src={url} className="w-full h-[600px] rounded-lg border border-white/10" title="PDF Viewer" />
-                ) : isImage ? (
-                  <img src={url} alt={title} className="max-w-full h-auto rounded-lg border border-white/10" />
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-gray-300 mb-4">Preview not available for this file type</p>
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
-                    >
-                      Download File
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
+      {/* Continue Button */}
       <div className="flex justify-end">
         <button
           onClick={onNext}
-          className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-8 py-3 rounded-xl font-bold transition"
+          className="bg-gradient-to-r from-[#c9a227] to-[#e6b830] hover:from-[#b8911f] hover:to-[#d4a72a] text-white px-10 py-3 rounded-xl font-bold text-base transition shadow-xl"
         >
-          Next: Save to Vault
+          Continue to Save →
         </button>
       </div>
     </div>
   );
 }
+
