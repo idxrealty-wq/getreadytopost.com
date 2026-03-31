@@ -71,9 +71,6 @@ export default function Tab4Checklist({
     return defaults;
   });
   const [savedPhotos, setSavedPhotos] = useState<any[]>([]);
-  const [googlePhoto, setGooglePhoto] = useState<any>(null);
-  const [googlePhotoLoading, setGooglePhotoLoading] = useState(false);
-  const [googlePhotoError, setGooglePhotoError] = useState("");
   const [deletingDoc, setDeletingDoc] = useState<string | null>(null);
   const [viewingDoc, setViewingDoc] = useState<string | null>(null);
   const [viewCodeInput, setViewCodeInput] = useState("");
@@ -119,22 +116,6 @@ export default function Tab4Checklist({
   useEffect(() => {
     if (existingPhotos && existingPhotos.length > 0) setSavedPhotos(existingPhotos);
   }, [existingPhotos]);
-
-  useEffect(() => {
-    if (!listingId) return;
-    const loadGooglePhoto = async () => {
-      try {
-        const snap = await getDoc(doc(db, "listings", listingId));
-        if (snap.exists()) {
-          const data = snap.data() as any;
-          if (data.googlePhoto) setGooglePhoto(data.googlePhoto);
-        }
-      } catch (e) {
-        console.error("[Tab4] failed loading google photo", e);
-      }
-    };
-    loadGooglePhoto();
-  }, [listingId]);
 
   const toggleChecklist = (id: string) =>
     setChecklistState((prev: any) => ({ ...prev, [id]: !prev[id] }));
@@ -318,30 +299,6 @@ export default function Tab4Checklist({
       ...prev,
       [categoryId]: (prev[categoryId] || []).filter((_: any, i: number) => i !== index),
     }));
-  };
-
-  const handleUnlockGooglePhoto = async () => {
-    if (!listingId) {
-      alert("No listing found yet.");
-      return;
-    }
-    setGooglePhotoLoading(true);
-    setGooglePhotoError("");
-    try {
-      const res = await fetch("/api/workspace/fetch-google-photo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ listingId, userId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Failed to fetch Google photo.");
-      if (data.googlePhoto) setGooglePhoto(data.googlePhoto);
-    } catch (e: any) {
-      console.error("[Tab4] google photo unlock failed", e);
-      setGooglePhotoError(e?.message || "Failed to unlock Google photo.");
-    } finally {
-      setGooglePhotoLoading(false);
-    }
   };
 
   const handlePhotoUpload = async (categoryId: string, files: FileList | null) => {
@@ -560,125 +517,7 @@ export default function Tab4Checklist({
         <h2 className="text-2xl font-bold text-white mb-4">Property Photos</h2>
         <p className="text-gray-300 mb-6">Upload photos organized by category. Total: {totalPhotos}/20</p>
 
-        <div className="bg-gradient-to-r from-blue-900/30 to-blue-800/30 rounded-xl p-6 border border-blue-500/40 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-white font-bold text-lg">Front Property Photo</h3>
-              <p className="text-gray-300 text-sm mt-1">Professional Street View photo of your property</p>
-            </div>
-
-            {googlePhoto && (
-              <span className="bg-green-600/30 text-green-300 px-3 py-1 rounded-lg text-xs font-bold border border-green-500/40">
-                UNLOCKED
-              </span>
-            )}
-          </div>
-
-          {googlePhoto ? (
-            <div className="space-y-3">
-              <img
-                src={googlePhoto.downloadURL}
-                alt="Property front photo"
-                className="w-full h-auto max-h-[400px] object-contain rounded-lg border border-blue-500/40 bg-black/20"
-              />
-              <div className="flex items-center justify-between mt-2">
-                <div className="text-xs text-gray-400 space-y-1">
-                  <p>Source: {googlePhoto.source === "streetview" ? "Google Street View" : "Aerial"}</p>
-                  <p>Unlocked: {new Date(googlePhoto.unlockedAt).toLocaleString()}</p>
-                </div>
-                <div className="flex gap-2">
-                  <a
-                    href={googlePhoto.downloadURL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition"
-                  >
-                    View Full Size
-                  </a>
-                  <button
-                    onClick={() => {
-                      const link = document.createElement("a");
-                      link.href = googlePhoto.downloadURL;
-                      link.download = "property-front-photo.jpg";
-                      link.target = "_blank";
-                      link.click();
-                    }}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition"
-                  >
-                    Download
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (!listingId) {
-                        alert("Save the listing first.");
-                        return;
-                      }
-                      const alreadySaved = savedPhotos.some(
-                        (p) => p.downloadURL === googlePhoto.downloadURL && p.categoryId === "exterior"
-                      );
-                      if (alreadySaved) {
-                        alert("This photo is already saved to Exterior Photos.");
-                        return;
-                      }
-                      try {
-                        const photoEntry = {
-                          categoryId: "exterior",
-                          fileName: "front-property-photo.jpg",
-                          downloadURL: googlePhoto.downloadURL,
-                          storagePath: googlePhoto.storagePath || "",
-                          uploadedAt: new Date().toISOString(),
-                          source: "google-streetview",
-                          isPrimary: true,
-                        };
-                        await updateDoc(doc(db, "listings", listingId), {
-                          photos: arrayUnion(photoEntry),
-                        });
-                        setSavedPhotos((prev) => [...prev, photoEntry]);
-                        alert("Saved as primary Exterior Photo!");
-                      } catch (e: any) {
-                        alert("Failed to save: " + (e?.message || "unknown error"));
-                      }
-                    }}
-                    className="bg-[#c9a227] hover:bg-[#b8911f] text-white px-4 py-2 rounded-lg text-xs font-bold transition"
-                  >
-                    Save to Exterior Photos
-                  </button>
-				                    <button
-                    onClick={async () => {
-                      if (!listingId) return;
-                      if (!window.confirm("Delete this photo and try a new fetch? This will use 1 credit.")) return;
-                      try {
-                        await updateDoc(doc(db, "listings", listingId), {
-                          googlePhoto: null,
-                        });
-                        setGooglePhoto(null);
-                      } catch (e: any) {
-                        alert("Failed to delete: " + (e?.message || "unknown error"));
-                      }
-                    }}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition"
-                  >
-                    Re-fetch Photo
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-gray-300 text-sm">
-                Unlock a professional front photo of your property using credits or payment.
-              </p>
-              <button
-                onClick={handleUnlockGooglePhoto}
-                disabled={googlePhotoLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 rounded-lg transition"
-              >
-                {googlePhotoLoading ? "Fetching Photo..." : "Unlock Photo ($1 or 1 Credit)"}
-              </button>
-              {googlePhotoError && <p className="text-red-400 text-sm">{googlePhotoError}</p>}
-            </div>
-          )}
-        </div>
+        
         <div className="space-y-6">
           {PHOTO_CATEGORIES.map((cat) => (
             <div key={cat.id} className="bg-white/5 rounded-xl p-4 border border-white/20">
