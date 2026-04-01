@@ -24,7 +24,8 @@
     "react-dom": "^18.2.0",
     "react-leaflet": "^4.2.1",
     "resend": "^6.9.2",
-    "square": "^44.0.0"
+    "square": "^44.0.0",
+    "twilio": "^5.13.1"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.9",
