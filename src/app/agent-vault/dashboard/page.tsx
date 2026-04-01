@@ -120,16 +120,7 @@ export default function VaultPage() {
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Agent Vault</h1>
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
             <p className="text-gray-300 flex-grow">Manage your listings and rewrite reports</p>
-                        {creditBalance !== null && (
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 w-full md:w-auto">
-                <p className="text-gray-300 text-sm mb-1">Credit Balance</p>
-                <div className="flex items-center justify-between gap-4">
-                  <p className="text-3xl font-bold text-[#c9a227]">{creditBalance}</p>
-                  <Link href="/checkout" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-4 py-2 rounded-lg font-bold text-sm transition">Buy More</Link>
-                </div>
-              </div>
-            )}
-            <Link
+                                    <Link
               href="/maps/my-map"
               className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-[#c9a227]/50 text-white px-5 py-4 rounded-xl font-semibold text-sm transition w-full md:w-auto justify-center"
             >
@@ -138,7 +129,15 @@ export default function VaultPage() {
               </svg>
               View My Property Map
             </Link>
-
+            {creditBalance !== null && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 w-full md:w-auto">
+                <p className="text-gray-300 text-sm mb-1">Credit Balance</p>
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-3xl font-bold text-[#c9a227]">{creditBalance}</p>
+                  <Link href="/checkout" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-4 py-2 rounded-lg font-bold text-sm transition">Buy More</Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         {error && (
