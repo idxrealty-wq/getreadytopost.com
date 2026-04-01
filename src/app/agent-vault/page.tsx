@@ -178,11 +178,58 @@ export default function VaultPage() {
       setUpdatingStatus(null);
     }
   }
-1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-            </svg>
-            Property Map
-          </Link>
+
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0d1f3c] to-[#0a1628] py-12 px-4">
+      <div className="max-w-6xl mx-auto">
+
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Agent Vault</h1>
+            <p className="text-gray-400 mt-1">Manage your listings, reports, and closing cost estimates.</p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            {creditBalance !== null && (
+              <div className="bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-sm text-white">
+                <span className="text-gray-400">Credits: </span>
+                <span className="font-bold text-[#c9a227]">{creditBalance}</span>
+              </div>
+            )}
+            <Link
+              href="/maps/my-map"
+              className="flex items-center gap-2 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 px-4 py-2 rounded-xl text-sm font-bold transition border border-blue-500/40"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              Property Map
+            </Link>
+          </div>
         </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6 border-b border-white/10 pb-2">
+          <button
+            onClick={() => setTab("listings")}
+            className={`px-4 py-2 rounded-t-lg text-sm font-bold transition ${tab === "listings" ? "bg-[#c9a227] text-white" : "text-gray-400 hover:text-white"}`}
+          >
+            My Listings
+          </button>
+          <button
+            onClick={() => setTab("reports")}
+            className={`px-4 py-2 rounded-t-lg text-sm font-bold transition ${tab === "reports" ? "bg-[#c9a227] text-white" : "text-gray-400 hover:text-white"}`}
+          >
+            My Reports
+          </button>
+          <button
+            onClick={() => { setTab("closing"); loadClosingEstimates(); }}
+            className={`px-4 py-2 rounded-t-lg text-sm font-bold transition ${tab === "closing" ? "bg-[#c9a227] text-white" : "text-gray-400 hover:text-white"}`}
+          >
+            Closing Costs
+          </button>
+        </div>
+
 
         {tab === "listings" && (
           <>
