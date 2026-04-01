@@ -67,7 +67,7 @@ export default function Tab4Checklist({
   const [docMeta, setDocMeta] = useState<Record<string, any>>(() => {
     const defaults: Record<string, any> = {};
     DOCUMENT_SLOTS.forEach((d) => {
-      defaults[d.id] = { price: "", party: "Buyer", accessCode: "", codeSaved: false, sharedWithBuyer: false };
+      defaults[d.id] = { price: "", party: (d as any).defaultParty || "Buyer", accessCode: "", codeSaved: false, sharedWithBuyer: false };
     });
     return defaults;
   });
