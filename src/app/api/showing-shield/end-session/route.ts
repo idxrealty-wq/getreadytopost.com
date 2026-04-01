@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateSession, getSessionById } from '@/lib/showingShield';
+import { getAdminDb } from '@/lib/firebaseAdmin';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,12 +9,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'sessionId required' }, { status: 400 });
     }
 
-    const session = await getSessionById(sessionId);
-    if (!session) {
+    const db = getAdminDb();
+    const ref = db.collection('showingSessions').doc(sessionId);
+    const snap = await ref.get();
+
+    if (!snap.exists) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    await updateSession(sessionId, {
+    await ref.update({
       status: 'completed',
       completedAt: new Date().toISOString(),
     });
@@ -25,3 +28,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message || 'Failed to end session' }, { status: 500 });
   }
 }
+

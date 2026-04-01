@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import twilio from 'twilio';
-import { updateSession, getSessionById } from '@/lib/showingShield';
+import { getAdminDb } from '@/lib/firebaseAdmin';
 
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID!,
@@ -15,11 +15,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'sessionId required' }, { status: 400 });
     }
 
-    const session = await getSessionById(sessionId);
-    if (!session) {
+    const db = getAdminDb();
+    const ref = db.collection('showingSessions').doc(sessionId);
+    const snap = await ref.get();
+
+    if (!snap.exists) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
+    const session = snap.data()!;
     const now = new Date().toISOString();
     const mapsLink = location
       ? `https://maps.google.com/?q=${location.lat},${location.lng}`
@@ -39,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     const smsSent: string[] = [];
 
-    for (const contact of session.emergencyContacts) {
+    for (const contact of session.emergencyContacts || []) {
       if (contact.phone) {
         try {
           await client.messages.create({
@@ -54,7 +58,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    await updateSession(sessionId, {
+    await ref.update({
       status: 'alert_triggered',
       panicTriggeredAt: now,
       alertsSent: smsSent,
