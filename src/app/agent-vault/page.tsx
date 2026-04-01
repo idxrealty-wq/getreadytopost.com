@@ -179,55 +179,108 @@ export default function VaultPage() {
     }
   }
 
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0d1f3c] to-[#0a1628] py-12 px-4">
-      <div className="max-w-6xl mx-auto">
+  if (authLoading || checkingAccess) {
+    return (
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center">
+        <p className="text-white text-lg">Loading...</p>
+      </main>
+    );
+  }
 
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Agent Vault</h1>
-            <p className="text-gray-400 mt-1">Manage your listings, reports, and closing cost estimates.</p>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            {creditBalance !== null && (
-              <div className="bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-sm text-white">
-                <span className="text-gray-400">Credits: </span>
-                <span className="font-bold text-[#c9a227]">{creditBalance}</span>
+  if (!user) {
+    return (
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-white mb-4">Sign in to access your vault</h1>
+          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">Back to Home</Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (!subscription?.vaultAccess) {
+    return (
+      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center">
+        <div className="max-w-2xl mx-auto px-6 text-center">
+          <h1 className="text-4xl font-bold text-white mb-4">Agent Vault Requires a Membership</h1>
+          <p className="text-gray-300 mb-8 text-lg">Unlock your Agent Vault with any membership plan to save listings, reports, and closing cost estimates.</p>
+          <Link href="/pricing" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">View All Plans</Link>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c]">
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Agent Vault</h1>
+          <p className="text-gray-300 mb-6">All your saved listings and reports</p>
+          {creditBalance !== null && (
+            <div className="inline-block bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+              <p className="text-gray-300 text-sm mb-1">Credit Balance</p>
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-3xl font-bold text-[#c9a227]">{creditBalance}</p>
+                <Link href="/checkout" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-4 py-2 rounded-lg font-bold text-sm transition">
+                  Buy More
+                </Link>
               </div>
-            )}
-            <Link
-              href="/maps/my-map"
-              className="flex items-center gap-2 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 px-4 py-2 rounded-xl text-sm font-bold transition border border-blue-500/40"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-              Property Map
-            </Link>
-          </div>
+            </div>
+          )}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-white/10 pb-2">
+        {error && (
+          <div className="mb-6 bg-red-500/20 border border-red-400/50 rounded-xl p-4 text-red-200">
+            {error}
+          </div>
+        )}
+
+        <div className="flex gap-4 mb-8 border-b border-white/20">
           <button
             onClick={() => setTab("listings")}
-            className={`px-4 py-2 rounded-t-lg text-sm font-bold transition ${tab === "listings" ? "bg-[#c9a227] text-white" : "text-gray-400 hover:text-white"}`}
+            className={
+              "px-6 py-3 font-bold transition " +
+              (tab === "listings"
+                ? "text-[#c9a227] border-b-2 border-[#c9a227]"
+                : "text-gray-400 hover:text-white")
+            }
           >
-            My Listings
+            Descriptions ({listings.length})
           </button>
           <button
             onClick={() => setTab("reports")}
-            className={`px-4 py-2 rounded-t-lg text-sm font-bold transition ${tab === "reports" ? "bg-[#c9a227] text-white" : "text-gray-400 hover:text-white"}`}
+            className={
+              "px-6 py-3 font-bold transition " +
+              (tab === "reports"
+                ? "text-[#c9a227] border-b-2 border-[#c9a227]"
+                : "text-gray-400 hover:text-white")
+            }
           >
-            My Reports
+            Rate My Listing Reports ({reports.length})
           </button>
           <button
-            onClick={() => { setTab("closing"); loadClosingEstimates(); }}
-            className={`px-4 py-2 rounded-t-lg text-sm font-bold transition ${tab === "closing" ? "bg-[#c9a227] text-white" : "text-gray-400 hover:text-white"}`}
+            onClick={() => {
+              setTab("closing");
+              loadClosingEstimates();
+            }}
+            className={
+              "px-6 py-3 font-bold transition " +
+              (tab === "closing"
+                ? "text-[#c9a227] border-b-2 border-[#c9a227]"
+                : "text-gray-400 hover:text-white")
+            }
           >
-            Closing Costs
+            Closing Costs ({closingEstimates.length})
           </button>
+          <Link
+            href="/maps/my-map"
+            className="ml-auto flex items-center gap-2 text-gray-400 hover:text-[#c9a227] px-6 py-3 font-bold transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Property Map
+          </Link>
         </div>
 
 
