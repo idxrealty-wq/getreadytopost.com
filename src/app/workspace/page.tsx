@@ -519,6 +519,7 @@ function WorkspaceContent() {
             existingPhotos={existingPhotos}
             documents={existingDocuments}
             existingDocuments={existingDocuments}
+            setExistingDocuments={setExistingDocuments}
             documentAccessCode={documentAccessCode}
             saveNowNonce={saveNowNonce}
           />

@@ -27,6 +27,7 @@ export default function Tab5Save({
   existingDocuments,
   saveNowNonce,
   documentAccessCode,
+  setExistingDocuments,
 }: any) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -63,6 +64,7 @@ export default function Tab5Save({
           documentAccessCode,
           updatedAt: new Date().toISOString(),
         });
+        if (setExistingDocuments) setExistingDocuments(existingDocuments || []);
       } else {
         const photoList: SavedPhotoInput[] = [];
 
