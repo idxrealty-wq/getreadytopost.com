@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { getUserListings, type Listing } from "@/lib/listings";
-import { doc, deleteDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, deleteDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
 
@@ -41,6 +41,13 @@ const gradeColor: Record<string, string> = {
   F: "bg-red-600",
 };
 
+const STATUS_OPTIONS = [
+  { value: "active", label: "Active", color: "text-green-400" },
+  { value: "pending", label: "Pending", color: "text-yellow-400" },
+  { value: "sold", label: "Sold", color: "text-red-400" },
+  { value: "poi", label: "Point of Interest", color: "text-purple-400" },
+];
+
 function formatDate(dateString: any) {
   if (!dateString || typeof dateString !== "string") return "Unknown date";
   return new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -50,6 +57,7 @@ function getRewriteWordCount(rewrite?: any) {
   if (!rewrite || typeof rewrite !== "string") return 0;
   return rewrite.trim().split(/\s+/).length;
 }
+
 export default function VaultPage() {
   const { user, loading: authLoading } = useUser();
   const [tab, setTab] = useState<"listings" | "reports" | "closing">("listings");
@@ -59,6 +67,7 @@ export default function VaultPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [subscription, setSubscription] = useState<UserSubscription | null>(null);
   const [checkingAccess, setCheckingAccess] = useState(true);
@@ -76,10 +85,7 @@ export default function VaultPage() {
   }, [user, authLoading]);
 
   async function checkVaultAccess() {
-    if (!user) {
-      setCheckingAccess(false);
-      return;
-    }
+    if (!user) { setCheckingAccess(false); return; }
     try {
       const res = await fetch(`/api/entitlements/check?userId=${user.uid}`);
       const data = await res.json();
@@ -148,8 +154,7 @@ export default function VaultPage() {
     if (!window.confirm('Delete "' + address + '"? This cannot be undone.')) return;
     setDeleting(listingId);
     try {
-      const listingRef = doc(db, "listings", listingId);
-      await deleteDoc(listingRef);
+      await deleteDoc(doc(db, "listings", listingId));
       setListings(listings.filter((l) => l.id !== listingId));
     } catch (err) {
       setError("Failed to delete listing");
@@ -158,129 +163,22 @@ export default function VaultPage() {
       setDeleting(null);
     }
   }
-  if (authLoading || checkingAccess) {
-    return (
-      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center">
-        <p className="text-white text-lg">Loading...</p>
-      </main>
-    );
+
+  async function handleStatusChange(listingId: string, newStatus: string) {
+    setUpdatingStatus(listingId);
+    try {
+      await updateDoc(doc(db, "listings", listingId), { listingStatus: newStatus });
+      setListings(listings.map((l) =>
+        l.id === listingId ? { ...l, listingStatus: newStatus } : l
+      ));
+    } catch (err) {
+      setError("Failed to update status");
+      console.error(err);
+    } finally {
+      setUpdatingStatus(null);
+    }
   }
-
-  if (!user) {
-    return (
-      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-white mb-4">Sign in to access your vault</h1>
-          <Link href="/" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">Back to Home</Link>
-        </div>
-      </main>
-    );
-  }
-
-  if (!subscription?.vaultAccess) {
-    return (
-      <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c] flex items-center justify-center">
-        <div className="max-w-2xl mx-auto px-6 text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Agent Vault Requires a Membership</h1>
-          <p className="text-gray-300 mb-8 text-lg">Unlock your Agent Vault with any membership plan to save listings, reports, and closing cost estimates.</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-              <h3 className="text-2xl font-bold text-[#c9a227] mb-3">Monthly</h3>
-              <p className="text-3xl font-bold text-white mb-1">$30</p>
-              <p className="text-gray-400 text-sm mb-6">/month</p>
-              <ul className="text-gray-300 text-sm space-y-2 mb-6">
-                <li>✓ Agent Vault Access</li>
-                <li>✓ 30 Credits</li>
-                <li>✓ Property Pulls @ $3</li>
-              </ul>
-              <a href="https://square.link/u/8XSx13eJ" className="w-full inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold transition">Get Started</a>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-[#c9a227]/50">
-              <h3 className="text-2xl font-bold text-[#c9a227] mb-3">Annual</h3>
-              <p className="text-3xl font-bold text-white mb-1">$899</p>
-              <p className="text-gray-400 text-sm mb-6">/year</p>
-              <ul className="text-gray-300 text-sm space-y-2 mb-6">
-                <li>✓ Agent Vault Access</li>
-                <li>✓ 450 Credits</li>
-                <li>✓ Property Pulls @ $1.75</li>
-              </ul>
-              <a href="https://square.link/u/z7zZwqR3" className="w-full inline-block bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-6 py-3 rounded-xl font-bold transition">Get Started</a>
-            </div>
-          </div>
-          <p className="text-gray-400 mb-6">Or upgrade your plan to unlock Vault access.</p>
-          <Link href="/pricing" className="text-[#c9a227] hover:text-[#e8c547] font-semibold">View All Plans</Link>
-        </div>
-      </main>
-    );
-  }
-  return (
-    <main className="pt-20 min-h-screen bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c]">
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Agent Vault</h1>
-          <p className="text-gray-300 mb-6">All your saved listings and reports</p>
-          {creditBalance !== null && (
-            <div className="inline-block bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <p className="text-gray-300 text-sm mb-1">Credit Balance</p>
-              <div className="flex items-center justify-between gap-4">
-                <p className="text-3xl font-bold text-[#c9a227]">{creditBalance}</p>
-                <Link href="/checkout" className="bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-4 py-2 rounded-lg font-bold text-sm transition">
-                  Buy More
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {error && (
-          <div className="mb-6 bg-red-500/20 border border-red-400/50 rounded-xl p-4 text-red-200">
-            {error}
-          </div>
-        )}
-
-        <div className="flex gap-4 mb-8 border-b border-white/20">
-          <button
-            onClick={() => setTab("listings")}
-            className={
-              "px-6 py-3 font-bold transition " +
-              (tab === "listings"
-                ? "text-[#c9a227] border-b-2 border-[#c9a227]"
-                : "text-gray-400 hover:text-white")
-            }
-          >
-            Descriptions ({listings.length})
-          </button>
-          <button
-            onClick={() => setTab("reports")}
-            className={
-              "px-6 py-3 font-bold transition " +
-              (tab === "reports"
-                ? "text-[#c9a227] border-b-2 border-[#c9a227]"
-                : "text-gray-400 hover:text-white")
-            }
-          >
-            Rate My Listing Reports ({reports.length})
-          </button>
-          <button
-            onClick={() => {
-              setTab("closing");
-              loadClosingEstimates();
-            }}
-            className={
-              "px-6 py-3 font-bold transition " +
-              (tab === "closing"
-                ? "text-[#c9a227] border-b-2 border-[#c9a227]"
-                : "text-gray-400 hover:text-white")
-            }
-          >
-            Closing Costs ({closingEstimates.length})
-          </button>
-          <Link
-            href="/maps/my-map"
-            className="ml-auto flex items-center gap-2 text-gray-400 hover:text-[#c9a227] px-6 py-3 font-bold transition"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
             </svg>
             Property Map
           </Link>
@@ -301,10 +199,7 @@ export default function VaultPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {listings.map((listing) => (
-                  <div
-                    key={listing.id}
-                    className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:border-[#c9a227]/50 transition flex flex-col"
-                  >
+                  <div key={listing.id} className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:border-[#c9a227]/50 transition flex flex-col">
                     {listing.photos && listing.photos.length > 0 && (
                       <img
                         src={listing.photos[0].downloadURL || listing.photos[0].url || ""}
@@ -319,6 +214,29 @@ export default function VaultPage() {
                       <p className="text-gray-400 text-xs mb-3">
                         Tax ID: {listing.propertyData?.taxId || "N/A"}
                       </p>
+
+                      {/* Status Dropdown */}
+                      <div className="mb-3">
+                        <label className="text-gray-400 text-xs mb-1 block">Map Status</label>
+                        <div className="relative">
+                          <select
+                            value={(listing as any).listingStatus || "active"}
+                            onChange={(e) => handleStatusChange(listing.id, e.target.value)}
+                            disabled={updatingStatus === listing.id}
+                            className="w-full bg-white/10 border border-white/20 text-white text-sm rounded-lg px-3 py-2 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#c9a227] disabled:opacity-50"
+                          >
+                            {STATUS_OPTIONS.map((opt) => (
+                              <option key={opt.value} value={opt.value} className="bg-[#1a2b4a] text-white">
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
+                            {updatingStatus === listing.id ? "..." : "▼"}
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-3 gap-2 mb-4 text-sm">
                         <div className="bg-white/5 rounded p-2">
                           <p className="text-gray-400 text-xs">Beds</p>
@@ -358,6 +276,7 @@ export default function VaultPage() {
             )}
           </>
         )}
+
         {tab === "reports" && (
           <>
             {reports.length === 0 ? (
