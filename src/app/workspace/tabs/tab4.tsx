@@ -566,12 +566,12 @@ export default function Tab4Checklist({
                       onChange={(e) =>
                         setDocMeta((prev) => ({ ...prev, [slot.id]: { ...prev[slot.id], party: e.target.value } }))
                       }
-                      className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-yellow-400"
+                      className="w-full bg-[#1a2b4a] border border-white/10 text-white rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-yellow-400"
                     >
-                      <option value="Buyer">Buyer</option>
-                      <option value="Seller">Seller</option>
-                      <option value="Split">Split</option>
-                      <option value="N/A">N/A</option>
+                      <option className="bg-[#1a2b4a] text-white" value="Buyer">Buyer</option>
+                      <option className="bg-[#1a2b4a] text-white" value="Seller">Seller</option>
+                      <option className="bg-[#1a2b4a] text-white" value="Split">Split</option>
+                      <option className="bg-[#1a2b4a] text-white" value="N/A">N/A</option>
                     </select>
                   </div>
                   <div>
