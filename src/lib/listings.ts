@@ -144,5 +144,5 @@ export const getUserListings = async (userId: string): Promise<Listing[]> => {
   );
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => doc.data() as Listing);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Listing));
 };
