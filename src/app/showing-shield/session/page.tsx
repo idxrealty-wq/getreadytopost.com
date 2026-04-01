@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { getSessionById, getSafetyProfile, ShowingSession } from '@/lib/showingShield';
+import { captureEvidence } from '@/lib/evidenceCapture';
 
 type LocationData = {
   lat: number;
@@ -44,12 +45,7 @@ async function getLocation(): Promise<LocationData | null> {
       async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
         const address = await reverseGeocode(lat, lng);
-        resolve({
-          lat,
-          lng,
-          address,
-          mapsLink: `https://maps.google.com/?q=${lat},${lng}`,
-        });
+        resolve({ lat, lng, address, mapsLink: `https://maps.google.com/?q=${lat},${lng}` });
       },
       () => resolve(null),
       { enableHighAccuracy: true, timeout: 10000 }
@@ -59,7 +55,11 @@ async function getLocation(): Promise<LocationData | null> {
 
 export default function SessionPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#08152b] flex items-center justify-center"><p className="text-white text-lg">Loading session...</p></div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#08152b] flex items-center justify-center">
+        <p className="text-white text-lg">Loading session...</p>
+      </div>
+    }>
       <SessionContent />
     </Suspense>
   );
@@ -75,10 +75,9 @@ function SessionContent() {
   const [panicPhrase, setPanicPhrase] = useState('');
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
   const [location, setLocation] = useState<LocationData | null>(null);
-  const [locating, setLocating] = useState(false);
   const [alertSent, setAlertSent] = useState(false);
+  const [autoAlertFired, setAutoAlertFired] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
   const [checkedIn, setCheckedIn] = useState(false);
   const [ending, setEnding] = useState(false);
@@ -91,8 +90,12 @@ function SessionContent() {
       time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
+
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const alertSentRef = useRef(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -105,13 +108,11 @@ function SessionContent() {
       ]);
       if (!s || s.agentId !== u.uid) { router.push('/showing-shield/dashboard'); return; }
       setSession(s);
-      setPanicPhrase((profile?.panicPhrase || 'I need to reschedule').toLowerCase().trim());
+      setPanicPhrase((profile?.panicPhrase || '').toLowerCase().trim());
       const startedMs = new Date(s.startedAt).getTime();
       const durationMs = s.scheduledDuration * 60 * 1000;
-      const elapsedMs = Date.now() - startedMs;
-      const remainingMs = durationMs - elapsedMs;
+      const remainingMs = durationMs - (Date.now() - startedMs);
       setTimeLeft(Math.max(0, Math.floor(remainingMs / 1000)));
-      setElapsed(Math.floor(elapsedMs / 1000));
       setLoading(false);
     });
     return () => unsub();
@@ -121,7 +122,6 @@ function SessionContent() {
     if (!session) return;
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => Math.max(0, prev - 1));
-      setElapsed((prev) => prev + 1);
     }, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [session]);
@@ -131,10 +131,8 @@ function SessionContent() {
   }, [messages]);
 
   const captureLocation = useCallback(async () => {
-    setLocating(true);
     const loc = await getLocation();
     setLocation(loc);
-    setLocating(false);
     return loc;
   }, []);
 
@@ -143,40 +141,49 @@ function SessionContent() {
   }, [session]);
 
   const triggerSilentAlert = useCallback(async () => {
-    if (alertSent) return;
+    if (alertSentRef.current) return;
+    alertSentRef.current = true;
     setAlertSent(true);
     try {
       const loc = location || await captureLocation();
+      let evidenceUrls: string[] = [];
+      if (videoRef.current && canvasRef.current && sessionId) {
+        try {
+          evidenceUrls = await captureEvidence(sessionId, videoRef.current, canvasRef.current);
+        } catch {}
+      }
       await fetch('/api/showing-shield/panic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, location: loc }),
+        body: JSON.stringify({ sessionId, location: loc, evidenceUrls }),
       });
     } catch {}
-  }, [alertSent, location, sessionId, captureLocation]);
+  }, [location, sessionId, captureLocation]);
+
+  // Auto-alert when timer hits zero
+  useEffect(() => {
+    if (timeLeft === 0 && session && !autoAlertFired && !loading) {
+      setAutoAlertFired(true);
+      triggerSilentAlert();
+    }
+  }, [timeLeft, session, autoAlertFired, loading, triggerSilentAlert]);
 
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
     const text = chatInput.trim();
     const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
     setMessages((prev) => [...prev, { id: Date.now().toString(), text, from: 'agent', time }]);
     setChatInput('');
 
-    // Check for panic phrase — silent, no visible indication
-    if (text.toLowerCase().trim().includes(panicPhrase) && panicPhrase.length > 0) {
+    if (panicPhrase.length > 0 && text.toLowerCase().includes(panicPhrase)) {
       await triggerSilentAlert();
-      // Add a normal-looking auto-reply so nothing looks suspicious
       setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            text: 'Got it, thanks for the update!',
-            from: 'office',
-            time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          },
-        ]);
+        setMessages((prev) => [...prev, {
+          id: (Date.now() + 1).toString(),
+          text: 'Got it, thanks for the update!',
+          from: 'office',
+          time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        }]);
       }, 1200);
     }
   };
@@ -191,15 +198,15 @@ function SessionContent() {
         body: JSON.stringify({ sessionId }),
       });
       setCheckedIn(true);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          text: '✓ Check-in received.',
-          from: 'office',
-          time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
+      setAutoAlertFired(false);
+      alertSentRef.current = false;
+      setAlertSent(false);
+      setMessages((prev) => [...prev, {
+        id: Date.now().toString(),
+        text: '✓ Check-in received. Stay safe.',
+        from: 'office',
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      }]);
       setTimeout(() => setCheckedIn(false), 3000);
     } catch {}
     setCheckingIn(false);
@@ -229,12 +236,28 @@ function SessionContent() {
   if (!session) return null;
 
   const isOverdue = timeLeft === 0;
-  const urgencyColor = isOverdue ? 'text-red-400' : timeLeft < 300 ? 'text-yellow-400' : 'text-emerald-400';
+  const urgencyColor = isOverdue
+    ? 'text-red-400'
+    : timeLeft < 300
+    ? 'text-yellow-400'
+    : 'text-emerald-400';
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
 
-      {/* Top bar — looks like a normal messaging app */}
+      {/* Hidden video + canvas for silent evidence capture */}
+      <video
+        ref={videoRef}
+        muted
+        playsInline
+        style={{ position: 'fixed', width: 1, height: 1, opacity: 0, pointerEvents: 'none', top: 0, left: 0 }}
+      />
+      <canvas
+        ref={canvasRef}
+        style={{ position: 'fixed', width: 1, height: 1, opacity: 0, pointerEvents: 'none', top: 0, left: 0 }}
+      />
+
+      {/* Top bar */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
         <button onClick={() => router.push('/showing-shield/dashboard')} className="text-gray-500 hover:text-gray-700">
           ←
@@ -246,7 +269,6 @@ function SessionContent() {
           <p className="font-semibold text-gray-900 text-sm">Office</p>
           <p className="text-xs text-gray-500">Showing at {session.propertyAddress}</p>
         </div>
-        {/* Subtle timer — looks like a call timer */}
         <div className={`text-xs font-mono font-semibold ${urgencyColor}`}>
           {formatTime(timeLeft)}
         </div>
@@ -262,14 +284,16 @@ function SessionContent() {
                 : 'bg-white text-gray-900 rounded-bl-sm shadow-sm'
             }`}>
               <p className="text-sm">{msg.text}</p>
-              <p className={`text-xs mt-1 ${msg.from === 'agent' ? 'text-blue-200' : 'text-gray-400'}`}>{msg.time}</p>
+              <p className={`text-xs mt-1 ${msg.from === 'agent' ? 'text-blue-200' : 'text-gray-400'}`}>
+                {msg.time}
+              </p>
             </div>
           </div>
         ))}
         <div ref={chatEndRef} />
       </div>
 
-      {/* Check in button — subtle */}
+      {/* Check in */}
       <div className="px-4 py-2 bg-gray-100 flex justify-center">
         <button
           onClick={handleCheckin}
@@ -301,7 +325,7 @@ function SessionContent() {
         </button>
       </div>
 
-      {/* End session — very subtle at bottom */}
+      {/* End session */}
       <div className="bg-white px-4 pb-6 pt-1 text-center">
         <button
           onClick={handleEndSession}
