@@ -40,7 +40,6 @@ export default function ShowingShieldDashboard() {
   const [history, setHistory] = useState<ShowingSession[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // New session form
   const [showForm, setShowForm] = useState(false);
   const [propertyAddress, setPropertyAddress] = useState('');
   const [clientName, setClientName] = useState('');
@@ -107,6 +106,7 @@ export default function ShowingShieldDashboard() {
       setStarting(false);
     }
   };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#08152b] flex items-center justify-center">
@@ -131,6 +131,19 @@ export default function ShowingShieldDashboard() {
           >
             ⚙️ Setup
           </button>
+        </div>
+
+        {/* Mobile/Tablet Device Notice */}
+        <div className="bg-blue-900/40 border border-blue-500/40 rounded-2xl p-5 flex gap-4 items-start">
+          <span className="text-2xl flex-shrink-0">📱</span>
+          <div>
+            <p className="text-blue-200 font-bold text-sm mb-1">Use This on Your Phone or Tablet</p>
+            <p className="text-blue-300/80 text-xs leading-relaxed">
+              Showing Shield requires a GPS-enabled device with a camera — smartphone, iPhone, iPad, or Android tablet.
+              Open this page on your mobile device and <strong>add it to your home screen</strong> for instant access at every showing.
+              Location tracking and evidence capture will not work on a desktop computer.
+            </p>
+          </div>
         </div>
 
         {/* Profile Status */}

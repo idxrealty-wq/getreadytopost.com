@@ -61,10 +61,8 @@ export default function ShowingShieldSetup() {
       setError('Each contact must have a name and phone number.');
       return;
     }
-
     setSaving(true);
     setError('');
-
     try {
       await saveSafetyProfile({
         agentId: user.uid,
@@ -102,6 +100,19 @@ export default function ShowingShieldSetup() {
           <p className="text-gray-400">Configure your emergency contacts and panic phrase. These are used when an alert is triggered.</p>
         </div>
 
+        {/* Mobile/Tablet Device Notice */}
+        <div className="bg-blue-900/40 border border-blue-500/40 rounded-2xl p-5 flex gap-4 items-start mb-6">
+          <span className="text-2xl flex-shrink-0">📱</span>
+          <div>
+            <p className="text-blue-200 font-bold text-sm mb-1">Important — Mobile or Tablet Required</p>
+            <p className="text-blue-300/80 text-xs leading-relaxed">
+              Showing Shield must be used on a GPS-enabled device — smartphone, iPhone, iPad, or Android tablet.
+              Once setup is complete, open the dashboard on your mobile device and <strong>add it to your home screen</strong> for one-tap access at every showing.
+              Location tracking and camera evidence capture require a mobile device with GPS.
+            </p>
+          </div>
+        </div>
+
         <div className="space-y-6">
 
           {/* Agent Phone */}
@@ -121,7 +132,7 @@ export default function ShowingShieldSetup() {
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
             <h2 className="text-white font-bold text-lg mb-4">🔑 Silent Panic Phrase</h2>
             <p className="text-gray-400 text-sm mb-4">
-              A normal-sounding phrase you can say out loud or type that triggers the emergency alert silently.
+              A normal-sounding phrase you type into the chat during a session to silently trigger the emergency alert.
               Default: <span className="text-[#c9a227]">"I need to reschedule"</span>
             </p>
             <input
@@ -228,3 +239,5 @@ export default function ShowingShieldSetup() {
     </div>
   );
 }
+
+   
