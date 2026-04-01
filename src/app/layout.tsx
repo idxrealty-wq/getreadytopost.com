@@ -1,6 +1,6 @@
 ﻿import type { Metadata } from 'next';
 import { ReactNode } from 'react';
-import Header from '@/components/Header';
+import ConditionalHeader from '@/components/ConditionalHeader';
 import { UserProvider } from '@/contexts/UserContext';
 import './globals.css';
 
@@ -53,18 +53,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <UserProvider>
-          <HeaderWrapper>{children}</HeaderWrapper>
+          <ConditionalHeader />
+          {children}
         </UserProvider>
       </body>
     </html>
-  );
-}
-
-function HeaderWrapper({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <Header />
-      {children}
-    </>
   );
 }

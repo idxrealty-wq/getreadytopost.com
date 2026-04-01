@@ -75,6 +75,7 @@ function SessionContent() {
   const [panicPhrase, setPanicPhrase] = useState('');
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [timerReady, setTimerReady] = useState(false);
   const [location, setLocation] = useState<LocationData | null>(null);
   const [alertSent, setAlertSent] = useState(false);
   const [autoAlertFired, setAutoAlertFired] = useState(false);
@@ -112,7 +113,9 @@ function SessionContent() {
       const startedMs = new Date(s.startedAt).getTime();
       const durationMs = s.scheduledDuration * 60 * 1000;
       const remainingMs = durationMs - (Date.now() - startedMs);
-      setTimeLeft(Math.max(0, Math.floor(remainingMs / 1000)));
+      const remaining = Math.max(0, Math.floor(remainingMs / 1000));
+      setTimeLeft(remaining);
+      setTimerReady(remaining > 0);
       setLoading(false);
     });
     return () => unsub();
@@ -161,11 +164,11 @@ function SessionContent() {
   }, [location, sessionId, captureLocation]);
 
   useEffect(() => {
-    if (timeLeft === 0 && session && !autoAlertFired && !loading) {
+    if (timeLeft === 0 && session && !autoAlertFired && !loading && timerReady) {
       setAutoAlertFired(true);
       triggerSilentAlert();
     }
-  }, [timeLeft, session, autoAlertFired, loading, triggerSilentAlert]);
+  }, [timeLeft, session, autoAlertFired, loading, timerReady, triggerSilentAlert]);
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
     const text = chatInput.trim();
