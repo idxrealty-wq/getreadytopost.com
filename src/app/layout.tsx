@@ -53,10 +53,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <UserProvider>
-          <Header />
-          {children}
+          <HeaderWrapper>{children}</HeaderWrapper>
         </UserProvider>
       </body>
     </html>
+  );
+}
+
+function HeaderWrapper({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <Header />
+      {children}
+    </>
   );
 }
