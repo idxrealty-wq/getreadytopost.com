@@ -116,7 +116,7 @@ function SessionContent() {
       setLoading(false);
     });
     return () => unsub();
-  }, [sessionId]);
+  }, [sessionId, router]);
 
   useEffect(() => {
     if (!session) return;
@@ -138,7 +138,7 @@ function SessionContent() {
 
   useEffect(() => {
     if (session) captureLocation();
-  }, [session]);
+  }, [session, captureLocation]);
 
   const triggerSilentAlert = useCallback(async () => {
     if (alertSentRef.current) return;
@@ -160,21 +160,18 @@ function SessionContent() {
     } catch {}
   }, [location, sessionId, captureLocation]);
 
-  // Auto-alert when timer hits zero
   useEffect(() => {
     if (timeLeft === 0 && session && !autoAlertFired && !loading) {
       setAutoAlertFired(true);
       triggerSilentAlert();
     }
   }, [timeLeft, session, autoAlertFired, loading, triggerSilentAlert]);
-
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
     const text = chatInput.trim();
     const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     setMessages((prev) => [...prev, { id: Date.now().toString(), text, from: 'agent', time }]);
     setChatInput('');
-
     if (panicPhrase.length > 0 && text.toLowerCase().includes(panicPhrase)) {
       await triggerSilentAlert();
       setTimeout(() => {
@@ -203,7 +200,7 @@ function SessionContent() {
       setAlertSent(false);
       setMessages((prev) => [...prev, {
         id: Date.now().toString(),
-        text: '✓ Check-in received. Stay safe.',
+        text: 'Check-in received. Stay safe.',
         from: 'office',
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       }]);
@@ -225,9 +222,10 @@ function SessionContent() {
     } catch {}
     setEnding(false);
   };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#08152b] flex items-center justify-center">
+      <div className="fixed inset-0 bg-[#08152b] flex items-center justify-center">
         <p className="text-white text-lg">Loading session...</p>
       </div>
     );
@@ -236,55 +234,71 @@ function SessionContent() {
   if (!session) return null;
 
   const isOverdue = timeLeft === 0;
-  const urgencyColor = isOverdue
-    ? 'text-red-400'
-    : timeLeft < 300
-    ? 'text-yellow-400'
-    : 'text-emerald-400';
+  const timerColor = isOverdue ? 'text-red-400' : timeLeft < 300 ? 'text-[#c9a227]' : 'text-emerald-400';
+  const timerBg = isOverdue ? 'bg-red-900/40 border-red-500/40' : timeLeft < 300 ? 'bg-yellow-900/40 border-yellow-500/40' : 'bg-emerald-900/40 border-emerald-500/40';
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="fixed inset-0 bg-[#08152b] flex flex-col" style={{ fontFamily: 'system-ui, sans-serif' }}>
 
-      {/* Hidden video + canvas for silent evidence capture */}
-      <video
-        ref={videoRef}
-        muted
-        playsInline
-        style={{ position: 'fixed', width: 1, height: 1, opacity: 0, pointerEvents: 'none', top: 0, left: 0 }}
-      />
-      <canvas
-        ref={canvasRef}
-        style={{ position: 'fixed', width: 1, height: 1, opacity: 0, pointerEvents: 'none', top: 0, left: 0 }}
-      />
+      <video ref={videoRef} muted playsInline
+        style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }} />
+      <canvas ref={canvasRef}
+        style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }} />
 
       {/* Top bar */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shadow-sm">
-        <button onClick={() => router.push('/showing-shield/dashboard')} className="text-gray-500 hover:text-gray-700">
-          ←
+      <div className="bg-[#0d1f3c] border-b border-[#c9a227]/30 px-4 py-3 flex items-center gap-3 flex-shrink-0">
+        <button
+          onClick={() => router.push('/showing-shield/dashboard')}
+          className="text-[#c9a227] hover:text-white font-bold text-lg leading-none transition flex-shrink-0"
+          aria-label="Back to dashboard"
+        >
+          &larr;
         </button>
-        <div className="w-9 h-9 rounded-full bg-[#1a2b4a] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-          OF
+        <div className="w-10 h-10 rounded-full bg-[#c9a227] flex items-center justify-center font-bold text-[#08152b] text-sm flex-shrink-0">
+          SS
         </div>
-        <div className="flex-1">
-          <p className="font-semibold text-gray-900 text-sm">Office</p>
-          <p className="text-xs text-gray-500">Showing at {session.propertyAddress}</p>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-white text-sm">Showing Shield</p>
+          <p className="text-[#c9a227]/80 text-xs truncate">{session.propertyAddress}</p>
         </div>
-        <div className={`text-xs font-mono font-semibold ${urgencyColor}`}>
-          {formatTime(timeLeft)}
+        <div className={`px-3 py-1.5 rounded-full border text-xs font-mono font-bold flex-shrink-0 ${timerBg} ${timerColor}`}>
+          {isOverdue ? 'OVERDUE' : formatTime(timeLeft)}
         </div>
       </div>
+
+      {/* Location bar */}
+      {location && (
+        <div className="bg-[#0d1f3c]/80 border-b border-white/5 px-4 py-2 flex items-center gap-2 flex-shrink-0">
+          <span className="text-emerald-400 text-xs">&#128205;</span>
+          <p className="text-gray-400 text-xs truncate flex-1">{location.address}</p>
+          <a href={location.mapsLink} target="_blank" rel="noopener noreferrer"
+            className="text-[#c9a227] text-xs font-semibold hover:underline flex-shrink-0">
+            Map
+          </a>
+        </div>
+      )}
+
+      {/* Alert banner */}
+      {alertSent && (
+        <div className="bg-red-900/60 border-b border-red-500/40 px-4 py-2 flex-shrink-0">
+          <p className="text-red-300 text-xs font-semibold text-center">
+            &#9888; Emergency alert sent to your contacts
+          </p>
+        </div>
+      )}
 
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.from === 'agent' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[75%] rounded-2xl px-4 py-2 ${
-              msg.from === 'agent'
-                ? 'bg-[#1a2b4a] text-white rounded-br-sm'
-                : 'bg-white text-gray-900 rounded-bl-sm shadow-sm'
-            }`}>
-              <p className="text-sm">{msg.text}</p>
-              <p className={`text-xs mt-1 ${msg.from === 'agent' ? 'text-blue-200' : 'text-gray-400'}`}>
+            {msg.from === 'office' && (
+              <div className="w-7 h-7 rounded-full bg-[#c9a227] flex items-center justify-center font-bold text-[#08152b] text-[10px] mr-2 flex-shrink-0 self-end">
+                SS
+              </div>
+            )}
+            <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 shadow-lg ${msg.from === 'agent' ? 'bg-[#c9a227] text-[#08152b] rounded-br-sm' : 'bg-[#1a2b4a] text-white border border-white/10 rounded-bl-sm'}`}>
+              <p className="text-sm leading-relaxed">{msg.text}</p>
+              <p className={`text-[10px] mt-1 ${msg.from === 'agent' ? 'text-[#08152b]/50' : 'text-gray-500'}`}>
                 {msg.time}
               </p>
             </div>
@@ -293,49 +307,46 @@ function SessionContent() {
         <div ref={chatEndRef} />
       </div>
 
-      {/* Check in */}
-      <div className="px-4 py-2 bg-gray-100 flex justify-center">
+      {/* Check-in button */}
+      <div className="bg-[#0d1f3c] border-t border-white/10 px-4 py-2 flex justify-center flex-shrink-0">
         <button
           onClick={handleCheckin}
           disabled={checkingIn}
-          className="text-xs text-gray-500 hover:text-gray-700 font-medium transition disabled:opacity-50"
+          className={`text-sm font-semibold px-6 py-2 rounded-full border transition ${checkedIn ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-[#1a2b4a] border-[#c9a227]/40 text-[#c9a227] hover:bg-[#c9a227] hover:text-[#08152b]'} disabled:opacity-50`}
         >
-          {checkingIn ? 'Checking in...' : checkedIn ? '✓ Checked in' : 'Tap to check in'}
+          {checkingIn ? 'Checking in...' : checkedIn ? 'Checked In' : 'Tap to Check In'}
         </button>
       </div>
 
       {/* Message input */}
-      <div className="bg-white border-t border-gray-200 px-4 py-3 flex items-center gap-3">
+      <div className="bg-[#0d1f3c] border-t border-[#c9a227]/20 px-4 py-3 flex items-center gap-3 flex-shrink-0">
         <input
           type="text"
           value={chatInput}
           onChange={(e) => setChatInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleSendMessage(); }}
           placeholder="Message"
-          className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm text-gray-900 focus:outline-none"
+          className="flex-1 bg-[#1a2b4a] text-white placeholder-gray-500 border border-white/10 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:border-[#c9a227]/60"
         />
         <button
           onClick={handleSendMessage}
-          disabled={!chatInput.trim()}
-          className="w-8 h-8 rounded-full bg-[#1a2b4a] flex items-center justify-center disabled:opacity-30 transition"
+          className="w-10 h-10 rounded-full bg-[#c9a227] flex items-center justify-center text-[#08152b] font-bold text-lg flex-shrink-0 hover:bg-[#d4ad2e] transition"
+          aria-label="Send message"
         >
-          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
-          </svg>
+          &rarr;
         </button>
       </div>
 
       {/* End session */}
-      <div className="bg-white px-4 pb-6 pt-1 text-center">
+      <div className="bg-[#08152b] border-t border-white/5 px-4 py-2 flex justify-center flex-shrink-0">
         <button
           onClick={handleEndSession}
           disabled={ending}
-          className="text-xs text-gray-400 hover:text-gray-600 transition disabled:opacity-50"
+          className="text-gray-500 hover:text-red-400 text-xs font-medium transition disabled:opacity-50"
         >
-          {ending ? 'Ending...' : 'End session'}
+          {ending ? 'Ending...' : 'End Session'}
         </button>
       </div>
-
     </div>
   );
 }
