@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -20,10 +20,10 @@ function StatusBadge({ status }: { status: ShowingSession['status'] }) {
     expired: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
   };
   const label = {
-    active: '🟢 Active',
-    completed: '✅ Completed',
-    alert_triggered: '🚨 Alert Triggered',
-    expired: '⚠️ Expired',
+    active: 'Active',
+    completed: 'Completed',
+    alert_triggered: 'Alert Triggered',
+    expired: 'Expired',
   };
   return (
     <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${map[status]}`}>
@@ -46,6 +46,9 @@ export default function ShowingShieldDashboard() {
   const [duration, setDuration] = useState('60');
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
+  const [cameraGranted, setCameraGranted] = useState(false);
+  const [cameraRequesting, setCameraRequesting] = useState(false);
+  const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -63,6 +66,26 @@ export default function ShowingShieldDashboard() {
     });
     return () => unsub();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, []);
+
+  const requestCameraAccess = async () => {
+    setCameraRequesting(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      streamRef.current = stream;
+      setCameraGranted(true);
+    } catch {
+      setCameraGranted(false);
+    }
+    setCameraRequesting(false);
+  };
 
   const handleStartSession = async () => {
     if (!user) return;
@@ -114,7 +137,6 @@ export default function ShowingShieldDashboard() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-[#08152b] pt-24 pb-16 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
@@ -129,13 +151,13 @@ export default function ShowingShieldDashboard() {
             onClick={() => router.push('/showing-shield/setup')}
             className="text-sm text-gray-400 hover:text-[#c9a227] font-semibold transition"
           >
-            ⚙️ Setup
+            Setup
           </button>
         </div>
 
         {/* Mobile/Tablet Device Notice */}
         <div className="bg-blue-900/40 border border-blue-500/40 rounded-2xl p-5 flex gap-4 items-start">
-          <span className="text-2xl flex-shrink-0">📱</span>
+          <span className="text-2xl flex-shrink-0">&#128241;</span>
           <div>
             <p className="text-blue-200 font-bold text-sm mb-1">Use This on Your Phone or Tablet</p>
             <p className="text-blue-300/80 text-xs leading-relaxed">
@@ -149,7 +171,7 @@ export default function ShowingShieldDashboard() {
         {/* Profile Status */}
         {!profile ? (
           <div className="bg-yellow-900/40 border border-yellow-500/40 rounded-2xl p-6 text-center">
-            <p className="text-yellow-300 font-bold text-lg mb-2">⚠️ Safety Profile Not Configured</p>
+            <p className="text-yellow-300 font-bold text-lg mb-2">Safety Profile Not Configured</p>
             <p className="text-gray-400 text-sm mb-4">You need to add emergency contacts before starting a session.</p>
             <button
               onClick={() => router.push('/showing-shield/setup')}
@@ -162,7 +184,7 @@ export default function ShowingShieldDashboard() {
           <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white font-semibold">✅ Safety Profile Active</p>
+                <p className="text-white font-semibold">Safety Profile Active</p>
                 <p className="text-gray-400 text-sm mt-1">
                   {profile.emergencyContacts.length} emergency contact{profile.emergencyContacts.length !== 1 ? 's' : ''} configured
                 </p>
@@ -180,7 +202,7 @@ export default function ShowingShieldDashboard() {
         {/* Active Session */}
         {activeSession ? (
           <div className="bg-emerald-900/40 border-2 border-emerald-500/40 rounded-2xl p-6">
-            <p className="text-emerald-400 font-bold text-lg mb-1">🟢 Session In Progress</p>
+            <p className="text-emerald-400 font-bold text-lg mb-1">Session In Progress</p>
             <p className="text-white font-semibold">{activeSession.propertyAddress}</p>
             <p className="text-gray-400 text-sm mt-1">Client: {activeSession.clientName}</p>
             <p className="text-gray-400 text-sm">Started: {new Date(activeSession.startedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
@@ -188,13 +210,13 @@ export default function ShowingShieldDashboard() {
               onClick={() => router.push(`/showing-shield/session?id=${activeSession.id}`)}
               className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition"
             >
-              Return to Active Session →
+              Return to Active Session
             </button>
           </div>
         ) : (
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white font-bold text-lg">🏠 Start New Showing</h2>
+              <h2 className="text-white font-bold text-lg">Start New Showing</h2>
               {!showForm && (
                 <button
                   onClick={() => setShowForm(true)}
@@ -213,14 +235,14 @@ export default function ShowingShieldDashboard() {
                   value={propertyAddress}
                   onChange={(e) => setPropertyAddress(e.target.value)}
                   placeholder="Property address"
-                  className="w-full bg-[#1a2b4a] border border-white/20 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#c9a227] text-sm"
+                  className="w-full bg-[#1a2b4a] border border-white/20 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#c9a227] text-sm placeholder-gray-500"
                 />
                 <input
                   type="text"
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
                   placeholder="Client name"
-                  className="w-full bg-[#1a2b4a] border border-white/20 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#c9a227] text-sm"
+                  className="w-full bg-[#1a2b4a] border border-white/20 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#c9a227] text-sm placeholder-gray-500"
                 />
                 <select
                   value={duration}
@@ -234,6 +256,32 @@ export default function ShowingShieldDashboard() {
                   <option value="120">2 hours</option>
                 </select>
 
+                {/* Camera Permission Block */}
+                <div className={`rounded-xl border p-4 ${cameraGranted ? 'bg-emerald-900/30 border-emerald-500/40' : 'bg-[#1a2b4a] border-white/20'}`}>
+                  {cameraGranted ? (
+                    <p className="text-emerald-400 text-sm font-semibold">
+                      &#10003; Photo backup enabled — camera ready for this session
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-white text-sm font-semibold">Enable Photo Backup</p>
+                      <p className="text-gray-400 text-xs leading-relaxed">
+                        Allow camera access now so evidence photos can be captured silently if needed during your showing. Grant this while you are still safe.
+                      </p>
+                      <button
+                        onClick={requestCameraAccess}
+                        disabled={cameraRequesting}
+                        className="w-full bg-[#c9a227] hover:bg-[#b8911f] text-[#08152b] font-bold py-2.5 rounded-lg text-sm transition disabled:opacity-50"
+                      >
+                        {cameraRequesting ? 'Requesting access...' : 'Enable Camera Backup'}
+                      </button>
+                      <p className="text-gray-500 text-xs text-center">
+                        Optional — session will still be protected without it
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 {startError && (
                   <p className="text-red-400 text-sm">{startError}</p>
                 )}
@@ -244,10 +292,10 @@ export default function ShowingShieldDashboard() {
                     disabled={starting}
                     className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition disabled:opacity-50"
                   >
-                    {starting ? 'Starting...' : '🛡️ Start Protected Session'}
+                    {starting ? 'Starting...' : 'Start Protected Session'}
                   </button>
                   <button
-                    onClick={() => { setShowForm(false); setStartError(''); }}
+                    onClick={() => { setShowForm(false); setStartError(''); setCameraGranted(false); }}
                     className="px-5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition"
                   >
                     Cancel
@@ -264,7 +312,7 @@ export default function ShowingShieldDashboard() {
 
         {/* Session History */}
         <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-          <h2 className="text-white font-bold text-lg mb-4">📋 Session History</h2>
+          <h2 className="text-white font-bold text-lg mb-4">Session History</h2>
           {history.length === 0 ? (
             <p className="text-gray-500 text-sm">No past sessions yet.</p>
           ) : (
@@ -292,7 +340,7 @@ export default function ShowingShieldDashboard() {
           onClick={() => router.push('/showing-shield')}
           className="w-full text-gray-500 hover:text-white text-sm font-semibold transition text-center"
         >
-          ← Back to Showing Shield
+          Back to Showing Shield
         </button>
 
       </div>
