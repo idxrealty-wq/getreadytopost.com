@@ -31,6 +31,7 @@ export default function Tab5Save({
 }: any) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [mapStatus, setMapStatus] = useState<string>('active');
 
   useEffect(() => {
     if (!saveNowNonce) return;
@@ -62,6 +63,7 @@ export default function Tab5Save({
           notes,
           documents: existingDocuments || [],
           documentAccessCode,
+          listingStatus: mapStatus,
           updatedAt: new Date().toISOString(),
         });
         if (setExistingDocuments) setExistingDocuments(existingDocuments || []);
@@ -81,7 +83,7 @@ export default function Tab5Save({
           });
         });
 
-        await saveListing(
+        const newId = await saveListing(
           user.uid,
           address,
           propertyData,
@@ -93,6 +95,9 @@ export default function Tab5Save({
           existingDocuments,
           documentAccessCode
         );
+        if (newId) {
+          await updateDoc(doc(db, 'listings', newId), { listingStatus: mapStatus });
+        }
       }
 
       setSaved(true);
@@ -117,6 +122,20 @@ export default function Tab5Save({
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-6">💾 {editId ? 'Update Listing' : 'Save to Agent Vault'}</h2>
         <p className="text-gray-300 mb-8">Review your listing package before saving:</p>
+
+        <div className="bg-white/5 p-4 rounded-xl border border-white/20 mb-4">
+          <label className="text-white font-bold block mb-2">🗺️ Map Status</label>
+          <select
+            value={mapStatus}
+            onChange={(e) => setMapStatus(e.target.value)}
+            className="w-full bg-[#1a2b4a] border border-white/20 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#c9a227]"
+          >
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="sold">Sold</option>
+            <option value="poi">Point of Interest</option>
+          </select>
+        </div>
 
         {editId && (
           <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/20">
