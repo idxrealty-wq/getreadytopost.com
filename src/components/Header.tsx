@@ -128,10 +128,11 @@ export default function Header() {
       ],
     },
     {
-      label: "For Agents",
+            label: "For Agents",
       dropdown: [
         { label: "Workspace", href: "/workspace" },
         { label: "Agent Vault", href: "/agent-vault" },
+        { label: "Property Maps", href: "/maps" },
         { label: "Rate Listing", href: "/rate-my-listing" },
         { label: "Brokers", href: "/brokers" },
         { label: "Broker Contact Us", href: "/contact-broker" },
