@@ -672,11 +672,67 @@ export default function Tab4Checklist({
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-white">🗺️ Google Street View Photo</h3>
+          {googlePhoto && (googlePhoto.downloadURL || googlePhoto.url) && (
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  if (!window.confirm("Save this Street View photo to Exterior Photos?")) return;
+                  const url = googlePhoto.downloadURL || googlePhoto.url;
+                  setPhotos((prev: any) => ({
+                    ...prev,
+                    exterior: [
+                      ...(prev.exterior || []),
+                      {
+                        file: { name: "street-view.jpg" } as File,
+                        preview: url,
+                        date: new Date().toLocaleString(),
+                        isGooglePhoto: true,
+                      },
+                    ],
+                  }));
+                  alert("✅ Saved to Exterior Photos.");
+                }}
+                className="bg-emerald-600/80 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition"
+              >
+                📸 Save to Exterior
+              </button>
+              <button
+                onClick={async () => {
+                  if (!window.confirm("Remove this Street View photo?")) return;
+                  if (listingId) {
+                    try {
+                      await updateDoc(doc(db, "listings", listingId), { googlePhoto: null });
+                    } catch (e) {
+                      console.error(e);
+                    }
+                  }
+                  setGooglePhoto(null);
+                }}
+                className="bg-red-900/60 hover:bg-red-800 text-red-200 px-3 py-1.5 rounded-lg text-xs font-bold transition"
+              >
+                🗑 Remove
+              </button>
+              <button
+                onClick={handleUnlockGooglePhoto}
+                disabled={googlePhotoLoading}
+                className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition border border-white/20 disabled:opacity-50"
+              >
+                {googlePhotoLoading ? "Fetching..." : "🔄 Refresh"}
+              </button>
+            </div>
+          )}
         </div>
         {googlePhoto && (googlePhoto.downloadURL || googlePhoto.url) ? (
-          <div className="rounded-xl overflow-hidden border border-white/20">
-            <img src={googlePhoto.downloadURL || googlePhoto.url} alt="Street View" className="w-full max-h-64 object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-            <p className="text-xs text-gray-400 text-center py-2">{googlePhoto.attribution || "Google Street View"}</p>
+          <div className="rounded-xl overflow-hidden border border-white/20 bg-black">
+            <img
+              src={googlePhoto.downloadURL || googlePhoto.url}
+              alt="Street View"
+              className="w-full h-64 object-contain"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+            <p className="text-xs text-gray-400 text-center py-2">
+              {googlePhoto.attribution || "Google Street View"}
+            </p>
           </div>
         ) : (
           <div className="text-center py-8">
