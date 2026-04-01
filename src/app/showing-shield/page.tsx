@@ -10,12 +10,22 @@ export const metadata: Metadata = {
     description:
       "Silent panic alerts, live geocoded location sharing, instant evidence backup, and brokerage office notification workflows.",
     type: "website",
+    url: "https://getreadytopost.com/showing-shield",
+    images: [
+      {
+        url: "https://getreadytopost.com/og/showing-shield-og.png",
+        width: 1200,
+        height: 630,
+        alt: "Showing Shield - Silent Safety Protection for Real Estate Agents",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Showing Shield | Silent Safety Protection for Real Estate Agents",
     description:
       "A discreet safety system for agents who show property alone.",
+    images: ["https://getreadytopost.com/og/showing-shield-og.png"],
   },
 };
 
