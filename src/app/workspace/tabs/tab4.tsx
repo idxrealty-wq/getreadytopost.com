@@ -673,9 +673,9 @@ export default function Tab4Checklist({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-white">🗺️ Google Street View Photo</h3>
         </div>
-        {googlePhoto && googlePhoto.url ? (
+        {googlePhoto && (googlePhoto.downloadURL || googlePhoto.url) ? (
           <div className="rounded-xl overflow-hidden border border-white/20">
-            <img src={googlePhoto.url} alt="Street View" className="w-full max-h-64 object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            <img src={googlePhoto.downloadURL || googlePhoto.url} alt="Street View" className="w-full max-h-64 object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             <p className="text-xs text-gray-400 text-center py-2">{googlePhoto.attribution || "Google Street View"}</p>
           </div>
         ) : (
