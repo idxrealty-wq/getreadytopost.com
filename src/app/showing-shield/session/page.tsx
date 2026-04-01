@@ -82,6 +82,7 @@ function SessionContent() {
   const [checkingIn, setCheckingIn] = useState(false);
   const [checkedIn, setCheckedIn] = useState(false);
   const [ending, setEnding] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -97,7 +98,43 @@ function SessionContent() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const alertSentRef = useRef(false);
+  const warmStreamRef = useRef<MediaStream | null>(null);
 
+  // ── Warm up camera on session load ──────────────────────────────────
+  useEffect(() => {
+    if (!session) return;
+    let active = true;
+    async function warmCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        });
+        if (!active) { stream.getTracks().forEach((t) => t.stop()); return; }
+        warmStreamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.setAttribute('playsinline', 'true');
+          videoRef.current.muted = true;
+          await videoRef.current.play().catch(() => {});
+        }
+        setCameraReady(true);
+      } catch {
+        setCameraReady(false);
+      }
+    }
+    warmCamera();
+    return () => {
+      active = false;
+      if (warmStreamRef.current) {
+        warmStreamRef.current.getTracks().forEach((t) => t.stop());
+        warmStreamRef.current = null;
+      }
+      if (videoRef.current) videoRef.current.srcObject = null;
+    };
+  }, [session]);
+
+  // ── Auth + session load ─────────────────────────────────────────────
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/signin'); return; }
@@ -121,6 +158,7 @@ function SessionContent() {
     return () => unsub();
   }, [sessionId, router]);
 
+  // ── Countdown timer ─────────────────────────────────────────────────
   useEffect(() => {
     if (!session) return;
     timerRef.current = setInterval(() => {
@@ -129,10 +167,12 @@ function SessionContent() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [session]);
 
+  // ── Auto-scroll chat ───────────────────────────────────────────────
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // ── Location ───────────────────────────────────────────────────────
   const captureLocation = useCallback(async () => {
     const loc = await getLocation();
     setLocation(loc);
@@ -143,6 +183,7 @@ function SessionContent() {
     if (session) captureLocation();
   }, [session, captureLocation]);
 
+  // ── Silent alert trigger ───────────────────────────────────────────
   const triggerSilentAlert = useCallback(async () => {
     if (alertSentRef.current) return;
     alertSentRef.current = true;
@@ -150,6 +191,11 @@ function SessionContent() {
     try {
       const loc = location || await captureLocation();
       let evidenceUrls: string[] = [];
+      if (warmStreamRef.current) {
+        warmStreamRef.current.getTracks().forEach((t) => t.stop());
+        warmStreamRef.current = null;
+      }
+      if (videoRef.current) videoRef.current.srcObject = null;
       if (videoRef.current && canvasRef.current && sessionId) {
         try {
           evidenceUrls = await captureEvidence(sessionId, videoRef.current, canvasRef.current);
@@ -163,12 +209,15 @@ function SessionContent() {
     } catch {}
   }, [location, sessionId, captureLocation]);
 
+  // ── Auto-alert on timer expiry ─────────────────────────────────────
   useEffect(() => {
     if (timeLeft === 0 && session && !autoAlertFired && !loading && timerReady) {
       setAutoAlertFired(true);
       triggerSilentAlert();
     }
   }, [timeLeft, session, autoAlertFired, loading, timerReady, triggerSilentAlert]);
+
+  // ── Chat send ──────────────────────────────────────────────────────
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
     const text = chatInput.trim();
@@ -188,6 +237,7 @@ function SessionContent() {
     }
   };
 
+  // ── Check-in ───────────────────────────────────────────────────────
   const handleCheckin = async () => {
     if (!sessionId) return;
     setCheckingIn(true);
@@ -212,6 +262,7 @@ function SessionContent() {
     setCheckingIn(false);
   };
 
+  // ── End session ────────────────────────────────────────────────────
   const handleEndSession = async () => {
     if (!sessionId) return;
     setEnding(true);
@@ -269,6 +320,14 @@ function SessionContent() {
         </div>
       </div>
 
+      {/* Camera status indicator */}
+      {cameraReady && (
+        <div className="bg-emerald-900/20 border-b border-emerald-500/20 px-4 py-1.5 flex items-center gap-2 flex-shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+          <p className="text-emerald-400/70 text-[10px]">Photo backup active</p>
+        </div>
+      )}
+
       {/* Location bar */}
       {location && (
         <div className="bg-[#0d1f3c]/80 border-b border-white/5 px-4 py-2 flex items-center gap-2 flex-shrink-0">
@@ -317,7 +376,7 @@ function SessionContent() {
           disabled={checkingIn}
           className={`text-sm font-semibold px-6 py-2 rounded-full border transition ${checkedIn ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-[#1a2b4a] border-[#c9a227]/40 text-[#c9a227] hover:bg-[#c9a227] hover:text-[#08152b]'} disabled:opacity-50`}
         >
-          {checkingIn ? 'Checking in...' : checkedIn ? 'Checked In' : 'Tap to Check In'}
+          {checkingIn ? 'Checking in...' : checkedIn ? 'Checked In ✓' : 'Tap to Check In'}
         </button>
       </div>
 
@@ -350,6 +409,7 @@ function SessionContent() {
           {ending ? 'Ending...' : 'End Session'}
         </button>
       </div>
+
     </div>
   );
 }
