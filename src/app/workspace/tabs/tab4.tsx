@@ -5,8 +5,8 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage
 import { doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
 
 const DOCUMENT_SLOTS = [
-  { id: "seller_disclosure", label: "Seller Disclosure", required: true },
-  { id: "listing_agreement", label: "Listing Agreement", required: true },
+  { id: "seller_disclosure", label: "Seller Disclosure", required: true, defaultParty: "N/A" },
+  { id: "listing_agreement", label: "Listing Agreement", required: true, defaultParty: "N/A" },
   { id: "lead_paint", label: "Lead-Based Paint Disclosure (Pre-1978)", required: false },
   { id: "hoa_docs", label: "HOA Documents", required: false },
   { id: "survey", label: "Property Survey", required: false },
