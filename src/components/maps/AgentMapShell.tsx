@@ -30,6 +30,7 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
   const [filters, setFilters] = useState<MapFiltersState>(DEFAULT_FILTERS);
   const [selectedProperty, setSelectedProperty] = useState<PropertyPin | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   const filteredProperties = profile.properties.filter((p) => {
     if (filters.status !== "all" && p.status !== filters.status) return false;
@@ -44,11 +45,22 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
   const initMap = useCallback(() => {
     if (!mapRef.current) return;
 
-    const center = { lat: 28.5383, lng: -81.4800 };
+    // Calculate center from properties or default to Orlando
+    let centerLat = 28.5383;
+    let centerLng = -81.4800;
+    let defaultZoom = 10;
+
+    if (profile.properties.length > 0) {
+      const lats = profile.properties.map((p) => p.lat);
+      const lngs = profile.properties.map((p) => p.lng);
+      centerLat = lats.reduce((a, b) => a + b, 0) / lats.length;
+      centerLng = lngs.reduce((a, b) => a + b, 0) / lngs.length;
+      defaultZoom = profile.properties.length === 1 ? 13 : 10;
+    }
 
     const map = new window.google.maps.Map(mapRef.current, {
-      center,
-      zoom: 10,
+      center: { lat: centerLat, lng: centerLng },
+      zoom: defaultZoom,
       mapTypeId: "roadmap",
       styles: [
         { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
@@ -62,7 +74,7 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
 
     mapInstanceRef.current = map;
     setMapReady(true);
-  }, []);
+  }, [profile.properties]);
 
   // Load Google Maps script
   useEffect(() => {
@@ -88,7 +100,6 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
   useEffect(() => {
     if (!mapReady || !mapInstanceRef.current) return;
 
-    // Clear existing markers
     markersRef.current.forEach((m) => m.setMap(null));
     markersRef.current = [];
 
@@ -134,14 +145,24 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
           )}
           <div>
             <p className="font-bold text-base leading-tight">{profile.agentName}</p>
-            <p className="text-xs text-gray-300">{profile.brokerageName}</p>
-            <p className="text-xs text-gray-400">{profile.serviceArea}</p>
+            {profile.brokerageName && (
+              <p className="text-xs text-gray-300">{profile.brokerageName}</p>
+            )}
+            {profile.serviceArea && (
+              <p className="text-xs text-gray-400">{profile.serviceArea}</p>
+            )}
           </div>
         </div>
         <div className="text-right hidden sm:block">
-          <p className="text-xs text-gray-300">{profile.agentPhone}</p>
-          <p className="text-xs text-gray-400">{profile.agentEmail}</p>
-          <p className="text-xs text-gray-500 mt-1">Lic# {profile.licenseNumber}</p>
+          {profile.agentPhone && (
+            <p className="text-xs text-gray-300">{profile.agentPhone}</p>
+          )}
+          {profile.agentEmail && (
+            <p className="text-xs text-gray-400">{profile.agentEmail}</p>
+          )}
+          {profile.licenseNumber && (
+            <p className="text-xs text-gray-500 mt-1">Lic# {profile.licenseNumber}</p>
+          )}
         </div>
       </div>
 
@@ -193,10 +214,39 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
             <PropertyPinCard
               property={selectedProperty}
               onClose={() => setSelectedProperty(null)}
+              onPlayVideo={(url) => setVideoUrl(url)}
             />
           </div>
         )}
       </div>
+
+      {/* YouTube Video Modal */}
+      {videoUrl && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setVideoUrl(null)}
+        >
+          <div
+            className="relative w-full max-w-4xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setVideoUrl(null)}
+              className="absolute top-3 right-3 z-10 bg-black/60 hover:bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold transition-colors"
+              aria-label="Close video"
+            >
+              ×
+            </button>
+            <iframe
+              src={`${videoUrl}?autoplay=1&rel=0`}
+              title="Property Video Walkthrough"
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

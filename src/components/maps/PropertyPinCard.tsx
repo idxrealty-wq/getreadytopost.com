@@ -6,6 +6,7 @@ import { PropertyPin } from "@/lib/maps/mapTypes";
 interface PropertyPinCardProps {
   property: PropertyPin;
   onClose: () => void;
+  onPlayVideo?: (url: string) => void;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -21,6 +22,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 function formatPrice(price: number): string {
+  if (!price || price === 0) return "Price Not Set";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -28,9 +30,14 @@ function formatPrice(price: number): string {
   }).format(price);
 }
 
-export default function PropertyPinCard({ property, onClose }: PropertyPinCardProps) {
+export default function PropertyPinCard({
+  property,
+  onClose,
+  onPlayVideo,
+}: PropertyPinCardProps) {
   return (
     <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-80 overflow-hidden">
+
       {/* Header */}
       <div className="bg-[#0a2342] px-4 py-3 flex items-center justify-between">
         <span
@@ -47,7 +54,7 @@ export default function PropertyPinCard({ property, onClose }: PropertyPinCardPr
         </button>
       </div>
 
-      {/* Photo placeholder */}
+      {/* Photo */}
       {property.photoUrl ? (
         <img
           src={property.photoUrl}
@@ -62,20 +69,24 @@ export default function PropertyPinCard({ property, onClose }: PropertyPinCardPr
 
       {/* Body */}
       <div className="px-4 py-3 space-y-2">
+
+        {/* Address */}
         <p className="font-semibold text-gray-900 text-sm leading-tight">
           {property.address}
         </p>
-        <p className="text-gray-500 text-xs">
-          {property.city}, {property.state} {property.zip}
-        </p>
+        {(property.city || property.zip) && (
+          <p className="text-gray-500 text-xs">
+            {property.city}{property.city && property.zip ? ", " : ""}{property.state} {property.zip}
+          </p>
+        )}
 
         {/* Price */}
         <div className="flex items-center gap-2">
           <span className="text-[#0a2342] font-bold text-base">
             {formatPrice(property.listPrice)}
           </span>
-          {property.soldPrice && (
-            <span className="text-xs text-gray-400 line-through">
+          {property.soldPrice && property.soldPrice > 0 && (
+            <span className="text-xs text-gray-400">
               Sold: {formatPrice(property.soldPrice)}
             </span>
           )}
@@ -83,31 +94,31 @@ export default function PropertyPinCard({ property, onClose }: PropertyPinCardPr
 
         {/* Stats */}
         <div className="flex gap-4 text-xs text-gray-600">
-          <span>{property.bedrooms} bd</span>
-          <span>{property.bathrooms} ba</span>
-          <span>{property.sqft.toLocaleString()} sqft</span>
+          {property.bedrooms > 0 && <span>{property.bedrooms} bd</span>}
+          {property.bathrooms > 0 && <span>{property.bathrooms} ba</span>}
+          {property.sqft > 0 && <span>{property.sqft.toLocaleString()} sqft</span>}
         </div>
 
-        {/* MLS */}
-        <p className="text-xs text-gray-400">MLS# {property.mlsNumber}</p>
+        {/* MLS / Parcel */}
+        {property.mlsNumber && (
+          <p className="text-xs text-gray-400">#{property.mlsNumber}</p>
+        )}
 
         {/* Description */}
         {property.description && (
-          <p className="text-xs text-gray-600 leading-relaxed border-t border-gray-100 pt-2">
+          <p className="text-xs text-gray-600 leading-relaxed border-t border-gray-100 pt-2 line-clamp-3">
             {property.description}
           </p>
         )}
 
-        {/* Video link */}
-        {property.videoUrl && (
-          <a
-            href={property.videoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-center text-xs font-semibold text-white bg-[#c8a84b] hover:bg-[#b8973a] rounded-lg py-2 mt-2 transition-colors"
+        {/* Video button */}
+        {property.videoUrl && onPlayVideo && (
+          <button
+            onClick={() => onPlayVideo(property.videoUrl!)}
+            className="w-full text-center text-xs font-semibold text-white bg-[#c8a84b] hover:bg-[#b8973a] rounded-lg py-2 mt-1 transition-colors"
           >
             ▶ Watch Video Walkthrough
-          </a>
+          </button>
         )}
       </div>
     </div>
