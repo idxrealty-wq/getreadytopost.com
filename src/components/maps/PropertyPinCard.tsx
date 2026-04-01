@@ -13,12 +13,14 @@ const STATUS_STYLES: Record<string, string> = {
   active: "bg-green-100 text-green-800 border border-green-300",
   sold: "bg-red-100 text-red-800 border border-red-300",
   pending: "bg-yellow-100 text-yellow-800 border border-yellow-300",
+  poi: "bg-purple-100 text-purple-800 border border-purple-300",
 };
 
 const STATUS_LABELS: Record<string, string> = {
   active: "Active",
   sold: "Sold",
   pending: "Pending",
+  poi: "Point of Interest",
 };
 
 function formatPrice(price: number): string {
@@ -35,15 +37,18 @@ export default function PropertyPinCard({
   onClose,
   onPlayVideo,
 }: PropertyPinCardProps) {
+  const isPoi = property.status === "poi";
+
   return (
     <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-80 overflow-hidden">
-
-      {/* Header */}
       <div className="bg-[#0a2342] px-4 py-3 flex items-center justify-between">
         <span
-          className={`text-xs font-semibold px-2 py-1 rounded-full ${STATUS_STYLES[property.status]}`}
+          className={`text-xs font-semibold px-2 py-1 rounded-full ${
+            STATUS_STYLES[property.status] ??
+            "bg-gray-100 text-gray-800 border border-gray-300"
+          }`}
         >
-          {STATUS_LABELS[property.status]}
+          {STATUS_LABELS[property.status] ?? property.status}
         </span>
         <button
           onClick={onClose}
@@ -54,7 +59,6 @@ export default function PropertyPinCard({
         </button>
       </div>
 
-      {/* Photo */}
       {property.photoUrl ? (
         <img
           src={property.photoUrl}
@@ -67,51 +71,51 @@ export default function PropertyPinCard({
         </div>
       )}
 
-      {/* Body */}
       <div className="px-4 py-3 space-y-2">
-
-        {/* Address */}
         <p className="font-semibold text-gray-900 text-sm leading-tight">
           {property.address}
         </p>
         {(property.city || property.zip) && (
           <p className="text-gray-500 text-xs">
-            {property.city}{property.city && property.zip ? ", " : ""}{property.state} {property.zip}
+            {property.city}
+            {property.city && property.zip ? ", " : ""}
+            {property.state} {property.zip}
           </p>
         )}
 
-        {/* Price */}
-        <div className="flex items-center gap-2">
-          <span className="text-[#0a2342] font-bold text-base">
-            {formatPrice(property.listPrice)}
-          </span>
-          {property.soldPrice && property.soldPrice > 0 && (
-            <span className="text-xs text-gray-400">
-              Sold: {formatPrice(property.soldPrice)}
+        {!isPoi && (
+          <div className="flex items-center gap-2">
+            <span className="text-[#0a2342] font-bold text-base">
+              {formatPrice(property.listPrice)}
             </span>
-          )}
-        </div>
+            {property.soldPrice && property.soldPrice > 0 && (
+              <span className="text-xs text-gray-400">
+                Sold: {formatPrice(property.soldPrice)}
+              </span>
+            )}
+          </div>
+        )}
 
-        {/* Stats */}
-        <div className="flex gap-4 text-xs text-gray-600">
-          {property.bedrooms > 0 && <span>{property.bedrooms} bd</span>}
-          {property.bathrooms > 0 && <span>{property.bathrooms} ba</span>}
-          {property.sqft > 0 && <span>{property.sqft.toLocaleString()} sqft</span>}
-        </div>
+        {!isPoi && (
+          <div className="flex gap-4 text-xs text-gray-600">
+            {property.bedrooms > 0 && <span>{property.bedrooms} bd</span>}
+            {property.bathrooms > 0 && <span>{property.bathrooms} ba</span>}
+            {property.sqft > 0 && (
+              <span>{property.sqft.toLocaleString()} sqft</span>
+            )}
+          </div>
+        )}
 
-        {/* MLS / Parcel */}
-        {property.mlsNumber && (
+        {!isPoi && property.mlsNumber && (
           <p className="text-xs text-gray-400">#{property.mlsNumber}</p>
         )}
 
-        {/* Description */}
         {property.description && (
           <p className="text-xs text-gray-600 leading-relaxed border-t border-gray-100 pt-2 line-clamp-3">
             {property.description}
           </p>
         )}
 
-        {/* Video button */}
         {property.videoUrl && onPlayVideo && (
           <button
             onClick={() => onPlayVideo(property.videoUrl!)}

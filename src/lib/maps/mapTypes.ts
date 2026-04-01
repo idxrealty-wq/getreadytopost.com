@@ -1,6 +1,6 @@
 // src/lib/maps/mapTypes.ts
 
-export type PropertyStatus = "active" | "sold" | "pending";
+export type PropertyStatus = "active" | "sold" | "pending" | "poi";
 
 export interface PropertyPin {
   id: string;

@@ -14,6 +14,7 @@ const STATUS_COLORS: Record<string, string> = {
   active: "#16a34a",
   sold: "#dc2626",
   pending: "#d97706",
+  poi: "#7c3aed",
 };
 
 declare global {
@@ -34,10 +35,12 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
 
   const filteredProperties = profile.properties.filter((p) => {
     if (filters.status !== "all" && p.status !== filters.status) return false;
-    if (p.listPrice < filters.minPrice) return false;
-    if (p.listPrice > filters.maxPrice) return false;
-    if (p.bedrooms < filters.minBeds) return false;
-    if (p.bathrooms < filters.minBaths) return false;
+    if (p.status !== "poi") {
+      if (p.listPrice < filters.minPrice) return false;
+      if (p.listPrice > filters.maxPrice) return false;
+      if (p.bedrooms < filters.minBeds) return false;
+      if (p.bathrooms < filters.minBaths) return false;
+    }
     if (filters.showVideosOnly && !p.videoUrl) return false;
     return true;
   });
@@ -45,17 +48,16 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
   const initMap = useCallback(() => {
     if (!mapRef.current) return;
 
-    // Calculate center from properties or default to Orlando
     let centerLat = 28.5383;
     let centerLng = -81.4800;
-    let defaultZoom = 10;
+    let defaultZoom = 7;
 
     if (profile.properties.length > 0) {
       const lats = profile.properties.map((p) => p.lat);
       const lngs = profile.properties.map((p) => p.lng);
       centerLat = lats.reduce((a, b) => a + b, 0) / lats.length;
       centerLng = lngs.reduce((a, b) => a + b, 0) / lngs.length;
-      defaultZoom = profile.properties.length === 1 ? 13 : 10;
+      defaultZoom = profile.properties.length === 1 ? 13 : 7;
     }
 
     const map = new window.google.maps.Map(mapRef.current, {
@@ -73,21 +75,26 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
     });
 
     mapInstanceRef.current = map;
+
+    if (profile.properties.length > 1) {
+      const bounds = new window.google.maps.LatLngBounds();
+      profile.properties.forEach((p) => {
+        bounds.extend({ lat: p.lat, lng: p.lng });
+      });
+      map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
+    }
+
     setMapReady(true);
   }, [profile.properties]);
 
-  // Load Google Maps script
   useEffect(() => {
     if (window.google?.maps) {
       initMap();
       return;
     }
-
     window.initGRTPMap = initMap;
-
     const existing = document.getElementById("grtp-maps-script");
     if (existing) return;
-
     const script = document.createElement("script");
     script.id = "grtp-maps-script";
     script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&callback=initGRTPMap`;
@@ -96,32 +103,37 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
     document.head.appendChild(script);
   }, [initMap]);
 
-  // Render markers when map is ready or filters change
   useEffect(() => {
     if (!mapReady || !mapInstanceRef.current) return;
-
     markersRef.current.forEach((m) => m.setMap(null));
     markersRef.current = [];
 
     filteredProperties.forEach((property) => {
+      const isPoi = property.status === "poi";
       const marker = new window.google.maps.Marker({
         position: { lat: property.lat, lng: property.lng },
         map: mapInstanceRef.current!,
         title: property.address,
-        icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 10,
-          fillColor: STATUS_COLORS[property.status],
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2,
-        },
+        icon: isPoi
+          ? {
+              path: window.google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+              scale: 8,
+              fillColor: STATUS_COLORS.poi,
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 2,
+            }
+          : {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: STATUS_COLORS[property.status] ?? "#6b7280",
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 2,
+            },
       });
 
-      marker.addListener("click", () => {
-        setSelectedProperty(property);
-      });
-
+      marker.addListener("click", () => setSelectedProperty(property));
       markersRef.current.push(marker);
     });
   }, [mapReady, filteredProperties]);
@@ -172,6 +184,7 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
           { status: "active", color: "#16a34a", label: "Active" },
           { status: "pending", color: "#d97706", label: "Pending" },
           { status: "sold", color: "#dc2626", label: "Sold" },
+          { status: "poi", color: "#7c3aed", label: "Point of Interest" },
         ].map((item) => (
           <div key={item.status} className="flex items-center gap-2">
             <span
@@ -198,7 +211,6 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
       <div className="relative flex-1 min-h-0">
         <div ref={mapRef} className="w-full h-full" />
 
-        {/* Loading state */}
         {!mapReady && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
             <div className="text-center">
@@ -208,7 +220,6 @@ export default function AgentMapShell({ profile }: AgentMapShellProps) {
           </div>
         )}
 
-        {/* Property Card Overlay */}
         {selectedProperty && (
           <div className="absolute top-4 right-4 z-10">
             <PropertyPinCard

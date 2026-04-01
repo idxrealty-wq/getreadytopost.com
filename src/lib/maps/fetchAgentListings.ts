@@ -14,10 +14,11 @@ function parseNum(val: unknown): number {
   return 0;
 }
 
-function parseStatus(status: string): "active" | "sold" | "pending" {
+function parseStatus(status: string): "active" | "sold" | "pending" | "poi" {
   const s = (status || "").toLowerCase();
   if (s === "sold") return "sold";
   if (s === "pending") return "pending";
+  if (s === "poi") return "poi";
   return "active";
 }
 

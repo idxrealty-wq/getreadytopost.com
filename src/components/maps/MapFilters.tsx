@@ -15,6 +15,7 @@ const STATUS_OPTIONS: { value: PropertyStatus | "all"; label: string }[] = [
   { value: "active", label: "Active" },
   { value: "pending", label: "Pending" },
   { value: "sold", label: "Sold" },
+  { value: "poi", label: "Point of Interest" },
 ];
 
 const PRICE_OPTIONS = [
