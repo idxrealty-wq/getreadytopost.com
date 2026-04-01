@@ -7,7 +7,7 @@ import { PropertyPin } from "./mapTypes";
 function parseNum(val: unknown): number {
   if (typeof val === "number") return val;
   if (typeof val === "string") {
-    const cleaned = val.replace(/[^0-9.]/g, "");
+    const cleaned = val.replace(/[^0-9.\-]/g, "");
     const parsed = parseFloat(cleaned);
     return isNaN(parsed) ? 0 : parsed;
   }
@@ -58,7 +58,8 @@ export async function fetchAgentListings(userId: string): Promise<PropertyPin[]>
       const photos = data.photos || [];
 
       const lat = parseNum(pd.latitude);
-      const lng = parseNum(pd.longitude);
+      const lngRaw = parseNum(pd.longitude);
+      const lng = lngRaw > 0 ? -lngRaw : lngRaw;
 
       // Skip listings with no coordinates
       if (!lat || !lng) return;
