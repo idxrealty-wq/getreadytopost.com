@@ -120,7 +120,7 @@ export default function VaultPage() {
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Agent Vault</h1>
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
             <p className="text-gray-300 flex-grow">Manage your listings and rewrite reports</p>
-            {creditBalance !== null && (
+                        {creditBalance !== null && (
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 w-full md:w-auto">
                 <p className="text-gray-300 text-sm mb-1">Credit Balance</p>
                 <div className="flex items-center justify-between gap-4">
@@ -129,6 +129,16 @@ export default function VaultPage() {
                 </div>
               </div>
             )}
+            <Link
+              href="/maps/my-map"
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-[#c9a227]/50 text-white px-5 py-4 rounded-xl font-semibold text-sm transition w-full md:w-auto justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-[#c9a227]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              View My Property Map
+            </Link>
+
           </div>
         </div>
         {error && (
