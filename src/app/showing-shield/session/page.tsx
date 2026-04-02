@@ -189,7 +189,8 @@ function SessionContent() {
   useEffect(() => {
     if (session) captureLocation();
   }, [session, captureLocation]);
-    // ── Continuous location tracking after panic ───────────────────────
+
+  // ── Continuous location tracking after panic ───────────────────────
   const startLocationTracking = useCallback(() => {
     if (locationPingRef.current) return;
     locationPingRef.current = setInterval(async () => {
@@ -209,9 +210,6 @@ function SessionContent() {
       } catch {}
     }, 30000);
   }, [sessionId]);
-
-  // ── Silent alert trigger ───────────────────────────────────────────
-  const triggerSilentAlert = useCallback(async () => {
   // ── Silent alert trigger ───────────────────────────────────────────
   const triggerSilentAlert = useCallback(async () => {
     if (alertSentRef.current) return;
@@ -238,8 +236,7 @@ function SessionContent() {
       }
       if (videoRef.current) videoRef.current.srcObject = null;
       setDebugLog((p) => [...p, '4. Calling panic API...']);
-	        startLocationTracking();
-      await fetch('/api/showing-shield/panic', {
+      startLocationTracking();
       const res = await fetch('/api/showing-shield/panic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -250,7 +247,7 @@ function SessionContent() {
     } catch (e: any) {
       setDebugLog((p) => [...p, 'ERROR: ' + e.message]);
     }
-  }, [location, sessionId, captureLocation]);
+  }, [location, sessionId, captureLocation, startLocationTracking]);
 
   // ── Auto-alert on timer expiry ─────────────────────────────────────
   useEffect(() => {
