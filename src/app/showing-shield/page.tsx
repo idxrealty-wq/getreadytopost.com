@@ -158,6 +158,22 @@ export default function ShowingShieldLanding() {
         </div>
       </section>
 
+      {/* Scene image */}
+      <section className="relative w-full overflow-hidden" style={{ height: '420px' }}>
+        <img
+          src="https://us.chat-img.sintra.ai/f3b53c23-1962-4de9-bee1-1ab563b224f9/37104f32-3463-4eee-ab35-0710a2b44068/image.png?w=1184&h=864"
+          alt="Safety rescue scene"
+          className="w-full h-full object-cover"
+          style={{ opacity: 0.38 }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#08152b] via-transparent to-[#08152b]" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <p className="text-white text-2xl md:text-3xl font-black text-center px-4 drop-shadow-lg">
+            Because <span className="text-[#c9a227]">peace of mind</span> is not optional.
+          </p>
+        </div>
+      </section>
+
       {/* Stats bar */}
       <section className="bg-[#0d1f3c] border-y border-[#c9a227]/20 py-8">
         <div className="max-w-4xl mx-auto px-4 grid grid-cols-3 gap-4 text-center">
