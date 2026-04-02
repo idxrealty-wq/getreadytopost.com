@@ -57,8 +57,8 @@ export default function ShowingShieldSetup() {
   const handleSave = async () => {
     if (!user) return;
     if (!agentPhone) { setError('Your phone number is required.'); return; }
-    if (contacts.some((c) => !c.name || !c.phone)) {
-      setError('Each contact must have a name and phone number.');
+    if (contacts.some((c) => !c.name || !c.email)) {
+      setError('Each contact must have a name and email address.');
       return;
     }
     setSaving(true);
@@ -147,7 +147,7 @@ export default function ShowingShieldSetup() {
           {/* Emergency Contacts */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
             <h2 className="text-white font-bold text-lg mb-1">🆘 Emergency Contacts</h2>
-            <p className="text-gray-400 text-sm mb-6">Up to 3 contacts. All will receive an SMS alert when panic is triggered.</p>
+            <p className="text-gray-400 text-sm mb-6">Up to 3 contacts. All will receive an email alert when panic is triggered.</p>
 
             <div className="space-y-6">
               {contacts.map((contact, index) => (
