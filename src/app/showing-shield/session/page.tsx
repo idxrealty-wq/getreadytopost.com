@@ -191,16 +191,16 @@ function SessionContent() {
     try {
       const loc = location || await captureLocation();
       let evidenceUrls: string[] = [];
+      if (videoRef.current && canvasRef.current && sessionId && warmStreamRef.current) {
+        try {
+          evidenceUrls = await captureEvidence(sessionId, videoRef.current, canvasRef.current);
+        } catch {}
+      }
       if (warmStreamRef.current) {
         warmStreamRef.current.getTracks().forEach((t) => t.stop());
         warmStreamRef.current = null;
       }
       if (videoRef.current) videoRef.current.srcObject = null;
-      if (videoRef.current && canvasRef.current && sessionId) {
-        try {
-          evidenceUrls = await captureEvidence(sessionId, videoRef.current, canvasRef.current);
-        } catch {}
-      }
       await fetch('/api/showing-shield/panic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
