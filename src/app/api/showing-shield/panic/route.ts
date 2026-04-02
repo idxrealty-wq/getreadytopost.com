@@ -29,11 +29,7 @@ export async function POST(req: NextRequest) {
       ? `https://maps.google.com/?q=${location.lat},${location.lng}`
       : 'Location unavailable';
 
-    const photoLines = Array.isArray(evidenceUrls) && evidenceUrls.length > 0
-      ? ['', 'Evidence Photos:'].concat(evidenceUrls.map((url: string, i: number) => `Photo ${i + 1}: ${url}`))
-      : ['', 'Evidence Photos: None captured'];
-
-    const alertLines = [
+    const alertBody = [
       'SHOWING SHIELD - EMERGENCY ALERT',
       '',
       `Agent: ${session.agentName}`,
@@ -44,12 +40,9 @@ export async function POST(req: NextRequest) {
       '',
       location ? `Location: ${location.address}` : 'Location: Not available',
       `Map: ${mapsLink}`,
-      ...photoLines,
-      '',
-      'This is an automated Showing Shield emergency alert.',
-    ];
+    ].join('\n');
 
-    const alertBody = alertLines.join('\n');
+    const hasPhotos = Array.isArray(evidenceUrls) && evidenceUrls.length > 0;
 
     const smsSent: string[] = [];
 
@@ -62,6 +55,19 @@ export async function POST(req: NextRequest) {
             to: contact.phone,
           });
           smsSent.push(contact.phone);
+
+          if (hasPhotos) {
+            for (let i = 0; i < evidenceUrls.length; i++) {
+              try {
+                await client.messages.create({
+                  body: `Evidence photo ${i + 1}:`,
+                  mediaUrl: [evidenceUrls[i]],
+                  messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID!,
+                  to: contact.phone,
+                });
+              } catch {}
+            }
+          }
         } catch (smsErr) {
           console.error(`SMS failed to ${contact.phone}:`, smsErr);
         }
