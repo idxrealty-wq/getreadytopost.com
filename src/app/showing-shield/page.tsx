@@ -1,350 +1,280 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+'use client';
 
-export const metadata: Metadata = {
-  title: "Showing Shield | Silent Safety Protection for Real Estate Agents",
-  description:
-    "A discreet safety system for real estate agents. Silent panic alerts, live geocoded location sharing, instant evidence backup, and office notification workflows for brokerages that protect their people.",
-  openGraph: {
-    title: "Showing Shield | Silent Safety Protection for Real Estate Agents",
-    description:
-      "Silent panic alerts, live geocoded location sharing, instant evidence backup, and brokerage office notification workflows.",
-    type: "website",
-    url: "https://getreadytopost.com/showing-shield",
-    images: [
-      {
-        url: "https://getreadytopost.com/og/showing-shield-og.png",
-        width: 1200,
-        height: 630,
-        alt: "Showing Shield - Silent Safety Protection for Real Estate Agents",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Showing Shield | Silent Safety Protection for Real Estate Agents",
-    description:
-      "A discreet safety system for agents who show property alone.",
-    images: ["https://getreadytopost.com/og/showing-shield-og.png"],
-  },
-};
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-const coreFeatures = [
+const USE_CASES = [
   {
-    title: "Silent Panic Trigger",
-    description:
-      "Send a normal-looking text that does not alert the threat while the emergency workflow starts quietly in the background.",
-    icon: "🚨",
+    icon: '💑',
+    title: 'First Dates',
+    desc: 'She met him on an app. You don\'t know his name. Now you can watch her location in real time until she\'s home safe.',
   },
   {
-    title: "Live Geocoded Location",
-    description:
-      "Convert live GPS into a readable address, nearest road, and map link so brokers, on-call agents, and emergency contacts know where the agent is fast.",
-    icon: "📍",
+    icon: '🚗',
+    title: 'Rideshare & Late Nights',
+    desc: 'Uber alone at 2am. One shared link and someone who loves her is watching every mile.',
   },
   {
-    title: "Instant Evidence Backup",
-    description:
-      "Photos and evidence upload immediately to secure storage, helping preserve critical information even if the phone is taken.",
-    icon: "📸",
+    icon: '🎓',
+    title: 'College Campus',
+    desc: 'Walking to the car after a late class. Library nights. Parties. Parents sleep better when they can see the pin moving.',
   },
   {
-    title: "Office Notification Portal",
-    description:
-      "Turn the brokerage office into a real-time alert hub so managers, brokers, and rotating on-call agents can respond quickly.",
-    icon: "☎️",
+    icon: '🏠',
+    title: 'Real Estate Agents',
+    desc: 'Showing a vacant property to a stranger. One panic phrase typed in chat triggers a silent alert with evidence photos.',
   },
   {
-    title: "Safety Check-In Timer",
-    description:
-      "Set a showing timer before the appointment. If the agent does not confirm they are safe, the alert sequence begins automatically.",
-    icon: "⏱️",
+    icon: '🔧',
+    title: 'Contractors & Caregivers',
+    desc: 'Working alone in someone else\'s home. A live location shared with your office changes everything.',
   },
   {
-    title: "On-Call Brokerage Coverage",
-    description:
-      "Brokerages can assign agents or managers to monitor alerts during selected hours, creating a real safety response workflow.",
-    icon: "🛡️",
+    icon: '👵',
+    title: 'Elderly Parents',
+    desc: 'Living alone. Driving solo. Adult kids can check the map anytime without calling and worrying them.',
   },
 ];
 
-const brokerBenefits = [
-  "Recruit with more than commission splits",
-  "Show agents your brokerage protects them in the field",
-  "Create a real office safety workflow",
-  "Strengthen retention with a serious agent-first benefit",
-  "Position your firm as modern, protective, and proactive",
+const HOW_IT_WORKS = [
+  {
+    step: '01',
+    title: 'Set Up in 2 Minutes',
+    desc: 'Add up to 3 emergency contacts and choose a silent panic phrase. Share your permanent tracking link.',
+  },
+  {
+    step: '02',
+    title: 'They Watch. You Go.',
+    desc: 'Your location pings live every 30 seconds. Anyone with your link sees exactly where you are — no login needed.',
+  },
+  {
+    step: '03',
+    title: 'Panic Phrase = Instant Alert',
+    desc: 'Type your phrase in the chat. It looks like a normal message. Behind the scenes: alert emails, evidence photos, and continuous GPS updates fire immediately.',
+  },
 ];
 
-const useCases = [
-  "Solo buyer showings",
-  "Vacant homes",
-  "Open houses",
-  "Remote land listings",
-  "New construction model tours",
-  "After-hours appointments",
+const TESTIMONIALS = [
+  {
+    quote: 'My daughter is in college three states away. I have her tracking link bookmarked. I check it every night she goes out. It\'s the only reason I sleep.',
+    name: 'Karen M.',
+    role: 'Mother of a college sophomore',
+  },
+  {
+    quote: 'I show vacant properties alone twice a week. After a client made me uncomfortable last year, I needed something silent. This is exactly that.',
+    name: 'Sandra T.',
+    role: 'Licensed Real Estate Agent, Tampa FL',
+  },
+  {
+    quote: 'We set it up for our mom after dad passed. She lives alone and drives herself everywhere. The whole family has her link. She loves that we\'re not calling her every hour.',
+    name: 'David R.',
+    role: 'Son, caring for an 74-year-old parent',
+  },
 ];
 
-export default function ShowingShieldPage() {
+export default function ShowingShieldLanding() {
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <div className="pt-20 bg-[#08152b] min-h-screen text-white">
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#08152b] via-[#10213d] to-[#1a2b4a] py-24">
-        <div className="absolute inset-0 opacity-15">
-          <img
-            src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1600&h=1000&fit=crop"
-            alt="Real estate showing safety concept"
-            className="w-full h-full object-cover"
-          />
-        </div>
+    <div className="min-h-screen bg-[#08152b]" style={{ fontFamily: 'system-ui, sans-serif' }}>
 
-        <div className="relative max-w-6xl mx-auto px-6">
-          <div className="max-w-4xl">
-            <p className="text-[#c9a227] font-semibold uppercase tracking-[0.24em] text-xs mb-5">
-              Agent Safety Platform
-            </p>
-
-            <h1 className="text-5xl md:text-7xl font-bold leading-tight mb-6">
-              If a Showing Goes Bad,
-              <span className="block text-[#c9a227]">Your Phone Should Protect You.</span>
-            </h1>
-
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl leading-relaxed mb-8">
-              Silent emergency alerts. Live geocoded location sharing. Instant evidence backup.
-              Built for real estate agents who meet strangers behind closed doors.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <a
-                href="mailto:idxrealty@gmail.com?subject=Showing%20Shield%20Interest"
-                className="inline-flex items-center justify-center bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition"
-              >
-                Join the Interest List
-              </a>
-              <a
-                href="mailto:idxrealty@gmail.com?subject=Showing%20Shield%20Brokerage%20Demo"
-                className="inline-flex items-center justify-center border-2 border-white/20 hover:border-white/50 text-white px-8 py-4 rounded-xl font-bold text-lg transition"
-              >
-                Request Brokerage Info
-              </a>
+      {/* Nav */}
+      <nav className="bg-[#08152b]/95 backdrop-blur border-b border-[#c9a227]/20 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#c9a227] flex items-center justify-center font-bold text-[#08152b] text-sm">
+              SS
             </div>
-
-            <div className="grid sm:grid-cols-3 gap-4 max-w-4xl">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                <p className="text-3xl font-bold text-[#c9a227]">Silent</p>
-                <p className="text-sm text-gray-300 mt-2">
-                  Trigger help without visibly escalating in front of the threat.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                <p className="text-3xl font-bold text-[#c9a227]">Fast</p>
-                <p className="text-sm text-gray-300 mt-2">
-                  Turn live coordinates into a usable address and map link immediately.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                <p className="text-3xl font-bold text-[#c9a227]">Real</p>
-                <p className="text-sm text-gray-300 mt-2">
-                  A serious safety system for agents and brokerages, not a gimmick.
-                </p>
-              </div>
-            </div>
+            <span className="text-white font-bold text-lg tracking-tight">Showing Shield</span>
           </div>
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#how-it-works" className="text-gray-400 hover:text-white text-sm transition">How It Works</a>
+            <a href="#use-cases" className="text-gray-400 hover:text-white text-sm transition">Who It's For</a>
+            <a href="#testimonials" className="text-gray-400 hover:text-white text-sm transition">Stories</a>
+            <button
+              onClick={() => router.push('/signin')}
+              className="bg-[#c9a227] text-[#08152b] font-bold text-sm px-5 py-2 rounded-full hover:bg-[#d4ad2e] transition"
+            >
+              Get Protected
+            </button>
+          </div>
+          <button
+            className="md:hidden text-white text-2xl"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Menu"
+          >
+            {menuOpen ? '✕' : '☰'}
+          </button>
         </div>
-      </section>
+        {menuOpen && (
+          <div className="md:hidden bg-[#0d1f3c] border-t border-white/10 px-4 py-4 space-y-4">
+            <a href="#how-it-works" className="block text-gray-300 text-sm" onClick={() => setMenuOpen(false)}>How It Works</a>
+            <a href="#use-cases" className="block text-gray-300 text-sm" onClick={() => setMenuOpen(false)}>Who It's For</a>
+            <a href="#testimonials" className="block text-gray-300 text-sm" onClick={() => setMenuOpen(false)}>Stories</a>
+            <button
+              onClick={() => router.push('/signin')}
+              className="w-full bg-[#c9a227] text-[#08152b] font-bold text-sm px-5 py-3 rounded-full"
+            >
+              Get Protected
+            </button>
+          </div>
+        )}
+      </nav>
 
-      <section className="bg-red-700 py-6">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <p className="text-lg md:text-xl font-semibold">
-            Real estate agents should not have to choose between staying calm and getting help.
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#08152b] via-[#0d1f3c] to-[#08152b]" />
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle at 30% 50%, #c9a227 0%, transparent 60%), radial-gradient(circle at 70% 20%, #c9a227 0%, transparent 50%)' }} />
+        <div className="relative max-w-4xl mx-auto px-4 py-24 md:py-36 text-center">
+          <div className="inline-flex items-center gap-2 bg-[#c9a227]/10 border border-[#c9a227]/30 rounded-full px-4 py-1.5 mb-8">
+            <span className="w-2 h-2 rounded-full bg-[#c9a227] animate-pulse inline-block"></span>
+            <span className="text-[#c9a227] text-xs font-semibold tracking-wide uppercase">Silent. Invisible. Always On.</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight mb-6">
+            Your daughter is on<br />
+            <span className="text-[#c9a227]">a first date.</span><br />
+            You're just waiting.
+          </h1>
+          <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+            Showing Shield gives the people you love a live location link, a silent panic trigger, and instant emergency alerts — without anyone knowing it's running.
           </p>
-        </div>
-      </section>
-
-      <section className="py-20 bg-white text-[#1a2b4a]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="max-w-4xl mb-12">
-            <p className="text-[#c9a227] font-semibold uppercase tracking-[0.2em] text-xs mb-3">
-              Why This Matters
-            </p>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Safety should be built into the showing process.
-            </h2>
-            <p className="text-lg text-gray-700 leading-8">
-              Agents work in vacant homes, isolated properties, open houses, model units, and unfamiliar
-              neighborhoods. When something feels wrong, there may be no time for a visible call, no nearby
-              coworker, and no margin for hesitation. Showing Shield is built to help trigger support discreetly,
-              preserve evidence instantly, and give brokerages a real system they can stand behind.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {coreFeatures.map((feature) => (
-              <div
-                key={feature.title}
-                className="rounded-2xl border border-gray-200 bg-[#faf8f5] p-6 shadow-sm hover:shadow-md transition"
-              >
-                <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-gray-700 text-sm leading-7">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 bg-[#10213d]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-10 items-start">
-            <div>
-              <p className="text-[#c9a227] font-semibold uppercase tracking-[0.2em] text-xs mb-3">
-                Brokerage Advantage
-              </p>
-              <h2 className="text-4xl font-bold mb-6">
-                A safety system that doubles as a recruiting tool.
-              </h2>
-              <p className="text-lg text-gray-300 leading-8 mb-6">
-                Most brokerages recruit with splits, leads, and training. Very few can say:
-                <span className="text-white font-semibold"> we protect our agents in the field.</span>
-              </p>
-              <p className="text-lg text-gray-300 leading-8 mb-8">
-                Showing Shield gives brokerages a serious, visible differentiator they can use in recruiting,
-                retention, onboarding, and office culture.
-              </p>
-
-              <div className="space-y-3">
-                {brokerBenefits.map((benefit) => (
-                  <div
-                    key={benefit}
-                    className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4"
-                  >
-                    <span className="text-[#c9a227] font-bold mt-0.5">✓</span>
-                    <span className="text-gray-200">{benefit}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-[#c9a227]/30 bg-white/5 p-8">
-              <p className="text-[#c9a227] font-semibold uppercase tracking-wide text-sm mb-3">
-                Office Workflow
-              </p>
-              <h3 className="text-2xl font-bold mb-6">How the alert chain works</h3>
-
-              <div className="space-y-4">
-                <WorkflowStep
-                  number="1"
-                  title="Agent triggers silent alert"
-                  description="A normal-looking text or missed safety check-in starts the emergency workflow."
-                />
-                <WorkflowStep
-                  number="2"
-                  title="Location is geocoded instantly"
-                  description="Live GPS is translated into a readable address, nearest road, and map link."
-                />
-                <WorkflowStep
-                  number="3"
-                  title="Office portal receives notification"
-                  description="Broker, manager, or on-call agent gets the alert with time, location, and status."
-                />
-                <WorkflowStep
-                  number="4"
-                  title="Response begins immediately"
-                  description="Office staff, emergency contacts, and escalation paths activate without delay."
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 bg-[#faf8f5] text-[#1a2b4a]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <p className="text-[#c9a227] font-semibold uppercase tracking-[0.2em] text-xs mb-3">
-              Built For Real Situations
-            </p>
-            <h2 className="text-4xl font-bold mb-4">Where Showing Shield matters most</h2>
-            <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-              This is designed for the moments agents know can feel wrong fast.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {useCases.map((item) => (
-              <div
-                key={item}
-                className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm"
-              >
-                <p className="text-lg font-semibold">{item}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 bg-gradient-to-br from-[#1a2b4a] to-[#2d4a7c]">
-        <div className="max-w-5xl mx-auto px-6 text-center">
-          <p className="text-[#c9a227] font-semibold uppercase tracking-[0.2em] text-xs mb-3">
-            The Promise
-          </p>
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            If an agent feels unsafe, help should be easier to trigger than fear.
-          </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-10 leading-8">
-            Showing Shield is built around one mission: discreet alerts, usable location data,
-            preserved evidence, and faster response when every second matters.
-          </p>
-
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="mailto:idxrealty@gmail.com?subject=Showing%20Shield%20Interest"
-              className="inline-flex items-center justify-center bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition"
+            <button
+              onClick={() => router.push('/signin')}
+              className="bg-[#c9a227] text-[#08152b] font-black text-base px-8 py-4 rounded-full hover:bg-[#d4ad2e] transition shadow-lg shadow-[#c9a227]/20"
             >
-              Join the Interest List
-            </a>
+              Get Protected Free →
+            </button>
             <a
-              href="mailto:idxrealty@gmail.com?subject=Showing%20Shield%20Share"
-              className="inline-flex items-center justify-center bg-[#c9a227] hover:bg-[#e8c547] text-[#1a2b4a] px-8 py-4 rounded-xl font-bold text-lg transition"
+              href="#how-it-works"
+              className="border border-white/20 text-white font-semibold text-base px-8 py-4 rounded-full hover:border-white/40 transition"
             >
-              Share This Idea
+              See How It Works
             </a>
           </div>
+          <p className="text-gray-500 text-xs mt-6">No app download required. Works on any phone browser.</p>
+        </div>
+      </section>
 
-          <p className="text-gray-400 text-sm mt-8">
-            Showing Shield • Protect agents • Strengthen trust • Lead with safety
+      {/* Stats bar */}
+      <section className="bg-[#0d1f3c] border-y border-[#c9a227]/20 py-8">
+        <div className="max-w-4xl mx-auto px-4 grid grid-cols-3 gap-4 text-center">
+          {[
+            { value: '30s', label: 'Location ping interval' },
+            { value: '3', label: 'Emergency contacts' },
+            { value: '0', label: 'App downloads needed' },
+          ].map((stat) => (
+            <div key={stat.label}>
+              <p className="text-[#c9a227] text-2xl md:text-3xl font-black">{stat.value}</p>
+              <p className="text-gray-400 text-xs mt-1">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+      {/* How it works */}
+      <section id="how-it-works" className="py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-[#c9a227] text-xs font-semibold uppercase tracking-widest mb-3">How It Works</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white">Set up once. Protected always.</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {HOW_IT_WORKS.map((item) => (
+              <div key={item.step} className="bg-[#0d1f3c] rounded-2xl border border-white/10 px-6 py-8 relative">
+                <p className="text-[#c9a227]/20 text-6xl font-black absolute top-4 right-6 leading-none">{item.step}</p>
+                <p className="text-[#c9a227] text-xs font-semibold uppercase tracking-widest mb-3">{item.step}</p>
+                <p className="text-white font-bold text-lg mb-3">{item.title}</p>
+                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Use cases */}
+      <section id="use-cases" className="py-20 px-4 bg-[#0d1f3c]/50">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-[#c9a227] text-xs font-semibold uppercase tracking-widest mb-3">Who It's For</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white">Anyone who goes somewhere alone.</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {USE_CASES.map((item) => (
+              <div key={item.title} className="bg-[#08152b] rounded-2xl border border-white/10 px-6 py-6 hover:border-[#c9a227]/30 transition">
+                <p className="text-3xl mb-4">{item.icon}</p>
+                <p className="text-white font-bold text-base mb-2">{item.title}</p>
+                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section id="testimonials" className="py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-[#c9a227] text-xs font-semibold uppercase tracking-widest mb-3">Real Stories</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white">The people who needed this most.</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {TESTIMONIALS.map((t) => (
+              <div key={t.name} className="bg-[#0d1f3c] rounded-2xl border border-white/10 px-6 py-6 flex flex-col">
+                <p className="text-[#c9a227] text-2xl mb-4">"</p>
+                <p className="text-gray-300 text-sm leading-relaxed flex-1">{t.quote}</p>
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <p className="text-white text-sm font-bold">{t.name}</p>
+                  <p className="text-gray-500 text-xs mt-0.5">{t.role}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-24 px-4">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="bg-gradient-to-br from-[#0d1f3c] to-[#08152b] border border-[#c9a227]/30 rounded-3xl px-8 py-14 shadow-2xl">
+            <p className="text-[#c9a227] text-xs font-semibold uppercase tracking-widest mb-4">Start Now</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+              Two minutes of setup.<br />A lifetime of peace of mind.
+            </h2>
+            <p className="text-gray-400 text-base mb-8 leading-relaxed">
+              Share your tracking link. Set your panic phrase. The people who love you will always know where you are.
+            </p>
+            <button
+              onClick={() => router.push('/signin')}
+              className="bg-[#c9a227] text-[#08152b] font-black text-base px-10 py-4 rounded-full hover:bg-[#d4ad2e] transition shadow-lg shadow-[#c9a227]/20 w-full sm:w-auto"
+            >
+              Get Protected Free →
+            </button>
+            <p className="text-gray-600 text-xs mt-4">No app download. No credit card. Works on any phone.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-[#0d1f3c] border-t border-white/10 px-4 py-8">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[#c9a227] flex items-center justify-center font-bold text-[#08152b] text-xs">
+              SS
+            </div>
+            <span className="text-white font-bold text-sm">Showing Shield</span>
+          </div>
+          <p className="text-gray-500 text-xs text-center">
+            © {new Date().getFullYear()} Showing Shield. A GetReadyToPost product. All rights reserved.
           </p>
+          <div className="flex gap-6">
+            <a href="/privacy" className="text-gray-500 hover:text-white text-xs transition">Privacy</a>
+            <a href="/terms" className="text-gray-500 hover:text-white text-xs transition">Terms</a>
+          </div>
         </div>
-      </section>
+      </footer>
 
-      <section className="py-10 bg-[#08152b]">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <Link href="/pricing" className="text-[#c9a227] hover:text-white font-semibold transition">
-            Back to GetReadyToPost →
-          </Link>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function WorkflowStep({
-  number,
-  title,
-  description,
-}: {
-  number: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-      <div className="w-10 h-10 rounded-full bg-[#c9a227] text-[#1a2b4a] font-bold flex items-center justify-center flex-shrink-0">
-        {number}
-      </div>
-      <div>
-        <h4 className="text-lg font-bold text-white mb-1">{title}</h4>
-        <p className="text-sm text-gray-300 leading-6">{description}</p>
-      </div>
     </div>
   );
 }

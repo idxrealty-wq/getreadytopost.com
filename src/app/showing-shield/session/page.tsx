@@ -96,14 +96,16 @@ function SessionContent() {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const locationPingRef = useRef<NodeJS.Timeout | null>(null);
+  const panicPingRef = useRef<NodeJS.Timeout | null>(null);
   const updateCountRef = useRef(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const alertSentRef = useRef(false);
   const warmStreamRef = useRef<MediaStream | null>(null);
+  const userIdRef = useRef<string | null>(null);
 
-  // ── Warm up camera on session load ──────────────────────────────────
+  // ── Warm up camera ─────────────────────────────────────────────────
   useEffect(() => {
     if (!session) return;
     let active = true;
@@ -138,6 +140,10 @@ function SessionContent() {
         clearInterval(locationPingRef.current);
         locationPingRef.current = null;
       }
+      if (panicPingRef.current) {
+        clearInterval(panicPingRef.current);
+        panicPingRef.current = null;
+      }
     };
   }, [session]);
 
@@ -146,6 +152,7 @@ function SessionContent() {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) { router.push('/signin'); return; }
       setUser(u);
+      userIdRef.current = u.uid;
       if (!sessionId) { router.push('/showing-shield/dashboard'); return; }
       const [s, profile] = await Promise.all([
         getSessionById(sessionId),
@@ -190,10 +197,33 @@ function SessionContent() {
     if (session) captureLocation();
   }, [session, captureLocation]);
 
-  // ── Continuous location tracking after panic ───────────────────────
-  const startLocationTracking = useCallback(() => {
+  // ── Constant live location pinging (every 30s from session start) ──
+  const startLivePing = useCallback((uid: string) => {
     if (locationPingRef.current) return;
     locationPingRef.current = setInterval(async () => {
+      try {
+        const loc = await getLocation();
+        if (!loc) return;
+        setLocation(loc);
+        await fetch('/api/showing-shield/live-location', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: uid, location: loc }),
+        });
+      } catch {}
+    }, 30000);
+  }, []);
+
+  useEffect(() => {
+    if (session && userIdRef.current) {
+      startLivePing(userIdRef.current);
+    }
+  }, [session, startLivePing]);
+
+  // ── Panic location pinging (every 30s, emails contacts) ───────────
+  const startPanicTracking = useCallback(() => {
+    if (panicPingRef.current) return;
+    panicPingRef.current = setInterval(async () => {
       try {
         const loc = await getLocation();
         if (!loc || !sessionId) return;
@@ -236,7 +266,7 @@ function SessionContent() {
       }
       if (videoRef.current) videoRef.current.srcObject = null;
       setDebugLog((p) => [...p, '4. Calling panic API...']);
-      startLocationTracking();
+      startPanicTracking();
       const res = await fetch('/api/showing-shield/panic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -247,7 +277,7 @@ function SessionContent() {
     } catch (e: any) {
       setDebugLog((p) => [...p, 'ERROR: ' + e.message]);
     }
-  }, [location, sessionId, captureLocation, startLocationTracking]);
+  }, [location, sessionId, captureLocation, startPanicTracking]);
 
   // ── Auto-alert on timer expiry ─────────────────────────────────────
   useEffect(() => {
@@ -360,7 +390,7 @@ function SessionContent() {
         </div>
       </div>
 
-      {/* Camera status indicator */}
+      {/* Camera status */}
       {cameraReady && (
         <div className="bg-emerald-900/20 border-b border-emerald-500/20 px-4 py-1.5 flex items-center gap-2 flex-shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
@@ -371,7 +401,7 @@ function SessionContent() {
       {/* Location bar */}
       {location && (
         <div className="bg-[#0d1f3c]/80 border-b border-white/5 px-4 py-2 flex items-center gap-2 flex-shrink-0">
-          <span className="text-emerald-400 text-xs">&#128205;</span>
+          <span className="text-emerald-400 text-xs">📍</span>
           <p className="text-gray-400 text-xs truncate flex-1">{location.address}</p>
           <a href={location.mapsLink} target="_blank" rel="noopener noreferrer"
             className="text-[#c9a227] text-xs font-semibold hover:underline flex-shrink-0">
