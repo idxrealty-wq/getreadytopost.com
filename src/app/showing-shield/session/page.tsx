@@ -83,6 +83,7 @@ function SessionContent() {
   const [checkedIn, setCheckedIn] = useState(false);
   const [ending, setEnding] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
+  const [debugLog, setDebugLog] = useState<string[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -188,25 +189,37 @@ function SessionContent() {
     if (alertSentRef.current) return;
     alertSentRef.current = true;
     setAlertSent(true);
+    setDebugLog((p) => [...p, '1. Alert triggered']);
     try {
       const loc = location || await captureLocation();
+      setDebugLog((p) => [...p, '2. Location: ' + (loc ? loc.address : 'none')]);
       let evidenceUrls: string[] = [];
       if (videoRef.current && canvasRef.current && sessionId && warmStreamRef.current) {
         try {
           evidenceUrls = await captureEvidence(sessionId, videoRef.current, canvasRef.current);
-        } catch {}
+          setDebugLog((p) => [...p, '3. Evidence: ' + evidenceUrls.length + ' photos']);
+        } catch (e: any) {
+          setDebugLog((p) => [...p, '3. Evidence failed: ' + e.message]);
+        }
+      } else {
+        setDebugLog((p) => [...p, '3. Evidence skipped - camera not ready']);
       }
       if (warmStreamRef.current) {
         warmStreamRef.current.getTracks().forEach((t) => t.stop());
         warmStreamRef.current = null;
       }
       if (videoRef.current) videoRef.current.srcObject = null;
-      await fetch('/api/showing-shield/panic', {
+      setDebugLog((p) => [...p, '4. Calling panic API...']);
+      const res = await fetch('/api/showing-shield/panic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, location: loc, evidenceUrls }),
       });
-    } catch {}
+      const data = await res.json();
+      setDebugLog((p) => [...p, '5. API response: ' + JSON.stringify(data)]);
+    } catch (e: any) {
+      setDebugLog((p) => [...p, 'ERROR: ' + e.message]);
+    }
   }, [location, sessionId, captureLocation]);
 
   // ── Auto-alert on timer expiry ─────────────────────────────────────
@@ -389,6 +402,15 @@ function SessionContent() {
           &rarr;
         </button>
       </div>
+
+      {/* Debug log */}
+      {debugLog.length > 0 && (
+        <div className="bg-black border-t border-yellow-500/40 px-4 py-2 flex-shrink-0 max-h-32 overflow-y-auto">
+          {debugLog.map((line, i) => (
+            <p key={i} className="text-yellow-400 text-[10px] font-mono">{line}</p>
+          ))}
+        </div>
+      )}
 
       {/* End session */}
       <div className="bg-[#08152b] border-t border-white/5 px-4 py-2 flex justify-center flex-shrink-0">
