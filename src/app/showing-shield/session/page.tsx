@@ -340,15 +340,6 @@ function SessionContent() {
         </div>
       )}
 
-      {/* Alert banner */}
-      {alertSent && (
-        <div className="bg-red-900/60 border-b border-red-500/40 px-4 py-2 flex-shrink-0">
-          <p className="text-red-300 text-xs font-semibold text-center">
-            &#9888; Emergency alert sent to your contacts
-          </p>
-        </div>
-      )}
-
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.map((msg) => (
