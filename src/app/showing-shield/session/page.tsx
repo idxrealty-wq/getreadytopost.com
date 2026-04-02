@@ -87,7 +87,7 @@ function SessionContent() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      text: 'Session started. Check in when you are ready.',
+      text: 'Good luck with that showing!',
       from: 'office',
       time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     },

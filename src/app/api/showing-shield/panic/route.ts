@@ -9,7 +9,7 @@ const client = twilio(
 
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, location } = await req.json();
+    const { sessionId, location, evidenceUrls } = await req.json();
 
     if (!sessionId) {
       return NextResponse.json({ error: 'sessionId required' }, { status: 400 });
@@ -29,17 +29,27 @@ export async function POST(req: NextRequest) {
       ? `https://maps.google.com/?q=${location.lat},${location.lng}`
       : 'Location unavailable';
 
-    const alertBody = [
-      `🚨 SHOWING SHIELD EMERGENCY ALERT`,
+    const photoLines = Array.isArray(evidenceUrls) && evidenceUrls.length > 0
+      ? ['', 'Evidence Photos:'].concat(evidenceUrls.map((url: string, i: number) => `Photo ${i + 1}: ${url}`))
+      : ['', 'Evidence Photos: None captured'];
+
+    const alertLines = [
+      'SHOWING SHIELD - EMERGENCY ALERT',
+      '',
       `Agent: ${session.agentName}`,
       `Phone: ${session.agentPhone}`,
       `Property: ${session.propertyAddress}`,
       `Client: ${session.clientName}`,
       `Time: ${new Date(now).toLocaleString('en-US', { timeZone: 'America/New_York' })}`,
-      location ? `Location: ${location.address}` : `Location: Not available`,
+      '',
+      location ? `Location: ${location.address}` : 'Location: Not available',
       `Map: ${mapsLink}`,
-      `This is an automated Showing Shield emergency alert.`,
-    ].join('\n');
+      ...photoLines,
+      '',
+      'This is an automated Showing Shield emergency alert.',
+    ];
+
+    const alertBody = alertLines.join('\n');
 
     const smsSent: string[] = [];
 
@@ -62,6 +72,7 @@ export async function POST(req: NextRequest) {
       status: 'alert_triggered',
       panicTriggeredAt: now,
       alertsSent: smsSent,
+      evidenceUrls: evidenceUrls || [],
       ...(location && {
         location: {
           lat: location.lat,
