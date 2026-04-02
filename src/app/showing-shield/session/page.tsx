@@ -95,6 +95,8 @@ function SessionContent() {
   ]);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const locationPingRef = useRef<NodeJS.Timeout | null>(null);
+  const updateCountRef = useRef(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -132,6 +134,10 @@ function SessionContent() {
         warmStreamRef.current = null;
       }
       if (videoRef.current) videoRef.current.srcObject = null;
+      if (locationPingRef.current) {
+        clearInterval(locationPingRef.current);
+        locationPingRef.current = null;
+      }
     };
   }, [session]);
 
@@ -183,7 +189,29 @@ function SessionContent() {
   useEffect(() => {
     if (session) captureLocation();
   }, [session, captureLocation]);
+    // ── Continuous location tracking after panic ───────────────────────
+  const startLocationTracking = useCallback(() => {
+    if (locationPingRef.current) return;
+    locationPingRef.current = setInterval(async () => {
+      try {
+        const loc = await getLocation();
+        if (!loc || !sessionId) return;
+        updateCountRef.current += 1;
+        await fetch('/api/showing-shield/location-update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId,
+            location: loc,
+            updateNumber: updateCountRef.current,
+          }),
+        });
+      } catch {}
+    }, 30000);
+  }, [sessionId]);
 
+  // ── Silent alert trigger ───────────────────────────────────────────
+  const triggerSilentAlert = useCallback(async () => {
   // ── Silent alert trigger ───────────────────────────────────────────
   const triggerSilentAlert = useCallback(async () => {
     if (alertSentRef.current) return;
@@ -210,6 +238,8 @@ function SessionContent() {
       }
       if (videoRef.current) videoRef.current.srcObject = null;
       setDebugLog((p) => [...p, '4. Calling panic API...']);
+	        startLocationTracking();
+      await fetch('/api/showing-shield/panic', {
       const res = await fetch('/api/showing-shield/panic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
