@@ -22,38 +22,20 @@ export async function POST(req: NextRequest) {
 
     const session = snap.data()!;
     const now = new Date().toISOString();
+    const timeStr = new Date(now).toLocaleString('en-US', { timeZone: 'America/New_York' });
     const mapsLink = location
       ? `https://maps.google.com/?q=${location.lat},${location.lng}`
       : null;
 
-    const photoHtml = Array.isArray(evidenceUrls) && evidenceUrls.length > 0
-      ? `
-        <h2 style="color:#cc0000;margin-top:32px;">Evidence Photos</h2>
-        <div style="display:flex;flex-wrap:wrap;gap:12px;">
-          ${evidenceUrls.map((url: string, i: number) => `
-            <a href="${url}" target="_blank">
-              <img src="${url}" alt="Evidence photo ${i + 1}"
-                style="width:200px;height:150px;object-fit:cover;border-radius:8px;border:2px solid #cc0000;" />
-            </a>
-          `).join('')}
-        </div>
-        <p style="margin-top:8px;font-size:12px;color:#666;">Click any photo to view full size</p>
-      `
-      : `<p style="color:#666;margin-top:24px;">No evidence photos captured.</p>`;
-
-    const emailHtml = `
+    const alertHtml = `
       <!DOCTYPE html>
       <html>
       <body style="font-family:system-ui,sans-serif;background:#f4f4f4;margin:0;padding:0;">
         <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;margin-top:24px;">
-          
           <div style="background:#cc0000;padding:24px 32px;">
-            <h1 style="color:#fff;margin:0;font-size:24px;letter-spacing:1px;">
-              SHOWING SHIELD
-            </h1>
+            <h1 style="color:#fff;margin:0;font-size:24px;letter-spacing:1px;">SHOWING SHIELD</h1>
             <p style="color:#ffcccc;margin:4px 0 0;font-size:14px;">EMERGENCY ALERT</p>
           </div>
-
           <div style="padding:32px;">
             <table style="width:100%;border-collapse:collapse;">
               <tr>
@@ -74,23 +56,19 @@ export async function POST(req: NextRequest) {
               </tr>
               <tr>
                 <td style="padding:10px 0;border-bottom:1px solid #eee;color:#666;font-size:14px;">Time</td>
-                <td style="padding:10px 0;border-bottom:1px solid #eee;font-weight:600;font-size:14px;">${new Date(now).toLocaleString('en-US', { timeZone: 'America/New_York' })}</td>
+                <td style="padding:10px 0;border-bottom:1px solid #eee;font-weight:600;font-size:14px;">${timeStr}</td>
               </tr>
               <tr>
                 <td style="padding:10px 0;color:#666;font-size:14px;">Location</td>
                 <td style="padding:10px 0;font-weight:600;font-size:14px;">${location ? location.address : 'Not available'}</td>
               </tr>
             </table>
-
             ${mapsLink ? `
               <a href="${mapsLink}" target="_blank"
                 style="display:inline-block;margin-top:24px;background:#cc0000;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">
                 View Live Location on Map
               </a>
             ` : ''}
-
-            ${photoHtml}
-
             <div style="margin-top:40px;padding-top:24px;border-top:1px solid #eee;">
               <p style="color:#999;font-size:12px;margin:0;">
                 This is an automated emergency alert from Showing Shield by GetReadyToPost.com.<br/>
@@ -103,6 +81,36 @@ export async function POST(req: NextRequest) {
       </html>
     `;
 
+    const hasPhotos = Array.isArray(evidenceUrls) && evidenceUrls.length > 0;
+
+    const photoHtml = hasPhotos ? `
+      <!DOCTYPE html>
+      <html>
+      <body style="font-family:system-ui,sans-serif;background:#f4f4f4;margin:0;padding:0;">
+        <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;margin-top:24px;">
+          <div style="background:#8b0000;padding:16px 32px;">
+            <h1 style="color:#fff;margin:0;font-size:18px;">SHOWING SHIELD - Evidence Photos</h1>
+            <p style="color:#ffcccc;margin:4px 0 0;font-size:12px;">${session.agentName} - ${session.propertyAddress}</p>
+          </div>
+          <div style="padding:32px;">
+            <p style="color:#333;font-size:14px;margin:0 0 16px;">
+              ${evidenceUrls.length} evidence photos captured at ${timeStr}
+            </p>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;">
+              ${evidenceUrls.map((url: string, i: number) => `
+                <a href="${url}" target="_blank">
+                  <img src="${url}" alt="Evidence photo ${i + 1}"
+                    style="width:200px;height:150px;object-fit:cover;border-radius:8px;border:2px solid #cc0000;" />
+                </a>
+              `).join('')}
+            </div>
+            <p style="margin-top:8px;font-size:12px;color:#666;">Click any photo to view full size</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    ` : '';
+
     const emailsSent: string[] = [];
 
     for (const contact of session.emergencyContacts || []) {
@@ -112,9 +120,20 @@ export async function POST(req: NextRequest) {
             from: 'Showing Shield <alerts@getreadytopost.com>',
             to: contact.email,
             subject: `EMERGENCY ALERT - ${session.agentName} - ${session.propertyAddress}`,
-            html: emailHtml,
+            html: alertHtml,
           });
           emailsSent.push(contact.email);
+
+          if (hasPhotos) {
+            try {
+              await resend.emails.send({
+                from: 'Showing Shield <alerts@getreadytopost.com>',
+                to: contact.email,
+                subject: `Evidence Photos - ${session.agentName} - ${session.propertyAddress}`,
+                html: photoHtml,
+              });
+            } catch {}
+          }
         } catch (emailErr) {
           console.error(`Email failed to ${contact.email}:`, emailErr);
         }
